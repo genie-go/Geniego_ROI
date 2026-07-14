@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
         "desc": "Für Großbetriebe mit Bedarf an einer individuellen Lösung.",
         "features": [
           "Alles aus Pro",
-          "Individuelles KI-Modelltraining",
+          "SSO (SAML) & SCIM-Auto-Provisioning",
           "Dedizierter Customer-Success-Manager",
-          "SLA 99,9 % Verfügbarkeitsgarantie",
+          "SLA 99,5 % Verfügbarkeitszusage (AGB §4)",
           "Unbegrenzte Teammitglieder",
           "Unbegrenzte API-Aufrufe",
           "Individuelle Integrationen & Webhooks",
-          "On-Premise-Bereitstellungssupport"
+          "SIEM-Log-Weiterleitung & Audit-Trail-Export"
         ],
         "notIncluded": []
       }
@@ -5922,7 +5922,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       "growth_l3": "Globale Kanäle (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "KI-Regel-Engine — Pro+",
       "growth_l5": "First-Party-Pixel · API-Schlüssel — Pro+",
-      "growth_l6": "SmartConnect ERP-Integration — Pro+",
+      "growth_l6": "SmartConnect Kanal-Integration — Pro+",
       "pro_tagline": "Pro-Tarif Tagline",
       "pro_headline": "Pro-Tarif",
       "pro_badge": "Pro_badge",
@@ -5947,7 +5947,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       "pro_s3i5": "Popup-A/B-Test · Auslöser-Einrichtung",
       "pro_s4": "Erweitertes WMS · Commerce-Erweiterung",
       "pro_s4i1": "Bestandsanpassung · Standortverwaltung · Barcode-Integration",
-      "pro_s4i2": "Monatliche Abrechnungsintegration · Steuerrechnung · Zahlungsgenehmigung",
+      "pro_s4i2": "Monatliche Abrechnungsintegration · Zahlungsgenehmigung",
       "pro_s4i3": "3PL hinzufügen · bearbeiten",
       "pro_s4i4": "Basis-Ansicht der Erfassungsprotokolle",
       "pro_s5": "KI-Regel-Engine · Automatisierung (neu)",

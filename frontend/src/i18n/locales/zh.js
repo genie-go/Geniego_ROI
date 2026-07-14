@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
         "desc": "适合需要大规模运营和定制构建的企业。",
         "features": [
           "包含专业版全部功能",
-          "定制AI模型训练",
+          "SSO(SAML)与SCIM自动预配",
           "专属客户成功经理",
-          "SLA 99.9%可用性保证",
+          "SLA 99.5%可用性保证(条款第4条)",
           "无限团队成员",
           "无限API调用",
           "定制集成与Webhook",
-          "本地化部署支持"
+          "SIEM审计日志对接与审计留痕导出"
         ],
         "notIncluded": []
       }
@@ -7702,7 +7702,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
       "growth_l3": "全球渠道（WhatsApp·LINE·DM）— Pro+",
       "growth_l4": "AI 规则引擎 — Pro+",
       "growth_l5": "第一方像素·API 密钥 — Pro+",
-      "growth_l6": "SmartConnect ERP 集成 — Pro+",
+      "growth_l6": "SmartConnect 渠道集成 — Pro+",
       "pro_tagline": "专业版套餐标语",
       "pro_headline": "专业版套餐",
       "pro_badge": "Pro_badge",
@@ -7727,7 +7727,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
       "pro_s3i5": "弹窗 A/B 测试·触发器设置",
       "pro_s4": "高级 WMS·电商扩展",
       "pro_s4i1": "库存调整·位置管理·条码集成",
-      "pro_s4i2": "月度结算集成·税务发票·付款审批",
+      "pro_s4i2": "月度结算集成·付款审批",
       "pro_s4i3": "3PL 添加·修改",
       "pro_s4i4": "采集日志基础视图",
       "pro_s5": "AI 规则引擎·自动化（新增）",

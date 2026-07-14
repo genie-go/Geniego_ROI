@@ -503,6 +503,11 @@ class PriceOpt
                             ->execute([$tenant, 'Inbound', $whId, '', $sk, $nm, $qty, '', '', 'INIT-' . $sk . '-' . $whId, '상품등록 초기재고', $now]);
                     } catch (\Throwable $e3) { /* wms_movements 미존재 등 — best-effort(재고엔 무영향) */ }
                 }
+                // [283차 R2 P2] ★이 경로는 recordMovement(재고 chokepoint)를 우회해 wms_stock 에 직접 쓴다
+                //   (위 주석이 자인하듯 applyMovementToStock 미호출) → 283차의 채널 재고 델타 훅이 발화하지 않는다.
+                //   훅을 여기서 명시 호출해 chokepoint 에 편입한다. 채널 미등록 SKU 면 내부 가드로 즉시 0 반환(무비용).
+                try { \Genie\Handlers\Wms::enqueueChannelStockSync($tenant, $sk, 'product_save'); }
+                catch (\Throwable $e4) { /* best-effort — 상품저장에 영향 없음 */ }
             }
         } catch (\Throwable $e) { /* WMS 반영 실패는 상품저장에 영향 없음 */ }
     }

@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
         "desc": "Para operaciones a gran escala que requieren una solución a medida.",
         "features": [
           "Todo lo de Pro",
-          "Entrenamiento de modelos de IA personalizados",
+          "SSO (SAML) y aprovisionamiento automático SCIM",
           "Gerente de éxito del cliente dedicado",
-          "Garantía de disponibilidad SLA 99,9 %",
+          "Compromiso de disponibilidad SLA 99,5 % (Términos §4)",
           "Miembros del equipo ilimitados",
           "Llamadas API ilimitadas",
           "Integraciones y webhooks personalizados",
-          "Soporte de despliegue On-Premise"
+          "Reenvío de registros a SIEM y exportación de auditoría"
         ],
         "notIncluded": []
       }
@@ -5940,7 +5940,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
       "growth_l3": "Canales globales (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "Motor de reglas de IA — Pro+",
       "growth_l5": "Píxel propio · claves de API — Pro+",
-      "growth_l6": "Integración ERP de SmartConnect — Pro+",
+      "growth_l6": "Integración de canales de SmartConnect — Pro+",
       "pro_tagline": "Eslogan del plan Pro",
       "pro_headline": "Plan Pro",
       "pro_badge": "Pro_badge",
@@ -5965,7 +5965,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
       "pro_s3i5": "Test A/B de pop-ups · configuración de disparadores",
       "pro_s4": "WMS avanzado · expansión de comercio",
       "pro_s4i1": "Ajuste de inventario · gestión de ubicaciones · integración de código de barras",
-      "pro_s4i2": "Integración de liquidación mensual · facturas fiscales · aprobación de pagos",
+      "pro_s4i2": "Integración de liquidación mensual · aprobación de pagos",
       "pro_s4i3": "Añadir · editar 3PL",
       "pro_s4i4": "Vista básica de registros de recopilación",
       "pro_s5": "Motor de reglas de IA · automatización (nuevo)",

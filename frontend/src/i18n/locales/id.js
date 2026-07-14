@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
         "desc": "Untuk operasi skala besar yang memerlukan pembangunan khusus.",
         "features": [
           "Semua di Pro",
-          "Pelatihan model AI khusus",
+          "SSO (SAML) & penyediaan otomatis SCIM",
           "Manajer kesuksesan pelanggan khusus",
-          "Jaminan SLA uptime 99,9%",
+          "Komitmen SLA uptime 99,5% (Ketentuan §4)",
           "Anggota tim tak terbatas",
           "Panggilan API tak terbatas",
           "Integrasi & Webhook khusus",
-          "Dukungan deployment On-Premise"
+          "Penerusan log SIEM & ekspor jejak audit"
         ],
         "notIncluded": []
       }
@@ -3555,7 +3555,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       "growth_l3": "Channel Global (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "Rule Engine AI — Pro+",
       "growth_l5": "Pixel First-Party · API Key — Pro+",
-      "growth_l6": "Integrasi ERP SmartConnect — Pro+",
+      "growth_l6": "Integrasi Kanal SmartConnect — Pro+",
       "pro_tagline": "Tagline Paket Pro",
       "pro_headline": "Paket Pro",
       "pro_badge": "Pro_badge",
@@ -3580,7 +3580,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       "pro_s3i5": "Tes A/B Popup · Pengaturan Pemicu",
       "pro_s4": "WMS Lanjutan · Ekspansi Commerce",
       "pro_s4i1": "Penyesuaian Stok · Manajemen Lokasi · Integrasi Barcode",
-      "pro_s4i2": "Integrasi Penyelesaian Bulanan · Faktur Pajak · Persetujuan Pembayaran",
+      "pro_s4i2": "Integrasi Penyelesaian Bulanan · Persetujuan Pembayaran",
       "pro_s4i3": "Tambah 3PL · Edit",
       "pro_s4i4": "Tampilan Dasar Log Pengumpulan",
       "pro_s5": "Rule Engine AI & Otomatisasi (Baru)",

@@ -438,7 +438,10 @@ const PAID_PLANS = [
       { emoji: "👥", text: "Unlimited accounts · Multi-brand unified management" },
       { emoji: "🛡", text: "Dedicated CS & Tech support team" },
       { emoji: "📄", text: "Custom contracts · SLA guarantee · Dedicated infrastructure" },
-      { emoji: "🏢", text: "ERP integration · Multi-country · Multi-entity financial settlement" },
+      // [283차 R2 정직성] "ERP integration" 삭제 — 부재증명: `\berp\b` → backend 0건, 프론트에도 ERP 커넥터
+      //   구현이 없다(planServiceGuide.js 의 안내문구 1건이 전부 = 마케팅 카피끼리의 순환참조).
+      //   실재하는 Enterprise 전용 기능(EnterpriseAuth SSO/SCIM · Compliance 감사증적/SIEM)으로 교체.
+      { emoji: "🏢", text: "SSO (SAML) · SCIM provisioning · Audit-trail export & SIEM forwarding" },
     ],
     notIncluded: [],
   },

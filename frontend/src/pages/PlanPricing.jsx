@@ -91,15 +91,20 @@ const SEED_PLANS = [
     // Pro — 풀 운영 자동화(1계정 $399). +WMS/가격최적화/공급망/라이브/자동화/데이터.
     plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
     description: '풀 운영 자동화 · 1계정 $399 기준',
-    // [283차 정직성] '상업 송장 자동'은 코드 부재(commercial_invoice → 0건) → 실제 구현분(DataExport)으로 정정.
-    features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·데이터 내보내기', '계정 수 선택', '우선 지원 (8시간 내)'],
+    // [283차 R2 정정의 정정] '상업 송장 자동 생성'은 **실재 기능**이다 — WmsManager.jsx:1289 InvoiceTab
+    //   (INCOTERMS 10종·HS코드·품목표·COMMERCIAL INVOICE 인쇄 출력). 클라이언트 생성이라 백엔드가 없을 뿐이며,
+    //   283차가 "backend grep 0건"만 보고 허위로 오판해 삭제했던 것을 복구한다(263차 뷰스루 오판과 동일 클래스).
+    features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·데이터 내보내기·국제 특송 상업 송장', '계정 수 선택', '우선 지원 (8시간 내)'],
     limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 49 },
     price_usd: 399, price_annual_usd: 319,
   },
   {
     plan_id: 'enterprise', name: 'Enterprise', display_order: 40, is_active: true, is_custom_quote: true,
     description: '대규모 운영 · 맞춤 통합 (1계정 $1,500~ / 별도견적)',
-    features: ['Pro 플랜 전체 기능', '개발자 허브(API/웹훅/데이터 익스포트)', 'SSO/SCIM·화이트라벨', '맞춤 AI 모델 학습', '전담 계정 매니저·99.9% SLA', '계정 수 무제한', '맞춤 통합 & 웹훅'],
+    // [283차 R2 정직성] '맞춤 AI 모델 학습' 제거(부재증명: custom_model|model_training|trainModel → backend 0건.
+    //   CustomerAI 는 고정 모델의 성능 조회일 뿐 고객별 학습 경로 없음) → 실재하는 감사증적/SIEM 으로 교체.
+    //   '99.9% SLA' → 99.5%(가동률 실측 부재 + 이용약관 제4조③ 99.5% 와 모순 → 약관값으로 통일).
+    features: ['Pro 플랜 전체 기능', '개발자 허브(API/웹훅/데이터 익스포트)', 'SSO/SCIM·화이트라벨', 'SIEM 감사로그 연동·감사 증적 내보내기', '전담 계정 매니저·99.5% SLA', '계정 수 무제한', '맞춤 통합 & 웹훅'],
     limits: { channels: -1, orders_monthly: -1, products: -1, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: -1 },
     price_usd: 1500, price_annual_usd: 1200,
   },

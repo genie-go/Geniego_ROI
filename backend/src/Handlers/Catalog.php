@@ -569,6 +569,7 @@ class Catalog
         if (!is_array($items) || !$items) return self::jsonRes($res, ['ok' => false, 'error' => 'items required'], 400);
         $now = self::now();
         $updated = 0;
+        $rejected = []; // [283차 R2 P0-3] 0원/음수로 거부된 항목(사용자에게 그대로 돌려준다 — 조용한 무시 금지).
         $changed = []; // [227차 Tier2] 실제 갱신된 (channel,sku,price) — 커밋 후 채널 writeback enqueue 용.
         $pdo->beginTransaction();
         try {
@@ -580,6 +581,9 @@ class Catalog
                 $sk = (string)($it['sku'] ?? '');
                 if ($sk === '') continue;
                 $newP = (float)($it['price'] ?? 0);
+                // [283차 R2 P0-3] ★0원 가드 — 일괄 가격 수정은 price<=0 검사가 **전무**했다. 0 이 들어오면
+                //   catalog_listing.price 가 0 으로 영속되고(복구 불가) 그 값이 그대로 채널로 push 된다.
+                if ($newP <= 0) { $rejected[] = ['channel' => $ch, 'sku' => $sk, 'price' => $newP, 'reason' => '판매가는 0보다 커야 합니다']; continue; }
                 // [현 차수 P3] ★와일드카드 채널('*'/'all'/빈값) 팬아웃 — 기존엔 channel='all' 리터럴로 UPDATE 해
                 //   실제 채널행(coupang/naver…)과 0행 매칭 = PriceOpt 전채널 최적가 적용이 완전 no-op 이었다.
                 //   해당 SKU 의 전 채널 리스팅을 조회해 각각 갱신(writeback enqueue 도 채널별로 이어진다).
@@ -624,8 +628,12 @@ class Catalog
             try { $pushed = self::processWritebackQueue($pdo, $tenant, null, 200); }
             catch (\Throwable $e) { /* 큐는 남아 cron/재호출로 재개 */ }
         }
-        Db::audit($pdo, $tenant, 'catalog.bulk_price', ['updated'=>$updated, 'enqueued'=>$enqueued, 'changed'=>count($changed)]); // 감사: 일괄 가격변경
-        return self::jsonRes($res, ['ok' => true, 'updated' => $updated, 'enqueued' => $enqueued, 'pushed' => $pushed]);
+        Db::audit($pdo, $tenant, 'catalog.bulk_price', ['updated'=>$updated, 'enqueued'=>$enqueued, 'changed'=>count($changed), 'rejected'=>count($rejected)]); // 감사: 일괄 가격변경
+        return self::jsonRes($res, [
+            'ok' => true, 'updated' => $updated, 'enqueued' => $enqueued, 'pushed' => $pushed,
+            'rejected' => $rejected,   // [283차 R2 P0-3] 0원 이하로 거부된 항목
+            'error' => $rejected ? (count($rejected) . '개 항목의 판매가가 0원 이하여서 적용하지 않았습니다(기존 가격 유지).') : null,
+        ]);
     }
 
     /* GET /catalog/listings — 테넌트 등록 리스팅 조회 */
@@ -699,10 +707,17 @@ class Catalog
             $dec = json_decode((string)$existing['images_json'], true);
             if (is_array($dec)) $images = array_values(array_filter(array_map('strval', $dec), static fn($u) => $u !== ''));
         }
+        // [283차 R2 P0-3] ★0원 영속 파괴 차단 — 종전엔 body 의 price=0(빈 폼·부분 payload·리프라이서 버그)이
+        //   기존 정상가를 그대로 덮어썼다(catalog_listing.price=0 → 이후 모든 writeback 이 채널에 0원을 push).
+        //   채널 판매가 0 원은 대부분의 어댑터가 무방비로 통과시키고(11번가/쿠팡/ESM), 원래 가격은 복구 불가다.
+        //   유효한 양수만 반영하고, 그 외에는 **기존값을 보존**한다(무회귀 — 정상 가격 변경은 그대로 동작).
+        //   ※재고(inventory)는 0 이 정당한 값(품절)이므로 이 가드를 걸지 않는다.
+        $priceIn = array_key_exists('price', $body) ? $body['price'] : null;
+        $priceOk = ($priceIn !== null && $priceIn !== '' && is_numeric($priceIn) && (float)$priceIn > 0);
         return [
             'name'      => ($name !== null && $name !== '') ? (string)$name : (string)($existing['name'] ?? ''),
             'category'  => array_key_exists('category', $body) ? (string)$body['category'] : (string)($existing['category'] ?? ''),
-            'price'     => array_key_exists('price', $body) ? $body['price'] : ($existing['price'] ?? 0),
+            'price'     => $priceOk ? $priceIn : ($existing['price'] ?? 0),
             'inventory' => array_key_exists('inventory', $body) ? $body['inventory'] : ($existing['inventory'] ?? 0),
             'spec'      => array_key_exists('spec', $body) ? (string)$body['spec'] : (string)($existing['spec'] ?? ''),
             'detail_html' => array_key_exists('detail_html', $body) ? (string)$body['detail_html'] : (string)($existing['detail_html'] ?? ''),
@@ -983,50 +998,192 @@ class Catalog
         return $out;
     }
 
+    /** [283차 R2] Shopify Admin API base + 인증 헤더. 자격증명 미비 시 null. */
+    private static function shopifyApi(array $creds): ?array
+    {
+        $token = (string)($creds['access_token'] ?? $creds['api_password'] ?? '');
+        $shop  = rtrim((string)($creds['shop_domain'] ?? ''), '/');
+        if ($shop === '' || $token === '') return null;
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        return ["https://{$shop}/admin/api/2024-01", ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json']];
+    }
+
+    /**
+     * [283차 R2] 상품의 variant 목록에서 우리 SKU 에 해당하는 variant 를 찾는다.
+     *   ★가격/재고를 쓰려면 variant **id**(및 inventory_item_id)가 필수다. 이걸 확보하지 못하면 쓰지 않는다
+     *     — 추측으로 id 없는 variants 배열을 보내면 Shopify 가 기존 variant 를 대체·삭제한다(P0-2 의 근원).
+     *   SKU 일치가 원칙. 일치가 없고 variant 가 정확히 1개면 그 하나(SKU 미기입 단일상품)를 쓴다.
+     *   다중 variant 인데 SKU 일치가 없으면 **null** → 호출부가 정직하게 실패/경고 처리(임의 선택 금지).
+     */
+    private static function shopifyVariant(array $creds, string $productId, string $sku): ?array
+    {
+        $api = self::shopifyApi($creds);
+        if ($api === null || $productId === '') return null;
+        [$base, $headers] = $api;
+        [$code, $resp] = self::httpReq('GET', "{$base}/products/" . rawurlencode($productId) . ".json?fields=id,variants", $headers, null);
+        if ($code < 200 || $code >= 300) return null;
+        $vs = json_decode((string)$resp, true)['product']['variants'] ?? [];
+        if (!is_array($vs) || !$vs) return null;
+        if ($sku !== '') {
+            foreach ($vs as $v) { if ((string)($v['sku'] ?? '') === $sku) return (array)$v; }
+        }
+        return (count($vs) === 1) ? (array)$vs[0] : null;
+    }
+
+    /**
+     * [283차 R2 P0-1] Shopify 재고 전용 푸시(실구현).
+     *   ★Admin REST 2024-01 에서 `variants[].inventory_quantity` 는 **read-only** 다 — 상품 upsert 로는
+     *     재고가 절대 바뀌지 않는다(그런데 200 이 온다 = 가짜 성공). 재고는 InventoryLevel 로만 쓴다:
+     *       ① GET /products/{id}.json?fields=variants        → SKU 매칭 variant 의 inventory_item_id
+     *       ② GET /inventory_levels.json?inventory_item_ids= → 그 아이템이 연결된 location_id
+     *       ③ POST /inventory_levels/set.json {location_id, inventory_item_id, available}
+     *   ★다중 location: 같은 수량을 여러 location 에 set 하면 총 가용재고가 배로 뻥튀기된다.
+     *     자격증명 location_id 가 없고 location 이 2곳 이상이면 **정직하게 실패**시킨다(임의 선택 금지).
+     *   ★가격을 전혀 보내지 않는다(P0-3 구조적 면역).
+     */
+    private static function shopifyStock(array $creds, string $sku, int $qty, ?string $channelProductId): array
+    {
+        $api = self::shopifyApi($creds);
+        if ($api === null) return ['ok' => false, 'error' => 'Shopify: shop_domain/access_token 미설정'];
+        if ($channelProductId === null || $channelProductId === '') {
+            return ['ok' => false, 'pending' => true, 'status' => 'no-channel-product-id', 'error' => 'Shopify 재고: 채널 상품 id 없음 — 상품 등록 후 자동 동기화'];
+        }
+        [$base, $headers] = $api;
+        $qty = max(0, $qty);
+
+        $v = self::shopifyVariant($creds, $channelProductId, $sku);
+        if ($v === null) {
+            return ['ok' => false, 'error' => "Shopify 재고: 상품 {$channelProductId} 에서 SKU '{$sku}' 에 해당하는 variant 를 찾지 못했습니다(옵션 상품이면 Shopify 에서 variant SKU 를 우리 SKU 와 일치시켜 주세요)."];
+        }
+        $iid = (string)($v['inventory_item_id'] ?? '');
+        if ($iid === '') return ['ok' => false, 'error' => 'Shopify 재고: inventory_item_id 를 확보하지 못했습니다'];
+        if ((string)($v['inventory_management'] ?? '') !== 'shopify') {
+            return ['ok' => false, 'error' => "Shopify 재고: 이 variant 는 재고 추적(inventory_management=shopify)이 꺼져 있어 재고를 쓸 수 없습니다. Shopify 관리자에서 '재고 추적'을 켜 주세요."];
+        }
+
+        [$lc, $lr] = self::httpReq('GET', "{$base}/inventory_levels.json?inventory_item_ids=" . rawurlencode($iid), $headers, null);
+        if ($lc < 200 || $lc >= 300) return ['ok' => false, 'error' => "Shopify inventory_levels 조회 HTTP {$lc}", 'body' => mb_substr((string)$lr, 0, 200)];
+        $levels = json_decode((string)$lr, true)['inventory_levels'] ?? [];
+        if (!is_array($levels) || !$levels) return ['ok' => false, 'error' => 'Shopify 재고: 이 상품이 연결된 location 이 없습니다(Shopify 관리자에서 재고 위치를 연결하세요)'];
+
+        $wantLoc = trim((string)($creds['location_id'] ?? ''));
+        $loc = '';
+        if ($wantLoc !== '') {
+            foreach ($levels as $lv) { if ((string)($lv['location_id'] ?? '') === $wantLoc) { $loc = $wantLoc; break; } }
+            if ($loc === '') return ['ok' => false, 'error' => "Shopify 재고: 자격증명의 location_id({$wantLoc}) 가 이 상품에 연결되어 있지 않습니다"];
+        } elseif (count($levels) === 1) {
+            $loc = (string)($levels[0]['location_id'] ?? '');
+        } else {
+            return ['ok' => false, 'error' => 'Shopify 재고: 재고 위치가 ' . count($levels) . '곳입니다 — 어느 위치에 반영할지 알 수 없어 전송하지 않았습니다. 채널 자격증명에 location_id 를 지정하세요(임의 위치에 쓰면 총 가용재고가 부풀려집니다).'];
+        }
+        if ($loc === '') return ['ok' => false, 'error' => 'Shopify 재고: location_id 확보 실패'];
+
+        $body = json_encode(['location_id' => (int)$loc, 'inventory_item_id' => (int)$iid, 'available' => $qty]);
+        [$sc, $sr] = self::httpReq('POST', "{$base}/inventory_levels/set.json", $headers, $body);
+        if ($sc >= 200 && $sc < 300) {
+            return ['ok' => true, 'op' => 'stock_sync', 'channel_product_id' => (string)$channelProductId, 'inventory' => $qty, 'location_id' => $loc];
+        }
+        return ['ok' => false, 'error' => "Shopify 재고 set HTTP {$sc}", 'body' => mb_substr((string)$sr, 0, 200)];
+    }
+
+    /**
+     * [283차 R2 P0-2] Shopify 가격 전용 푸시 — variant **전용** 엔드포인트(PUT /variants/{id}.json).
+     *   상품 PUT 의 variants 배열은 "대체(replace)" 시맨틱이라 절대 쓰지 않는다. 가격은 여기서만 바꾼다.
+     *   0원 이하는 전송 자체를 거부한다(P0-3 — 기존 정상가 파괴 방지).
+     */
+    private static function shopifyVariantPrice(array $creds, string $productId, string $sku, float $price): array
+    {
+        if ($price <= 0) return ['ok' => false, 'error' => '0원 이하 판매가는 전송하지 않습니다'];
+        $api = self::shopifyApi($creds);
+        if ($api === null) return ['ok' => false, 'error' => 'Shopify 자격증명 미설정'];
+        [$base, $headers] = $api;
+        $v = self::shopifyVariant($creds, $productId, $sku);
+        if ($v === null || empty($v['id'])) return ['ok' => false, 'error' => "SKU '{$sku}' variant 미발견(옵션 상품은 Shopify 에서 variant SKU 를 일치시켜 주세요)"];
+        $vid = (string)$v['id'];
+        $body = json_encode(['variant' => ['id' => (int)$vid, 'price' => (string)round($price, 2)]]);
+        [$c, $r] = self::httpReq('PUT', "{$base}/variants/{$vid}.json", $headers, $body);
+        if ($c >= 200 && $c < 300) return ['ok' => true, 'variant_id' => $vid, 'price' => $price];
+        return ['ok' => false, 'error' => "HTTP {$c} " . mb_substr((string)$r, 0, 150)];
+    }
+
     private static function shopifyWrite(array $creds, array $p, string $operation, ?string $channelProductId): array
     {
-        $token = $creds['access_token'] ?? $creds['api_password'] ?? '';
-        $shop  = rtrim((string)($creds['shop_domain'] ?? ''), '/');
-        if ($shop === '' || $token === '') return ['ok' => false, 'error' => 'shop_domain/access_token 미설정'];
-        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
-        $headers = ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json'];
+        $api = self::shopifyApi($creds);
+        if ($api === null) return ['ok' => false, 'error' => 'shop_domain/access_token 미설정'];
+        [$base, $headers] = $api;
+        $sku = (string)($p['sku'] ?? '');
 
         if ($operation === 'unregister' || ($p['action'] ?? '') === 'unregister') {
             if ($channelProductId === null) return ['ok' => true, 'note' => '미등록 상품 — 해제 불요'];
-            [$code] = self::httpReq('DELETE', "https://{$shop}/admin/api/2024-01/products/{$channelProductId}.json", $headers, null);
+            [$code] = self::httpReq('DELETE', "{$base}/products/{$channelProductId}.json", $headers, null);
             return ($code >= 200 && $code < 300) ? ['ok' => true, 'deleted' => $channelProductId] : ['ok' => false, 'error' => "Shopify DELETE HTTP {$code}"];
         }
+
+        // [283차 R2 P0-3] 0원 가드 — 판매가가 0/음수면 채널을 아예 부르지 않는다.
+        $price = (float)($p['price'] ?? 0);
+        if ($price <= 0) return ['ok' => false, 'error' => 'Shopify: 판매가는 0보다 커야 합니다(0원 전송 차단 — 채널의 기존 판매가를 파괴할 수 있습니다).'];
 
         // [277차] 종전엔 body_html 에 spec(규격 한 줄)만 넣고 이미지는 아예 보내지 않아, Shopify 에 등록된 상품이
         //   이미지 없는 빈 상세로 올라갔다(네이버와 동일 결함 클래스). 상세HTML 우선 + 이미지 전송.
         $bodyHtml = (string)($p['detail_html'] ?? '');
         if ($bodyHtml === '') $bodyHtml = (string)($p['spec'] ?? '');
         $product = [
-            'title'        => (string)($p['name'] ?? $p['sku'] ?? ''),
+            'title'        => (string)($p['name'] ?? $sku),
             'body_html'    => $bodyHtml,
             'product_type' => (string)($p['category'] ?? ''),
             'status'       => 'active',
-            'variants'     => [[
-                'price'                => (string)(float)($p['price'] ?? 0),
-                'sku'                  => (string)($p['sku'] ?? ''),
-                'inventory_quantity'   => (int)($p['inventory'] ?? 0),
-                'inventory_management' => 'shopify',
-            ]],
         ];
         $imgs = self::shopifyImages($p);
         if ($imgs) $product['images'] = $imgs;
-        if ($channelProductId !== null) {
+
+        if ($channelProductId !== null && $channelProductId !== '') {
+            /* ═══ [283차 R2 P0-2] ★상품 수정(PUT)에는 variants 를 **절대** 싣지 않는다 ═══
+               Shopify Admin REST 는 PUT /products/{id} 의 `variants` 배열을 기존 variant 집합의 **대체**로
+               처리한다 — 배열에 없는 variant 는 삭제되고, id 가 없는 항목은 신규 variant 로 생성된다.
+               종전 코드는 **id 없는 variant 1개**를 보냈다 → 사이즈/색상 옵션이 있는 상품이 단일 variant 로
+               뭉개지며 기존 variant(및 그에 달린 재고·바코드·주문 연결)가 통째로 소멸할 수 있었다.
+               ★폭발반경: priorChannelProductId 가 channel_products 로 폴백하므로 PUT 대상에는
+                 **셀러가 Shopify 에서 직접 만든 상품**이 포함되고, 283차가 이 PUT 을 재고이동마다 자동 발화시켰다.
+               ★복구 불가한 고객 데이터 손실이므로, 안전한 쪽(미전송)을 택한다.
+                 가격 → PUT /variants/{variant_id}.json (전용·id 포함)
+                 재고 → POST /inventory_levels/set.json (전용)                                        */
             $body = json_encode(['product' => array_merge(['id' => (int)$channelProductId], $product)], JSON_UNESCAPED_UNICODE);
-            [$code, $resp] = self::httpReq('PUT', "https://{$shop}/admin/api/2024-01/products/{$channelProductId}.json", $headers, $body);
-        } else {
-            [$code, $resp] = self::httpReq('POST', "https://{$shop}/admin/api/2024-01/products.json", $headers, json_encode(['product' => $product], JSON_UNESCAPED_UNICODE));
+            [$code, $resp] = self::httpReq('PUT', "{$base}/products/{$channelProductId}.json", $headers, $body);
+            if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+            $res = ['ok' => true, 'channel_product_id' => (string)$channelProductId];
+            $warn = [];
+            // 가격 — variant 전용 경로. 실패해도 상품 수정 자체는 성공이므로 경고로 노출(조용한 누락 금지).
+            $pv = self::shopifyVariantPrice($creds, (string)$channelProductId, $sku, $price);
+            if (!empty($pv['ok'])) $res['price_updated'] = true;
+            else $warn[] = 'Shopify 가격 반영 실패: ' . (string)($pv['error'] ?? '');
+            // 재고 — inventory_levels 전용 경로. 값이 실려 있을 때만.
+            if (array_key_exists('inventory', $p) && $p['inventory'] !== null && $p['inventory'] !== '') {
+                $sv = self::shopifyStock($creds, $sku, (int)$p['inventory'], (string)$channelProductId);
+                if (!empty($sv['ok'])) $res['inventory_updated'] = true;
+                else $warn[] = 'Shopify 재고 반영 실패: ' . (string)($sv['error'] ?? '');
+            }
+            if ($warn) $res['warning'] = implode(' / ', $warn);
+            return $res;
         }
-        if ($code >= 200 && $code < 300) {
-            $d = json_decode((string)$resp, true);
-            $pid = isset($d['product']['id']) ? (string)$d['product']['id'] : $channelProductId;
-            return ['ok' => true, 'channel_product_id' => $pid];
+
+        // ── 신규 등록(POST) — 기존 variant 가 없으므로 variants 전송이 안전하다(파괴 위험 0).
+        //   ★inventory_quantity 는 2019-10 이후 read-only(무시된다). 등록 직후 inventory_levels/set 으로 실제 수량을 쓴다.
+        $product['variants'] = [[
+            'price'                => (string)round($price, 2),
+            'sku'                  => $sku,
+            'inventory_management' => 'shopify',
+        ]];
+        [$code, $resp] = self::httpReq('POST', "{$base}/products.json", $headers, json_encode(['product' => $product], JSON_UNESCAPED_UNICODE));
+        if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+        $d = json_decode((string)$resp, true);
+        $pid = isset($d['product']['id']) ? (string)$d['product']['id'] : null;
+        $res = ['ok' => true, 'channel_product_id' => $pid];
+        if ($pid !== null && array_key_exists('inventory', $p) && (int)$p['inventory'] > 0) {
+            $sv = self::shopifyStock($creds, $sku, (int)$p['inventory'], $pid);
+            if (!empty($sv['ok'])) $res['inventory_updated'] = true;
+            else $res['warning'] = 'Shopify 초기 재고 반영 실패(상품은 등록됨): ' . (string)($sv['error'] ?? '');
         }
-        return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+        return $res;
     }
 
     /** 채널 쓰기 어댑터 디스패치. 미구현 채널은 pending(큐 유지 → 어댑터 추가 시 자동 처리). */
@@ -1034,12 +1191,42 @@ class Catalog
     {
         switch (strtolower($channel)) {
             case 'shopify':
+                // [283차 R2 P0-3] ★Shopify 는 ChannelSync::pushProduct 를 타지 않아 **전송 전 계약검사(preflight)가
+                //   한 번도 걸리지 않았다** — 0원 판매가·필수항목 누락이 그대로 채널에 도달하던 유일한 구멍.
+                //   다른 채널과 동일하게 계약검사를 통과해야만 어댑터를 부른다.
+                $pre = ChannelContract::preflight($channel, $product, ($channelProductId === null || $channelProductId === '') ? 'register' : 'update');
+                if (!$pre['ok']) return ['ok' => false, 'error' => $pre['error'], 'missing' => $pre['missing'], 'preflight' => true];
                 return self::shopifyWrite($creds, $product, $operation, $channelProductId);
             // [227차] cafe24/coupang/naver 등은 ChannelSync 쓰기 어댑터로 위임(검증된 인증 재사용).
             //   ChannelSync 미지원 채널은 pending 반환 → 큐 유지(어댑터 추가 시 자동 소비).
             default:
                 return ChannelSync::pushProduct($channel, $creds, $product, $operation, $channelProductId);
         }
+    }
+
+    /**
+     * [283차 R2 P0-1] 재고 **전용** 디스패치 — 상품 전체 upsert 를 절대 타지 않는다.
+     *   Shopify 만 Catalog 소관(자격증명 규약이 여기 있다), 나머지는 ChannelSync::pushStock.
+     *   재고 전용 어댑터가 없는 채널은 honest pending → 호출부가 큐에 보존한다(done 마감 금지).
+     *   @param array $p ['sku','inventory'] — 가격/상세/이미지는 **의도적으로** 실리지 않는다.
+     */
+    private static function pushStockToChannel(string $channel, array $creds, array $p, ?string $channelProductId): array
+    {
+        $ch = strtolower(trim($channel));
+        if ($ch === 'shopify') return self::shopifyStock($creds, (string)($p['sku'] ?? ''), (int)($p['inventory'] ?? 0), $channelProductId);
+        return ChannelSync::pushStock($ch, $creds, $p, $channelProductId);
+    }
+
+    /** [283차 R2] 재고 전용 실전송 경로를 보유한 채널 전체(Catalog 소관 + ChannelSync 소관). 보류잡 부활·크론 로그의 SSOT. */
+    public static function stockAdapterChannels(): array
+    {
+        return array_values(array_unique(array_merge(['shopify'], ChannelSync::STOCK_ADAPTERS)));
+    }
+
+    /** [283차 R2] 이 채널이 재고 전용 실전송 경로를 갖고 있는가(크론 로그/보고용). */
+    public static function hasStockAdapter(string $channel): bool
+    {
+        return in_array(strtolower(trim($channel)), self::stockAdapterChannels(), true);
     }
 
     /** 현재 catalog_listing 한 행을 product 배열로 로드(부분 payload 손실 방지). */
@@ -1114,15 +1301,44 @@ class Catalog
         // [277차] 동기 전송은 자기가 만든 잡만 처리한다(다른 상품의 잡을 집어 엉뚱한 결과를 반환하던 문제).
         if ($onlyJobId !== null) { $where .= " AND id=?"; $params[] = $onlyJobId; }
         $sum = ['processed' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
+        $now = self::now();
+        // ── 큐 하우스키핑 — 배치/크론 모드에서만 돈다($onlyJobId 가 있는 동기 전송 경로는 사용자 응답 대기 중이라
+        //    테이블 전체 UPDATE 를 태우지 않는다. 하우스키핑은 어차피 크론이 10분마다 수행한다).
+        if ($onlyJobId === null) {
+            // [283차 R2 P1-4] 크래시한 워커가 남긴 'processing' 잡 회수(10분 초과) — 영구 스턱 방지.
+            try {
+                $pdo->prepare("UPDATE catalog_writeback_job SET status='queued', updated_at=? WHERE status='processing' AND updated_at < ?")
+                    ->execute([$now, gmdate('Y-m-d H:i:s', time() - 600)]);
+            } catch (\Throwable $e) { /* best-effort */ }
+            // [283차 R2 P0-1] ★재고 보류잡 자동 부활 — 재고 전용 어댑터를 **지금** 보유한 채널의 'pending' 잡을 되살린다.
+            //   어댑터가 코드에 추가되는 순간(상수 목록 확장) 다음 회차에 큐로 복귀해 자동 전송된다 = 잡 유실 0.
+            //   어댑터가 아직 없는 채널의 잡은 'pending' 에 머물러 큐 기아를 만들지 않는다(스캔 비용 0).
+            try {
+                $live = self::stockAdapterChannels();
+                if ($live) {
+                    $ph = implode(',', array_fill(0, count($live), '?'));
+                    $pdo->prepare("UPDATE catalog_writeback_job SET status='queued', updated_at=? WHERE status='pending' AND operation='stock_sync' AND LOWER(channel) IN ($ph)")
+                        ->execute(array_merge([$now], $live));
+                }
+            } catch (\Throwable $e) { /* best-effort */ }
+        }
         try {
             $st = $pdo->prepare("SELECT id,tenant_id,channel,sku,operation,payload,attempt FROM catalog_writeback_job WHERE $where ORDER BY id ASC LIMIT " . (int)$limit);
             $st->execute($params);
             $jobs = $st->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return $sum; }
 
-        $now = self::now();
         $upd = $pdo->prepare("UPDATE catalog_writeback_job SET status=?, result=?, attempt=?, updated_at=? WHERE id=?");
+        // [283차 R2 P1-4] ★잡 선점(CAS) — 이 큐의 소비자는 3개다(writeback_cron / stock_sync_cron / ChannelCreds
+        //   등록훅·수동 플러시). SELECT~UPDATE 사이가 무방비라 두 워커가 같은 잡을 집으면 **채널에 같은 요청이
+        //   2회** 나간다(재고 중복 push·중복 등록). 조건부 UPDATE 의 affected rows 로 소유권을 판정한다
+        //   (FOR UPDATE/SKIP LOCKED 불필요 — SQLite 폴백 환경에서도 동일하게 동작한다).
+        $claim = $pdo->prepare("UPDATE catalog_writeback_job SET status='processing', updated_at=? WHERE id=? AND status IN ('queued','awaiting_credentials')");
         foreach ($jobs as $j) {
+            try {
+                $claim->execute([$now, (int)$j['id']]);
+                if ($claim->rowCount() < 1) continue;   // 다른 워커가 선점 — 중복 전송 차단
+            } catch (\Throwable $e) { continue; }
             $sum['processed']++;
             $t = (string)$j['tenant_id']; $ch = (string)$j['channel']; $sku = (string)$j['sku'];
             $op = (string)($j['operation'] ?? 'publish'); $attempt = (int)($j['attempt'] ?? 1);
@@ -1131,6 +1347,54 @@ class Catalog
                 $upd->execute(['awaiting_credentials', json_encode(['reason' => 'no_active_credentials'], JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
                 $sum['awaiting']++; continue;
             }
+
+            /* ══ [283차 R2 P0-1] 재고 전용 경로 — "상품 전체 upsert 로 재고를 보내고 done 을 찍던" 가짜 성공 차단 ══
+               ★결함: 큐가 operation='stock_sync' 를 넘겨도 어댑터에는 stock 전용 분기가 0건이었다.
+                 잡은 pushProduct(상품 전체 upsert)로 흘러갔고 Shopify(inventory_quantity=read-only)·
+                 Cafe24(payload 에 재고 필드 부재)에서 **재고가 전혀 바뀌지 않은 채 HTTP 200** → done 마감.
+               ★이제 재고 잡은 pushStockToChannel 만 탄다:
+                 ・가격/상세/이미지를 아예 싣지 않는다(0원 파괴·variant 파괴 구조적 면역).
+                 ・채널 상품 id 가 없으면 신규등록으로 승격시키지 않고 pending(오등록 방지).
+                 ・재고 전용 어댑터가 없는 채널은 pending → **큐 보존**(done 금지, 어댑터 추가 시 자동 전송).
+               ★FeedTemplate/카테고리 해석/normalizeAdapterPayload 를 타지 않는다 — 상품 스펙 변환은 재고와 무관하고,
+                 그 경로가 가격을 오버레이할 여지를 원천 차단한다.                                              */
+            if ($op === 'stock_sync') {
+                $pl  = json_decode((string)$j['payload'], true) ?: [];
+                $qty = array_key_exists('inventory', $pl) ? max(0, (int)$pl['inventory']) : null;
+                $priorId = self::priorChannelProductId($pdo, $t, $ch, $sku);
+                if ($qty === null) {
+                    $res = ['ok' => false, 'error' => 'stock_sync payload 에 inventory 가 없습니다'];
+                } elseif ($priorId === null || $priorId === '') {
+                    $res = ['ok' => false, 'pending' => true, 'status' => 'no-channel-product-id',
+                            'error' => '채널 미등록 상품 — 상품이 채널에 등록되면 재고가 자동 동기화됩니다(신규등록으로 승격하지 않습니다).'];
+                } else {
+                    $res = self::pushStockToChannel($ch, $creds, ['sku' => $sku, 'inventory' => $qty], $priorId);
+                }
+                if (!empty($res['ok'])) {
+                    $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                    try {
+                        $pdo->prepare("UPDATE catalog_listing SET inventory=?, status='synced', updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")
+                            ->execute([(int)$qty, $now, $t, $ch, $sku]);
+                    } catch (\Throwable $e) {}
+                    $sum['done']++;
+                } elseif (!empty($res['pending'])) {
+                    /* honest pending — 채널에 반영되지 않았으므로 **done 을 찍지 않는다**. attempt 도 소모하지 않는다.
+                       ★상태를 'queued' 가 아니라 'pending' 으로 둔다(잡 유실 0, 큐 기아 0):
+                         'queued' 로 두면 어댑터 없는 채널의 잡이 매 회차 ORDER BY id ASC 앞줄을 영구 점유해
+                         LIMIT(200) 을 다 먹고 **뒤에 쌓인 실제 등록/가격 잡이 영영 처리되지 않는다**(기아).
+                       ★부활 경로는 두 개다 — 둘 다 자동이다:
+                         ① 이 함수 상단의 revive UPDATE: 그 채널에 재고 어댑터가 **추가되는 순간** 전부 'queued' 복귀.
+                         ② Wms::enqueueChannelStockSync: 재고가 다시 변하면 payload 갱신 + 'queued' 복귀. */
+                    $upd->execute(['pending', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                    $sum['pending']++;
+                } else {
+                    $failed = $attempt >= 3;
+                    $upd->execute([$failed ? 'failed' : 'queued', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt + 1, $now, $j['id']]);
+                    $sum[$failed ? 'failed' : 'pending']++;
+                }
+                continue;
+            }
+
             $jobPayload = json_decode((string)$j['payload'], true) ?: [];
             $product = self::currentListing($pdo, $t, $ch, $sku) ?: $jobPayload;
             // [277차] payload 의 images/detail_html 은 용량 절감을 위한 **요약값**(개수·바이트수)이다.
@@ -1148,7 +1412,9 @@ class Catalog
             //   payload(source=repricer) 의 새 가격을 우선 반영해야 채널에 올바른 가격이 push 된다.
             if ($op === 'price_update') {
                 $pl = json_decode((string)$j['payload'], true) ?: [];
-                if (isset($pl['price'])) $product['price'] = (float)$pl['price'];
+                // [283차 R2 P0-3] 0/음수 오버레이 금지 — 리프라이서 payload 가 0 이면 기존 정상가를 0 으로 덮어
+                //   채널에 0원 판매가가 도달한다(11번가 sellPrc·쿠팡 salePrice·ESM 은 무방비). 유효값만 반영.
+                if (isset($pl['price']) && (float)$pl['price'] > 0) $product['price'] = (float)$pl['price'];
             }
             // [227차] 채널 카테고리 매핑 해석 — 내 카테고리→채널 카테고리코드(쿠팡/네이버 등 필수). 어댑터가 category_code 우선 사용.
             $product['category_code'] = self::resolveChannelCategory($pdo, $t, $ch, $product);

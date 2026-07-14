@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
         "desc": "大規模運用やカスタム構築が必要な企業向けプランです。",
         "features": [
           "プロプランのすべての機能を含む",
-          "カスタムAIモデル学習",
+          "SSO(SAML)・SCIM自動プロビジョニング",
           "専任カスタマーサクセスマネージャー",
-          "SLA 99.9%稼働率保証",
+          "SLA 99.5%稼働率保証(利用規約第4条)",
           "チームメンバー無制限",
           "API呼び出し無制限",
           "カスタム連携・Webhook",
-          "オンプレミス構築サポート"
+          "SIEM監査ログ連携・監査証跡エクスポート"
         ],
         "notIncluded": []
       }
@@ -5964,7 +5964,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       "growth_l3": "グローバルチャネル（WhatsApp・LINE・DM） — Pro+",
       "growth_l4": "AIルールエンジン — Pro+",
       "growth_l5": "ファーストパーティピクセル・APIキー — Pro+",
-      "growth_l6": "SmartConnect ERP連携 — Pro+",
+      "growth_l6": "SmartConnect チャネル連携 — Pro+",
       "pro_tagline": "プロプランタグライン",
       "pro_headline": "プロプラン",
       "pro_badge": "Pro_badge",
@@ -5989,7 +5989,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
       "pro_s3i5": "ポップアップA/Bテスト・トリガー設定",
       "pro_s4": "高度WMS・コマース拡張",
       "pro_s4i1": "在庫調整・ロケーション管理・バーコード連携",
-      "pro_s4i2": "月次精算連携・税金計算書・決済承認",
+      "pro_s4i2": "月次精算連携・決済承認",
       "pro_s4i3": "3PL追加・編集",
       "pro_s4i4": "収集ログ基本表示",
       "pro_s5": "AIルールエンジン・自動化（新規）",

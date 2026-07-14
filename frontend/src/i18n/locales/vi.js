@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
         "desc": "Dành cho vận hành quy mô lớn cần xây dựng tùy chỉnh.",
         "features": [
           "Mọi tính năng của Pro",
-          "Huấn luyện mô hình AI tùy chỉnh",
+          "SSO (SAML) & tự động cấp phát SCIM",
           "Quản lý thành công khách hàng riêng",
-          "Đảm bảo SLA uptime 99,9%",
+          "Cam kết SLA uptime 99,5% (Điều khoản §4)",
           "Thành viên không giới hạn",
           "Lượt gọi API không giới hạn",
           "Tích hợp & Webhook tùy chỉnh",
-          "Hỗ trợ triển khai On-Premise"
+          "Chuyển tiếp log SIEM & xuất dấu vết kiểm toán"
         ],
         "notIncluded": []
       }
@@ -8020,7 +8020,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       "growth_l3": "Kênh toàn cầu (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "AI Rule Engine ??Pro+",
       "growth_l5": "Pixel first-party · khóa API — Pro+",
-      "growth_l6": "SmartConnect ERP Integration ??Pro+",
+      "growth_l6": "Tích hợp kênh SmartConnect — Pro+",
       "pro_tagline": "Khẩu hiệu gói Pro",
       "pro_headline": "Gói Pro",
       "pro_badge": "Pro_badge",
@@ -8045,7 +8045,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       "pro_s3i5": "Thử nghiệm A/B pop-up · cài đặt trình kích hoạt",
       "pro_s4": "WMS nâng cao · mở rộng thương mại",
       "pro_s4i1": "Điều chỉnh tồn kho · quản lý vị trí · tích hợp mã vạch",
-      "pro_s4i2": "Tích hợp quyết toán hằng tháng · hóa đơn thuế · phê duyệt thanh toán",
+      "pro_s4i2": "Tích hợp quyết toán hằng tháng · phê duyệt thanh toán",
       "pro_s4i3": "Thêm · sửa 3PL",
       "pro_s4i4": "Xem cơ bản nhật ký thu thập",
       "pro_s5": "Engine quy tắc AI · tự động hóa (Mới)",

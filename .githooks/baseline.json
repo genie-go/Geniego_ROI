@@ -1,9 +1,9 @@
 {
-  "version": "270-profit-frontier-i18n",
-  "updated": "2026-07-07 (270차: 마케팅 이익 효율 프론티어·이익 오토파일럿 신규 UI 라벨 mmm.* 24키를 13개국(ja/zh 포함) 현지 자연어 추가. ko/en 기존. 의도적 신규키 추가로 ja/zh sacred SHA 동반 갱신. 브라우저 검증 ja 네이티브 렌더·한글누출0). │ 이전: 2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
+  "version": "283-r2-honest-marketing-copy",
+  "updated": "2026-07-14 (283차 R2: 공개 판매문구 정직화 — SLA 99.9%(측정부재·약관 99.5%와 모순)·On-premise·Custom AI model training·ERP 연동·세금계산서 발행 등 코드 부재 주장을 15개국 로케일에서 제거/실재기능으로 교체. 번역 품질 변경 아님·허위 주장 제거. ja/zh sacred SHA 동반 갱신). │ 2026-07-07 (270차: 마케팅 이익 효율 프론티어·이익 오토파일럿 신규 UI 라벨 mmm.* 24키를 13개국(ja/zh 포함) 현지 자연어 추가. ko/en 기존. 의도적 신규키 추가로 ja/zh sacred SHA 동반 갱신. 브라우저 검증 ja 네이티브 렌더·한글누출0). │ 이전: 2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
   "sacred_sha": {
-    "ja.js": "a851cc7253e56daae10cdd67e71da8b6a0e67d7bb8a910e882ee2f0b11235527",
-    "zh.js": "84fe5ac4b9bafb5d28ff393c2cc0f73d8f9efab424aeb823755db2d21b856fcb"
+    "ja.js": "482ef5417a16561a5851227c8cfb5ca22680ccce0a2871244cab201fd80ac43d",
+    "zh.js": "32f9f5d109e737c389131589d312c16901429b4a08be5b9bf67dc8fe49b8ce32"
   },
   "ko_leaf_count": 18521,
   "leaf_tolerance_pct": 5,

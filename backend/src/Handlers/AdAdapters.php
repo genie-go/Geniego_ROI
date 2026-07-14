@@ -990,7 +990,10 @@ final class AdAdapters
     /** ad_design(AI 디자인) spec_json → 광고 카피 추출. svg 는 래스터화 필요(이미지 매체용). */
     private static function loadDesign(PDO $pdo, string $tenant, int $designId): array
     {
-        $out = ['headline' => 'GenieGo', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => '', 'image_mime' => '', 'animation' => ''];
+        // [283차 R2 P0] ★기본 headline 을 'GenieGo'(벤더 브랜드)로 두면, 소재 미지정 캠페인이 고객 광고비로
+        //   **우리 브랜드 카피를 게재**한다(랜딩URL 벤더도메인과 동일 클래스의 사고). 빈 문자열로 두어
+        //   buildDelivery 가 "소재 없음"을 탐지해 fail-closed 하도록 한다.
+        $out = ['headline' => '', 'copy' => '', 'subheadline' => '', 'cta' => 'LEARN_MORE', 'has_svg' => false, 'image_b64' => '', 'image_mime' => '', 'animation' => ''];
         if ($designId <= 0) return $out;
         try {
             $st = $pdo->prepare('SELECT spec_json, svg FROM ad_design WHERE tenant_id=? AND id=? LIMIT 1');
@@ -1082,6 +1085,13 @@ final class AdAdapters
         if ($landing === '') {
             return ['ok' => false, 'status' => 'landing_url_required',
                 'error' => '랜딩 URL 미설정 — 광고 목적지가 없어 소재 생성을 중단했습니다. 캠페인에 랜딩 URL을 입력하거나 회사 프로필(website)에 사이트 주소를 등록하세요.'];
+        }
+        // [283차 R2 P0] ★소재 fail-closed — 랜딩과 대칭. 종전엔 프론트 3경로에서만 소재 0개를 막아,
+        //   API 직접호출·에이전트 auto 모드(AutoCampaign auto)가 designId=0 으로 통과하면 loadDesign 기본값
+        //   ('GenieGo')이 **고객 광고 카피로 게재**됐다. 서버 계약에서 차단해야 대칭이 맞는다.
+        if (trim((string)($d['headline'] ?? '')) === '') {
+            return ['ok' => false, 'status' => 'creative_required',
+                'error' => '광고 소재 미지정 — 고객 브랜드 카피가 없어 소재 생성을 중단했습니다(벤더 기본 문구로 게재되는 것을 방지). 캠페인에 소재(디자인)를 1개 이상 선택하세요.'];
         }
         try {
             switch ($channel) {
@@ -1349,13 +1359,27 @@ final class AdAdapters
                 'note' => 'Google 검색 광고그룹 생성(PAUSED). ★키워드 0개 — 검색광고는 키워드가 없으면 단 한 번도 노출되지 않아 광고(RSA) 생성을 보류했습니다(활성화 차단·무지출). '
                     . ($kwErr !== '' ? '사유: ' . $kwErr : '캠페인명·카테고리·소재 카피에서 키워드를 도출하지 못했습니다 — 캠페인명/카테고리를 구체화하거나 소재 헤드라인을 등록하세요.')];
         }
-        // 3) 반응형 검색광고(헤드라인 3+, 설명 2)
-        $h = array_values(array_filter([$d['headline'], $d['subheadline'] ?: ($d['headline'] . ' 지금'), 'GenieGo ROI']));
-        $desc = array_values(array_filter([$d['copy'] ?: '데이터 기반 마케팅 자동화', '최적 채널·예산으로 성과 극대화']));
-        $heads = array_map(fn($t) => ['text' => mb_substr($t, 0, 30)], array_slice($h, 0, 15));
-        while (count($heads) < 3) $heads[] = ['text' => 'GenieGo ' . (count($heads) + 1)];
-        $descs = array_map(fn($t) => ['text' => mb_substr($t, 0, 90)], array_slice($desc, 0, 4));
-        while (count($descs) < 2) $descs[] = ['text' => '지금 시작하세요'];
+        // 3) 반응형 검색광고(RSA — 헤드라인 3+, 설명 2 필수)
+        // [283차 R2 P0] ★벤더 카피 강제주입 제거. 종전엔 헤드라인 3번을 리터럴 'GenieGo ROI', 설명을
+        //   '데이터 기반 마케팅 자동화'·'최적 채널·예산으로 성과 극대화', 패딩을 'GenieGo N' 으로 채워
+        //   **고객 검색광고에 우리 브랜드 문구가 실제 게재**됐다(랜딩URL 벤더도메인과 동일 클래스).
+        //   이제 문구는 **고객 자산(소재·캠페인명·카테고리)에서만** 만들고, RSA 최소요건을 못 채우면
+        //   임의 문구로 메우지 않고 honest partial 로 중단한다(광고 미생성 → readiness 게이트가 활성화 차단).
+        $campName = trim((string)($settings['campaign_name'] ?? ''));
+        $category = trim((string)($settings['category'] ?? ''));
+        $hCand = array_values(array_unique(array_filter(array_map('trim', [
+            (string)$d['headline'], (string)$d['subheadline'], $campName, $category,
+        ]), fn($v) => $v !== '')));
+        $dCand = array_values(array_unique(array_filter(array_map('trim', [
+            (string)$d['copy'], (string)$d['subheadline'], $campName,
+        ]), fn($v) => $v !== '')));
+        if (count($hCand) < 3 || count($dCand) < 2) {
+            return ['ok' => true, 'status' => 'partial', 'adgroup_id' => $agId, 'ad_id' => '', 'keywords' => $kwOk,
+                'note' => 'RSA 최소요건 미충족(헤드라인 3·설명 2) — 고객 소재 문구가 부족해 광고를 만들지 않았습니다. '
+                    . '벤더 기본 문구로 대체 게재하지 않습니다(소재 헤드라인/서브헤드라인/카피를 채우면 즉시 생성).'];
+        }
+        $heads = array_map(fn($t) => ['text' => mb_substr($t, 0, 30)], array_slice($hCand, 0, 15));
+        $descs = array_map(fn($t) => ['text' => mb_substr($t, 0, 90)], array_slice($dCand, 0, 4));
         $adBody = json_encode(['operations' => [['create' => [
             'adGroup' => $agRes, 'status' => 'PAUSED',
             'ad' => ['finalUrls' => [$landing], 'responsiveSearchAd' => ['headlines' => $heads, 'descriptions' => $descs]],
@@ -1420,7 +1444,9 @@ final class AdAdapters
         $adPath = '/ncc/ads';
         $adHdr = self::naverHeaders($pdo, $tenant, 'POST', $adPath);
         $adBody = json_encode(['nccAdgroupId' => $agId, 'type' => 'TEXT_45', 'ad' => [
-            'headline' => mb_substr($d['headline'], 0, 15), 'description' => mb_substr($d['copy'] ?: $d['subheadline'] ?: 'GenieGo', 0, 45),
+            // [283차 R2 P0] 설명 폴백에서 벤더 브랜드('GenieGo') 제거 — 고객 자산(카피·서브헤드·캠페인명)만 사용.
+            'headline' => mb_substr($d['headline'], 0, 15),
+            'description' => mb_substr((string)($d['copy'] ?: $d['subheadline'] ?: ($settings['campaign_name'] ?? '') ?: $d['headline']), 0, 45),
             'pc' => ['final' => $landing], 'mobile' => ['final' => $landing],
         ], 'userLock' => true]);
         [$adc, $adr] = self::http('POST', 'https://api.searchad.naver.com' . $adPath, $adHdr, $adBody);
@@ -1643,7 +1669,8 @@ final class AdAdapters
         [$imgPath, $imgMime, $imgName] = $tf;
         // 멀티파트는 curl 이 boundary 포함 Content-Type 을 자동설정 → JSON content-type 헤더 제거(Authorization·adAccountId 만).
         $mpHdr = array_values(array_filter($hdr, fn($h) => stripos($h, 'content-type:') !== 0));
-        $alt   = mb_substr($d['headline'] ?: ($d['copy'] ?: 'GenieGo'), 0, 30);
+        // [283차 R2 P0] 이미지 alt 폴백에서 벤더 브랜드 제거(소비자 노출 문구) — buildDelivery 가 headline 공백을 이미 차단.
+        $alt   = mb_substr((string)($d['headline'] ?: $d['copy'] ?: $d['subheadline']), 0, 30);
         $fields = array_filter([
             'adGroupId'        => (string)(int)$agId,
             'format'           => 'IMAGE_BANNER',           // 이미지 배너(프로필이미지 불요·단일 이미지) — 무지출 OFF 정책 유지.

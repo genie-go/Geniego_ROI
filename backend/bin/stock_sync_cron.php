@@ -45,6 +45,17 @@ foreach (array_slice($argv, 1) as $a) {
     elseif ($a === '--no-push')                      $noPush = true;
 }
 
+/* [283차 R2 P1-4] ★단일 인스턴스 락 — 10분 주기 크론이 앞 회차가 끝나기 전에 겹쳐 뜨면(대량 드리프트 시 흔하다)
+   같은 잡을 두 프로세스가 집어 채널에 재고를 **중복 push** 한다. 큐 소비 자체는 CAS(잡 선점)로도 막히지만,
+   러너 레벨에서도 겹치지 않게 해 reconcile 스캔이 이중으로 도는 것까지 막는다. 획득 실패 = 조용히 정상 종료. */
+$lockPath = sys_get_temp_dir() . '/genie_stock_sync_' . md5(__DIR__ . '|' . (string)$onlyTenant) . '.lock';
+$lockFp = @fopen($lockPath, 'c');
+if ($lockFp === false) { fwrite(STDERR, "[stock_sync_cron] lock 파일 생성 실패: {$lockPath}\n"); exit(1); }
+if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+    echo "=== stock_sync SKIP — 이전 회차가 아직 실행 중입니다(중복 전송 방지)\n";
+    exit(0);
+}
+
 try {
     $env = Db::env();
     $pdo = Db::pdo();
@@ -66,6 +77,21 @@ try {
 
     echo "=== stock_sync env={$env} tenants=" . count($tenants) . "\n";
 
+    /* [283차 R2 P0-1] ★재고 전용 어댑터 커버리지를 매 회차 명시한다.
+       "재고가 done 인데 채널은 그대로"였던 가짜 성공을 없앤 대신, 어느 채널이 **실제로 전송되고** 어느 채널이
+       **보류(honest pending)** 인지 운영자가 로그만 보고 알 수 있어야 한다. 보류 채널의 잡은 큐에 그대로 남아
+       어댑터가 추가되는 순간 자동 전송된다(유실 0). */
+    $listedChannels = [];
+    try {
+        $rows = $pdo->query("SELECT DISTINCT channel FROM catalog_listing WHERE channel <> ''")->fetchAll(\PDO::FETCH_COLUMN);
+        $listedChannels = array_values(array_unique(array_map(static fn($c) => strtolower(trim((string)$c)), $rows)));
+        sort($listedChannels);
+    } catch (\Throwable $e) { /* 리스팅 0건 */ }
+    $live = array_values(array_filter($listedChannels, static fn($c) => Catalog::hasStockAdapter($c)));
+    $hold = array_values(array_filter($listedChannels, static fn($c) => !Catalog::hasStockAdapter($c)));
+    echo "  재고 실전송 채널(live): " . ($live ? implode(', ', $live) : '(없음)') . "\n";
+    echo "  재고 보류 채널(no-live-stock-adapter · 큐 보존 · done 마감 안 함): " . ($hold ? implode(', ', $hold) : '(없음)') . "\n";
+
     $agg = ['scanned' => 0, 'enqueued' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
     $errors = 0;
     foreach ($tenants as $t) {
@@ -86,8 +112,11 @@ try {
         }
     }
     echo "  → scanned={$agg['scanned']} enqueued={$agg['enqueued']} done={$agg['done']} awaiting={$agg['awaiting']} pending={$agg['pending']} failed={$agg['failed']} errors={$errors}\n";
+    echo "  ※ done = 채널 재고 API 가 실제로 2xx 를 준 건수만(가짜 성공 0). pending = 어댑터 미보유/미등록 → 큐 보존.\n";
+    flock($lockFp, LOCK_UN); fclose($lockFp);
     exit(0);
 } catch (\Throwable $e) {
     fwrite(STDERR, "[stock_sync_cron] FAILED: " . $e->getMessage() . "\n");
+    flock($lockFp, LOCK_UN); fclose($lockFp);
     exit(1);
 }

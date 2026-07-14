@@ -167,6 +167,23 @@ final class Dsar
     /** 전화번호 정규화 — 숫자만(PixelTracking·Attribution 과 동일 규칙). */
     private static function normPhone(string $p): string { return (string)preg_replace('/[^0-9]/', '', $p); }
 
+    /**
+     * [283차 R2 P1] 전화번호 **컬럼** 정규화 SQL.
+     *
+     *   ★버그: crm_customers.phone / sms_messages.recipient 등은 사용자가 입력한 **원문 그대로** 저장된다
+     *     (CRM.php:191 — 정규화 없음). 그런데 DSAR 은 normPhone() 으로 숫자만 남긴 값을 만들어
+     *     `phone = ?` **정확일치**로 조회했다 → "010-1234-5678" 로 저장된 정보주체를 **한 건도 못 찾는다**.
+     *     그럼에도 리포트는 deleted=0 인 채 '성공(completed)' 으로 표시됐다 = **조용한 부분 미삭제**
+     *     (GDPR Art.17 / PIPA §36 삭제권 미이행인데 이행한 것처럼 보고 → 규제 리스크).
+     *   ★확증: JourneyBuilder.php:972 는 같은 컬럼을 굳이
+     *     `REPLACE(REPLACE(phone,'-',''),' ','')=:p` 로 조회한다 = 컬럼이 정규화돼 있지 않다는 방증.
+     *   ∴ 조회측을 동일 방식으로 정규화한다. 중첩 REPLACE 는 MySQL·SQLite 양쪽 모두 지원한다.
+     */
+    private static function phoneNormSql(string $col): string
+    {
+        return "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE({$col},'-',''),' ',''),'(',''),')',''),'+','')";
+    }
+
     /* ─── 스키마 ──────────────────────────────────────────────────────── */
 
     public static function ensureTables(): void
@@ -434,7 +451,11 @@ final class Dsar
         $cids = self::customerIds($pdo, $tenant, $email, $phone);
 
         // CRM 마스터
-        $out['crm_profile'] = self::safeAll($pdo, "SELECT id,email,name,phone,kakao_id,grade,ltv,rfm_score,tags,memo,created_at FROM crm_customers WHERE tenant_id=? AND (email=?" . ($phone !== '' ? " OR phone=?" : "") . ")",
+        // [283차 R2 P1] 열람권(Art.15)/이동권(Art.20) 조회도 삭제와 **동일 정규화**를 써야 한다.
+        //   정확일치로 두면 "010-1234-5678" 저장분이 export 에서 통째로 빠져 **불완전한 사본**을 정보주체에게
+        //   교부하게 된다(삭제 누락과 같은 뿌리의 결함).
+        $phNorm = self::phoneNormSql('phone');
+        $out['crm_profile'] = self::safeAll($pdo, "SELECT id,email,name,phone,kakao_id,grade,ltv,rfm_score,tags,memo,created_at FROM crm_customers WHERE tenant_id=? AND (LOWER(email)=?" . ($phone !== '' ? " OR {$phNorm}=?" : "") . ")",
             $phone !== '' ? [$tenant, $email, $phone] : [$tenant, $email]);
 
         if ($cids) {
@@ -445,16 +466,17 @@ final class Dsar
             $out['journey_enrollments'] = self::safeAll($pdo, "SELECT journey_id,status,enrolled_at FROM journey_enrollments WHERE tenant_id=? AND customer_id IN ($in)", array_merge([$tenant], $cids));
         }
 
-        // 주문(법정보존 — 열람/이동 대상이지만 삭제는 익명화로 갈음)
-        $out['orders'] = self::safeAll($pdo, "SELECT channel,channel_order_id,product_name,sku,qty,total_price,status,ordered_at FROM channel_orders WHERE tenant_id=? AND buyer_email=? LIMIT 2000", [$tenant, $email]);
+        // 주문(법정보존 — 열람/이동 대상이지만 삭제는 익명화로 갈음). [283차 R2 P1] LOWER().
+        $out['orders'] = self::safeAll($pdo, "SELECT channel,channel_order_id,product_name,sku,qty,total_price,status,ordered_at FROM channel_orders WHERE tenant_id=? AND LOWER(buyer_email)=? LIMIT 2000", [$tenant, $email]);
 
-        // 발송 로그(전화 기반)
+        // 발송 로그(전화 기반). [283차 R2 P1] 수신번호 정규화 비교.
         if ($phone !== '') {
-            $out['sms_messages'] = self::safeAll($pdo, "SELECT status,sent_at FROM sms_messages WHERE tenant_id=? AND recipient=? LIMIT 1000", [$tenant, $phone]);
+            $rcNorm = self::phoneNormSql('recipient');
+            $out['sms_messages'] = self::safeAll($pdo, "SELECT status,sent_at FROM sms_messages WHERE tenant_id=? AND {$rcNorm}=? LIMIT 1000", [$tenant, $phone]);
         }
 
-        // 수신거부 상태(보존 대상임을 정보주체에게 투명하게 고지)
-        $out['email_suppression'] = self::safeAll($pdo, "SELECT email,reason,created_at FROM email_suppression WHERE tenant_id=? AND email=?", [$tenant, $email]);
+        // 수신거부 상태(보존 대상임을 정보주체에게 투명하게 고지). [283차 R2 P1] LOWER().
+        $out['email_suppression'] = self::safeAll($pdo, "SELECT email,reason,created_at FROM email_suppression WHERE tenant_id=? AND LOWER(email)=?", [$tenant, $email]);
 
         return $out;
     }
@@ -478,7 +500,8 @@ final class Dsar
     {
         $ids = [];
         try {
-            $st = $pdo->prepare("SELECT channel_order_id FROM channel_orders WHERE tenant_id=? AND buyer_email=?");
+            // [283차 R2 P1] LOWER() — 주문번호 해석이 실패하면 클레임/배송추적 익명화까지 연쇄로 no-op 된다.
+            $st = $pdo->prepare("SELECT channel_order_id FROM channel_orders WHERE tenant_id=? AND LOWER(buyer_email)=?");
             $st->execute([$tenant, $email]);
             foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $o) { $o = (string)$o; if ($o !== '') $ids[] = $o; }
         } catch (\Throwable $e) {}
@@ -490,9 +513,13 @@ final class Dsar
     {
         $ids = [];
         try {
-            $sql = "SELECT id FROM crm_customers WHERE tenant_id=? AND (email=?";
+            // [283차 R2 P1] ★정확일치 → 정규화 비교로 교정(phoneNormSql 주석의 '조용한 부분 미삭제' 참조).
+            //   이메일도 LOWER() 로 맞춘다 — CRM.php:176 이 원문 대소문자 그대로 저장하는데 SQLite 폴백에서는
+            //   `=` 가 대소문자를 구분하므로 "User@x.com" 저장분을 못 찾는다(MySQL 은 ci 콜레이션이라 우연히 통과).
+            $ph  = self::phoneNormSql('phone');
+            $sql = "SELECT id FROM crm_customers WHERE tenant_id=? AND (LOWER(email)=?";
             $p = [$tenant, $email];
-            if ($phone !== '') { $sql .= " OR phone=?"; $p[] = $phone; }
+            if ($phone !== '') { $sql .= " OR {$ph}=?"; $p[] = $phone; }
             $sql .= ")";
             $st = $pdo->prepare($sql);
             $st->execute($p);
@@ -617,7 +644,8 @@ final class Dsar
             try {
                 // coupon_notifications 등 일부 테이블은 tenant_id 컬럼이 없다 → 존재할 때만 조건 추가.
                 $hasT = self::columnExists($pdo, $tbl, 'tenant_id');
-                $sql = "DELETE FROM {$tbl} WHERE {$col}=?" . ($hasT ? " AND tenant_id=?" : "");
+                // [283차 R2 P1] LOWER() 정규화 — SQLite 폴백 대소문자 미스매치로 인한 미삭제 차단.
+                $sql = "DELETE FROM {$tbl} WHERE LOWER({$col})=?" . ($hasT ? " AND tenant_id=?" : "");
                 $st = $pdo->prepare($sql);
                 $st->execute($hasT ? [$email, $tenant] : [$email]);
                 $deleted[$tbl] = $st->rowCount();
@@ -629,7 +657,10 @@ final class Dsar
             foreach (self::DEL_BY_PHONE as $tbl => $col) {
                 if (!self::tableExists($pdo, $tbl)) continue;
                 try {
-                    $st = $pdo->prepare("DELETE FROM {$tbl} WHERE tenant_id=? AND {$col}=?");
+                    // [283차 R2 P1] 수신번호도 원문 저장(하이픈 포함) → 정규화 비교로 교정.
+                    //   종전 정확일치는 "010-..." 로 발송된 SMS/WhatsApp 로그를 한 건도 못 지웠다.
+                    $rc = self::phoneNormSql($col);
+                    $st = $pdo->prepare("DELETE FROM {$tbl} WHERE tenant_id=? AND {$rc}=?");
                     $st->execute([$tenant, $phone]);
                     $deleted[$tbl] = $st->rowCount();
                 } catch (\Throwable $e) { $unreachable[$tbl] = 'delete_failed'; }
@@ -673,7 +704,7 @@ final class Dsar
             $sin = implode(',', array_fill(0, count($sessions), '?'));
             foreach (['pixel_sessions', 'attribution_touch', 'attribution_device_sig', 'onsite_assignment', 'web_popup_assign'] as $tbl) {
                 if (!self::tableExists($pdo, $tbl)) continue;
-                if (!self::columnExists($pdo, $tbl, 'session_id')) continue;   // onsite/web_popup 은 vid 키 → 세션으로 안 닿음
+                if (!self::columnExists($pdo, $tbl, 'session_id')) continue;   // 아래 ⑤에서 unreachable 로 기재
                 try {
                     $st = $pdo->prepare("DELETE FROM {$tbl} WHERE tenant_id=? AND session_id IN ($sin)");
                     $st->execute(array_merge([$tenant], $sessions));
@@ -705,6 +736,17 @@ final class Dsar
         $unreachable['push_subscription'] = 'customer_id·email 컬럼 부재 — 어떤 키로도 도달 불가(스키마 변경 선행 필요)';
         $unreachable['product_review'] = 'author_hash 산출 알고리즘이 외부 채널 소유 — 역산 불가';
 
+        // [283차 R2 P2 정직성] onsite_assignment / web_popup_assign — vid(익명 방문자 ID)가 키다.
+        //   ★종전엔 위 세션 루프에서 session_id 컬럼이 없으면 **조용히 continue** 해버려서, 도달하지 못한
+        //     사실이 리포트 어디에도 남지 않았다 → 잔존 PII 가 '전부 삭제됨' 으로 보고되는 은폐가 발생했다.
+        //   세션 매칭 유무와 무관하게(=세션이 0건이어도) 도달 불가 사실을 항상 기재한다.
+        foreach (['onsite_assignment', 'web_popup_assign'] as $vt) {
+            if (!self::tableExists($pdo, $vt)) continue;
+            if (!self::columnExists($pdo, $vt, 'session_id')) {
+                $unreachable[$vt] = 'vid(익명 방문자 ID)가 키 — session_id 컬럼 부재로 이메일/전화에서 도달 불가(스키마 변경 선행 필요)';
+            }
+        }
+
         // ── ⑤ 법정 보존의무 테이블 → 삭제 대신 익명화(가명처리) ────
         //   금액·일자·SKU 는 보존(회계/정산 정합 무회귀), 신원 식별자만 파기.
         $pseudoEmail = 'erased+' . substr(hash('sha256', $email . '|' . $tenant), 0, 16) . '@erased.invalid';
@@ -717,7 +759,10 @@ final class Dsar
         $orderIds = self::subjectOrderIds($pdo, $tenant, $email);
 
         // 익명화 헬퍼 — 컬럼 존재분만 SET(스키마 드리프트 방어).
-        $applyAnon = function (string $tbl, array $cols, string $whereCol, array $whereVals) use ($pdo, $tenant, $pseudoEmail, $redact, &$anonymized, &$unreachable): void {
+        // [283차 R2 P1] $ciEmail=true 면 WHERE 를 LOWER() 로 비교한다 — channel_orders.buyer_email 은 원문
+        //   대소문자로 저장되는데(CRM/주문수집 모두 정규화 없음) 비교값은 소문자라, SQLite 폴백에서 0행 매칭 →
+        //   **법정보존 원장(주문)의 익명화가 조용히 no-op** 되고 있었다(개인정보가 그대로 잔존).
+        $applyAnon = function (string $tbl, array $cols, string $whereCol, array $whereVals, bool $ciEmail = false) use ($pdo, $tenant, $pseudoEmail, $redact, &$anonymized, &$unreachable): void {
             if (!self::tableExists($pdo, $tbl) || !$whereVals || !self::columnExists($pdo, $tbl, $whereCol)) return;
             $sets = []; $vals = [];
             foreach ($cols as $col => $mode) {
@@ -730,15 +775,16 @@ final class Dsar
             if (!$sets) return;
             try {
                 $in = implode(',', array_fill(0, count($whereVals), '?'));
-                $sql = "UPDATE {$tbl} SET " . implode(',', $sets) . " WHERE tenant_id=? AND {$whereCol} IN ($in)";
+                $wc  = $ciEmail ? "LOWER({$whereCol})" : $whereCol;   // [283차 R2 P1] 대소문자 무관 매칭
+                $sql = "UPDATE {$tbl} SET " . implode(',', $sets) . " WHERE tenant_id=? AND {$wc} IN ($in)";
                 $st = $pdo->prepare($sql);
                 $st->execute(array_merge($vals, [$tenant], $whereVals));
                 $anonymized[$tbl] = ($anonymized[$tbl] ?? 0) + $st->rowCount();
             } catch (\Throwable $e) { $unreachable[$tbl] = 'anonymize_failed'; }
         };
 
-        // channel_orders — 유일하게 이메일이 직접 키(buyer_email).
-        $applyAnon('channel_orders', self::ANONYMIZE['channel_orders'], 'buyer_email', [$email]);
+        // channel_orders — 유일하게 이메일이 직접 키(buyer_email). [283차 R2 P1] $ciEmail=true.
+        $applyAnon('channel_orders', self::ANONYMIZE['channel_orders'], 'buyer_email', [$email], true);
         // 주문 파생 — order_id / order_ref 로 도달.
         $applyAnon('orderhub_claims', self::ANONYMIZE['orderhub_claims'], 'order_id', $orderIds);
         $applyAnon('shipment_tracking', self::ANONYMIZE['shipment_tracking'], 'order_ref', $orderIds);

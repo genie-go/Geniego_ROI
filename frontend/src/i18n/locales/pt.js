@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
         "desc": "Para operações de grande escala que exigem uma solução sob medida.",
         "features": [
           "Tudo do Pro",
-          "Treinamento de modelos de IA personalizados",
+          "SSO (SAML) e provisionamento automático SCIM",
           "Gerente de sucesso do cliente dedicado",
-          "Garantia de uptime SLA 99,9%",
+          "Compromisso de uptime SLA 99,5% (Termos §4)",
           "Membros da equipe ilimitados",
           "Chamadas de API ilimitadas",
           "Integrações e webhooks personalizados",
-          "Suporte a implantação On-Premise"
+          "Encaminhamento de logs para SIEM e exportação de auditoria"
         ],
         "notIncluded": []
       }
@@ -7972,7 +7972,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       "growth_l3": "Canais globais (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "Mecanismo de regras de IA — Pro+",
       "growth_l5": "Pixel próprio · chaves de API — Pro+",
-      "growth_l6": "Integração de ERP SmartConnect — Pro+",
+      "growth_l6": "Integração de canais SmartConnect — Pro+",
       "growth_s1": "Automação de marketing com IA (Core)",
       "growth_s1i1": "Geração de criativos de anúncio com IA",
       "growth_s1i2": "Configuração · gestão · lista · relatório de campanhas",
@@ -8055,7 +8055,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       "pro_s3i5": "Teste A/B de pop-up · configuração de gatilhos",
       "pro_s4": "WMS avançado · expansão de comércio",
       "pro_s4i1": "Ajuste de estoque · gestão de localização · integração de código de barras",
-      "pro_s4i2": "Integração de repasses mensais · nota fiscal · aprovação de pagamentos",
+      "pro_s4i2": "Integração de repasses mensais · aprovação de pagamentos",
       "pro_s4i3": "Adicionar · editar 3PL",
       "pro_s4i4": "Visão básica dos registros de coleta",
       "pro_s5": "Mecanismo de regras de IA · automação (Novo)",

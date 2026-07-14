@@ -2500,6 +2500,109 @@ final class ChannelSync
         }
     }
 
+    /* ═══════════════════════════════════════════════════════════════════════════════════════
+       [283차 R2 P0-1] 재고 **전용** 푸시 경로 — 가짜 성공(fake success) 근절.
+
+       ★결함(283차 R1 이 만든 것):
+         Wms::enqueueChannelStockSync 가 operation='stock_sync' 잡을 적재했지만, 어댑터에는 stock 전용
+         경로가 **한 줄도 없었다**. 잡은 그대로 pushProduct(=상품 전체 upsert)로 흘러갔고,
+           ・Shopify: variants[].inventory_quantity 는 Admin REST 2024-01 에서 **read-only** → 재고 불변
+           ・Cafe24 : payload(product_name/price/description…)에 **재고 필드 자체가 없다** → 재고 불변
+         그런데 채널은 HTTP 200 을 준다 → Catalog 가 status='done' 으로 마감 → **채널 재고는 그대로인데
+         "동기화 성공"이 기록**됐다. 초과판매를 막으려던 기능이 초과판매를 은폐한 셈이다.
+
+       ★규약:
+         ・성공  : ['ok'=>true, 'op'=>'stock_sync', 'inventory'=>N]  — 채널 재고 API 가 실제로 2xx 를 준 경우만.
+         ・보류  : ['ok'=>false,'pending'=>true,'status'=>'no-live-stock-adapter']
+                   → 큐에 **보존**된다(done 마감 금지). 어댑터가 추가되는 순간 자동 전송.
+         ・실패  : ['ok'=>false,'error'=>…]  — 채널이 거부한 경우(재시도 카운트 소모).
+       ★가격을 **절대** 싣지 않는다 — 0원 판매가 유입(P0-3)·기존가 파괴가 이 경로에서 구조적으로 불가능하다.
+       ★추측 구현 금지: 재고 API 스펙을 확신할 수 있는 채널만 구현했다. 나머지는 정직하게 보류한다.
+       ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+    /** ChannelSync 소관 재고 전용 어댑터(스펙 확정분). 이 목록 밖 = honest pending.
+     *  (shopify 는 Catalog 소관 — Catalog::hasStockAdapter 가 합산한다.) */
+    public const STOCK_ADAPTERS = ['woocommerce', 'walmart'];
+
+    /** 채널이 재고 전용 실전송 경로를 갖고 있는가(크론 로그·UI 표기용). */
+    public static function hasStockAdapter(string $channel): bool
+    {
+        return in_array(strtolower(trim($channel)), self::STOCK_ADAPTERS, true);
+    }
+
+    /**
+     * 재고 전용 푸시 디스패치. (shopify 는 Catalog::pushStockToChannel 이 자체 어댑터로 처리한다 —
+     *  Shopify 자격증명/URL 규약이 Catalog 쪽에 있기 때문. 여기서는 나머지 채널을 담당.)
+     * @param array $p ['sku'=>string, 'inventory'=>int]  ← 가격·상세·이미지는 들어오지 않는다.
+     */
+    public static function pushStock(string $channel, array $creds, array $p, ?string $channelProductId): array
+    {
+        $ch  = strtolower(trim($channel));
+        $sku = trim((string)($p['sku'] ?? ''));
+        if ($sku === '') return ['ok' => false, 'error' => '재고 동기화: SKU 가 없습니다'];
+        if (!array_key_exists('inventory', $p) || $p['inventory'] === null || $p['inventory'] === '') {
+            return ['ok' => false, 'error' => '재고 동기화: 수량이 없습니다'];
+        }
+        $qty = max(0, (int)$p['inventory']);
+        switch ($ch) {
+            case 'woocommerce': return self::woocommerceStock($creds, $sku, $qty, $channelProductId);
+            case 'walmart':     return self::walmartStock($creds, $sku, $qty);
+            default:
+                // honest pending — 어댑터 미보유. done 으로 마감하지 않는다(가짜 성공 0). 외부 호출 0 = 재평가 비용 무시가능.
+                return [
+                    'ok' => false, 'pending' => true, 'status' => 'no-live-stock-adapter',
+                    'error'   => "재고 전용 어댑터 미보유: {$ch} — 이 채널의 재고 API 스펙이 확정되면 큐에 보존된 잡이 자동 전송됩니다(추측 구현으로 가짜 성공을 만들지 않습니다).",
+                    'channel' => $ch, 'sku' => $sku, 'inventory' => $qty,
+                ];
+        }
+    }
+
+    /**
+     * WooCommerce REST v3 재고 전용 — `PUT /wp-json/wc/v3/products/{id}` 는 **부분 갱신**이다(보낸 필드만 변경).
+     *   manage_stock/stock_quantity/stock_status 만 보낸다 → 가격·이름·이미지·상세는 채널의 기존 값 그대로.
+     *   (woocommerceWrite 는 전체 upsert 라 재고 잡에 쓰면 가격/상세를 함께 덮어쓴다 — 그래서 별도 경로다.)
+     */
+    private static function woocommerceStock(array $creds, string $sku, int $qty, ?string $cpid): array
+    {
+        $site = rtrim(trim((string)($creds['site_url'] ?? '')), '/');
+        $ck = trim((string)($creds['consumer_key'] ?? '')); $cs = trim((string)($creds['consumer_secret'] ?? ''));
+        if ($site === '' || $ck === '' || $cs === '') return ['ok' => false, 'error' => 'WooCommerce: site_url·consumer_key·consumer_secret 필요'];
+        if ($cpid === null || $cpid === '') return ['ok' => false, 'pending' => true, 'status' => 'no-channel-product-id', 'error' => 'WooCommerce 재고: 채널 상품 id 없음 — 상품 등록 후 자동 동기화'];
+        if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
+        $auth = 'consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
+        $body = json_encode([
+            'manage_stock'   => true,
+            'stock_quantity' => $qty,
+            'stock_status'   => $qty > 0 ? 'instock' : 'outofstock',
+        ], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq('PUT', "{$site}/wp-json/wc/v3/products/" . rawurlencode($cpid) . "?{$auth}", ['Content-Type' => 'application/json'], $body);
+        if ($c >= 200 && $c < 300 && isset($b['id'])) {
+            return ['ok' => true, 'op' => 'stock_sync', 'channel_product_id' => (string)$b['id'], 'inventory' => $qty];
+        }
+        return ['ok' => false, 'error' => "WooCommerce 재고 HTTP {$c}", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /**
+     * Walmart Marketplace 재고 전용 — `PUT /v3/inventory?sku=` 는 **재고 전용 엔드포인트**다(가격 무관).
+     *   walmartWrite(:3113-3115) 가 이미 쓰고 있는 검증된 경로를 재고 잡에서 단독으로 재사용한다(가격 미전송).
+     */
+    private static function walmartStock(array $creds, string $sku, int $qty): array
+    {
+        $cid = trim((string)($creds['client_id'] ?? '')); $cs = trim((string)($creds['client_secret'] ?? ''));
+        if ($cid === '' || $cs === '') return ['ok' => false, 'error' => 'Walmart: client_id·client_secret 필요'];
+        $basic = base64_encode($cid . ':' . $cs); $corr = uniqid('gg', true);
+        [$tc, $tb] = self::httpPost('https://marketplace.walmartapis.com/v3/token',
+            ['Authorization' => 'Basic ' . $basic, 'Content-Type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json', 'WM_SVC.NAME' => 'Walmart Marketplace', 'WM_QOS.CORRELATION_ID' => $corr],
+            'grant_type=client_credentials');
+        $tok = (string)($tb['access_token'] ?? '');
+        if ($tok === '') return ['ok' => false, 'error' => "Walmart 토큰 발급 실패(code={$tc}) — client_id/secret 확인"];
+        $h = ['WM_SEC.ACCESS_TOKEN' => $tok, 'Authorization' => 'Basic ' . $basic, 'WM_QOS.CORRELATION_ID' => $corr, 'WM_SVC.NAME' => 'Walmart Marketplace', 'Accept' => 'application/json', 'Content-Type' => 'application/json'];
+        $ip = json_encode(['sku' => $sku, 'quantity' => ['unit' => 'EACH', 'amount' => $qty]], JSON_UNESCAPED_UNICODE);
+        [$ic, $ib] = self::httpReq('PUT', 'https://marketplace.walmartapis.com/v3/inventory?sku=' . rawurlencode($sku), $h, $ip);
+        if ($ic >= 200 && $ic < 300) return ['ok' => true, 'op' => 'stock_sync', 'channel_product_id' => $sku, 'inventory' => $qty];
+        return ['ok' => false, 'error' => "Walmart 재고 HTTP {$ic}", 'detail' => mb_substr(json_encode($ib, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
     /**
      * [255차 심화] Etsy v3 상품 쓰기 — etsyFetch 인증(api_key=x-api-key·shop_id·oauth_token=Bearer) 재사용.
      *   update=가격/재고 PATCH(listing_id), unregister=state=inactive, register=createDraftListing(필수필드 honest 게이트=taxonomy_id/category).
@@ -5538,16 +5641,29 @@ final class ChannelSync
         $params = [];
         if ($tenant !== null)  { $where .= " AND tenant_id=?"; $params[] = $tenant; }
         if ($channel !== null) { $where .= " AND channel=?";   $params[] = $channel; }
+        $now = self::shipNow();
+        // [283차 R2 P1-4] 크래시한 워커가 남긴 'processing' 회수(10분 초과) — 영구 스턱 방지.
+        try {
+            $pdo->prepare("UPDATE channel_shipment_job SET status='queued', updated_at=? WHERE status='processing' AND updated_at < ?")
+                ->execute([$now, gmdate('Y-m-d H:i:s', time() - 600)]);
+        } catch (\Throwable $e) { /* best-effort */ }
         try {
             $st = $pdo->prepare("SELECT * FROM channel_shipment_job WHERE $where ORDER BY id ASC LIMIT " . (int)$limit);
             $st->execute($params);
             $jobs = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { return $sum; }
 
-        $now = self::shipNow();
         $upd = $pdo->prepare("UPDATE channel_shipment_job SET status=?, result=?, attempt=?, updated_at=? WHERE id=?");
+        // [283차 R2 P1-4] ★잡 선점(CAS) — 소비자가 3개(shipment_confirm_cron / OrderHub 발송처리 / 수동 플러시)라
+        //   SELECT~UPDATE 사이가 무방비였다: 두 워커가 같은 잡을 집으면 **송장이 채널에 2회 POST** 된다.
+        //   조건부 UPDATE 의 affected rows 로 소유권을 판정한다(FOR UPDATE 불필요·SQLite/MySQL 동일 동작).
+        $claim = $pdo->prepare("UPDATE channel_shipment_job SET status='processing', updated_at=? WHERE id=? AND status IN ('queued','awaiting_credentials','pending')");
         $credCache = [];
         foreach ($jobs as $j) {
+            try {
+                $claim->execute([$now, (int)$j['id']]);
+                if ($claim->rowCount() < 1) continue;   // 다른 워커가 선점 — 중복 전송 차단
+            } catch (\Throwable $e) { continue; }
             $sum['processed']++;
             $t  = (string)$j['tenant_id'];
             $ch = strtolower((string)$j['channel']);

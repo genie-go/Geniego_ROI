@@ -445,13 +445,13 @@ export default {
         "desc": "대규모 운영과 맞춤 구축이 필요한 기업을 위한 플랜입니다.",
         "features": [
           "프로 플랜의 모든 기능 포함",
-          "맞춤 AI 모델 학습",
+          "SSO(SAML)·SCIM 자동 프로비저닝",
           "전담 고객 성공 매니저",
-          "SLA 99.9% 가동률 보장",
+          "SLA 99.5% 가동률 보장(이용약관 제4조)",
           "팀원 수 무제한",
           "API 호출 무제한",
           "맞춤형 연동 및 웹훅",
-          "온프레미스 구축 지원"
+          "SIEM 감사로그 연동·감사 증적 내보내기"
         ],
         "notIncluded": []
       }
@@ -1626,7 +1626,7 @@ export default {
         guideStep9Title: "국제 주문 관리",
         guideStep9Desc: "해외 판매 채널 주문을 통합 관리합니다.\n[기능] 해외 주문 수집 · 다국어 송장 · 국가별 운송사 · 통관 정보 관리\n[DDP] 판매자가 관세 부담 / [DDU] 구매자가 관세 부담",
         guideStep10Title: "B2B 도매 주문",
-        guideStep10Desc: "대량 주문을 별도 관리합니다.\n[기능] 거래처 관리 · 단가 관리 · 계약 관리 · 대량 발주 · 납품 관리 · 세금계산서 관리",
+        guideStep10Desc: "대량 주문을 별도 관리합니다.\n[기능] 거래처 관리 · 단가 관리 · 계약 관리 · 대량 발주 · 납품 관리",
         guidePhaseE: "Phase E. 자동화 및 최적화",
         guideStep11Title: "자동 라우팅 설정",
         guideStep11Desc: "조건에 따라 최적 물류 거점을 자동 배정합니다.\n[조건] 지역 · 국가 · 재고 · 채널 · 상품군 · 배송 우선순위\n[효과] 배송 시간 단축 · 물류 비용 절감 · SLA 개선",
@@ -8106,7 +8106,7 @@ export default {
 
     "nextChannels": "다음 → 채널 선택",
 
-    "businessWarning": "⚠️ 아래 정보는 채널 API 연동, 세금계산서 발행, 광고 계정 연결에 사용됩니다. 정확히 입력해주세요.",
+    "businessWarning": "⚠️ 아래 정보는 채널 API 연동, 사업자 확인, 광고 계정 연결에 사용됩니다. 정확히 입력해주세요.",
 
     "companyLabel": "회사 (브랜드)명",
 
@@ -19504,7 +19504,7 @@ export default {
       growth_l3: "글로벌 채널(WhatsApp·LINE·DM) — Pro+",
       growth_l4: "AI 룰 엔진 — Pro+",
       growth_l5: "퍼스트파티 픽셀·API 키 — Pro+",
-      growth_l6: "SmartConnect ERP 연동 — Pro+",
+      growth_l6: "SmartConnect 채널 연동 — Pro+",
       growth_s1: "AI 마케팅 자동화(Core)",
       growth_s1i1: "AI 광고 크리에이티브 생성",
       growth_s1i2: "캠페인 설정·관리·목록·리포트",
@@ -19587,7 +19587,7 @@ export default {
       pro_s3i5: "팝업 A/B 테스트·트리거 설정",
       pro_s4: "고급 WMS·커머스 확장",
       pro_s4i1: "재고 조정·위치 관리·바코드 연동",
-      pro_s4i2: "월별 정산 연동·세금계산서·결제 승인",
+      pro_s4i2: "월별 정산 연동·결제 승인",
       pro_s4i3: "3PL 추가·수정",
       pro_s4i4: "수집 로그 기본 보기",
       pro_s5: "AI 룰 엔진·자동화(신규)",

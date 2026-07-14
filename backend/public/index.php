@@ -227,6 +227,9 @@ $app->add(function (Request $request, $handler) {
         || strpos($path, '/api/v427/omni/') === 0 || strpos($path, '/v427/omni/') === 0
         // 190차 Sprint2-c: KakaoChannel/PixelTracking/JourneyBuilder 부활 — 세션 self-auth + 테넌트 격리.
         //   (pixel/collect 는 공개 비콘 — 핸들러가 pixel_id→tenant 도출, requirePro 미적용)
+        // [283차 R2] /pixel/push/{config,subscribe} 도 이 접두를 상속하는 공개 경로다(스토어프론트 소비자 구독).
+        //   WebPush::publicSubscribe 가 HMAC 서명 pixel_id → pixel_configs.tenant_id 로만 테넌트를 도출하고(임의
+        //   tenant_id 미수신), 푸시서비스 호스트 화이트리스트 + (pixel_id,IP) 분당 캡으로 남용/저장형 SSRF 를 차단한다.
         || strpos($path, '/api/kakao/') === 0    || strpos($path, '/kakao/') === 0
         || strpos($path, '/api/pixel/') === 0    || strpos($path, '/pixel/') === 0
         || strpos($path, '/api/journey/') === 0  || strpos($path, '/journey/') === 0

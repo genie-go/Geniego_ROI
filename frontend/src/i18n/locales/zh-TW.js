@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
         "desc": "適合需要大規模營運與客製建置的企業。",
         "features": [
           "包含專業版所有功能",
-          "客製AI模型訓練",
+          "SSO(SAML)與SCIM自動佈建",
           "專屬客戶成功經理",
-          "SLA 99.9%可用性保證",
+          "SLA 99.5%可用性保證(條款第4條)",
           "無限團隊成員",
           "無限API呼叫",
           "客製整合與Webhook",
-          "地端部署支援"
+          "SIEM稽核日誌介接與稽核軌跡匯出"
         ],
         "notIncluded": []
       }
@@ -5493,7 +5493,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       "growth_l3": "全球通路（WhatsApp·LINE·DM）— Pro+",
       "growth_l4": "AI 規則引擎 — Pro+",
       "growth_l5": "第一方像素·API 金鑰 — Pro+",
-      "growth_l6": "SmartConnect ERP 整合 — Pro+",
+      "growth_l6": "SmartConnect 通路整合 — Pro+",
       "pro_tagline": "專業版方案標語",
       "pro_headline": "專業版方案",
       "pro_badge": "Pro_badge",
@@ -5518,7 +5518,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       "pro_s3i5": "彈窗 A/B 測試·觸發條件設定",
       "pro_s4": "進階 WMS·電商擴充",
       "pro_s4i1": "庫存調整·位置管理·條碼整合",
-      "pro_s4i2": "每月結算整合·稅務發票·付款核准",
+      "pro_s4i2": "每月結算整合·付款核准",
       "pro_s4i3": "3PL 新增·編輯",
       "pro_s4i4": "收集記錄基本檢視",
       "pro_s5": "AI 規則引擎·自動化（新功能）",
@@ -9779,7 +9779,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       paidPlanNote: "為進行通路整合，必須登錄商業資訊",
       nextBusiness: "下一步 → 商業資訊",
       nextChannels: "下一步 → 選取通路",
-      businessWarning: "⚠️ 以下資訊將用於通路 API 整合、發票開立與廣告帳戶連結，請正確填寫。",
+      businessWarning: "⚠️ 以下資訊將用於通路 API 整合、企業身分驗證與廣告帳戶連結，請正確填寫。",
       companyLabel: "公司（品牌）名稱",
       ceoNameLabel: "負責人姓名",
       businessTypeLabel: "產業類別",

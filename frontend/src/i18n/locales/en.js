@@ -515,13 +515,13 @@ export default {
         "desc": "For large-scale operations that need a custom build.",
         "features": [
           "Everything in Pro",
-          "Custom AI model training",
+          "SSO (SAML) & SCIM auto-provisioning",
           "Dedicated customer success manager",
-          "SLA 99.9% uptime guarantee",
+          "SLA 99.5% uptime commitment (Terms §4)",
           "Unlimited team members",
           "Unlimited API calls",
           "Custom integrations & webhooks",
-          "On-premise deployment support"
+          "SIEM log forwarding & audit-trail export"
         ],
         "notIncluded": []
       }
@@ -1509,7 +1509,7 @@ export default {
         guideStep9Title: "International Order Management",
         guideStep9Desc: "Manage overseas sales channel orders in one place.\n[Features] Cross-border collection · Multi-language invoices · Country-specific carriers · Customs information management\n[DDP] Seller pays duties / [DDU] Buyer pays duties",
         guideStep10Title: "B2B Wholesale Orders",
-        guideStep10Desc: "Manage bulk orders separately.\n[Features] Account management · Pricing · Contract management · Bulk ordering · Delivery management · Tax invoice management",
+        guideStep10Desc: "Manage bulk orders separately.\n[Features] Account management · Pricing · Contract management · Bulk ordering · Delivery management",
         guidePhaseE: "Phase E. Automation and Optimization",
         guideStep11Title: "Configure Auto Routing",
         guideStep11Desc: "Automatically assign the optimal fulfillment center based on conditions.\n[Criteria] Region · Country · Inventory · Channel · Product category · Shipping priority\n[Benefits] Faster delivery · Lower logistics cost · Improved SLA",
@@ -5861,7 +5861,7 @@ export default {
         growth_l3: "Global Channels (WhatsApp·LINE·DM) — Pro+",
         growth_l4: "AI Rule Engine — Pro+",
         growth_l5: "1st-Party Pixel·API Keys — Pro+",
-        growth_l6: "SmartConnect ERP Integration — Pro+",
+        growth_l6: "SmartConnect Channel Integration — Pro+",
         pro_tagline: "Pro_tagline",
         pro_headline: "Pro_headline",
         pro_badge: "Pro_badge",
@@ -5886,7 +5886,7 @@ export default {
         pro_s3i5: "Popup A/B Test·Trigger Setup",
         pro_s4: "Advanced WMS + Commerce Expansion",
         pro_s4i1: "Stock Adjustment·Location Mgmt·Barcode Integration",
-        pro_s4i2: "Monthly Settlement Integration·Tax Invoice·Payment Approval",
+        pro_s4i2: "Monthly Settlement Integration·Payment Approval",
         pro_s4i3: "3PL Add·Edit",
         pro_s4i4: "Collection Log Basic View",
         pro_s5: "AI Rule Engine & Automation (New)",

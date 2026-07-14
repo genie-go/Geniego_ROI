@@ -46,6 +46,10 @@ export async function pushSubscribe() {
     sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(cfg.public_key) });
   }
   const j = sub.toJSON();
+  // [283차 R2] customer_id 는 **서버가** 세션 사용자의 email 로 자기 테넌트 CRM 고객을 해상해 결속한다
+  //   (WebPush::subscribe → resolveCustomerByContact). 프론트가 임의 customer_id 를 보내면 위조가 되므로 보내지 않는다.
+  //   ※ 이 경로는 대시보드 로그인 사용자 전용이다. 고객사 **상점 방문자(소비자)** 구독은 공개 픽셀 경로
+  //     (pixel.js: genie('pushSubscribe') → POST /api/pixel/push/subscribe)가 담당한다.
   await postJsonAuth('/api/v426/push/subscribe', { endpoint: j.endpoint, keys: j.keys || {} });
   return true;
 }

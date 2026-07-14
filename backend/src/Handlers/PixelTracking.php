@@ -908,6 +908,8 @@ class PixelTracking
 (function(g,e,n,i,p,x,l){g['GeniePixel']=g['GeniePixel']||{};
 var q=g['GeniePixel'].q=g['GeniePixel'].q||[];
 g['GeniePixel'].track=function(e,d){q.push([e,d,Date.now()])};
+g['GeniePixel'].identify=function(t){q.push(['identify',t,Date.now()])};
+g['GeniePixel'].pushSubscribe=function(o){q.push(['pushSubscribe',o,Date.now()])};
 g['GeniePixel'].pixelId='{$pixelId}';
 var s=document.createElement('script');s.async=true;
 s.src='{$baseUrl}/pixel.js?v=1';document.head.appendChild(s);

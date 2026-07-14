@@ -23,13 +23,17 @@
   if (!PID) return;                 // 스니펫이 pixelId 를 안 심었으면 조용히 no-op
 
   /* ── 수집 엔드포인트: 이 스크립트를 내려준 오리진 + /api 접두 ───────────────── */
-  var ENDPOINT = (function () {
+  var BASE = (function () {
     var s = D.currentScript;
     if (!s) { var all = D.getElementsByTagName('script'); s = all[all.length - 1]; }
     var origin = '';
     try { var a = D.createElement('a'); a.href = s.src; origin = a.protocol + '//' + a.host; } catch (e) {}
-    return (origin || '') + '/api/pixel/collect';
+    return origin || '';
   })();
+  var ENDPOINT = BASE + '/api/pixel/collect';
+  /* [283차 R2] 스토어프론트 웹푸시 구독(공개) — collect 와 동일한 /pixel/ 접두라 CORS·공개 bypass 를 그대로 상속. */
+  var PUSH_CFG_URL = BASE + '/api/pixel/push/config';
+  var PUSH_SUB_URL = BASE + '/api/pixel/push/subscribe';
 
   /* ── 저장소 (localStorage 불가 환경=프라이빗모드·쿠키차단 → 메모리 폴백) ───── */
   var mem = {};
@@ -194,13 +198,88 @@
     send(payload);
   }
 
+  /* ── [283차 R2] 웹푸시 구독 (opt-in — 고객사가 명시 호출할 때만 권한 요청) ──────
+   *
+   * ★왜 필요한가: 종전 유일한 구독 경로는 대시보드 로그인 사용자용(/v426/push/subscribe, requirePro)이라
+   *   고객사 **상점 방문자(진짜 소비자)** 가 구독할 길이 없었다 → push_subscription.customer_id 가 전부 0 →
+   *   행별 동의 게이트·빈도캡·저니 푸시 노드가 전부 미실행. 이 API 가 그 정문을 연다.
+   *
+   * ★서비스워커는 same-origin 만 등록 가능하다 — 우리 도메인의 push-sw.js 를 고객사 사이트에 등록할 수 없다.
+   *   따라서 고객사가 자기 도메인 루트에 push-sw.js(푸시 표시 전용, fetch 핸들러 없음)를 올려야 하며,
+   *   그 경로를 swPath 로 넘긴다(기본 '/push-sw.js'). 등록 실패 시 조용히 false — 가짜 성공 금지.
+   *
+   * 사용:  genie('pushSubscribe', { swPath: '/push-sw.js' })   // 반드시 사용자 클릭 핸들러 안에서 호출
+   *        (구독 전 GeniePixel.identify({email}) 를 호출해 두면 서버가 CRM 고객에 결속 = 개인 타겟팅/수신거부 적용)
+   */
+  function pushSubscribe(opts) {
+    opts = opts || {};
+    var swPath = opts.swPath || '/push-sw.js';
+    var fail = function () { return (W.Promise ? W.Promise.resolve(false) : false); };
+    if (optedOut()) return fail();
+    if (!W.Promise || !W.fetch) return fail();
+    if (!('serviceWorker' in W.navigator) || !('PushManager' in W) || !('Notification' in W)) return fail();
+
+    return W.fetch(PUSH_CFG_URL + '?pixel_id=' + encodeURIComponent(PID), { mode: 'cors', credentials: 'omit' })
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (!cfg || !cfg.enabled || !cfg.public_key) return false;   // 서버 VAPID 미설정 → no-op(정직)
+        return W.Notification.requestPermission().then(function (perm) {
+          if (perm !== 'granted') return false;                      // 거부 = 조용히 종료(재요청 스팸 금지)
+          return W.navigator.serviceWorker.register(swPath)
+            .then(function () { return W.navigator.serviceWorker.ready; })
+            .then(function (reg) {
+              return reg.pushManager.getSubscription().then(function (sub) {
+                if (sub) return sub;
+                return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(cfg.public_key) });
+              });
+            })
+            .then(function (sub) {
+              var j = sub.toJSON();
+              // 신원(identify 규약)을 동봉 — 서버가 crm_customers 로 해상(미매칭이면 익명 구독으로 정직 저장).
+              var body = JSON.stringify({
+                pixel_id: PID, endpoint: j.endpoint, keys: j.keys || {},
+                email: opts.email || get('_gnr_em') || '', phone: opts.phone || get('_gnr_ph') || ''
+              });
+              // CORS-simple(text/plain) — 프리플라이트 없음(collect 와 동일 규약).
+              return W.fetch(PUSH_SUB_URL, {
+                method: 'POST', body: body, mode: 'cors', credentials: 'omit',
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8' }
+              }).then(function (r) { return r.json(); }).then(function (d) { return !!(d && d.ok); });
+            });
+        });
+      })['catch'](function () { return false; });
+  }
+
+  /* base64url(VAPID 공개키) → Uint8Array(applicationServerKey 규약). */
+  function urlB64ToUint8(b64) {
+    var s = String(b64).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';   // ES5 안전(String.repeat 미사용 — 이 파일의 무의존 규약 유지)
+    var raw = W.atob(s), arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+
   /* ── 스니펫이 쌓아둔 큐 배수 + 실 구현으로 교체 ──────────────────────────── */
   captureAttribution();
   var queued = (G.q && G.q.slice) ? G.q.slice(0) : [];
   G.track = track;
-  G.q = { push: function (a) { track(a[0], a[1]); } };   // 늦게 로드된 스니펫 호출도 흡수
+  G.pushSubscribe = pushSubscribe;
+  /* [283차 R2] 큐/스니펫 호출 디스패치 — 'pushSubscribe' 는 이벤트가 아니라 명령이다.
+     (종전엔 track() 으로 흘러 서버 화이트리스트에서 'custom' 이벤트로 오인 기록됐을 것 — 무해하나 무의미.) */
+  function dispatch(a) {
+    if (!a) return;
+    if (a[0] === 'pushSubscribe') { try { pushSubscribe(a[1]); } catch (e) {} return; }
+    /* [283차 R2 P0] 'identify' 도 이벤트가 아니라 명령이다.
+       스니펫 stub 이 identify 를 정의하지 않아, 고객사 주문완료 페이지의
+       `GeniePixel.identify({email}); GeniePixel.track('purchase',…)` 가 콜드캐시(=첫 구매자)에서
+       TypeError 로 죽고 **purchase 비콘이 통째로 유실**됐다(아이덴티티·CAPI·CRM동기화 동반 사망).
+       큐는 순서대로 소비되므로 identify 가 뒤따르는 purchase 보다 먼저 적용된다. */
+    if (a[0] === 'identify') { try { G.identify(a[1]); } catch (e) {} return; }
+    track(a[0], a[1]);
+  }
+  G.q = { push: function (a) { dispatch(a); } };   // 늦게 로드된 스니펫 호출도 흡수
   for (var i = 0; i < queued.length; i++) {
-    try { track(queued[i][0], queued[i][1]); } catch (e) {}
+    try { dispatch(queued[i]); } catch (e) {}
   }
 
   /* ── SPA 라우트 변경 자동 page_view (고객사 다수가 React/Vue 상점) ─────────── */

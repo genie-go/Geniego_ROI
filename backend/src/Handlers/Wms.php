@@ -1773,20 +1773,28 @@ class Wms
         $picked = 0; $short = 0;
         $upItem = $pdo->prepare("UPDATE wms_wave_items SET status=?, picked_qty=?, updated_at=? WHERE id=? AND tenant_id=?");
         $upPick = $pdo->prepare("UPDATE wms_picking SET status='shipped', updated_at=? WHERE tenant_id=? AND order_ref=? AND sku=? AND status IN ('waved','pending')");
-        foreach ($items as $it) {
-            $sku = (string)($it['sku'] ?? ''); $qty = (float)($it['qty'] ?? 0); $wh = (string)($it['wh_id'] ?? '');
-            if ($sku === '' || $qty <= 0) { $upItem->execute(['picked', 0, $now, (int)$it['id'], $t]); continue; }
-            $ref = 'WAVE-' . $waveId . '-' . (int)$it['id'];
-            try {
-                self::recordMovement($t, ['type' => 'Outbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => (string)($it['name'] ?? ''), 'qty' => $qty, 'ref' => $ref, 'reason' => '웨이브피킹']);
-                if ((int)($it['bin_id'] ?? 0) > 0) self::adjustBinStock($t, $wh, (int)$it['bin_id'], $sku, (string)($it['name'] ?? ''), -$qty);
-                $upItem->execute(['picked', $qty, $now, (int)$it['id'], $t]);
-                $upPick->execute([$now, $t, (string)($it['order_ref'] ?? ''), $sku]);
-                $picked++;
-            } catch (\RuntimeException $e) {
-                if (str_starts_with($e->getMessage(), 'insufficient_stock')) { $upItem->execute(['short', 0, $now, (int)$it['id'], $t]); $short++; continue; }
-                throw $e;
+        // [283차 R2 P2 성능] 항목마다 재고 델타 훅이 발화하면 (항목수 × 채널수) 쿼리가 터진다(LIMIT 500).
+        //   확정 구간 동안 SKU 만 모았다가 종료 시 SKU 당 1회만 적재한다 — 최종 on_hand 는 동일하므로 값 무회귀.
+        self::beginStockSyncBatch();
+        try {
+            foreach ($items as $it) {
+                $sku = (string)($it['sku'] ?? ''); $qty = (float)($it['qty'] ?? 0); $wh = (string)($it['wh_id'] ?? '');
+                if ($sku === '' || $qty <= 0) { $upItem->execute(['picked', 0, $now, (int)$it['id'], $t]); continue; }
+                $ref = 'WAVE-' . $waveId . '-' . (int)$it['id'];
+                try {
+                    self::recordMovement($t, ['type' => 'Outbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => (string)($it['name'] ?? ''), 'qty' => $qty, 'ref' => $ref, 'reason' => '웨이브피킹']);
+                    if ((int)($it['bin_id'] ?? 0) > 0) self::adjustBinStock($t, $wh, (int)$it['bin_id'], $sku, (string)($it['name'] ?? ''), -$qty);
+                    $upItem->execute(['picked', $qty, $now, (int)$it['id'], $t]);
+                    $upPick->execute([$now, $t, (string)($it['order_ref'] ?? ''), $sku]);
+                    $picked++;
+                } catch (\RuntimeException $e) {
+                    if (str_starts_with($e->getMessage(), 'insufficient_stock')) { $upItem->execute(['short', 0, $now, (int)$it['id'], $t]); $short++; continue; }
+                    throw $e;
+                }
             }
+        } finally {
+            // 예외로 빠져나가도 배치는 반드시 닫는다(모아둔 SKU 유실·플래그 잔류 방지).
+            self::flushStockSyncBatch($t, 'wave_confirm:' . $waveId);
         }
         // 잔여 pending/short 유무로 wave status 판정(멱등 재확정 가능).
         $rem = $pdo->prepare("SELECT COUNT(*) FROM wms_wave_items WHERE wave_id=? AND tenant_id=? AND status IN ('pending','short')");
@@ -1897,11 +1905,41 @@ class Wms
      */
     public static function channelAvailable(string $tenant, string $channel, float $onHand): int
     {
+        // [283차 R2 P2] ★내림(floor) 단일화 — 종전 catch 폴백만 round() 라, 정책 조회가 실패하는 순간
+        //   on_hand=9.6 → 정상경로 9 / 폴백경로 10 으로 **서로 다른 재고**가 채널에 나갔다(자기모순·초과판매 여지).
+        //   재고는 항상 보수적으로 내림한다(있는 것보다 많이 팔지 않는다).
         try {
             $pol = self::stockPolicies(self::db(), $tenant);
             $buf = (float)($pol[strtolower(trim($channel))]['buffer'] ?? 0.0);
             return (int)max(0, (int)floor($onHand - $buf));
-        } catch (\Throwable $e) { return (int)max(0, (int)round($onHand)); }
+        } catch (\Throwable $e) { return (int)max(0, (int)floor($onHand)); }
+    }
+
+    /* ── [283차 R2 P2 성능] 재고 델타 훅 배치화 ───────────────────────────────────────────
+       confirmWave 는 LIMIT 500 항목을 순회하며 항목마다 recordMovement → enqueueChannelStockSync 를 부른다.
+       훅 1회당 (wms_stock 합계 + catalog_listing 조회 + 채널당 listing UPDATE·등록확인·잡조회) 쿼리가 붙어
+       웨이브 확정 1요청이 수천 쿼리로 불어났다. 같은 SKU 가 여러 주문에 반복 등장하는 것이 웨이브의 본질이므로,
+       배치 구간에서는 SKU 를 모아 두었다가 **마지막에 SKU 당 1회**만 적재한다(최종 on_hand 는 어차피 동일 = 값 동일).
+       ★비배치 경로(단건 입출고 등)는 종전과 완전히 동일하게 즉시 적재된다(무회귀). */
+    private static ?array $stockSyncBatch = null;
+
+    /** 배치 시작 — 이 시점부터 enqueueChannelStockSync 는 SKU 만 모은다(즉시 전송 안 함). */
+    public static function beginStockSyncBatch(): void
+    {
+        if (self::$stockSyncBatch === null) self::$stockSyncBatch = [];
+    }
+
+    /** 배치 종료 — 모아둔 SKU 를 중복 제거해 한 번씩 적재한다. @return int 적재 잡 수 */
+    public static function flushStockSyncBatch(string $tenant, string $reason = 'batch'): int
+    {
+        $skus = self::$stockSyncBatch ?? [];
+        self::$stockSyncBatch = null;   // 먼저 해제해야 아래 enqueue 가 실제로 동작한다
+        $n = 0;
+        foreach (array_unique($skus) as $sku) {
+            try { $n += self::enqueueChannelStockSync($tenant, (string)$sku, $reason); }
+            catch (\Throwable $e) { error_log('[Wms.flushStockSyncBatch] ' . $e->getMessage()); }
+        }
+        return $n;
     }
 
     /**
@@ -1918,6 +1956,8 @@ class Wms
     {
         $tenant = trim($tenant); $sku = trim($sku);
         if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '') return 0;
+        // [283차 R2 P2] 배치 구간(웨이브 확정 등)에서는 SKU 만 모으고, 종료 시 SKU 당 1회 적재한다(쿼리 폭주 완화).
+        if (self::$stockSyncBatch !== null) { self::$stockSyncBatch[] = $sku; return 0; }
         try {
             $pdo = self::db(); $now = self::now();
             // 실물 SSOT — 전 창고 on_hand 합(창고별 분산은 출고 시 allocationPlan 이 해결).
@@ -1964,7 +2004,10 @@ class Wms
 
                 // ① 디바운스/합치기 — 아직 전송되지 않은 잡이 있으면 payload 만 최신값으로 덮는다(1행 유지·멱등).
                 //    입고 100건이 연속으로 들어와도 채널당 잡은 최대 1행(큐 폭주 0).
-                if (in_array($lastStatus, ['queued', 'awaiting_credentials'], true)) {
+                //    ★[283차 R2] 'pending'(재고 어댑터 미보유로 보류된 잡) 포함 — 빼면 재고가 변할 때마다 **새 행이
+                //      계속 INSERT** 되어 보류잡이 무한 증식한다. 여기서 최신 수량으로 덮고 'queued' 로 되살린다
+                //      (어댑터가 그 사이 추가됐다면 다음 회차에 즉시 실전송된다).
+                if (in_array($lastStatus, ['queued', 'awaiting_credentials', 'pending'], true)) {
                     $pdo->prepare("UPDATE catalog_writeback_job SET payload=?, status='queued', attempt=1, updated_at=? WHERE id=?")
                         ->execute([$payload, $now, (int)$last['id']]);
                     $n++; continue;

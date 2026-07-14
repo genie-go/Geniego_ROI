@@ -1064,7 +1064,11 @@ final class UserAuth
     //   FE writeGuard 가 클라이언트에서 1차 차단하나, 직접 API 호출 우회를 서버에서 2차 차단(심층 방어).
     //   fail-open(레거시): team_role 미설정/미인식은 owner 로 정규화(기존 단독 회원 안정성 보존).
     // ═════════════════════════════════════════════════════════════
-    private const TEAM_OWNER_ONLY = ['billing', 'subscription', 'plan_change', 'account_delete', 'team_owner_change', 'api_keys'];
+    // [283차 R2 보안] 'security_policy' 추가 — 테넌트 보안정책 쓰기(조직 MFA 정책·SIEM 포워딩 설정·감사증적
+    //   내보내기)는 오너 전용이다. 283차가 이 3개를 admin 전용 → requirePlan('enterprise') 로 완화하면서,
+    //   팀 멤버가 오너의 plan 을 상속(1218행)한다는 사실과 결합해 **말단 멤버 1명이 조직 MFA 를 끄고
+    //   SIEM 엔드포인트를 공격자 주소로 바꿔 감사로그를 유출**할 수 있게 됐다(권한상승). manager 도 불가.
+    private const TEAM_OWNER_ONLY = ['billing', 'subscription', 'plan_change', 'account_delete', 'team_owner_change', 'api_keys', 'security_policy'];
 
     private static function normTeamRole($role): string
     {
@@ -1094,6 +1098,35 @@ final class UserAuth
             return [null, [$msg, 403]];
         }
         return [$caller, null];
+    }
+
+    /**
+     * [283차 R2 보안 P0-1] 테넌트 보안정책 **쓰기** 게이트 — 오너(또는 플랫폼 admin)만 통과.
+     *
+     *   대상: 조직 MFA 정책(UserAuth::mfaPolicyConfig PUT) · SIEM 포워딩 설정/전송(Compliance::siemConfig
+     *         PUT·siemPush) · 감사증적 내보내기(Compliance::auditExport).
+     *
+     *   ★배경(283차가 유입시킨 보안 후퇴): 위 3개는 종전 **플랫폼 관리자 전용**이었다. 283차가 enterprise
+     *     고객의 자기 조직 통제를 열어주려 requirePlan('enterprise') 로 바꿨는데, 팀 멤버는 오너의 plan 을
+     *     그대로 상속한다(1218행 $ownerPlan). 결과적으로 엔터프라이즈 테넌트의 **읽기전용 멤버 1명이**
+     *     조직 MFA 를 off 로 끄고, SIEM 엔드포인트를 공격자 서버로 돌려 전체 감사로그를 유출할 수 있었다.
+     *
+     *   ∴ plan 게이트(requirePlan)와 **직교하는** 팀역할 게이트를 추가로 건다. 기존 팀권한 체계
+     *     (TEAM_OWNER_ONLY + requireTeamWrite)를 그대로 재사용한다 — 신규 권한 체계 신설 없음.
+     *   ★무회귀: 플랫폼 관리자(plan=admin)는 requireTeamWrite 내부에서 우회되므로 전역 경로는 종전 그대로.
+     *            단독 회원/오너는 team_role='owner'(또는 미설정→owner 정규화) 이므로 영향 없음.
+     */
+    public static function requireTenantSecurityWrite(ServerRequestInterface $req, ResponseInterface $res): ?ResponseInterface
+    {
+        [$caller, $err] = self::requireTeamWrite($req, 'security_policy');
+        if ($err) {
+            return self::json($res, [
+                'ok'    => false,
+                'error' => '조직 보안정책 변경은 계정 소유자(owner)만 수행할 수 있습니다.',
+                'code'  => 'OWNER_REQUIRED',
+            ], (int)$err[1]);
+        }
+        return null; // 통과
     }
 
     // ═════════════════════════════════════════════════════════════
@@ -3505,24 +3538,45 @@ final class UserAuth
         } catch (\Throwable $e) { return false; }
     }
 
-    /**
-     * [P3 보안거버넌스] 조직 MFA 강제 정책: off|admin|all. 기본 admin(기존 동작 보존).
-     * [283차] $tenant 지정 시 **테넌트 정책 우선**, 미설정이면 전역(app_setting mfa_policy)으로 폴백.
-     *   → $tenant=null 호출(기존 전 호출부)의 동작은 완전히 동일하다(무회귀).
-     */
-    public static function mfaPolicy(\PDO $pdo, ?string $tenant = null): string
+    /** MFA 정책 엄격도 서열. off(0) < admin(1) < all(2). [283차 R2] */
+    private const MFA_STRICTNESS = ['off' => 0, 'admin' => 1, 'all' => 2];
+
+    /** 플랫폼 전역 기본 MFA 정책(app_setting). 미설정/불량값 → 'admin'(종전 기본값 보존). [283차 R2] */
+    private static function globalMfaPolicy(\PDO $pdo): string
     {
-        if ($tenant !== null && $tenant !== '') {
-            $tp = self::tenantPolicy($pdo, $tenant);
-            $tv = (string)($tp['mfa_policy'] ?? '');
-            if (in_array($tv, ['off', 'admin', 'all'], true)) return $tv;
-        }
         try {
             $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='mfa_policy' LIMIT 1");
             $st->execute(); $v = (string)$st->fetchColumn();
             if (in_array($v, ['off', 'admin', 'all'], true)) return $v;
         } catch (\Throwable $e) {}
         return 'admin';
+    }
+
+    /**
+     * [P3 보안거버넌스] 조직 MFA 강제 정책: off|admin|all. 기본 admin(기존 동작 보존).
+     *
+     * [283차] $tenant 지정 시 테넌트 정책 반영, 미설정이면 전역(app_setting mfa_policy)으로 폴백.
+     *
+     * [283차 R2 보안 P0-2] ★종전 283차 구현은 테넌트 값을 **무조건 반환**했다 → 플랫폼 전역이 'all'(전원 MFA
+     *   강제)이어도 테넌트가 'off' 면 그 조직만 MFA 가 꺼졌다. 즉 **테넌트가 전역 강제를 무력화**할 수 있었고,
+     *   283차 이전에 전역 'all' 이 갖던 구속력이 사라졌다(보안 후퇴).
+     *   ∴ **엄격도 max(global, tenant)** 로 교정한다 — 테넌트는 전역보다 **더 엄격하게만** 만들 수 있고,
+     *     절대 완화할 수 없다(전역 all → 테넌트 off 로 못 내림).
+     *   → $tenant=null 호출(기존 전 호출부)의 동작은 완전히 동일하다(무회귀).
+     */
+    public static function mfaPolicy(\PDO $pdo, ?string $tenant = null): string
+    {
+        $global = self::globalMfaPolicy($pdo);
+        if ($tenant === null || $tenant === '') return $global;
+
+        $tp = self::tenantPolicy($pdo, $tenant);
+        $tv = (string)($tp['mfa_policy'] ?? '');
+        if (!in_array($tv, ['off', 'admin', 'all'], true)) return $global; // 테넌트 미설정 → 전역 그대로
+
+        // 엄격도 max — 완화 불가(강화만 허용).
+        $gr = self::MFA_STRICTNESS[$global] ?? 1;
+        $tr = self::MFA_STRICTNESS[$tv] ?? 0;
+        return $tr > $gr ? $tv : $global;
     }
 
     /** 정책×역할 → MFA 강제 여부. off=없음·admin=관리자만·all=전원. [283차] $tenant 스코프 지원. */
@@ -3554,9 +3608,26 @@ final class UserAuth
         if (strtoupper($req->getMethod()) === 'PUT') {
             // enterprise 이상(=enterprise 또는 admin)만 설정 가능.
             if ($err = self::requirePlan($req, $res, 'enterprise')) return $err;
+            // [283차 R2 보안 P0-1] ★plan 게이트만으로는 부족하다 — 팀 멤버가 오너 plan 을 상속하므로
+            //   말단 멤버가 조직 MFA 를 끌 수 있었다. 오너(또는 플랫폼 admin)만 통과시킨다.
+            if ($err = self::requireTenantSecurityWrite($req, $res)) return $err;
             $b = (array)($req->getParsedBody() ?? []);
             if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
             $pol = in_array(($b['policy'] ?? ''), ['off', 'admin', 'all'], true) ? (string)$b['policy'] : 'admin';
+
+            // [283차 R2 P0-2 부수] 테넌트 스코프에서 'admin' 은 **무의미**하다 — MFA 강제 판정(911행)의
+            //   'admin' 은 **플랫폼 plan**(최고관리자)이지 테넌트 내 팀 역할이 아니다. 고객 테넌트에는
+            //   플랫폼 관리자가 존재하지 않으므로 'admin' 저장은 아무도 강제하지 않는 조용한 no-op 이 된다.
+            //   ∴ 저장을 거부하고 사유를 명시한다(조용한 무의미 금지). 테넌트의 실질 선택지는
+            //   off(=플랫폼 기본 정책 그대로) / all(=조직 전원 강제) 두 가지다.
+            if ($plan !== 'admin' && $pol === 'admin') {
+                return self::json($res, [
+                    'ok'      => false,
+                    'error'   => "'관리자만 강제'는 플랫폼 관리자에게만 적용되는 값이라 고객 조직에서는 아무도 강제되지 않습니다. 'off'(플랫폼 기본 정책 적용) 또는 'all'(조직 전원 강제) 중에서 선택하세요.",
+                    'code'    => 'POLICY_NOT_APPLICABLE',
+                    'options' => ['off', 'all'],
+                ], 422);
+            }
 
             if ($plan === 'admin') {
                 // 전역 기본값 — 기존 코드 경로 그대로.
@@ -3584,13 +3655,31 @@ final class UserAuth
         $tScoped = $tenant !== '' ? $tenant : null;
         $tp = $tScoped ? self::tenantPolicy($pdo, $tenant) : [];
         $hasTenantPolicy = in_array((string)($tp['mfa_policy'] ?? ''), ['off', 'admin', 'all'], true);
+        $isPlatformAdmin = ($plan === 'admin');
+
+        // [283차 R2] UI 정직성 —
+        //   ① 쓰기는 이제 **오너 전용**이므로 can_edit 에 팀역할을 반영한다(멤버에게 편집 UI 를 띄우고
+        //      저장 시점에 403 을 던지는 '가짜 버튼'을 만들지 않는다).
+        //   ② 고객 테넌트에는 'admin'(=플랫폼 관리자만 강제) 선택지를 노출하지 않는다(무의미·no-op).
+        //   ③ 전역 정책이 **하한(floor)** 임을 명시한다 — 테넌트는 강화만 가능하고 완화할 수 없다.
+        $callerRole = self::normTeamRole($user['team_role'] ?? (!empty($user['parent_user_id']) ? 'member' : 'owner'));
+        $canEdit = $isPlatformAdmin || (in_array($plan, ['enterprise'], true) && $callerRole === 'owner');
+        $globalPol = self::globalMfaPolicy($pdo);
+
         return self::json($res, ['ok' => true,
-            'policy' => self::mfaPolicy($pdo, $tScoped),
+            'policy' => self::mfaPolicy($pdo, $tScoped),   // 실효 정책 = max(전역, 테넌트)
             // 이 정책이 내 테넌트 것인지 플랫폼 전역 기본값인지 UI 가 구분할 수 있어야 한다.
             'scope' => $hasTenantPolicy ? 'tenant' : 'global',
-            'can_edit' => in_array($plan, ['enterprise', 'admin'], true),
-            'options' => ['off', 'admin', 'all'],
-            'labels' => ['off' => 'MFA 강제 안 함', 'admin' => '관리자만 강제', 'all' => '전 사용자 강제']]);
+            'can_edit' => $canEdit,
+            'caller_role' => $callerRole,
+            'global_policy' => $globalPol,                 // 하한(이보다 약하게 못 만든다)
+            'options' => $isPlatformAdmin ? ['off', 'admin', 'all'] : ['off', 'all'],
+            'labels' => $isPlatformAdmin
+                ? ['off' => 'MFA 강제 안 함', 'admin' => '관리자만 강제', 'all' => '전 사용자 강제']
+                : ['off' => '조직 추가 강제 없음(플랫폼 기본 정책 적용)', 'all' => '조직 전 사용자 강제'],
+            'note' => $isPlatformAdmin
+                ? null
+                : '조직 정책은 플랫폼 기본 정책보다 더 엄격하게만 설정할 수 있습니다(완화 불가). 변경은 계정 소유자(owner)만 가능합니다.']);
     }
 
     /** POST /auth/mfa/setup — 새 시크릿 발급(아직 미활성). secret + otpauth URI 반환. */

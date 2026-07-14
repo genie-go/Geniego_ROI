@@ -338,20 +338,25 @@ class DataExport
         $since = gmdate('Y-m-d', time() - $periodDays * 86400);
         $lim = max(1, (int)$limit);
         $off = max(0, (int)$offset);
+        // [283차 R2 P1] ★비결정 정렬 → 페이지 오염 차단.
+        //   OFFSET 페이징은 정렬이 **전순서(total order)** 일 때만 안전하다. ordered_at/date/period 는
+        //   동률이 대량으로 발생(일·월 단위)하고 MySQL/SQLite 는 동률 행의 실행 간 순서를 보장하지 않는다
+        //   → 2페이지가 1페이지 행을 중복 전송하고 다른 행을 건너뛴다(경고 없이). id tiebreaker 로 전순서화.
+        //   종전 결함(5,000행 무음 절삭)보다 나쁜 "무음 데이터 오염"이 되는 것을 막는다.
         switch ($ds) {
             case 'orders':
                 $cols = ['channel', 'order_no', 'sku', 'product_name', 'qty', 'total_price', 'status', 'event_type', 'ordered_at'];
-                $st = $pdo->prepare("SELECT channel, COALESCE(order_no,channel_order_id) AS order_no, sku, product_name, qty, total_price, status, event_type, ordered_at FROM channel_orders WHERE tenant_id=? AND ordered_at>=? ORDER BY ordered_at DESC LIMIT {$lim} OFFSET {$off}");
+                $st = $pdo->prepare("SELECT channel, COALESCE(order_no,channel_order_id) AS order_no, sku, product_name, qty, total_price, status, event_type, ordered_at FROM channel_orders WHERE tenant_id=? AND ordered_at>=? ORDER BY ordered_at DESC, id DESC LIMIT {$lim} OFFSET {$off}");
                 $st->execute([$tenant, $since]);
                 return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
             case 'ad_metrics':
                 $cols = ['channel', 'campaign_ext_id', 'ad_ext_id', 'date', 'impressions', 'clicks', 'conversions', 'spend', 'revenue'];
-                $st = $pdo->prepare("SELECT channel, campaign_ext_id, ad_ext_id, date, impressions, clicks, conversions, spend, revenue FROM performance_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim} OFFSET {$off}");
+                $st = $pdo->prepare("SELECT channel, campaign_ext_id, ad_ext_id, date, impressions, clicks, conversions, spend, revenue FROM performance_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC, id DESC LIMIT {$lim} OFFSET {$off}");
                 $st->execute([$tenant, $since]);
                 return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
             case 'settlements':
                 $cols = ['period', 'channel', 'gross_sales', 'net_payout', 'platform_fee', 'ad_fee', 'coupon_discount', 'return_fee', 'orders_count', 'returns_count', 'updated_at'];
-                $st = $pdo->prepare("SELECT period, channel, gross_sales, net_payout, platform_fee, ad_fee, coupon_discount, return_fee, orders_count, returns_count, updated_at FROM orderhub_settlements WHERE tenant_id=? ORDER BY period DESC LIMIT {$lim} OFFSET {$off}");
+                $st = $pdo->prepare("SELECT period, channel, gross_sales, net_payout, platform_fee, ad_fee, coupon_discount, return_fee, orders_count, returns_count, updated_at FROM orderhub_settlements WHERE tenant_id=? ORDER BY period DESC, id DESC LIMIT {$lim} OFFSET {$off}");
                 $st->execute([$tenant]);
                 return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
             case 'attribution':
@@ -367,7 +372,7 @@ class DataExport
                 return [array_keys($s), [$s]];
             case 'web_analytics':
                 $cols = ['source', 'date', 'channel_group', 'source_medium', 'sessions', 'users', 'new_users', 'page_views', 'conversions', 'revenue', 'engaged_sessions', 'avg_session_sec', 'bounce_rate', 'currency'];
-                $st = $pdo->prepare("SELECT source, date, channel_group, source_medium, sessions, users, new_users, page_views, conversions, revenue, engaged_sessions, avg_session_sec, bounce_rate, currency FROM web_analytics_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim} OFFSET {$off}");
+                $st = $pdo->prepare("SELECT source, date, channel_group, source_medium, sessions, users, new_users, page_views, conversions, revenue, engaged_sessions, avg_session_sec, bounce_rate, currency FROM web_analytics_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC, id DESC LIMIT {$lim} OFFSET {$off}");
                 $st->execute([$tenant, $since]);
                 return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
         }

@@ -642,13 +642,13 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
         "desc": "Pour les opérations à grande échelle nécessitant une solution sur mesure.",
         "features": [
           "Tout ce qui est inclus dans Pro",
-          "Entraînement de modèles d'IA personnalisés",
+          "SSO (SAML) et provisionnement automatique SCIM",
           "Responsable de la réussite client dédié",
-          "Garantie de disponibilité SLA 99,9 %",
+          "Engagement de disponibilité SLA 99,5 % (CGU art. 4)",
           "Membres d'équipe illimités",
           "Appels API illimités",
           "Intégrations et webhooks personnalisés",
-          "Support de déploiement On-Premise"
+          "Transfert des journaux vers SIEM et export d'audit"
         ],
         "notIncluded": []
       }
@@ -5940,7 +5940,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       "growth_l3": "Canaux mondiaux (WhatsApp · LINE · DM) — Pro+",
       "growth_l4": "Moteur de règles IA — Pro+",
       "growth_l5": "Pixel propriétaire · clés API — Pro+",
-      "growth_l6": "Intégration ERP SmartConnect — Pro+",
+      "growth_l6": "Intégration des canaux SmartConnect — Pro+",
       "pro_tagline": "Slogan du forfait Pro",
       "pro_headline": "Forfait Pro",
       "pro_badge": "Pro_badge",
@@ -5965,7 +5965,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       "pro_s3i5": "Test A/B de pop-up · configuration des déclencheurs",
       "pro_s4": "WMS avancé · extension commerce",
       "pro_s4i1": "Ajustement des stocks · gestion des emplacements · intégration des codes-barres",
-      "pro_s4i2": "Intégration du règlement mensuel · facture fiscale · approbation des paiements",
+      "pro_s4i2": "Intégration du règlement mensuel · approbation des paiements",
       "pro_s4i3": "Ajout · modification de 3PL",
       "pro_s4i4": "Vue de base des journaux de collecte",
       "pro_s5": "Moteur de règles IA · automatisation (nouveau)",

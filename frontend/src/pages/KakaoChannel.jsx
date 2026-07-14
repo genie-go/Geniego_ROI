@@ -301,13 +301,23 @@ function TemplatesTab({ API }) {
 }
 
 /* ─── Campaign Tab ─────────────────────────────────── */
+/* [283차 R2] 캠페인 토픽 — 백엔드 PreferenceCenter::TOPICS 가 SSOT(promo/newsletter/product/event).
+ *   KakaoChannel.php:245 가 이미 topic 을 저장하고 발송 시 CRM::sendOptions 로 토픽 옵트아웃을 강제하는데,
+ *   폼에 topic 입력이 없어 항상 NULL 로 저장됐다(=토픽 게이트 영구 무력). EmailMarketing 의 토픽 규약·번역키
+ *   재사용(신규 키/컴포넌트 0). 미지정('')은 종전 동작 그대로(무회귀).
+ *   ※ 알림톡(AT)은 본질적으로 거래성이라 보통 '주제 없음'이 맞고, 친구톡(광고성) 캠페인에 주제를 지정한다. */
+const KAKAO_TOPICS = [
+    { id: 'promo', ko: '프로모션·할인' }, { id: 'newsletter', ko: '뉴스레터·소식' },
+    { id: 'product', ko: '신상품·업데이트' }, { id: 'event', ko: '이벤트·웨비나' },
+];
+
 function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
     const { t } = useI18n();
     // 데모: 공유 상태 read/write (생성·발송·삭제가 대시보드·CRM에 라이브 반영)
     const { addKakaoCampaign, deleteKakaoCampaign, updateKakaoCampaign, crmSegments } = useGlobalData();
     const [templates, setTemplates] = useState([]);
     const [segments, setSegments] = useState([]);
-    const [form, setForm] = useState({ name: "", template_code: "", segment_id: "" });
+    const [form, setForm] = useState({ name: "", template_code: "", segment_id: "", topic: "" });
     const [sending, setSending] = useState(null);
     const [msg, setMsg] = useState("");
 
@@ -338,12 +348,12 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
                 targetSegmentId: seg?.id, targetSegmentName: seg?.name,
                 estimatedReach: seg?.count ?? 0, status: 'draft', // 206차: 1000 하드코딩→CRM 세그먼트 고객수 동기화
             });
-            setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "" });
+            setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "", topic: "" });
             return;
         }
         try {
             const r = await API("/kakao/campaigns", { method: "POST", body: JSON.stringify(form) });
-            if (r.ok) { setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "" }); load(); }
+            if (r.ok) { setMsg(t('kakao.msgCampDone')); setForm({ name: "", template_code: "", segment_id: "", topic: "" }); load(); }
             else setMsg("❌ " + (r.error || t('kakao.errGeneral')));
         } catch { setMsg(t('kakao.errGeneral')); }
     };
@@ -407,6 +417,15 @@ function CampaignsTab({ API, campaigns, setCampaigns, fmt }) {
                                 <option key={s.id} value={s.id}>{s.name}{s.count != null ? ` (${Number(s.count).toLocaleString()})` : ''}</option>
                             ))}
                         </select>
+                    </div>
+                    {/* [283차 R2] 콘텐츠 주제 — 지정 시 해당 주제를 수신거부한 고객에게는 발송되지 않는다(선호센터 연동, 백엔드가 이미 강제). */}
+                    <div style={{ gridColumn: "1 / -1" }}>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>🗂️ {t('email.topicTitle', '콘텐츠 주제(수신거부 강제)')}</div>
+                        <select value={form.topic} onChange={e => setForm(f => ({ ...f, topic: e.target.value }))} style={INPUT}>
+                            <option value="">{t('email.topicNone', '주제 없음')}</option>
+                            {KAKAO_TOPICS.map(tp => <option key={tp.id} value={tp.id}>{t('email.topic_' + tp.id, tp.ko)}</option>)}
+                        </select>
+                        <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>{t('email.topicHint', '주제를 지정하면 해당 주제를 수신거부한 고객에게는 발송되지 않습니다(선호센터 연동).')}</div>
                     </div>
                 </div>
                 {msg && <div style={{ marginTop: 10, fontSize: 12, color: msg.includes("❌") ? C.red : C.green }}>{msg}</div>}

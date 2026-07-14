@@ -253,13 +253,19 @@ function TemplatesPanel({t,checkInput}){
     );
 }
 
+/* [283차 R2] 캠페인 토픽 — 백엔드 PreferenceCenter::TOPICS 가 SSOT(promo/newsletter/product/event).
+ *   SmsMarketing.php:172 가 이미 topic 을 저장하고 발송 시 CRM::sendOptions 로 토픽 옵트아웃을 강제하는데,
+ *   폼에 topic 입력이 없어 항상 NULL 로 저장됐다(=토픽 게이트 영구 무력). EmailMarketing 의 토픽 규약·번역키를
+ *   그대로 재사용한다(신규 키/컴포넌트 0). 미지정('')은 종전과 동일하게 게이트 미적용(무회귀). */
+const SMS_TOPICS=[{id:'promo',ko:'프로모션·할인'},{id:'newsletter',ko:'뉴스레터·소식'},{id:'product',ko:'신상품·업데이트'},{id:'event',ko:'이벤트·웨비나'}];
+
 /* Campaigns Panel */
 function CampaignsPanel({t}){
     const[camps,setCamps]=useState([]);const[tpls,setTpls]=useState([]);const[loading,setLoading]=useState(true);const[showForm,setShowForm]=useState(false);
-    const[form,setForm]=useState({name:'',template_id:'',segment_id:'',scheduled_at:'',message:''});const[filterSt,setFilterSt]=useState('all');
+    const[form,setForm]=useState({name:'',template_id:'',segment_id:'',scheduled_at:'',message:'',topic:''});const[filterSt,setFilterSt]=useState('all');
     const load=useCallback(async()=>{setLoading(true);const[c,tp]=await Promise.all([apiFetch('/api/sms/campaigns'),apiFetch('/api/sms/templates')]);setCamps(c.campaigns||[]);setTpls(tp.templates||[]);setLoading(false);},[]);
     useEffect(()=>{load();},[load]);
-    const create=async()=>{await apiFetch('/api/sms/campaigns',{method:'POST',body:JSON.stringify(form)});setShowForm(false);setForm({name:'',template_id:'',segment_id:'',scheduled_at:'',message:''});load();};
+    const create=async()=>{await apiFetch('/api/sms/campaigns',{method:'POST',body:JSON.stringify(form)});setShowForm(false);setForm({name:'',template_id:'',segment_id:'',scheduled_at:'',message:'',topic:''});load();};
     const action=async(id,act)=>{await apiFetch('/api/sms/campaigns/'+id+'/'+act,{method:'POST'});load();};
     const stColors={draft:C.yellow,scheduled:C.accent,sent:C.green,paused:C.purple,failed:C.red};
     const STATUSES=['draft','scheduled','sent','paused'];
@@ -282,6 +288,15 @@ function CampaignsPanel({t}){
                         <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campTemplate', 'Template')}</div><select value={form.template_id} onChange={e=>setForm(p=>({...p,template_id:e.target.value}))}><option value="">{t('sms.campSelectTpl', 'Select')}</option>{tpls.map(tp=><option key={tp.id} value={tp.id}>{tp.name}</option>)}</select></div>
                         <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSegment', 'Segment')}</div><input value={form.segment_id} onChange={e=>setForm(p=>({...p,segment_id:e.target.value}))}/></div>
                         <div><div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT }} >{t('sms.campSchedule', 'Schedule')}</div><input type="datetime-local" value={form.scheduled_at} onChange={e=>setForm(p=>({...p,scheduled_at:e.target.value}))}/></div>
+                        {/* [283차 R2] 콘텐츠 주제 — 지정 시 해당 주제를 수신거부한 고객에게는 발송되지 않는다(선호센터 연동, 백엔드가 이미 강제). */}
+                        <div style={{ gridColumn:'1 / -1' }}>
+                            <div style={{ fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600 }}>🗂️ {t('email.topicTitle', '콘텐츠 주제(수신거부 강제)')}</div>
+                            <select value={form.topic} onChange={e=>setForm(p=>({...p,topic:e.target.value}))} style={{ ...INPUT }}>
+                                <option value="">{t('email.topicNone', '주제 없음')}</option>
+                                {SMS_TOPICS.map(tp=><option key={tp.id} value={tp.id}>{t('email.topic_'+tp.id, tp.ko)}</option>)}
+                            </select>
+                            <div style={{ fontSize:10, color:'#9ca3af', marginTop:4 }}>{t('email.topicHint', '주제를 지정하면 해당 주제를 수신거부한 고객에게는 발송되지 않습니다(선호센터 연동).')}</div>
+                        </div>
                     </div>
                     <div style={{ marginTop:12, fontSize:10, color:'#6b7280', marginBottom:4, fontWeight:600, ...INPUT, resize:'vertical' }} ><div>{t('sms.campMessage', 'Message')}</div><textarea value={form.message} onChange={e=>setForm(p=>({...p,message:e.target.value}))} rows={3}/></div>
                     <div style={{ display:'flex', gap:8, marginTop:14, justifyContent:'flex-end' }}>

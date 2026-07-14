@@ -3,7 +3,11 @@
  * WebPush — 모바일/데스크톱 웹 푸시 알림(246차 P3, VAPID).
  *
  *  - push-only SW(push-sw.js, fetch핸들러 부재=화이트스크린 트랩 회피)와 짝.
- *  - VAPID 키(공개/개인 PEM)는 admin 설정(app_setting webpush_vapid_*) 또는 env — 미설정 시 전 동작 graceful(무영향).
+ *  - VAPID 키는 admin 설정(app_setting webpush_vapid_*) 또는 env — 미설정 시 전 동작 graceful(무영향).
+ *    [283차 R2 정정] **공개키는 PEM 이 아니라 base64url raw**(P-256 비압축점 65B — 브라우저 applicationServerKey /
+ *    Authorization 헤더의 `k=` 파라미터에 그대로 들어간다). **개인키만 EC PEM**(openssl_pkey_get_private 로 서명).
+ *    종전 독블록이 둘 다 "PEM"이라 기술해 운영자가 공개키에 PEM 을 넣으면 구독이 전부 실패했다.
+ *  - [283차 R2] ★스토어프론트(소비자) 공개 구독 경로 — publicSubscribe()/publicConfig() 참조.
  *  - [283차 P1] 발송은 **RFC8291 aes128gcm 암호화 페이로드**(제목·본문·딥링크 실적재). 종전 payload-less(Content-Length: 0)
  *    구현은 push-sw.js 가 항상 폴백 문구("GeniegoROI / 새 알림이 도착했습니다")만 띄워 캠페인 내용이 0이었다.
  *    암호화 실패(구키 누락/openssl 미지원 등) 시 기존 payload-less 로 graceful fallback(무회귀).
@@ -90,6 +94,14 @@ final class WebPush
         try {
             $pdo = Db::pdo(); self::ensure($pdo);
             $cid = self::ownedCustomerId($pdo, $t, (int)($b['customer_id'] ?? 0));
+            // [283차 R2] ★유일한 호출부(pushNotify.js)가 customer_id 를 보내지 않아 이 경로의 모든 행이 cid=0 이었고,
+            //   그 결과 행별 동의 게이트·push_sent 빈도캡·저니 push 노드가 전부 미실행이었다(283차 자기모순).
+            //   프론트를 신뢰하는 대신 **서버가** 세션 사용자의 email 로 자기 테넌트 CRM 고객을 해상한다(위조 불가).
+            //   미매칭(대시보드 전용 사용자)이면 종전대로 0 = 익명 구독(무회귀).
+            if ($cid === 0) {
+                $u = UserAuth::authedUser($req);
+                if ($u && !empty($u['email'])) $cid = self::resolveCustomerByContact($pdo, $t, (string)$u['email'], '');
+            }
             $ua = substr((string)($req->getHeaderLine('User-Agent')), 0, 255);
             $up = $pdo->prepare("UPDATE push_subscription SET tenant_id=?, p256dh=?, auth=?, ua=?, customer_id=? WHERE endpoint=?");
             $up->execute([$t, $p256dh, $auth, $ua, $cid, $endpoint]);
@@ -124,6 +136,181 @@ final class WebPush
         } catch (\Throwable $e) { return self::json($res, ['ok' => false]); }
     }
 
+    /* ═══════════════════════════════════════════════════════════════════════════════
+     *  [283차 R2] 스토어프론트(소비자) 공개 구독 경로 — 웹푸시 "고객 결속"의 정문
+     *  ─────────────────────────────────────────────────────────────────────────────
+     *  ▸ 283차의 자기모순: 유일한 구독 경로 /v426/push/subscribe 는 requirePro(=테넌트 **대시보드 로그인 사용자**)
+     *    전용이고, 그 유일한 호출부(pushNotify.js)가 customer_id 를 안 보냈다. 즉 고객사의 **소비자**가 구독할
+     *    경로 자체가 부재 → 모든 행 customer_id=0 → 행별 동의 게이트(:242)·push_sent 빈도캡(:278)·
+     *    JourneyBuilder push 노드(hasSubscription)·Omnichannel push 스텝이 전부 영구 미실행이었다.
+     *    283차가 만든 RFC8291 암호화의 가치가 테넌트 브로드캐스트에서만 실현되고 있었다.
+     *  ▸ 정문: **공개 픽셀 인프라 재사용**(신규 공개 인프라 0).
+     *      - 테넌트는 오직 HMAC 서명 pixel_id → pixel_configs.tenant_id 로 도출. 요청의 임의 tenant_id 는 절대 미수신
+     *        (= 타 테넌트 구독 위조 원천 차단. PixelTracking::collect 와 동일한 신뢰모델).
+     *      - 경로가 /pixel/ 접두라 index.php 의 공개 bypass(:231) + 임의 오리진 CORS(:52)가 그대로 적용된다.
+     *      - 소비자 식별은 픽셀 identify 와 동일 규약(email/phone) → crm_customers 해상. 미매칭이면 customer_id=0
+     *        (익명 구독으로 **정직하게** 저장 — 픽셀 syncToCRM 과 동일하게 신규 고객을 임의 생성하지 않는다).
+     *  ▸ 방어(공개 엔드포인트): ① pixel_id HMAC 서명 ② 푸시서비스 호스트 화이트리스트(=우리 서버가 curl 하는 URL 이므로
+     *    임의 endpoint 수용은 저장형 SSRF 다) ③ endpoint 500B 길이 제한 ④ (pixel_id, IP) 분당 캡 ⑤ endpoint UNIQUE upsert.
+     * ═══════════════════════════════════════════════════════════════════════════════ */
+
+    /** 공개 구독 분당 캡((pixel_id, IP) 기준). 정상 사용자는 1회면 끝 — 넉넉히 잡아도 남용은 차단된다. */
+    private const PUBLIC_SUB_CAP = 20;
+
+    /** 브라우저 푸시 서비스 호스트 화이트리스트 — 이외 endpoint 는 거부(저장형 SSRF 차단). */
+    private const PUSH_HOSTS = [
+        'fcm.googleapis.com',            // Chrome / Edge(Chromium) / Samsung
+        'android.googleapis.com',        // 레거시 GCM
+        'push.services.mozilla.com',     // Firefox
+        'notify.windows.com',            // Edge(WNS)
+        'push.apple.com',                // Safari(web.push.apple.com)
+    ];
+
+    /** [공개] GET /pixel/push/config?pixel_id= — 스토어프론트 구독용 VAPID 공개키(base64url raw). */
+    public static function publicConfig(Request $req, Response $res): Response
+    {
+        $off = ['ok' => true, 'enabled' => false, 'public_key' => ''];
+        $pixelId = trim((string)($req->getQueryParams()['pixel_id'] ?? ''));
+        if ($pixelId === '' || !self::verifyPixelId($pixelId)) return self::json($res, $off);
+        try {
+            $pdo = Db::pdo();
+            if (self::tenantByPixelId($pdo, $pixelId) === '') return self::json($res, $off);
+            $pub = self::vapidPublicKey($pdo);
+            return self::json($res, ['ok' => true, 'enabled' => $pub !== '', 'public_key' => $pub]);
+        } catch (\Throwable $e) { return self::json($res, $off); }
+    }
+
+    /** [공개] POST /pixel/push/subscribe — 고객사 상점 방문자(소비자)의 푸시 구독 저장.
+     *  body: {pixel_id, endpoint, keys:{p256dh,auth}, email?, phone?}  (pixel.js 와 동일한 text/plain 비콘 허용) */
+    public static function publicSubscribe(Request $req, Response $res): Response
+    {
+        $b = (array)($req->getParsedBody() ?? []);
+        // pixel.js 는 프리플라이트 회피를 위해 Content-Type: text/plain 으로 보낸다(Slim 미파싱) → 원시 바디 폴백.
+        if (!$b) { $raw = (string)$req->getBody(); if ($raw !== '') { $d = json_decode($raw, true); if (is_array($d)) $b = $d; } }
+
+        $pixelId = trim((string)($b['pixel_id'] ?? ''));
+        if ($pixelId === '' || !self::verifyPixelId($pixelId)) return self::json($res, ['ok' => false, 'error' => 'invalid pixel signature'], 403);
+        $endpoint = substr(trim((string)($b['endpoint'] ?? '')), 0, 500);
+        $keys = (array)($b['keys'] ?? []);
+        $p256dh = substr((string)($keys['p256dh'] ?? ''), 0, 200);
+        $auth   = substr((string)($keys['auth'] ?? ''), 0, 100);
+        if ($endpoint === '' || $p256dh === '' || $auth === '') return self::json($res, ['ok' => false, 'error' => 'subscription 누락'], 422);
+        if (!self::isPushServiceEndpoint($endpoint)) return self::json($res, ['ok' => false, 'error' => 'unsupported push endpoint'], 422);
+
+        try {
+            $pdo = Db::pdo(); self::ensure($pdo);
+            $tenant = self::tenantByPixelId($pdo, $pixelId);
+            if ($tenant === '') return self::json($res, ['ok' => false, 'error' => 'unknown pixel'], 404);
+            if (self::publicRateLimited($pdo, $pixelId, $req)) return self::json($res, ['ok' => false, 'error' => 'rate_limited'], 429);
+
+            // 소비자 식별 — 픽셀 identify(email/phone) 규약. 미매칭 = 0(익명 구독, 정직).
+            $cid = self::resolveCustomerByContact($pdo, $tenant, (string)($b['email'] ?? ''), (string)($b['phone'] ?? ''));
+            $ua = substr((string)($req->getHeaderLine('User-Agent')), 0, 255);
+
+            // endpoint UNIQUE upsert(중복 구독·재방문 재구독은 갱신). 익명(0)으로 저장된 기존 행이 나중에
+            // identify 후 재구독하면 그때 cid 가 채워진다(비파괴 승격).
+            $up = $pdo->prepare("UPDATE push_subscription SET tenant_id=?, p256dh=?, auth=?, ua=?, customer_id=? WHERE endpoint=?");
+            $up->execute([$tenant, $p256dh, $auth, $ua, $cid, $endpoint]);
+            if ($up->rowCount() === 0) {
+                $pdo->prepare("INSERT INTO push_subscription(tenant_id,endpoint,p256dh,auth,ua,customer_id,created_at) VALUES(?,?,?,?,?,?,?)")
+                    ->execute([$tenant, $endpoint, $p256dh, $auth, $ua, $cid, gmdate('c')]);
+            }
+            // 공개 응답에 내부 customer_id 를 노출하지 않는다(열거 방지) — 결속 여부만 정직 표기.
+            return self::json($res, ['ok' => true, 'matched' => $cid > 0]);
+        } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'subscribe_failed'], 500); }
+    }
+
+    /** pixel_id HMAC 서명 검증 — PixelTracking::verifyPixelId 와 동일 규약(서명키 SSOT = Crypto 'pixel' 용도키).
+     *  (형제 메서드가 private 이라 여기서 동일 검증을 수행한다. 위조 pixel_id 는 DB 조회 전에 거부.) */
+    private static function verifyPixelId(string $pixelId): bool
+    {
+        $parts = explode('_', $pixelId);
+        if (count($parts) < 3 || $parts[0] !== 'px') return false;
+        $tag = array_pop($parts);
+        return hash_equals(\Genie\Crypto::hmacTag(implode('_', $parts), 'pixel', 12), (string)$tag);
+    }
+
+    /** pixel_id → 소유 테넌트(비활성 픽셀 제외). 미등록 = ''(구독 거부). */
+    private static function tenantByPixelId(PDO $pdo, string $pixelId): string
+    {
+        try {
+            $st = $pdo->prepare("SELECT tenant_id FROM pixel_configs WHERE pixel_id=? AND (enabled IS NULL OR enabled=1) LIMIT 1");
+            $st->execute([$pixelId]);
+            return (string)($st->fetchColumn() ?: '');
+        } catch (\Throwable $e) { return ''; }
+    }
+
+    /** 푸시 서비스 endpoint 인가(https + 호스트 화이트리스트). 우리 서버가 이 URL 로 POST 하므로 필수 방어. */
+    private static function isPushServiceEndpoint(string $url): bool
+    {
+        $p = parse_url($url);
+        if (!is_array($p) || ($p['scheme'] ?? '') !== 'https' || empty($p['host'])) return false;
+        $h = strtolower((string)$p['host']);
+        foreach (self::PUSH_HOSTS as $s) { if ($h === $s || str_ends_with($h, '.' . $s)) return true; }
+        return false;
+    }
+
+    /** email/phone → 테넌트 소유 CRM 고객(픽셀 syncToCRM 과 동일 규약). 미매칭 = 0.
+     *  ★신규 고객을 만들지 않는다 — 익명 푸시 구독으로 CRM 프로필을 임의 생성하면 PII/집계 오염(280차 P0 교훈). */
+    private static function resolveCustomerByContact(PDO $pdo, string $tenant, string $email, string $phone): int
+    {
+        if ($tenant === '') return 0;
+        $email = strtolower(trim($email));
+        if ($email !== '') {
+            try {
+                $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=:t AND email=:e LIMIT 1");
+                $st->execute([':t' => $tenant, ':e' => $email]);
+                $id = (int)($st->fetchColumn() ?: 0);
+                if ($id > 0) return $id;
+            } catch (\Throwable $e) {}
+        }
+        // 전화 폴백 — 구분자(-, 공백, +, 괄호)를 제거한 뒤 뒤 8자리 일치(273차 tail8 규약, 저장 포맷 혼재 흡수).
+        $digits = (string)preg_replace('/\D/', '', $phone);
+        if (strlen($digits) >= 9) {
+            try {
+                $st = $pdo->prepare("SELECT id FROM crm_customers WHERE tenant_id=:t AND phone IS NOT NULL AND phone<>''
+                    AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,'-',''),' ',''),'+',''),'(',''),')','') LIKE :p LIMIT 1");
+                $st->execute([':t' => $tenant, ':p' => '%' . substr($digits, -8)]);
+                $id = (int)($st->fetchColumn() ?: 0);
+                if ($id > 0) return $id;
+            } catch (\Throwable $e) {}
+        }
+        return 0;
+    }
+
+    /** 공개 구독 레이트리밋 — 전역 미들웨어 테이블(api_rate_limit) 재사용(신규 스키마 0).
+     *  key_id 는 api_key.id(양수)만 쓰이므로 **음수 공간**을 점유해 충돌이 구조적으로 불가능하다.
+     *  인프라 실패는 fail-open(픽셀 collect 의 레이트리밋과 동일한 가용성 우선 정책). */
+    private static function publicRateLimited(PDO $pdo, string $pixelId, Request $req): bool
+    {
+        $xff = trim(explode(',', $req->getHeaderLine('X-Forwarded-For'))[0] ?? '');
+        $ip = $xff !== '' ? $xff : (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        if ($ip === '') return false;
+        $keyId = -((int)(crc32('push:' . $pixelId . '|' . $ip) % 2147483647)) - 1; // 음수 키 공간
+        $win = (int)floor(time() / 60);
+        try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->prepare('INSERT INTO api_rate_limit (key_id, window_min, cnt) VALUES (?,?,1) ON DUPLICATE KEY UPDATE cnt=cnt+1')->execute([$keyId, $win]);
+            } else {
+                $pdo->prepare('INSERT INTO api_rate_limit (key_id, window_min, cnt) VALUES (?,?,1) ON CONFLICT(key_id,window_min) DO UPDATE SET cnt=cnt+1')->execute([$keyId, $win]);
+            }
+            $q = $pdo->prepare('SELECT cnt FROM api_rate_limit WHERE key_id=? AND window_min=?');
+            $q->execute([$keyId, $win]);
+            try { $pdo->prepare('DELETE FROM api_rate_limit WHERE window_min < ?')->execute([$win - 3]); } catch (\Throwable $eGc) {}
+            return ((int)$q->fetchColumn()) > self::PUBLIC_SUB_CAP;
+        } catch (\Throwable $e) {
+            // 테이블 미생성(인증 요청이 아직 없던 서버) → 생성 시도 후 이번 요청은 통과.
+            try {
+                if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                    $pdo->exec('CREATE TABLE IF NOT EXISTS api_rate_limit (key_id BIGINT NOT NULL, window_min BIGINT NOT NULL, cnt INT NOT NULL DEFAULT 0, PRIMARY KEY(key_id, window_min))');
+                } else {
+                    $pdo->exec('CREATE TABLE IF NOT EXISTS api_rate_limit (key_id INTEGER NOT NULL, window_min INTEGER NOT NULL, cnt INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(key_id, window_min))');
+                }
+            } catch (\Throwable $e2) {}
+            return false;
+        }
+    }
+
     /** POST /v426/push/test — 본 테넌트 구독 전체에 테스트 푸시(VAPID JWT + [283차] 암호화 페이로드).
      *  body(선택): {title, body, url} — 미전달 시 진단 기본문구. 암호화 성공 여부(encrypted)를 응답에 정직 표기. */
     public static function test(Request $req, Response $res): Response
@@ -141,7 +328,13 @@ final class WebPush
             'encrypted' => $r['encrypted'] ?? 0, 'payload_less' => $r['payload_less'] ?? 0, 'note' => $r['note'] ?? null]);
     }
 
-    /** [admin] POST /v426/push/vapid-config — VAPID 키 설정(public/private PEM/subject). */
+    /** [admin] POST /v426/push/vapid-config — VAPID 키 설정. body: {public, private, subject}.
+     *  [283차 R2 정정] 종전 독블록이 "public/private PEM" 이라 기술했으나 **형식이 다르다**:
+     *    - public  : **base64url raw**(P-256 비압축점 65B, `0x04‖X‖Y`) — 브라우저 applicationServerKey 와
+     *                Authorization 헤더의 `k=` 파라미터에 **그대로** 실린다(sendToTenant:'k=' . $pub). PEM 을 넣으면
+     *                전 구독/발송이 실패한다. 예) BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBO9-Y...
+     *    - private : **EC PEM**(-----BEGIN EC PRIVATE KEY----- … openssl_pkey_get_private 로 ES256 서명) — at-rest 암호화 저장.
+     *    - subject : mailto: 또는 https: URL(VAPID sub 클레임). */
     public static function saveVapidConfig(Request $req, Response $res): Response
     {
         // [280차 P1] UserAuth::requireAdmin 은 정의되지 않은 메서드 → 매 호출 fatal 500(VAPID 설정 저장 영구 불능,

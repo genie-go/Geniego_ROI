@@ -72,6 +72,11 @@ function scan(file) {
     // 외부 URL 조립 줄도 우리 정적자산이 아니다.
     const isConcatFragment = /['"]\s*\.\s*$|\.\s*['"]\//.test(line) || /https?:\/\//.test(line);
     if (isConcatFragment) return;
+    // [283차 R2] ★외부 API 호출 줄 제외 — 호스트가 보간변수에 들어가면 `https://` 리터럴이 줄에 없어
+    //   `{$base}/inventory_levels/set.json`(Shopify Admin API) 같은 **외부** 경로를 우리 정적자산으로 오인했다.
+    //   HTTP 클라이언트 호출부는 정적자산 참조가 아니므로 제외한다.
+    //   ※ 280차 팬텀 픽셀(`s.src='{$baseUrl}/pixel.js'`)은 HTTP 호출이 아닌 **스니펫 문자열**이라 계속 잡힌다(탐지력 유지).
+    if (/\b(httpReq|httpGet|httpMultipart|httpPost|self::http|curl_init|curl_setopt|fetch)\s*\(/.test(line)) return;
     let m;
     while ((m = re.exec(line)) !== null) {
       const ref = m[1].split('?')[0];

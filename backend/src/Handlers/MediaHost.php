@@ -187,7 +187,9 @@ final class MediaHost
         }
         // 큐에 남아 아직 전송되지 않은 잡의 payload 도 참조로 본다(전송 전에 파일이 사라지면 이미지 없이 등록된다).
         try {
-            $st = $pdo->query("SELECT payload FROM catalog_writeback_job WHERE status IN ('queued','awaiting_credentials','running')");
+            // [283차 R2 P1-4] 'processing'(잡 선점 중) 추가 — 전송 **중인** 잡의 이미지를 GC 가 지우면
+            //   그 순간 채널에 이미지 없이 등록된다. 선점 락 도입으로 생긴 새 상태를 참조 집합에 포함한다.
+            $st = $pdo->query("SELECT payload FROM catalog_writeback_job WHERE status IN ('queued','awaiting_credentials','running','processing')");
             foreach ($st ?: [] as $row) $collect(isset($row['payload']) ? (string)$row['payload'] : null);
         } catch (\Throwable $e) {}
 

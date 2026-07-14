@@ -251,9 +251,17 @@ final class PreferenceCenter
                 self::upsertPref($pdo, $tenant, $cid, $email, $ch, in_array($ch, $keep, true) ? 1 : 0, 'public');
             }
             // [282차 R3] 토픽 선호 반영 — 체크된 토픽만 구독 유지, 나머지 옵트아웃(channel='topic:{key}').
-            $keepTopics = array_map('strval', (array)($b['topics'] ?? []));
-            foreach (array_keys(self::TOPICS) as $tp) {
-                self::upsertPref($pdo, $tenant, $cid, $email, 'topic:' . $tp, in_array($tp, $keepTopics, true) ? 1 : 0, 'public');
+            // [283차 R2] ★키 존재 가드 — topics[] 자체가 없는 POST(레거시 북마크·구버전 폼·봇)는 "모든 토픽 해제"가
+            //   아니라 "토픽 미변경"이다. 종전엔 4개 토픽을 전부 0으로 덮어써 수신자가 의도하지 않은 전면 토픽
+            //   옵트아웃이 발생했다(admin 경로 savePreferences 는 이미 array_key_exists 가드가 있어 비대칭이었다).
+            //   ★단, "모든 토픽 체크해제 후 저장"은 정당한 전체 토픽 옵트아웃이다(브라우저는 빈 체크박스 그룹을
+            //   아예 전송하지 않아 topics 키가 사라진다) → 아래 렌더 폼이 심는 hidden 마커(topics_form=1)로 구분한다.
+            //   즉: 우리 폼에서 온 POST = 반영(빈 배열이면 전체 해제), 마커·키 둘 다 없는 레거시 POST = 미변경.
+            if (array_key_exists('topics', $b) || !empty($b['topics_form'])) {
+                $keepTopics = array_map('strval', (array)($b['topics'] ?? []));
+                foreach (array_keys(self::TOPICS) as $tp) {
+                    self::upsertPref($pdo, $tenant, $cid, $email, 'topic:' . $tp, in_array($tp, $keepTopics, true) ? 1 : 0, 'public');
+                }
             }
             return $page('선호 저장 완료', '수신 채널·주제 선호가 업데이트되었습니다.');
         }
@@ -284,6 +292,9 @@ final class PreferenceCenter
             . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '">'
             . '<div style="font-size:12px;font-weight:700;color:#334155;margin:0 0 8px">받을 채널</div>' . $checks
             . '<div style="font-size:12px;font-weight:700;color:#334155;margin:16px 0 8px">받을 주제</div>' . $topicChecks
+            // [283차 R2] 토픽 섹션이 포함된 폼임을 표기 — 전 토픽 체크해제(=정당한 전체 토픽 옵트아웃)와
+            //   topics 를 아예 모르는 레거시 POST(=미변경)를 서버가 구분하기 위한 마커.
+            . '<input type="hidden" name="topics_form" value="1">'
             . '<button type="submit" style="width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:#4f8ef7;color:#fff;font-size:15px;font-weight:600;cursor:pointer">선호 저장</button></form>'
             . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '" style="margin-top:10px"><input type="hidden" name="all_off" value="1">'
             . '<button type="submit" style="width:100%;padding:10px;border:0;border-radius:10px;background:#f1f5f9;color:#64748b;font-size:13px;cursor:pointer">전체 수신거부</button></form>'

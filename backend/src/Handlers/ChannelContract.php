@@ -91,6 +91,14 @@ final class ChannelContract
             // ★수정(update)에 공통 필수를 걸면 안 된다: 가격만 바꾸는 리프라이서 writeback 은 name 을 싣지 않는다.
             //   상품을 특정할 SKU 만 있으면 되고, 나머지는 채널의 기존 값이 유지된다(부분 갱신이 정상).
             $rules = [self::COMMON[1]];   // sku
+            /* ★[283차 R2 P0-3] 단, **가격을 싣고 있는 수정**에는 price>0 을 강제한다.
+               종전에 update 규칙이 SKU 하나만 검사했기 때문에, 0원 판매가가 이 게이트를 그대로 통과해
+               채널에 도달했다(11번가 <sellPrc>0</sellPrc>·쿠팡 salePrice:0·ESM 은 어댑터 방어도 없다).
+               채널의 기존 정상가는 복구 불가하므로, 전송 **전에** 막는 것이 유일한 방어선이다.
+               ★가격 키가 아예 없는 부분 갱신(재고 전용 stock_sync 등)은 검사하지 않는다 — 거짓 차단 금지. */
+            if (array_key_exists('price', $p) && $p['price'] !== null && $p['price'] !== '') {
+                $rules[] = self::COMMON[2];   // price(positive)
+            }
         } else {
             $rules = array_merge(self::COMMON, self::REQUIRED[$ch] ?? []);
         }

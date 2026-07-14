@@ -173,6 +173,10 @@ return function (App $app): void {
         'DELETE /pixel/configs/{id}'           => 'Genie\\Handlers\\PixelTracking::deleteConfig',
         'GET /pixel/analytics'                 => 'Genie\\Handlers\\PixelTracking::analytics',
         'GET /pixel/snippet/{pixel_id}'        => 'Genie\\Handlers\\PixelTracking::getSnippet',
+        // [283차 R2] 스토어프론트(소비자) 공개 웹푸시 구독 — 테넌트는 HMAC 서명 pixel_id 로만 도출(임의 tenant_id 미수신).
+        //   /pixel/ 접두라 index.php 공개 bypass + 임의 오리진 CORS 를 그대로 상속(신규 공개 인프라 0).
+        'GET /pixel/push/config'               => 'Genie\\Handlers\\WebPush::publicConfig',
+        'POST /pixel/push/subscribe'           => 'Genie\\Handlers\\WebPush::publicSubscribe',
 
         // ── 고객 여정 빌더 ────────────────────────────────────────────────
         'GET /journey/journeys'                => 'Genie\\Handlers\\JourneyBuilder::listJourneys',
@@ -3009,6 +3013,8 @@ return function (App $app): void {
     $register('DELETE', '/pixel/configs/{id}');
     $register('GET',    '/pixel/analytics');
     $register('GET',    '/pixel/snippet/{pixel_id}');
+    $register('GET',    '/pixel/push/config');      // [283차 R2] 공개 VAPID 공개키(스토어프론트 구독용)
+    $register('POST',   '/pixel/push/subscribe');   // [283차 R2] 공개 소비자 푸시 구독
     // Journey Builder
     $register('GET',    '/journey/journeys');
     $register('POST',   '/journey/journeys');

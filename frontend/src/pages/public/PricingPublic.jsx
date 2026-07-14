@@ -48,6 +48,12 @@ const STD_PLAN_CONTENT = {
     ],
     notIncluded: ["Attribution analytics", "Influencer evaluation", "International invoice"],
   },
+  // [283차 R2 정직성] ★"Commercial invoice auto-gen" 은 **유지**한다 — 실재 기능이다.
+  //   부재증명 재검증: backend grep(commercial_invoice|incoterm|hs_code) = 0건이지만, 이 기능은
+  //   **클라이언트 생성**(인쇄/PDF)이라 백엔드가 필요 없다 → WmsManager.jsx:1289 InvoiceTab(INCOTERMS
+  //   10종·HS코드·품목표·COMMERCIAL INVOICE 인쇄), :2799 탭 등록, :2991 렌더. 실제로 동작한다.
+  //   (283차가 "backend 0건 = 부재" 로 오판해 Landing.jsx:741·PlanPricing.jsx:94 에서 **참인 기능을
+  //    삭제**했다 — 그 2건은 복구 검토 대상으로 보고서에 남긴다. 여기서는 참인 문구를 지우지 않는다.)
   pro: {
     desc: "For growing brands with multi-channel operations.",
     features: [
@@ -55,14 +61,24 @@ const STD_PLAN_CONTENT = {
       "Influencer evaluation engine", "Commercial invoice auto-gen", "Up to 10 team members",
       "500,000 API calls / month", "Priority support (8h)",
     ],
-    notIncluded: ["Custom predictive models", "Dedicated account manager"],
+    // [283차 R2] "Custom predictive models" → 코드 부재(아래 참조). 실제 Enterprise 전용 기능으로 교체.
+    notIncluded: ["SSO (SAML) & SCIM", "Dedicated account manager"],
   },
+  // [283차 R2 정직성] Enterprise 허위문구 3건 정정. 배열 **인덱스 고정**(로케일이
+  //   appPricing.plans.enterprise.features.{i} 로 위치 대응 → 항목을 지우면 15개국 번역이 밀린다).
+  //   ① idx1 "Custom predictive model training" → 부재증명: custom_model|model_training|trainModel
+  //      = backend 0건. CustomerAI 는 **고정 모델**의 성능 조회(modelPerformance)일 뿐 고객별 학습 경로 없음.
+  //      → 실재하는 Enterprise 전용 기능(EnterpriseAuth.php:96,125,163 SSO/SAML·SCIM)으로 교체.
+  //   ② idx3 "SLA 99.9% uptime guarantee" → **측정 자체가 없다**(SystemMetrics.php:144,152,169 uptime=null).
+  //      게다가 이용약관(AuthPage.jsx:470 제4조③)은 99.5% 라 **자기모순**. → 약관과 동일한 99.5%로 일치.
+  //   ③ idx7 "On-premise deployment option" → 부재증명: on-premise|onpremise = backend 0건, 온프렘 산출물
+  //      자체가 없다. → 실재하는 Enterprise 전용(Compliance.php:274 auditExport·:329 siemConfig)으로 교체.
   enterprise: {
     desc: "For large-scale operations requiring full customization.",
     features: [
-      "Everything in Pro", "Custom predictive model training", "Dedicated account manager",
-      "SLA 99.9% uptime guarantee", "Unlimited team members", "Unlimited API calls",
-      "Custom integrations & webhooks", "On-premise deployment option",
+      "Everything in Pro", "SSO (SAML) & SCIM auto-provisioning", "Dedicated account manager",
+      "SLA 99.5% uptime commitment (Terms §4)", "Unlimited team members", "Unlimited API calls",
+      "Custom integrations & webhooks", "SIEM log forwarding & audit-trail export",
     ],
     notIncluded: [],
   },
@@ -509,9 +525,13 @@ const COMPARISON = [
     { key: "api",       feature: "API Calls / Month",         starter: "10,000",  pro: "500,000",     enterprise: "{unlimited}" },
     { key: "aiMkt",     feature: "Multi-Channel Attribution Analytics", starter: "—",       pro: "✓",           enterprise: "✓" },
     { key: "influencer",feature: "Influencer Analytics",      starter: "—",       pro: "✓",           enterprise: "✓" },
-    { key: "customAi",  feature: "Custom Predictive Models",  starter: "—",       pro: "—",           enterprise: "✓" },
+    // [283차 R2 정직성] ★이 COMPARISON 상수는 **현재 어디서도 렌더되지 않는다**(선언만·참조 0건 — 사실상
+    //   데드코드). 그래도 허위값을 남겨두면 누군가 배선하는 순간 되살아나므로 사실값으로 교정해 둔다.
+    //   customAi: 맞춤 예측모델 학습 = backend 0건 → 실재하는 Enterprise 전용(SSO/SCIM)으로 대체.
+    //   sla: uptime 미측정(SystemMetrics uptime=null) + 약관 99.5% 와 모순 → 약관값으로 통일.
+    { key: "sso",       feature: "SSO (SAML) & SCIM",         starter: "—",       pro: "—",           enterprise: "✓" },
     { key: "manager",   feature: "Dedicated Account Manager", starter: "—",       pro: "—",           enterprise: "✓" },
-    { key: "sla",       feature: "SLA Guarantee",             starter: "—",       pro: "99.5%",       enterprise: "99.9%" },
+    { key: "sla",       feature: "SLA Commitment",            starter: "—",       pro: "99.5%",       enterprise: "99.5%" },
     { key: "support",   feature: "Support Response",          starter: "48h",     pro: "8h",          enterprise: "1h" },
 ];
 

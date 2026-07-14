@@ -30,7 +30,8 @@ export const PLAN_SERVICE_GUIDE = {
       { icon: '👤', title: '고객·CRM', level: 'core', desc: '고객 리스트·RFM 세그먼트·이메일/카카오 기본 캠페인. VIP·AI 세그먼트·LINE/WhatsApp/Instagram DM은 Pro 이상.' },
       { icon: '🛒', title: '커머스·물류', level: 'core', desc: '무제한 판매채널·카탈로그 동기화·주문 허브·재고 관리·무제한 창고(WMS). 가격 최적화·Shopify/Amazon 연동은 Pro 이상.' },
       { icon: '📊', title: '성과·분석', level: 'core', desc: '퍼포먼스 허브·P&L 손익·인사이트·커스텀 리포트·엑셀 내보내기. AI 이상감지·자동 리포트·API 내보내기는 Pro 이상.' },
-      { icon: '💳', title: '재무·정산', level: 'core', desc: '결제 내역·정산 내역·월별 정산 등 기본 재무. 세금계산서 발행·결제 승인·채널/상품별 손익은 Pro 이상.' },
+      // [283차 R2 정직성] '세금계산서 발행' 제거 — 부재증명: 세금계산서|tax_invoice → backend 0건(발행 경로 부재).
+      { icon: '💳', title: '재무·정산', level: 'core', desc: '결제 내역·정산 내역·월별 정산 등 기본 재무. 결제 승인·채널/상품별 손익은 Pro 이상.' },
       { icon: '🤖', title: '자동화·AI 규칙', level: 'basic', desc: '온보딩·알림·결재 센터 등 기본 자동화. AI 룰 엔진·데이터 라이트백·고급 알림 정책은 Pro 이상.' },
       { icon: '🔌', title: '데이터·연동', level: 'core', desc: '메타/구글/틱톡/네이버/카카오/쿠팡 등 주요 채널 연동·라이선스 관리. 데이터 스키마·API 키·픽셀은 Pro 이상.' },
       { icon: '👥', title: '팀·지원', level: 'basic', desc: '팀 멤버 리스트·초대·활동 내역·플랫폼 가이드·이메일 지원. 역할 기반 권한 분리는 Pro 이상.' },
@@ -47,7 +48,8 @@ export const PLAN_SERVICE_GUIDE = {
       { icon: '👤', title: '고객·CRM', level: 'full', desc: 'VIP·AI 세그먼트·클러스터 분석·LINE/WhatsApp/Instagram DM 캠페인 전체. 멀티채널 고객 여정을 완전 자동화합니다.' },
       { icon: '🛒', title: '커머스·물류', level: 'full', desc: '가격 최적화·Shopify/Amazon/디지털 셸프 연동 전체. 글로벌 채널 확장과 지능형 가격 전략을 실행합니다.' },
       { icon: '📊', title: '성과·분석', level: 'full', desc: 'AI 이상감지·자동 리포트·경쟁사 AI 분석·API 데이터 내보내기·대시보드 공유 전체. 전사적 데이터 기반 의사결정.' },
-      { icon: '💳', title: '재무·정산', level: 'full', desc: '세금계산서 발행·결제 승인·월별 채널/상품 손익 분석 전체. 멀티채널 재무 관리와 전자 정산이 가능합니다.' },
+      // [283차 R2 정직성] '세금계산서 발행' 제거 — 부재증명: 세금계산서|tax_invoice → backend 0건.
+      { icon: '💳', title: '재무·정산', level: 'full', desc: '결제 승인·월별 채널/상품 손익 분석 전체. 멀티채널 재무 관리와 전자 정산이 가능합니다.' },
       { icon: '🤖', title: '자동화·AI 규칙', level: 'full', desc: 'AI 룰 엔진·알림 정책·액션 프리셋·데이터 라이트백·로그 전체. 운영 자동화 핵심 인프라를 완전 활용합니다.' },
       { icon: '🔌', title: '데이터·연동', level: 'full', desc: '이벤트 수집·정규화·데이터 스키마·매핑·API 키·웹훅·1st-party 픽셀 전체. 완전한 데이터 파이프라인을 구성합니다.' },
       { icon: '👥', title: '팀·지원', level: 'full', desc: '팀 멤버·역할 설정·활동 내역 전체와 우선 지원. 역할 기반 접근 제어를 완전 지원합니다.' },
@@ -56,18 +58,25 @@ export const PLAN_SERVICE_GUIDE = {
   enterprise: {
     label: 'Enterprise', emoji: '🌐', color: '#f59e0b',
     tagline: '대형 브랜드·복수 법인 운영을 위한 무제한 + 전담 지원 최상위',
-    summary: 'Enterprise는 대형 브랜드·복수 법인 운영 기업을 위한 최상위 플랜입니다. Pro 전 기능 + 데이터 라이트백 즉시 롤백·무제한 계정·전담 계정 매니저·99.9% SLA·맞춤 통합/웹훅·온프레미스 옵션을 제공하며, 맞춤 견적·커스텀 계약이 가능합니다.',
+    // [283차 R2 정직성] '99.9% SLA' → 99.5%(실측 부재 + 약관 제4조③ 99.5% 와 모순) ·
+    //   '온프레미스 옵션' 제거(부재증명: on-premise|온프레미스 → backend 0건·온프렘 산출물 자체 부재)
+    //   → 실재하는 Enterprise 전용(SSO/SCIM·감사증적/SIEM)으로 교체.
+    summary: 'Enterprise는 대형 브랜드·복수 법인 운영 기업을 위한 최상위 플랜입니다. Pro 전 기능 + 데이터 라이트백 즉시 롤백·무제한 계정·전담 계정 매니저·99.5% SLA·맞춤 통합/웹훅·SSO(SAML)/SCIM·감사증적 내보내기와 SIEM 연동을 제공하며, 맞춤 견적·커스텀 계약이 가능합니다.',
     sections: [
       { icon: '🏠', title: '홈 대시보드', level: 'full', desc: 'Pro 전체 + 다수 브랜드/계정을 통합 대시보드로 관리. 멀티 엔티티 통합 현황을 한눈에 봅니다.' },
-      { icon: '🚀', title: 'AI 마케팅 자동화', level: 'full', desc: 'Pro 전체 + 여러 브랜드 계정의 AI 마케팅 전략을 통합 운용. 맞춤 AI 모델 학습 옵션 제공.' },
+      // [283차 R2 정직성] '맞춤 AI 모델 학습 옵션' 제거 — 부재증명: custom_model|model_training|trainModel
+      //   → backend 0건(CustomerAI 는 고정 모델의 성능 조회일 뿐 고객별 학습 경로가 없다).
+      { icon: '🚀', title: 'AI 마케팅 자동화', level: 'full', desc: 'Pro 전체 + 여러 브랜드 계정의 AI 마케팅 전략을 통합 운용.' },
       { icon: '📣', title: '광고·채널 분석', level: 'full', desc: 'Pro 전체 + 다수 계정·다채널 광고 성과를 통합 분석하는 엔터프라이즈 시나리오 최적화.' },
       { icon: '👤', title: '고객·CRM', level: 'full', desc: 'Pro 전체 + 대규모 고객 DB와 복수 브랜드 CRM을 통합 운영.' },
       { icon: '🛒', title: '커머스·물류', level: 'full', desc: 'Pro 전체 + 글로벌 멀티채널 커머스·물류 통합 운영을 지원.' },
       { icon: '📊', title: '성과·분석', level: 'full', desc: 'Pro 전체 + 기업 전체 KPI 통합 리포팅과 이사회 수준 인사이트.' },
-      { icon: '💳', title: '재무·정산', level: 'full', desc: 'Pro 전체 + 멀티 법인·멀티 채널 재무 통합 정산과 ERP 연동.' },
+      // [283차 R2 정직성] 'ERP 연동' 제거 — 부재증명: `\berp\b` → backend 0건·프론트 ERP 커넥터 부재.
+      { icon: '💳', title: '재무·정산', level: 'full', desc: 'Pro 전체 + 멀티 법인·멀티 채널 재무 통합 정산.' },
       { icon: '🤖', title: '자동화·AI 규칙', level: 'full', desc: 'Pro 전체 + 데이터 라이트백 즉시 롤백까지. 대규모 운영에서 실수를 즉시 복구하는 안전망을 제공합니다.' },
       { icon: '🔌', title: '데이터·연동', level: 'full', desc: 'Pro 전체 + 기업 규모 데이터 거버넌스와 완전한 API 생태계·맞춤 통합/웹훅.' },
-      { icon: '👥', title: '팀·지원', level: 'full', desc: 'Pro 전체 + 무제한 계정·복수 법인 세분화 역할 관리·전담 계정 매니저·99.9% SLA.' },
+      // [283차 R2 정직성] 99.9% → 99.5%(약관 제4조③ 일치·가동률 실측 부재).
+      { icon: '👥', title: '팀·지원', level: 'full', desc: 'Pro 전체 + 무제한 계정·복수 법인 세분화 역할 관리·전담 계정 매니저·99.5% SLA.' },
     ],
   },
 };

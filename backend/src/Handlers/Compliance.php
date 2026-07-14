@@ -272,6 +272,9 @@ final class Compliance
         // [283차] admin=전역(종전 그대로) · enterprise=자기 테넌트만(신규). pro 이하는 403.
         //   종전엔 admin 전용이라 enterprise 고객이 **자기 감사증적조차 내보낼 수 없었다**(SOC2 심사 대응 불가).
         if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        // [283차 R2 보안 P0-1] plan 게이트만으로는 부족 — 팀 멤버가 오너 plan 을 상속하므로 말단 멤버가
+        //   **전체 감사추적을 내보낼** 수 있었다. 오너(또는 플랫폼 admin)만 통과시킨다.
+        if ($err = UserAuth::requireTenantSecurityWrite($req, $res)) return $err;
         $scope = self::auditScope($req);
         if ($scope === false) {
             return self::json($res, ['ok' => false, 'error' => '감사 증적 내보내기 권한이 없습니다.', 'code' => 'PLAN_REQUIRED'], 403);
@@ -327,6 +330,10 @@ final class Compliance
             // [283차] enterprise 이상. admin=전역(종전) · enterprise=자기 테넌트 SIEM(신규).
             //   종전엔 admin 전용 단일 전역설정이라 **고객이 자기 SIEM 으로 스트리밍할 수 없었다**.
             if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+            // [283차 R2 보안 P0-1] ★최우선 — plan 게이트만 두면 팀 멤버가 오너 plan 을 상속해
+            //   **SIEM 엔드포인트를 공격자 주소로 바꿔 조직 감사로그 전량을 유출**할 수 있었다(감사로그
+            //   외부반출 = 블래스트 반경 최대). 오너(또는 플랫폼 admin)만 통과시킨다.
+            if ($err = UserAuth::requireTenantSecurityWrite($req, $res)) return $err;
             $scope = self::auditScope($req);
             if ($scope === false) return self::json($res, ['ok' => false, 'error' => 'forbidden'], 403);
             $b = (array)($req->getParsedBody() ?? []);
@@ -457,6 +464,9 @@ final class Compliance
     {
         // [283차] admin=전역 설정·전역 이벤트(종전) · enterprise=자기 SIEM·자기 테넌트 이벤트(신규).
         if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        // [283차 R2 보안 P0-1] 감사로그를 외부(SIEM)로 실제 반출하는 동작 — 설정 변경과 동일 등급으로
+        //   오너 전용. (엔드포인트 자체는 오너만 바꿀 수 있게 됐으나, 반출 트리거도 멤버에게 열어둘 이유가 없다.)
+        if ($err = UserAuth::requireTenantSecurityWrite($req, $res)) return $err;
         $scope = self::auditScope($req);
         if ($scope === false) return self::json($res, ['ok' => false, 'error' => 'forbidden'], 403);
         $pdo = Db::pdo();

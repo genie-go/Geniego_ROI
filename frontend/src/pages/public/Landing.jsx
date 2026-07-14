@@ -513,22 +513,25 @@ const DICT15 = {
         "ar": "أمان مصرفي · PCI DSS · تشفير",
         "hi": "बैंक-स्तरीय सुरक्षा · PCI DSS · एन्क्रिप्शन"
     },
+    // [283차 R2 정직성] 99.9% → 99.5%. 공개 랜딩의 신뢰 배지(2502행 WHY 렌더)로 **실제 노출되는 약속**인데
+    //   ① 가동률 실측이 없고(SystemMetrics.php:144,152,169 uptime=null) ② 이용약관 제4조③은 99.5% 라
+    //   더 강한 수치를 마케팅에서만 약속하는 자기모순이었다. 약관과 동일한 수치로 통일한다.
     "ts2": {
-        "ko": "99.9% 가동률 SLA 보장",
-        "en": "99.9% uptime SLA",
-        "ja": "99.9% 稼働率 SLA",
-        "zh": "99.9% 可用性 SLA",
-        "zh-TW": "99.9% 可用性 SLA",
-        "vi": "SLA hoạt động 99,9%",
-        "th": "SLA อัปไทม์ 99.9%",
-        "id": "SLA uptime 99,9%",
-        "de": "99,9% Verfügbarkeits-SLA",
-        "fr": "SLA 99,9% de disponibilité",
-        "es": "SLA de disponibilidad 99,9%",
-        "pt": "SLA de uptime 99,9%",
-        "ru": "SLA доступности 99,9%",
-        "ar": "اتفاقية مستوى خدمة 99.9%",
-        "hi": "99.9% अपटाइम SLA"
+        "ko": "99.5% 가동률 SLA 보장",
+        "en": "99.5% uptime SLA",
+        "ja": "99.5% 稼働率 SLA",
+        "zh": "99.5% 可用性 SLA",
+        "zh-TW": "99.5% 可用性 SLA",
+        "vi": "SLA hoạt động 99,5%",
+        "th": "SLA อัปไทม์ 99.5%",
+        "id": "SLA uptime 99,5%",
+        "de": "99,5% Verfügbarkeits-SLA",
+        "fr": "SLA 99,5% de disponibilité",
+        "es": "SLA de disponibilidad 99,5%",
+        "pt": "SLA de uptime 99,5%",
+        "ru": "SLA доступности 99,5%",
+        "ar": "اتفاقية مستوى خدمة 99.5%",
+        "hi": "99.5% अपटाइम SLA"
     },
     "ts3": {
         "ko": "15개국 현지 자연어 지원",
@@ -938,8 +941,8 @@ const DICT_RICH = {
     "en": "Is it secure?"
   },
   "fq3a": {
-    "ko": "은행급 보안과 PCI DSS, 종단 암호화, 멀티테넌트 데이터 격리, 99.9% 가동률 SLA를 제공합니다.",
-    "en": "Bank-grade security, PCI DSS, end-to-end encryption, multi-tenant isolation, and a 99.9% uptime SLA."
+    "ko": "은행급 보안과 PCI DSS, 종단 암호화, 멀티테넌트 데이터 격리, 99.5% 가동률 SLA를 제공합니다.",
+    "en": "Bank-grade security, PCI DSS, end-to-end encryption, multi-tenant isolation, and a 99.5% uptime SLA."
   },
   "fq4q": {
     "ko": "무료로 시작할 수 있나요?",
@@ -2229,19 +2232,19 @@ const DICT_RICH_EXT = {
   "hi": "क्या यह सुरक्षित है?"
  },
  "fq3a": {
-  "ja": "銀行レベルのセキュリティ、PCI DSS、エンドツーエンド暗号化、マルチテナント分離、99.9%稼働率SLAを提供します。",
-  "zh": "提供银行级安全、PCI DSS、端到端加密、多租户隔离及99.9%可用性SLA。",
-  "zh-TW": "提供銀行級安全、PCI DSS、端到端加密、多租戶隔離及99.9%可用性SLA。",
-  "vi": "Bảo mật cấp ngân hàng, PCI DSS, mã hoá đầu-cuối, cô lập đa tenant và SLA 99,9%.",
-  "th": "ความปลอดภัยระดับธนาคาร PCI DSS เข้ารหัสปลายทาง แยกหลายผู้เช่า และ SLA 99.9%",
-  "id": "Keamanan kelas bank, PCI DSS, enkripsi end-to-end, isolasi multi-tenant, dan SLA 99,9%.",
-  "de": "Bank-Sicherheit, PCI DSS, Ende-zu-Ende-Verschlüsselung, Mandantentrennung und 99,9% SLA.",
-  "fr": "Sécurité bancaire, PCI DSS, chiffrement de bout en bout, isolation multi-tenant et SLA 99,9%.",
-  "es": "Seguridad bancaria, PCI DSS, cifrado de extremo a extremo, aislamiento multi-tenant y SLA 99,9%.",
-  "pt": "Segurança bancária, PCI DSS, criptografia ponta a ponta, isolamento multi-tenant e SLA 99,9%.",
-  "ru": "Банковская безопасность, PCI DSS, сквозное шифрование, изоляция тенантов и SLA 99,9%.",
-  "ar": "أمان مصرفي، PCI DSS، تشفير شامل، عزل متعدد المستأجرين، واتفاقية مستوى خدمة 99.9%.",
-  "hi": "बैंक-स्तरीय सुरक्षा, PCI DSS, एंड-टू-एंड एन्क्रिप्शन, मल्टी-टेनेंट आइसोलेशन व 99.9% SLA।"
+  "ja": "銀行レベルのセキュリティ、PCI DSS、エンドツーエンド暗号化、マルチテナント分離、99.5%稼働率SLAを提供します。",
+  "zh": "提供银行级安全、PCI DSS、端到端加密、多租户隔离及99.5%可用性SLA。",
+  "zh-TW": "提供銀行級安全、PCI DSS、端到端加密、多租戶隔離及99.5%可用性SLA。",
+  "vi": "Bảo mật cấp ngân hàng, PCI DSS, mã hoá đầu-cuối, cô lập đa tenant và SLA 99,5%.",
+  "th": "ความปลอดภัยระดับธนาคาร PCI DSS เข้ารหัสปลายทาง แยกหลายผู้เช่า และ SLA 99.5%",
+  "id": "Keamanan kelas bank, PCI DSS, enkripsi end-to-end, isolasi multi-tenant, dan SLA 99,5%.",
+  "de": "Bank-Sicherheit, PCI DSS, Ende-zu-Ende-Verschlüsselung, Mandantentrennung und 99,5% SLA.",
+  "fr": "Sécurité bancaire, PCI DSS, chiffrement de bout en bout, isolation multi-tenant et SLA 99,5%.",
+  "es": "Seguridad bancaria, PCI DSS, cifrado de extremo a extremo, aislamiento multi-tenant y SLA 99,5%.",
+  "pt": "Segurança bancária, PCI DSS, criptografia ponta a ponta, isolamento multi-tenant e SLA 99,5%.",
+  "ru": "Банковская безопасность, PCI DSS, сквозное шифрование, изоляция тенантов и SLA 99,5%.",
+  "ar": "أمان مصرفي، PCI DSS، تشفير شامل، عزل متعدد المستأجرين، واتفاقية مستوى خدمة 99.5%.",
+  "hi": "बैंक-स्तरीय सुरक्षा, PCI DSS, एंड-टू-एंड एन्क्रिप्शन, मल्टी-टेनेंट आइसोलेशन व 99.5% SLA।"
  },
  "fq4q": {
   "ja": "無料で始められますか？",
