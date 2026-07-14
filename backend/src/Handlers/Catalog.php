@@ -1473,6 +1473,9 @@ class Catalog
             }
             // [227차] 채널 카테고리 매핑 해석 — 내 카테고리→채널 카테고리코드(쿠팡/네이버 등 필수). 어댑터가 category_code 우선 사용.
             $product['category_code'] = self::resolveChannelCategory($pdo, $t, $ch, $product);
+            // [현 차수] 기본카테고리(base_code) 해석 — 표시카테고리(category_code)와 별도. 매핑에 기본카테고리가 지정돼
+            //   있으면 상품 payload 에 실어 어댑터(11번가 등)가 표시+기본 두 카테고리를 함께 전송하게 한다.
+            $product['base_category_code'] = self::resolveBaseChannelCategory($pdo, $t, $ch, $product);
             // [277차] ★어댑터 간 payload 키 정규화 — 전수감사에서 확정된 클래스 결함 2종을 단일 지점에서 해소한다.
             //   ①카테고리 키 불일치: resolveChannelCategory 는 'category_code' 에만 쓰는데 shopee/lazada 는 'category_id',
             //     walmart/qoo10/yahoo_jp/godomall/esm 은 'channel_category' 를 읽는다 → 사용자가 매핑을 채워도
@@ -1627,6 +1630,28 @@ class Catalog
             if ($cat !== '') { try { self::saveCategoryMap($pdo, $tenant, $channel, $cat, $auto['code'], $auto['label']); } catch (\Throwable $e) {} }
             return $auto['code'];
         }
+        return '';
+    }
+
+    /**
+     * [현 차수] 기본카테고리(base_code) 해석 — 표시카테고리(channel_code)와 별도로 채널 카테고리 매핑에 지정된 값.
+     *   ①상품 명시 base_category_code 우선 ②상품의 매핑카테고리(category)→매핑의 base_code(정규화 매칭).
+     *   기본카테고리는 선택값이므로 없으면 빈값(어댑터는 기본카테고리 없이 표시카테고리만 전송).
+     */
+    private static function resolveBaseChannelCategory(\PDO $pdo, string $tenant, string $channel, array $product): string
+    {
+        $explicit = trim((string)($product['base_category_code'] ?? ''));
+        if ($explicit !== '') return $explicit;
+        $cat = trim((string)($product['category'] ?? ''));
+        if ($cat === '') return '';
+        try {
+            $aliases = self::channelAliases($channel);
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
+            $st = $pdo->prepare("SELECT base_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND LOWER(TRIM(src_category))=LOWER(TRIM(?)) AND base_code<>'' LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases, [$cat]));
+            $code = $st->fetchColumn();
+            if ($code !== false && (string)$code !== '') return (string)$code;
+        } catch (\Throwable $e) { /* base_code 컬럼 부재 등 → 빈값 */ }
         return '';
     }
 

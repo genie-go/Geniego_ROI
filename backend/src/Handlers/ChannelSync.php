@@ -3769,6 +3769,12 @@ final class ChannelSync
         }
         $cat = (string)($p['category_code'] ?? '');
         if ($cat === '') return ['ok' => false, 'error' => '11번가 상품등록은 표시카테고리(dispCtgrNo)가 필요합니다 — 채널 카테고리 매핑에서 11번가 카테고리번호를 지정하세요'];
+        // [현 차수] 기본카테고리(base) — 카테고리 매핑에서 표시카테고리와 별도로 지정한 값. 있으면 함께 전송한다.
+        //   ★11번가 상품등록 XML 의 기본(표준)카테고리 태그명은 <ctgrNo> 로 배선했다(값이 있을 때만 추가 → 미설정 상품 무영향).
+        //   ※11번가 공식 상품등록 API 스펙 문서(로그인 필요)에 접근 불가로 태그명은 확정 검증 전 — 실제 필드명이 다르면
+        //     이 한 줄만 교체하면 된다(예: <selCtgrNo>). 값 없는 상품은 종전과 동일하게 dispCtgrNo 만 전송.
+        $baseCat = trim((string)($p['base_category_code'] ?? ''));
+        $baseXml = ($baseCat !== '') ? '<ctgrNo>' . htmlspecialchars($baseCat, ENT_XML1) . '</ctgrNo>' : '';
         $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1); $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
         $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
         // [현 차수] 이미지 — 11번가는 prdImage01~prdImage10 에 **공개 URL** 을 받는다(01=대표).
@@ -3780,6 +3786,7 @@ final class ChannelSync
         }
         $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
              . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
+             . $baseXml
              . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
              . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
              . $imgXml
