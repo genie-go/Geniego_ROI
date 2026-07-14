@@ -27,8 +27,13 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 final class Omnichannel
 {
-    /** 수신자별 워터폴이 지원하는 채널(주소 지정형). line/webpush 는 브로드캐스트형이라 캠페인 단위로 별도 처리. */
-    private const WATERFALL_CHANNELS = ['whatsapp', 'kakao', 'email'];
+    /** 수신자별 워터폴이 지원하는 채널(주소 지정형). line 은 브로드캐스트형(개인 타겟 불가)이라 캠페인 단위로 별도 처리.
+     *  [283차 P2-1] ★sms 정식 편입 — deliverWaterfall(:466~)에 SMS 발송 코드가 있으면서도 이 상수와 normalizeChannels
+     *    (생성:134 · 드레인:308)가 sms 를 제거해 **호출 0(도달 불가 데드코드)** 이었다. 주석(:468)이 "워터폴 SMS 편입"을
+     *    주장하던 것과 코드 사실을 일치시킨다. 기존 캠페인의 저장 channels JSON 에는 sms 가 없으므로 회귀 0
+     *    (sms 를 명시적으로 고른 신규 캠페인만 활성).
+     *  [283차 P2-3] webpush 도 편입 — 저니/캠페인 개인 타겟 푸시가 RFC8291 암호화 페이로드로 실동작하게 됐다. */
+    private const WATERFALL_CHANNELS = ['whatsapp', 'kakao', 'sms', 'email', 'push'];
 
     private static function db(): PDO { return Db::pdo(); }
     private static function isMysql(PDO $pdo): bool { return $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'; }
@@ -208,9 +213,23 @@ final class Omnichannel
         }
 
         // 캠페인 단위 웹푸시(테넌트 구독자 전체, 1회) — config.also_webpush.
+        // [283차 P1] ★종전엔 payload 없이 호출 → 수신자에게 "새 알림이 도착했습니다" 폴백만 떴다(캠페인 제목·본문·딥링크 0).
+        //   이제 캠페인 콘텐츠를 RFC8291 암호화 페이로드로 실적재한다. 토픽 옵트아웃도 게이트에 전달.
+        //   ★대상 범위는 종전과 동일한 '테넌트 브로드캐스트' 유지(세그먼트 축소 금지) — customer_id 결속 구독이
+        //     아직 0인 기존 테넌트에서 세그먼트 필터를 걸면 수신자가 0으로 급감하는 회귀가 생긴다.
+        //     세그먼트/개인 타겟 푸시는 신규 'push' 워터폴 채널(deliverWaterfall)이 담당한다.
         $push = null;
         if (!empty($config['also_webpush'])) {
-            try { $push = WebPush::sendToTenant($tenant); } catch (\Throwable $e) { $push = ['ok'=>false, 'note'=>$e->getMessage()]; }
+            try {
+                $push = WebPush::sendToTenant($tenant, true, [
+                    'payload' => [
+                        'title' => (string)($config['push_title'] ?? $config['email_subject'] ?? ($camp['name'] ?? '알림')),
+                        'body'  => (string)($config['push_body'] ?? $config['email_body'] ?? ($config['whatsapp_body'] ?? '')),
+                        'url'   => (string)($config['push_url'] ?? '/'),
+                    ],
+                    'topic' => ($config['topic'] ?? null),
+                ]);
+            } catch (\Throwable $e) { $push = ['ok'=>false, 'note'=>$e->getMessage()]; }
         }
 
         $pdo->prepare("UPDATE omni_campaigns SET status='sending', total=:tot, sent=0, failed=0, skipped=0, sent_at=:sa WHERE id=:id AND tenant_id=:t")
@@ -252,13 +271,15 @@ final class Omnichannel
         self::ensureTables();
         $pdo = self::db(); $tenant = self::tenant($req); $demo = self::plan($req) === 'demo';
         $out = [];
-        foreach (['email','kakao','whatsapp'] as $c) {
+        // [283차 P2-1] sms 를 워터폴 상태 배지에 노출(정식 편입).
+        foreach (['email','kakao','whatsapp','sms'] as $c) {
             $out[$c] = ['live' => self::isChannelLive($pdo, $tenant, $c), 'fallback' => ($c === 'email')];
         }
-        // 웹푸시(캠페인 단위) — VAPID + 구독자 유무.
-        $pushSubs = 0;
+        // 웹푸시 — VAPID + 구독자 유무. [283차] customer_id 결속 구독 수(개인 타겟 가능분)를 분리 노출(정직).
+        $pushSubs = 0; $pushLinked = 0;
         try { $ps = $pdo->prepare("SELECT COUNT(*) FROM push_subscription WHERE tenant_id=?"); $ps->execute([$tenant]); $pushSubs = (int)$ps->fetchColumn(); } catch (\Throwable $e) {}
-        $out['webpush'] = ['live' => $pushSubs > 0, 'subscribers' => $pushSubs, 'broadcast' => true];
+        try { $pl = $pdo->prepare("SELECT COUNT(*) FROM push_subscription WHERE tenant_id=? AND customer_id>0"); $pl->execute([$tenant]); $pushLinked = (int)$pl->fetchColumn(); } catch (\Throwable $e) {}
+        $out['webpush'] = ['live' => $pushSubs > 0, 'subscribers' => $pushSubs, 'targetable' => $pushLinked, 'broadcast' => true];
         return self::json($res, ['ok'=>true, 'demo'=>$demo, 'channels'=>$out]);
     }
 
@@ -268,6 +289,13 @@ final class Omnichannel
         try {
             switch ($channel) {
                 case 'email': return true;
+                case 'sms':
+                    // [283차 P2-1] SMS 워터폴 편입 — 플랫폼 발신(NaverSms::sendPlatform) 자격이 있어야 '라이브'(정직 배지).
+                    return \Genie\NaverSms::isConfigured($pdo);
+                case 'push':
+                    // [283차] 웹푸시 개인 타겟 — 고객 결속 구독이 1건 이상이어야 워터폴 도달 가능.
+                    $r = $pdo->prepare("SELECT 1 FROM push_subscription WHERE tenant_id=? AND customer_id>0 LIMIT 1");
+                    $r->execute([$tenant]); return (bool)$r->fetchColumn();
                 case 'kakao':
                     // 실발송(callKakaoAPI)은 sender_key(URL)+api_key(KakaoAK 헤더) 둘 다 필요 → 둘 다 있어야 '라이브'(정직 배지).
                     $r = $pdo->prepare("SELECT mode, sender_key, api_key FROM kakao_settings WHERE tenant_id=? ORDER BY id DESC LIMIT 1");
@@ -331,6 +359,9 @@ final class Omnichannel
                     self::mark($pdo, $obId, 'sent', $r['channel'], $r['status'] ?? null, $now);
                     self::recordSuccess($pdo, $tn, $cid, $cust, $r['channel'], $config);
                     $sent++;
+                } elseif (($r['reason'] ?? '') === 'defer') {
+                    // [283차 P1] STO defer — 개인 최적시각 대기. 실패가 아니므로 attempts 미증가·재큐(3회 재시도 소진 방지).
+                    self::mark($pdo, $obId, 'queued', null, 'sto_defer', $now, (int)$row['attempts']); continue;
                 } else {
                     $att = (int)$row['attempts'] + 1;
                     if ($r['reason'] === 'unavailable') {
@@ -416,21 +447,28 @@ final class Omnichannel
         return $rowsSt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /** 수신자별 채널 워터폴 — 도달 가능 + 자격 등록된 첫 채널로 발송. 모두 미설정/미도달 = reason 'unavailable'. */
+    /** 수신자별 채널 워터폴 — 도달 가능 + 자격 등록된 첫 채널로 발송. 모두 미설정/미도달 = reason 'unavailable'.
+     *  [283차 P1] STO defer(개인 최적시각 대기)로 전 채널이 막히면 reason 'defer' → 워커가 드롭 없이 재큐(무유실). */
     private static function deliverWaterfall(PDO $pdo, string $tenant, array $cust, array $channels, array $config): array
     {
         $email = trim((string)($cust['email'] ?? ''));
         $phone = preg_replace('/[^0-9]/', '', (string)($cust['phone'] ?? ''));
         $name = (string)($cust['name'] ?? '고객');
-        $anyAttempt = false; $lastErr = null;
+        $anyAttempt = false; $lastErr = null; $stoDefer = false;
         $uid = (int)($cust['id'] ?? 0);
+        // [283차 P0/P1] 캠페인 config 의 topic/sto → 통합 게이트 입력(선호센터 토픽 옵트아웃 실강제 · 개인 최적시각).
+        //   omni_campaigns.config(TEXT JSON) 재사용 → 스키마 변경 0. 미지정 = 빈배열 = 무회귀.
+        $sendOpt = CRM::sendOptions($config['topic'] ?? null, $config['sto'] ?? false);
         foreach ($channels as $ch) {
             // [282차 E-P2] 통합 발송게이트 SSOT 로 통일 — 종전엔 채널 옵트아웃만 봤고 RuleEngine frequency_window
             //   (관리자 설정 일/주 크로스채널 캡)을 우회해 옴니 캠페인만 과발송됐다(형제 Email/Kakao/SMS/Journey 는
             //   전부 isMarketingSendAllowed 경유). isMarketingSendAllowed = 옵트아웃+suppression+quiet+빈도캡+freq_window
             //   단일 게이트. 수신자 quiet/캡은 배치 상위(302/322/326)서 이미 통과했으므로 실질 신규 차단은 freq_window 뿐(무회귀).
-            $gate = CRM::isMarketingSendAllowed($tenant, $uid, $ch, ['email' => $email]);
-            if (!$gate['allowed']) { continue; }
+            $gate = CRM::isMarketingSendAllowed($tenant, $uid, $ch, ['email' => $email] + $sendOpt);
+            if (!$gate['allowed']) {
+                if (CRM::isStoDefer($gate)) $stoDefer = true; // [283차 P1] 드롭 금지 — 아래에서 재큐(defer) 신호
+                continue;
+            }
             if ($ch === 'whatsapp') {
                 if ($phone === '') continue;
                 $tpl = (string)($config['whatsapp_template'] ?? '');
@@ -474,8 +512,22 @@ final class Omnichannel
                 $anyAttempt = true;
                 if (!empty($r['ok'])) return ['ok'=>true, 'channel'=>'sms', 'status'=>'sent'];
                 $lastErr = $r['error'] ?? 'sms_failed';
+            } elseif ($ch === 'push') {
+                // [283차 P2-3] 웹푸시 개인 타겟 — customer_id 결속 구독에만 RFC8291 암호화 페이로드 발송.
+                //   구독 없는 고객은 도달 불가 → 다음 채널 폴백(정직). 캠페인 단위 브로드캐스트(config.also_webpush)와 별개.
+                if ($uid <= 0 || !WebPush::hasSubscription($pdo, $tenant, $uid)) continue;
+                $title = (string)($config['push_title'] ?? $config['email_subject'] ?? '알림');
+                $bodyTx = self::mergeName((string)($config['push_body'] ?? $config['kakao_content'] ?? ($config['whatsapp_body'] ?? '')), $name);
+                if ($bodyTx === '') continue;
+                // marketing=false — 동의 게이트는 위(432행)에서 이미 이 채널로 평가 완료(이중 게이트 회피).
+                $r = WebPush::sendToCustomer($tenant, $uid, ['title'=>$title, 'body'=>$bodyTx, 'url'=>(string)($config['push_url'] ?? '/')], false);
+                if ((int)($r['sent'] ?? 0) < 1) { $lastErr = $r['note'] ?? 'push_failed'; continue; } // 미발송 → 폴백
+                $anyAttempt = true;
+                return ['ok'=>true, 'channel'=>'push', 'status'=>'sent'];
             }
         }
+        // [283차 P1] 전 채널이 STO defer 로만 막힌 경우 = '지금은 발송 안 함'(실패 아님) → 워커가 재큐(다음 cron 재시도).
+        if (!$anyAttempt && $stoDefer) return ['ok'=>false, 'reason'=>'defer', 'error'=>'sto_defer'];
         return ['ok'=>false, 'reason'=>($anyAttempt ? 'failed' : 'unavailable'), 'error'=>$lastErr];
     }
 
@@ -518,11 +570,15 @@ final class Omnichannel
     private static function recordSuccess(PDO $pdo, string $tenant, int $cid, array $cust, string $channel, array $config): void
     {
         $uid = (int)$cust['id']; $now = self::now();
-        try {
-            $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,:ty,:ch,:d,:ca)")
-                ->execute([':t'=>$tenant, ':uid'=>$uid, ':ty'=>$channel.'_sent', ':ch'=>$channel,
-                    ':d'=>json_encode(['omni_campaign_id'=>$cid]), ':ca'=>$now]);
-        } catch (\Throwable $e) {}
+        // [283차 P2-3] ★push 는 WebPush::sendToTenant 가 발송 성공 시 이미 crm_activities('push_sent')를 적재한다.
+        //   여기서 또 넣으면 빈도캡이 1회 발송을 2건으로 세어 과차단된다 → push 만 제외(단일 기록점 유지).
+        if ($channel !== 'push') {
+            try {
+                $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (:t,:uid,:ty,:ch,:d,:ca)")
+                    ->execute([':t'=>$tenant, ':uid'=>$uid, ':ty'=>$channel.'_sent', ':ch'=>$channel,
+                        ':d'=>json_encode(['omni_campaign_id'=>$cid]), ':ca'=>$now]);
+            } catch (\Throwable $e) {}
+        }
         try {
             $email = ($channel === 'email') ? (string)($cust['email'] ?? '') : null;
             $phone = ($channel === 'kakao' || $channel === 'whatsapp') ? preg_replace('/[^0-9]/', '', (string)($cust['phone'] ?? '')) : null;

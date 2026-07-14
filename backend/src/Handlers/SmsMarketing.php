@@ -85,6 +85,8 @@ final class SmsMarketing
             $pdo->exec("CREATE TABLE IF NOT EXISTS sms_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, category TEXT DEFAULT 'promotion', body TEXT, variables TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS sms_campaigns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, template_id TEXT, segment_id TEXT, scheduled_at TEXT, message TEXT, status TEXT DEFAULT 'draft', sent_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
         }
+        // [283차 P0] topic(콘텐츠 카테고리) — 선호센터 토픽 옵트아웃을 SMS 캠페인에도 강제(멱등 ALTER, 기본 NULL=무회귀).
+        try { $pdo->exec("ALTER TABLE sms_campaigns ADD COLUMN topic VARCHAR(20) DEFAULT NULL"); } catch (\Throwable $e) {}
     }
 
     /* ─────────── 209차 P1: SMS Templates CRUD (/api/sms/templates) ─────────── */
@@ -166,9 +168,12 @@ final class SmsMarketing
         if ($name === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'name required']);
         $sched = trim((string)($b['scheduled_at'] ?? ''));
         $status = $sched !== '' ? 'scheduled' : 'draft';
-        $pdo->prepare("INSERT INTO sms_campaigns(tenant_id,name,template_id,segment_id,scheduled_at,message,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)")
-            ->execute([$tenant,$name,(string)($b['template_id'] ?? ''),(string)($b['segment_id'] ?? ''),$sched,(string)($b['message'] ?? ''),$status,$now,$now]);
-        return TemplateResponder::respond($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'status'=>$status]);
+        // [283차 P0] 토픽(콘텐츠 카테고리) — 화이트리스트 밖/미지정은 NULL(게이트 미적용=무회귀).
+        $topic = strtolower(trim((string)($b['topic'] ?? '')));
+        if ($topic === '' || !isset(PreferenceCenter::TOPICS[$topic])) $topic = null;
+        $pdo->prepare("INSERT INTO sms_campaigns(tenant_id,name,template_id,segment_id,scheduled_at,message,status,topic,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+            ->execute([$tenant,$name,(string)($b['template_id'] ?? ''),(string)($b['segment_id'] ?? ''),$sched,(string)($b['message'] ?? ''),$status,$topic,$now,$now]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'status'=>$status,'topic'=>$topic]);
     }
 
     public static function campaignAction(Request $req, Response $res, array $args = []): Response
@@ -201,7 +206,8 @@ final class SmsMarketing
         $plan = self::plan($req);
         // [현 차수 P1] template_id 도 조회 — 템플릿 기반 캠페인은 message 가 비어 무음 미발송(422)이었다.
         try {
-            $c = $pdo->prepare("SELECT id,segment_id,message,template_id,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
+            // [283차 P0] topic 도 조회 — 선호센터 토픽 옵트아웃 강제용. (구 스키마 폴백은 catch 에서 처리)
+            $c = $pdo->prepare("SELECT id,segment_id,message,template_id,topic,status FROM sms_campaigns WHERE id=? AND tenant_id=?");
             $c->execute([$id, $tenant]);
             $camp = $c->fetch(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
@@ -227,6 +233,10 @@ final class SmsMarketing
         $now  = gmdate('c');
 
         // 세그먼트 멤버 전화번호 해석(세그먼트 미지정 시 전체 고객)
+        // [283차 P2-2] ★발송 직전 동적 세그먼트 멤버 최신화 — SMS 만 이 호출이 빠져 있어 stale 스냅샷으로 발송됐다
+        //   (Email:sendCampaign · Kakao:sendCampaign · Omni:sendCampaign 은 전부 호출). 형제 채널과 대칭 배선.
+        //   best-effort — 실패해도 발송 진행(무회귀).
+        if ((int)($camp['segment_id'] ?? 0) > 0) { CRM::refreshSegmentForSend($pdo, $tenant, (int)$camp['segment_id']); }
         if ((int)($camp['segment_id'] ?? 0) > 0) {
             $q = $pdo->prepare("SELECT c.phone FROM crm_segment_members m JOIN crm_customers c ON c.id=m.customer_id AND c.tenant_id=? WHERE m.segment_id=? AND (m.tenant_id=? OR m.tenant_id IS NULL) AND c.phone IS NOT NULL AND c.phone<>''");
             $q->execute([$tenant, (int)$camp['segment_id'], $tenant]);
@@ -247,6 +257,10 @@ final class SmsMarketing
         if (!$numbers) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'발송 대상(세그먼트 고객 전화번호)이 없습니다.','sent'=>0]);
 
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
+        // [283차 P0] 캠페인 토픽 → 통합 게이트 입력(선호센터 토픽 옵트아웃 실강제). 미지정=빈배열=무회귀.
+        //   ★STO(개인 예측 발송시각)는 SMS 캠페인에 노출하지 않는다 — SMS 는 큐/워커(cron 드레인)가 없어 defer 시
+        //     메시지가 영구 미발송(무음 유실)된다. STO 는 워커가 있는 이메일 캠페인·저니·옴니에서만 제공(정직).
+        $sendOpt = CRM::sendOptions($camp['topic'] ?? null, false);
         $sent = $failed = $capped = $optout = $quiet = 0;
         foreach (array_slice($numbers, 0, 500) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
@@ -254,7 +268,7 @@ final class SmsMarketing
             $cid = self::customerIdByPhone($pdo, $tenant, $to);
             // [현 차수 동의센터 SSOT] 통합 발송 게이트 — SMS 채널 옵트아웃/조용시간 단일소스(crm_channel_prefs). cid=0이면 fail-open. fail-open on error.
             // [R4 라벨교정] 게이트 거부사유별 정확 집계 — 빈도=capped·조용시간=quiet·그 외(옵트아웃/suppression)만 opted_out.
-            $g = CRM::isMarketingSendAllowed($tenant, $cid, 'sms', ['phone'=>$to]);
+            $g = CRM::isMarketingSendAllowed($tenant, $cid, 'sms', ['phone'=>$to] + $sendOpt);
             if (!($g['allowed'] ?? false)) {
                 $rc = (string)($g['reason'] ?? '');
                 if (strpos($rc, 'freq') !== false) { $capped++; }
@@ -280,7 +294,7 @@ final class SmsMarketing
         }
         $pdo->prepare("UPDATE sms_campaigns SET status='sent', sent_count=?, updated_at=? WHERE id=? AND tenant_id=?")
             ->execute([$sent, $now, $id, $tenant]);
-        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'total'=>$sent+$failed]);
+        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'total'=>$sent+$failed,'topic'=>($camp['topic'] ?? null)]);
     }
 
     // POST /api/sms/settings

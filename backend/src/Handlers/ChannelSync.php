@@ -3785,7 +3785,9 @@ final class ChannelSync
                         // [현 차수] 단방향 자동진입: 채널 판매를 물리 창고 재고(wms_stock)에도 출고 반영
                         //   (추적 SKU 한정·ref 멱등·non-throw·미추적/무-WMS 테넌트 무영향).
                         // [현 차수] 배송지(addr) 전달 → 멀티창고 최적할당(재고 보유 + 배송지 근접 창고 선택).
-                        Wms::reflectChannelSale($tenant, (string)$o['sku'], (string)($o['product_name'] ?? ''), (float)($o['qty'] ?? 1), 'CHS-' . $channel . '-' . (string)$o['channel_order_id'], (string)($o['addr'] ?? ''));
+                        // [283차 GAP-1] $channel 전달 → 초과판매 발생 시 어느 채널에서 났는지 원장(wms_oversell_alert)에
+                        //   귀속 기록(종전 error_log 만으로는 사후 추적 불가). 기본값 '' 이라 타 호출부는 무영향.
+                        Wms::reflectChannelSale($tenant, (string)$o['sku'], (string)($o['product_name'] ?? ''), (float)($o['qty'] ?? 1), 'CHS-' . $channel . '-' . (string)$o['channel_order_id'], (string)($o['addr'] ?? ''), $channel);
                     }
                     self::recordCrmPurchase($pdo, $tenant, $channel, $o['buyer_email'] ?? '', $o['buyer_name'] ?? '', (float)($o['total_price'] ?? 0), (string)($o['sku'] ?? ''), (int)($o['qty'] ?? 1), (string)$o['channel_order_id']);
                     self::recordAttributionTouch($pdo, $tenant, $channel, (string)$o['channel_order_id'], (float)($o['total_price'] ?? 0));
@@ -5125,7 +5127,8 @@ final class ChannelSync
                     // 정상 신규 주문 → 실재고 차감 + CRM + 어트리뷰션(폴링 정합).
                     if ($skuW !== '') {
                         self::decInventory($pdo, $tenant, $channel, $skuW, $qtyW);
-                        Wms::reflectChannelSale($tenant, $skuW, (string)($body['product_name'] ?? ''), (float)$qtyW, 'CHS-' . $channel . '-' . $oidW);
+                        // [283차 GAP-1] 웹훅 경로도 폴링(saveOrders)과 동일하게 배송지·채널 전달 — 멀티창고 최적할당 + 초과판매 귀속.
+                        Wms::reflectChannelSale($tenant, $skuW, (string)($body['product_name'] ?? ''), (float)$qtyW, 'CHS-' . $channel . '-' . $oidW, (string)($body['addr'] ?? ($body['address'] ?? '')), $channel);
                     }
                     self::recordCrmPurchase($pdo, $tenant, $channel, $body['buyer_email'] ?? '', $body['buyer_name'] ?? '', $totalW, $skuW, $qtyW, $oidW);
                     self::recordAttributionTouch($pdo, $tenant, $channel, $oidW, $totalW);
@@ -5317,4 +5320,454 @@ final class ChannelSync
             return null;
         }
     }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       [283차 GAP-2] 채널 발송처리(송장 전송) outbound 루프.
+
+       배경(부재증명): 백엔드 전체에 waybill|shipping_label|발송처리|shipment_confirm 0건.
+         WMS 피킹(Wms::savePicking status→shipped)·웨이브 확정으로 물리 출고가 끝나도 그 사실이
+         채널로 돌아가지 않아, 구매자 화면의 주문은 영원히 "배송준비중"으로 남았다
+         (커머스 outbound 루프의 두 번째 미폐쇄 구간. 첫 번째=재고 델타 = GAP-1).
+
+       설계(신규 큐 신설이 아니라 기존 writeback 패턴을 미러):
+         ① 생산자 — Wms::savePicking(송장 입력 후 shipped 전이) · Logistics::track(송장 등록)
+            → ChannelSync::enqueueShipment(). channel_orders 로 order_ref → (channel, channel_order_id) 해석.
+         ② 큐 — channel_shipment_job(테넌트 격리·UNIQUE(tenant,channel,order,tracking) 멱등).
+         ③ 디스패처 — processShipmentQueue(): 자격증명 로드 → shipToChannel() → done/pending/failed.
+            자격증명 없으면 awaiting_credentials 보류(등록 즉시 재개), 3회 실패 시 failed.
+         ④ cron — bin/shipment_confirm_cron.php(install_crontab.sh 등재).
+
+       ★정직성 원칙(가짜 성공 절대 금지):
+         실 API 스펙을 확신할 수 있는 채널만 실전송한다 — shopify / woocommerce / magento / ebay.
+         나머지(coupang·naver·cafe24·11st·gmarket·auction·lotteon·godomall·shopee·lazada·amazon·
+         tiktok·rakuten·qoo10·yahoo_jp·etsy·walmart…)는 **추측으로 외부 API 를 지어내지 않고**
+         'no-live-adapter' honest pending 을 반환한다(송장은 저장·큐 유지 → 어댑터 추가 시 자동 전송).
+         pending 은 done 이 아니며 UI/큐에 '전송 대기'로 남는다.
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    /** [283차] 발송처리 실어댑터 보유 채널(실전송). 그 외 = honest pending. */
+    private const SHIP_LIVE_CHANNELS = ['shopify', 'woocommerce', 'magento', 'ebay'];
+
+    /** [283차] 채널별 발송처리 API 미확정 사유(정직 표기 — 사용자가 무엇이 막혔는지 알 수 있게). */
+    private const SHIP_PENDING_NOTE = [
+        'coupang'  => 'Coupang Wing 송장업로드(invoices) API 는 shipmentBoxId 단위 스펙 확정이 필요합니다 — 추측 전송 금지(송장 저장됨).',
+        'naver'    => 'Naver Commerce 발송처리(dispatch) API 는 productOrderId 단위 스펙 확정이 필요합니다 — 추측 전송 금지(송장 저장됨).',
+        'cafe24'   => 'Cafe24 배송처리(shipments) API 는 order_item_code 단위 스펙 확정이 필요합니다 — 추측 전송 금지(송장 저장됨).',
+    ];
+
+    private static function shipNow(): string { return gmdate('Y-m-d H:i:s'); }
+
+    /** [283차] channel_shipment_job 스키마(멱등 DDL). MySQL TEXT DEFAULT 금지 트랩 회피 → 문자열 기본값은 VARCHAR 만. */
+    public static function ensureShipmentTables(\PDO $pdo): void
+    {
+        static $done = [];
+        $oid = spl_object_id($pdo);
+        if (isset($done[$oid])) return;
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_shipment_job (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                    channel VARCHAR(100) NOT NULL,
+                    channel_order_id VARCHAR(190) NOT NULL,
+                    order_ref VARCHAR(190), sku VARCHAR(190),
+                    carrier VARCHAR(120), carrier_code VARCHAR(60), tracking_no VARCHAR(120) NOT NULL,
+                    status VARCHAR(30) NOT NULL DEFAULT 'queued',
+                    attempt INT DEFAULT 0, result TEXT,
+                    created_at VARCHAR(32), updated_at VARCHAR(32),
+                    UNIQUE KEY uq_csj (tenant_id, channel, channel_order_id, tracking_no),
+                    KEY idx_csj_tenant (tenant_id), KEY idx_csj_status (tenant_id, status)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS channel_shipment_job (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo',
+                    channel TEXT NOT NULL, channel_order_id TEXT NOT NULL, order_ref TEXT, sku TEXT,
+                    carrier TEXT, carrier_code TEXT, tracking_no TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'queued', attempt INTEGER DEFAULT 0, result TEXT,
+                    created_at TEXT, updated_at TEXT)");
+                try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_csj ON channel_shipment_job(tenant_id, channel, channel_order_id, tracking_no)"); } catch (\Throwable $e) {}
+            }
+            $done[$oid] = true;
+        } catch (\Throwable $e) { error_log('[ChannelSync.ensureShipmentTables] ' . $e->getMessage()); }
+    }
+
+    /**
+     * [283차] order_ref → (channel, channel_order_id) 해석.
+     *   WMS 피킹의 order_ref 는 채널 주문번호를 그대로 쓰는 것이 관례이나, 내부 주문번호(order_no)를 쓰는
+     *   테넌트도 있으므로 두 컬럼을 모두 본다. 미해결이면 null(정직 — 큐에 넣지 않는다).
+     */
+    private static function resolveChannelOrder(\PDO $pdo, string $tenant, string $orderRef): ?array
+    {
+        $ref = trim($orderRef);
+        if ($ref === '') return null;
+        try {
+            Db::ensureChannelOrders($pdo);
+            $st = $pdo->prepare("SELECT channel, channel_order_id, sku FROM channel_orders
+                                  WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) ORDER BY id DESC LIMIT 1");
+            $st->execute([$tenant, $ref, $ref]);
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+            if ($r && (string)$r['channel'] !== '') {
+                return ['channel' => (string)$r['channel'], 'channel_order_id' => (string)$r['channel_order_id'], 'sku' => (string)($r['sku'] ?? '')];
+            }
+        } catch (\Throwable $e) { error_log('[ChannelSync.resolveChannelOrder] ' . $e->getMessage()); }
+        return null;
+    }
+
+    /**
+     * [283차] 발송처리 큐 적재(멱등) — WMS 출고/송장등록이 호출하는 유일한 생산자 진입점.
+     *   $d: [order_ref?, channel?, channel_order_id?, sku?, carrier, tracking_no]
+     *   ★송장(tracking_no)이 없으면 적재하지 않는다 — 발송처리는 송장 없이는 성립하지 않으므로
+     *     빈 잡을 만들어 "처리한 척"하지 않는다(정직). 데모 테넌트는 실 API 미호출 원칙에 따라 skip.
+     *   ★channel_orders 에 carrier/tracking_no 를 동반 기록한다(주문 상세 화면 즉시 반영).
+     *     status 는 건드리지 않는다 — 폴링이 채우는 채널 상태이며 여기서 덮으면 취소/반품 분류(classifyCancelReturn)와
+     *     정산 롤업이 오작동할 수 있다(무회귀).
+     * @return int 잡 id(미적재 시 0)
+     */
+    public static function enqueueShipment(string $tenant, array $d): int
+    {
+        $tenant = trim($tenant);
+        $tracking = trim((string)($d['tracking_no'] ?? $d['trackingNo'] ?? ''));
+        if ($tenant === '' || strtolower($tenant) === 'demo' || $tracking === '') return 0;
+        try {
+            $pdo = Db::pdo();
+            self::ensureShipmentTables($pdo);
+            $channel = strtolower(trim((string)($d['channel'] ?? '')));
+            $oid     = trim((string)($d['channel_order_id'] ?? $d['order_id'] ?? ''));
+            $ref     = trim((string)($d['order_ref'] ?? ''));
+            $sku     = trim((string)($d['sku'] ?? ''));
+            if ($channel === '' || $oid === '') {
+                $res = self::resolveChannelOrder($pdo, $tenant, $ref !== '' ? $ref : $oid);
+                if ($res === null) return 0; // 채널 주문 미해결 → 자체몰/오프라인 출고 → 발송처리 대상 아님(정직 skip)
+                $channel = strtolower($res['channel']);
+                $oid     = $res['channel_order_id'];
+                if ($sku === '') $sku = $res['sku'];
+            }
+            if ($ref === '') $ref = $oid;
+            $carrier = trim((string)($d['carrier'] ?? ''));
+            $now = self::shipNow();
+            // 멱등: 같은 (tenant,channel,order,tracking) 잡이 있으면 재적재하지 않는다.
+            //   단, 이전 시도가 failed 였다면 queued 로 되돌려 재시도 기회를 준다(송장 재등록 = 재시도 의사).
+            $ex = $pdo->prepare("SELECT id, status FROM channel_shipment_job WHERE tenant_id=? AND channel=? AND channel_order_id=? AND tracking_no=? LIMIT 1");
+            $ex->execute([$tenant, $channel, $oid, $tracking]);
+            $row = $ex->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $jid = (int)$row['id'];
+                if ((string)$row['status'] === 'failed') {
+                    $pdo->prepare("UPDATE channel_shipment_job SET status='queued', attempt=0, carrier=?, carrier_code=?, updated_at=? WHERE id=?")
+                        ->execute([$carrier, self::carrierCode($carrier), $now, $jid]);
+                }
+                self::stampOrderTracking($pdo, $tenant, $channel, $oid, $carrier, $tracking);
+                return $jid;
+            }
+            $pdo->prepare("INSERT INTO channel_shipment_job(tenant_id,channel,channel_order_id,order_ref,sku,carrier,carrier_code,tracking_no,status,attempt,created_at,updated_at)
+                           VALUES(?,?,?,?,?,?,?,?,'queued',0,?,?)")
+                ->execute([$tenant, $channel, $oid, $ref, $sku, $carrier, self::carrierCode($carrier), $tracking, $now, $now]);
+            $jid = (int)$pdo->lastInsertId();
+            self::stampOrderTracking($pdo, $tenant, $channel, $oid, $carrier, $tracking);
+            Db::audit($pdo, $tenant, 'channel.shipment_enqueue', ['channel' => $channel, 'order_id' => $oid, 'tracking' => $tracking, 'job' => $jid]);
+            return $jid;
+        } catch (\Throwable $e) { error_log('[ChannelSync.enqueueShipment] ' . $e->getMessage()); return 0; }
+    }
+
+    /** [283차] channel_orders 에 택배사/송장 기록(status 는 불변 — 취소/반품 분류·정산 무회귀). */
+    private static function stampOrderTracking(\PDO $pdo, string $tenant, string $channel, string $oid, string $carrier, string $tracking): void
+    {
+        try {
+            $pdo->prepare("UPDATE channel_orders SET carrier=?, tracking_no=? WHERE tenant_id=? AND channel=? AND channel_order_id=?")
+                ->execute([$carrier, $tracking, $tenant, $channel, $oid]);
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /** [283차] 우리 택배사명 → 표준 코드(어댑터가 채널 enum 으로 재매핑). 미상=OTHER. */
+    private static function carrierCode(string $carrier): string
+    {
+        $c = strtolower(trim($carrier));
+        if ($c === '') return '';
+        $map = [
+            'cj' => 'CJ', '대한통운' => 'CJ', 'cj대한통운' => 'CJ', 'cj gls' => 'CJ',
+            '한진' => 'HANJIN', 'hanjin' => 'HANJIN',
+            '롯데' => 'LOTTE', 'lotte' => 'LOTTE',
+            '로젠' => 'LOGEN', 'logen' => 'LOGEN',
+            '우체국' => 'EPOST', 'epost' => 'EPOST', 'korea post' => 'EPOST',
+            'dhl' => 'DHL', 'fedex' => 'FEDEX', 'ups' => 'UPS', 'usps' => 'USPS', 'tnt' => 'TNT', 'ems' => 'EMS',
+        ];
+        foreach ($map as $k => $v) { if (strpos($c, $k) !== false) return $v; }
+        return 'OTHER';
+    }
+
+    /** [283차] 발송처리용 자격증명 로드(복호화·별칭 그룹). syncTenantChannel 의 로더와 동일 규약. */
+    private static function loadShipCreds(\PDO $pdo, string $tenant, string $channel): array
+    {
+        $aliases = [strtolower(trim($channel))];
+        foreach ([['amazon', 'amazon_spapi'], ['tiktok_shop', 'tiktok'], ['naver', 'naver_smartstore'], ['11st', 'st11']] as $g) {
+            if (in_array($aliases[0], $g, true)) { $aliases = $g; break; }
+        }
+        $creds = [];
+        try {
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
+            $st = $pdo->prepare("SELECT channel, key_name, key_value, extra_json FROM channel_credential WHERE tenant_id=? AND channel IN ($ph) AND is_active=1");
+            $st->execute(array_merge([$tenant], $aliases));
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $kv = \Genie\Crypto::decrypt((string)($r['key_value'] ?? ''));
+                $creds[(string)$r['key_name']] = $kv;
+                if (!empty($r['extra_json'])) {
+                    $ex = (array)json_decode((string)$r['extra_json'], true);
+                    foreach ($ex as $ek => $ev) { if (is_string($ev)) $creds[$ek] = \Genie\Crypto::decrypt($ev); }
+                }
+            }
+        } catch (\Throwable $e) { error_log('[ChannelSync.loadShipCreds] ' . $e->getMessage()); }
+        return $creds;
+    }
+
+    /**
+     * [283차] 발송처리 큐 소비 — queued/awaiting_credentials 잡을 채널로 전송.
+     *   결과 규약(writeback 큐와 동일):
+     *     ok=true            → done
+     *     pending=true       → pending(어댑터 미보유 = honest, 재시도 카운트 소모 안 함)
+     *     그 외              → attempt+1, 3회 초과 시 failed
+     * @return array{processed:int,done:int,awaiting:int,pending:int,failed:int}
+     */
+    public static function processShipmentQueue(\PDO $pdo, ?string $tenant = null, ?string $channel = null, int $limit = 100): array
+    {
+        self::ensureShipmentTables($pdo);
+        $sum = ['processed' => 0, 'done' => 0, 'awaiting' => 0, 'pending' => 0, 'failed' => 0];
+        // ★'pending'(no-live-adapter) 도 매번 재평가한다 — 그래야 "어댑터가 추가되는 순간 자동 전송"이 실제로
+        //   성립한다(큐에서 빠지면 영영 잠든다). 어댑터 미보유 채널의 재평가는 shipToChannel 의 switch default
+        //   즉시 반환이라 외부 호출 0·비용 무시가능. 'done'/'failed' 는 제외(종결 상태).
+        $where = "status IN ('queued','awaiting_credentials','pending')";
+        $params = [];
+        if ($tenant !== null)  { $where .= " AND tenant_id=?"; $params[] = $tenant; }
+        if ($channel !== null) { $where .= " AND channel=?";   $params[] = $channel; }
+        try {
+            $st = $pdo->prepare("SELECT * FROM channel_shipment_job WHERE $where ORDER BY id ASC LIMIT " . (int)$limit);
+            $st->execute($params);
+            $jobs = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return $sum; }
+
+        $now = self::shipNow();
+        $upd = $pdo->prepare("UPDATE channel_shipment_job SET status=?, result=?, attempt=?, updated_at=? WHERE id=?");
+        $credCache = [];
+        foreach ($jobs as $j) {
+            $sum['processed']++;
+            $t  = (string)$j['tenant_id'];
+            $ch = strtolower((string)$j['channel']);
+            $attempt = (int)($j['attempt'] ?? 0);
+            $ck = $t . '|' . $ch;
+            if (!array_key_exists($ck, $credCache)) $credCache[$ck] = self::loadShipCreds($pdo, $t, $ch);
+            $creds = $credCache[$ck];
+            if (!$creds) {
+                $upd->execute(['awaiting_credentials', json_encode(['reason' => 'no_active_credentials'], JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                $sum['awaiting']++; continue;
+            }
+            $res = self::shipToChannel($ch, $creds, $j);
+            if (!empty($res['ok'])) {
+                $upd->execute(['done', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                Db::audit($pdo, $t, 'channel.shipment_done', ['channel' => $ch, 'order_id' => (string)$j['channel_order_id'], 'tracking' => (string)$j['tracking_no']]);
+                $sum['done']++;
+            } elseif (!empty($res['pending'])) {
+                // honest pending — 어댑터 미보유. 재시도 카운트를 소모하지 않는다(어댑터 추가 시 자동 전송).
+                $upd->execute(['pending', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt, $now, $j['id']]);
+                $sum['pending']++;
+            } else {
+                $failed = ($attempt + 1) >= 3;
+                $upd->execute([$failed ? 'failed' : 'queued', json_encode($res, JSON_UNESCAPED_UNICODE), $attempt + 1, $now, $j['id']]);
+                $sum[$failed ? 'failed' : 'pending']++;
+            }
+        }
+        return $sum;
+    }
+
+    /**
+     * [283차] 채널 발송처리 디스패치.
+     *   ★실구현 = shopify / woocommerce / magento / ebay (공개 문서로 스펙이 확정된 채널).
+     *   ★그 외 = honest pending('no-live-adapter') — 추측 API 를 지어내 "성공"을 반환하지 않는다.
+     */
+    private static function shipToChannel(string $channel, array $creds, array $j): array
+    {
+        $ch = strtolower(trim($channel));
+        switch ($ch) {
+            case 'shopify':      return self::shopifyShip($creds, $j);
+            case 'woocommerce':  return self::wooShip($creds, $j);
+            case 'magento':      return self::magentoShip($creds, $j);
+            case 'ebay':         return self::ebayShip($creds, $j);
+            default:
+                return [
+                    'ok' => false, 'pending' => true, 'error' => 'no-live-adapter:' . $ch,
+                    'note' => self::SHIP_PENDING_NOTE[$ch]
+                        ?? "[{$ch}] 발송처리(송장전송) API 스펙이 확정되지 않아 전송하지 않았습니다 — 추측 전송 금지. 송장은 저장되어 어댑터 추가 시 자동 전송됩니다.",
+                ];
+        }
+    }
+
+    /**
+     * [283차] Shopify 발송처리 — Fulfillment Orders API(2022-07+ 정본).
+     *   ① GET /orders/{id}/fulfillment_orders.json → 미이행(open/in_progress/scheduled) fulfillment_order 수집
+     *   ② POST /fulfillments.json  { line_items_by_fulfillment_order, tracking_info{number,company,url}, notify_customer }
+     *   미이행 항목이 없으면 이미 발송처리된 것 → 멱등 성공(가짜 성공 아님: 채널 상태가 실제로 '발송됨').
+     */
+    private static function shopifyShip(array $creds, array $j): array
+    {
+        $token = trim((string)($creds['access_token'] ?? $creds['api_password'] ?? ''));
+        $shop  = rtrim(trim((string)($creds['shop_domain'] ?? '')), '/');
+        if ($shop === '' || $token === '') return ['ok' => false, 'error' => 'Shopify: shop_domain·access_token 필요'];
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        $oid = preg_replace('/\D/', '', (string)($j['channel_order_id'] ?? ''));
+        if ($oid === '') return ['ok' => false, 'error' => 'Shopify 발송처리: 숫자 주문 id 가 필요합니다'];
+        $h = ['X-Shopify-Access-Token' => $token, 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+
+        [$c1, $b1] = self::httpReq('GET', "https://{$shop}/admin/api/2024-01/orders/{$oid}/fulfillment_orders.json", $h, null);
+        if ($c1 < 200 || $c1 >= 300) return ['ok' => false, 'error' => "Shopify fulfillment_orders 조회 실패(HTTP {$c1})"];
+        $fos = [];
+        foreach ((array)($b1['fulfillment_orders'] ?? []) as $fo) {
+            $st = strtolower((string)($fo['status'] ?? ''));
+            if (in_array($st, ['open', 'in_progress', 'scheduled'], true)) $fos[] = ['fulfillment_order_id' => (int)($fo['id'] ?? 0)];
+        }
+        if (!$fos) return ['ok' => true, 'idempotent' => true, 'note' => '미이행 fulfillment_order 없음 — 이미 발송처리됨(멱등)'];
+
+        $tracking = ['number' => (string)($j['tracking_no'] ?? '')];
+        $carrier  = trim((string)($j['carrier'] ?? ''));
+        if ($carrier !== '') $tracking['company'] = $carrier;   // Shopify 는 자유문자열 회사명을 수용(미상 시 미전송)
+        $body = json_encode(['fulfillment' => [
+            'line_items_by_fulfillment_order' => $fos,
+            'tracking_info'    => $tracking,
+            'notify_customer'  => true,
+        ]], JSON_UNESCAPED_UNICODE);
+        [$c2, $b2] = self::httpReq('POST', "https://{$shop}/admin/api/2024-01/fulfillments.json", $h, $body);
+        if ($c2 >= 200 && $c2 < 300) return ['ok' => true, 'shipment_id' => (string)($b2['fulfillment']['id'] ?? ''), 'op' => 'fulfillment'];
+        return ['ok' => false, 'error' => "Shopify 발송처리 실패(HTTP {$c2})", 'detail' => mb_substr(json_encode($b2['errors'] ?? $b2, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /**
+     * [283차] WooCommerce 발송처리 — 코어 REST v3.
+     *   ★정직 고지: WooCommerce **코어**에는 송장번호 필드가 없다(전용 배송추적 플러그인 영역).
+     *     따라서 ①고객 노트(customer_note=true)로 택배사·송장을 구매자에게 전달하고
+     *            ②주문 상태를 completed(배송완료 처리 = Woo 의 발송 확정 상태)로 전이한다.
+     *     둘 다 코어 엔드포인트다(지어낸 API 없음). 플러그인 필드는 건드리지 않는다.
+     */
+    private static function wooShip(array $creds, array $j): array
+    {
+        $site = rtrim(trim((string)($creds['site_url'] ?? '')), '/');
+        $ck = trim((string)($creds['consumer_key'] ?? '')); $cs = trim((string)($creds['consumer_secret'] ?? ''));
+        if ($site === '' || $ck === '' || $cs === '') return ['ok' => false, 'error' => 'WooCommerce: site_url·consumer_key·consumer_secret 필요'];
+        if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
+        $oid = preg_replace('/\D/', '', (string)($j['channel_order_id'] ?? ''));
+        if ($oid === '') return ['ok' => false, 'error' => 'WooCommerce 발송처리: 숫자 주문 id 가 필요합니다'];
+        $auth = 'consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
+        $hdr  = ['Content-Type' => 'application/json'];
+        $carrier = trim((string)($j['carrier'] ?? '')); $tn = (string)($j['tracking_no'] ?? '');
+
+        $note = '발송 완료 — ' . ($carrier !== '' ? $carrier . ' ' : '') . '송장번호 ' . $tn;
+        [$nc] = self::httpReq('POST', "{$site}/wp-json/wc/v3/orders/{$oid}/notes?{$auth}", $hdr,
+            json_encode(['note' => $note, 'customer_note' => true], JSON_UNESCAPED_UNICODE));
+        [$c, $b] = self::httpReq('PUT', "{$site}/wp-json/wc/v3/orders/{$oid}?{$auth}", $hdr,
+            json_encode(['status' => 'completed'], JSON_UNESCAPED_UNICODE));
+        if ($c >= 200 && $c < 300) {
+            $r = ['ok' => true, 'shipment_id' => (string)($b['id'] ?? $oid), 'op' => 'order_completed'];
+            if ($nc < 200 || $nc >= 300) $r['warning'] = "고객 노트(송장 안내) 전송 실패(HTTP {$nc}) — 주문 상태는 completed 로 전이됨";
+            return $r;
+        }
+        return ['ok' => false, 'error' => "WooCommerce 발송처리 실패(HTTP {$c})", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /**
+     * [283차] Magento 2 발송처리 — POST /rest/V1/order/{entityId}/ship (tracks[]).
+     *   ★magentoFetch 는 channel_order_id 로 increment_id(예: 000000123)를 저장하는데, /ship 은 entity_id 를
+     *     요구한다 → searchCriteria(increment_id eq) 로 entity_id 를 먼저 해석한다(숫자 폴백 유지).
+     *   carrier_code='custom' + title=택배사명 — Magento 표준(사전 등록된 캐리어가 아닌 경우의 정식 경로).
+     */
+    private static function magentoShip(array $creds, array $j): array
+    {
+        $base = rtrim(trim((string)($creds['base_url'] ?? '')), '/'); $tok = trim((string)($creds['access_token'] ?? ''));
+        if ($base === '' || $tok === '') return ['ok' => false, 'error' => 'Magento: base_url·access_token 필요'];
+        if (!str_starts_with($base, 'http')) $base = 'https://' . $base;
+        $inc = trim((string)($j['channel_order_id'] ?? ''));
+        if ($inc === '') return ['ok' => false, 'error' => 'Magento 발송처리: 주문번호가 필요합니다'];
+        $h = ['Authorization' => 'Bearer ' . $tok, 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+
+        $entityId = '';
+        $q = 'searchCriteria%5Bfilter_groups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bfield%5D=increment_id'
+           . '&searchCriteria%5Bfilter_groups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bvalue%5D=' . rawurlencode($inc)
+           . '&searchCriteria%5Bfilter_groups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bcondition_type%5D=eq'
+           . '&searchCriteria%5BpageSize%5D=1';
+        [$sc, $sb] = self::httpReq('GET', "{$base}/rest/V1/orders?{$q}", $h, null);
+        if ($sc >= 200 && $sc < 300 && !empty($sb['items'][0]['entity_id'])) $entityId = (string)$sb['items'][0]['entity_id'];
+        if ($entityId === '' && ctype_digit($inc)) $entityId = $inc; // 폴백: 이미 entity_id 로 수집된 경우
+        if ($entityId === '') return ['ok' => false, 'error' => "Magento 주문 조회 실패(increment_id={$inc}, HTTP {$sc}) — entity_id 미해결"];
+
+        $carrier = trim((string)($j['carrier'] ?? ''));
+        $body = json_encode(['tracks' => [[
+            'track_number' => (string)($j['tracking_no'] ?? ''),
+            'title'        => $carrier !== '' ? $carrier : 'Shipment',
+            'carrier_code' => 'custom',
+        ]]], JSON_UNESCAPED_UNICODE);
+        [$c, $b] = self::httpReq('POST', "{$base}/rest/V1/order/{$entityId}/ship", $h, $body);
+        if ($c >= 200 && $c < 300) return ['ok' => true, 'shipment_id' => is_scalar($b) ? (string)$b : (string)($b['entity_id'] ?? ''), 'op' => 'ship'];
+        return ['ok' => false, 'error' => "Magento 발송처리 실패(HTTP {$c})", 'detail' => mb_substr(json_encode($b['message'] ?? $b, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [283차] eBay 캐리어 enum(shippingCarrierCode) — 미상은 OTHER(지어내지 않음). */
+    private static function ebayCarrier(string $carrier): string
+    {
+        $code = self::carrierCode($carrier);
+        return in_array($code, ['USPS', 'FEDEX', 'UPS', 'DHL'], true) ? $code : 'OTHER';
+    }
+
+    /**
+     * [283차] eBay 발송처리 — Sell Fulfillment API.
+     *   ① GET  /sell/fulfillment/v1/order/{orderId}       → lineItems[].lineItemId/quantity
+     *   ② POST /sell/fulfillment/v1/order/{orderId}/shipping_fulfillment
+     *      { lineItems:[{lineItemId,quantity}], shippedDate, shippingCarrierCode, trackingNumber }
+     *   ebayFetch 가 저장하는 channel_order_id 가 그대로 orderId 다(형식 12-34567-89012).
+     */
+    private static function ebayShip(array $creds, array $j): array
+    {
+        $token = trim((string)($creds['oauth_token'] ?? $creds['access_token'] ?? ''));
+        if ($token === '') return ['ok' => false, 'error' => 'eBay: oauth_token(access_token) 필요'];
+        $oid = trim((string)($j['channel_order_id'] ?? ''));
+        if ($oid === '') return ['ok' => false, 'error' => 'eBay 발송처리: orderId 가 필요합니다'];
+        $h = ['Authorization' => "Bearer {$token}", 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+        $base = 'https://api.ebay.com/sell/fulfillment/v1/order/' . rawurlencode($oid);
+
+        [$c1, $b1] = self::httpReq('GET', $base, $h, null);
+        if ($c1 < 200 || $c1 >= 300) return ['ok' => false, 'error' => "eBay 주문 조회 실패(HTTP {$c1})"];
+        $lines = [];
+        foreach ((array)($b1['lineItems'] ?? []) as $li) {
+            $lid = (string)($li['lineItemId'] ?? '');
+            if ($lid === '') continue;
+            $lines[] = ['lineItemId' => $lid, 'quantity' => max(1, (int)($li['quantity'] ?? 1))];
+        }
+        if (!$lines) return ['ok' => false, 'error' => 'eBay 주문에 lineItem 이 없습니다 — 발송처리 불가'];
+
+        $body = json_encode([
+            'lineItems'           => $lines,
+            'shippedDate'         => gmdate('Y-m-d\TH:i:s.000\Z'),
+            'shippingCarrierCode' => self::ebayCarrier((string)($j['carrier'] ?? '')),
+            'trackingNumber'      => (string)($j['tracking_no'] ?? ''),
+        ], JSON_UNESCAPED_UNICODE);
+        [$c2, $b2] = self::httpReq('POST', $base . '/shipping_fulfillment', $h, $body);
+        if ($c2 >= 200 && $c2 < 300) return ['ok' => true, 'shipment_id' => (string)($b2['fulfillmentId'] ?? ''), 'op' => 'shipping_fulfillment'];
+        return ['ok' => false, 'error' => "eBay 발송처리 실패(HTTP {$c2})", 'detail' => mb_substr(json_encode($b2['errors'] ?? $b2, JSON_UNESCAPED_UNICODE), 0, 200)];
+    }
+
+    /** [283차] 발송처리 큐 조회(테넌트 격리) — Wms::listShipmentJobs 가 위임. */
+    public static function listShipmentJobs(\PDO $pdo, string $tenant, int $limit = 200): array
+    {
+        self::ensureShipmentTables($pdo);
+        try {
+            $st = $pdo->prepare("SELECT id,channel,channel_order_id,order_ref,sku,carrier,tracking_no,status,attempt,result,created_at,updated_at
+                                 FROM channel_shipment_job WHERE tenant_id=? ORDER BY id DESC LIMIT " . max(1, min(500, $limit)));
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as &$r) {
+                $res = json_decode((string)($r['result'] ?? ''), true);
+                $r['live_adapter'] = in_array(strtolower((string)$r['channel']), self::SHIP_LIVE_CHANNELS, true);
+                $r['message'] = is_array($res) ? (string)($res['note'] ?? $res['error'] ?? '') : '';
+                unset($r['result']);
+            }
+            return $rows;
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** [283차] 발송처리 실어댑터 보유 채널 목록(정직 노출 — UI 가 "이 채널은 자동 발송처리됨"을 표기). */
+    public static function shipLiveChannels(): array { return self::SHIP_LIVE_CHANNELS; }
 }

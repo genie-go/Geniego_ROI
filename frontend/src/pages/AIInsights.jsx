@@ -274,7 +274,14 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
         // [282차 R3] 에이전트 모드 — 실데이터 조회(bi_query) + 제안 액션(propose_*). 실패 시 구 분석 폴백.
         if (agentMode) {
             try {
-                const d = await postJson('/api/v422/ai/agentic', { question: q });
+                // [283차 P1] 대화 메모리 — 이전 턴을 함께 전송해 후속 질문("그럼 그 캠페인 예산 올려줘")이 맥락을 잃지 않게 한다.
+                //   여기서 참조하는 `messages` 는 렌더 시점 값이라 방금 추가한 질문/로딩 placeholder 는 포함되지 않는다(중복 전송 없음).
+                //   길이 상한은 백엔드(HIST_MAX_TURNS/CHARS)가 최종 적용 — 프론트에서도 최근 10턴으로 1차 절삭(토큰 절약).
+                const history = messages
+                    .filter(m => !m.loading && m.text)
+                    .slice(-10)
+                    .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
+                const d = await postJson('/api/v422/ai/agentic', { question: q, history });
                 if (d && d.ok && (d.answer || (d.proposed_actions || []).length)) {
                     setMessages(prev => { const n = [...prev]; n[n.length - 1] = { role: 'ai', text: d.answer || t('aiInsights.agentNoText', '분석을 완료했습니다.'), data: d.data || null, actions: (d.proposed_actions || []).map(a => ({ ...a })), loading: false }; return n; });
                     setTimeout(() => setLoading(false), 300);
@@ -363,6 +370,22 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
                     {messages.map((m, i) => (
                         <React.Fragment key={i}>
                             <ChatMsg {...m} t={t} />
+                            {/* [283차 P1] 근거 데이터 배지 — 코파일럿이 실제로 조회한 도구/건수를 노출(답변이 실데이터 기반임을 증명).
+                                조회 실패(error)는 숨기지 않고 그대로 표기한다(무음실패 금지). */}
+                            {m.data && typeof m.data === 'object' && Object.keys(m.data).length > 0 && (
+                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginLeft: 40 }}>
+                                    {Object.entries(m.data).map(([tool, res]) => {
+                                        const bad = res && res.error;
+                                        const n = res && Array.isArray(res.rows) ? res.rows.length : null;
+                                        return (
+                                            <span key={tool} title={bad ? String(res.error) : (res?.note || '')}
+                                                style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999, border: '1px solid', borderColor: bad ? 'rgba(239,68,68,0.35)' : 'rgba(99,140,255,0.3)', color: bad ? '#ef4444' : '#2563eb', background: bad ? 'rgba(239,68,68,0.06)' : 'rgba(99,140,255,0.06)' }}>
+                                                {bad ? '⚠ ' : '🔎 '}{tool}{bad ? ` ${t('aiInsights.evidenceFailed', '조회 실패')}` : (n !== null ? ` · ${n}${t('aiInsights.evidenceRows', '건')}` : '')}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
                             {/* [282차 R3] 에이전틱 제안 액션 — 휴먼-인-루프 승인·집행(가드레일 내장) */}
                             {Array.isArray(m.actions) && m.actions.length > 0 && (
                                 <div style={{ display: 'grid', gap: 8, marginLeft: 40 }}>

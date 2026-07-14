@@ -142,6 +142,11 @@ $app->add(function (Request $request, $handler) {
         || preg_match('#^(/api)?/v423/connectors/[^/]+/test$#', $path)
         || strpos($path, '/v423/popups/') === 0
         || strpos($path, '/api/v423/popups/') === 0
+        // [283차] DSAR 본인확인 — 정보주체(가맹점의 최종고객)는 우리 플랫폼 계정이 없다. 이메일로 받은
+        //   링크를 클릭해 신원을 증명하므로 세션/api_key 가 존재할 수 없다 → 공개 bypass 필수.
+        //   ★인증은 토큰 자체가 수행: 32바이트 난수·DB 에는 sha256 해시만·72h 만료·검증 즉시 소거(1회성).
+        //   verify 만 공개다. 접수(create)·목록·내보내기(export)·삭제실행(execute)은 전부 세션 인증(requirePro).
+        || $path === '/v424/dsar/verify' || $path === '/api/v424/dsar/verify'
         // [R-P3-8] 온사이트 CRO 비콘 — 방문자 변형배정/전환(세션·api_key 불요·자연 스코프=tenant 쿼리). CRUD/results 는 인증.
         || $path === '/v424/cro/assign' || $path === '/api/v424/cro/assign'
         || $path === '/v424/cro/convert' || $path === '/api/v424/cro/convert'

@@ -51,6 +51,10 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
   const [optBusy, setOptBusy] = useState(null);    // campaignId being optimized
   const [abMode, setAbMode] = useState(true);      // 크리에이티브 자동 A/B 테스트(디자인 2+ 시)
   const [abTests, setAbTests] = useState({});      // campaignId -> [tests]
+  // [283차 P0-1] ★랜딩 URL — 종전엔 프론트 3개 런치 경로 어디서도 landing_url 을 보내지 않아, 백엔드 어댑터의
+  //   벤더 기본값(genieroi.com)이 6개 매체 광고에 그대로 실렸다(구독사 광고비가 우리 사이트로 랜딩).
+  //   이제 백엔드는 랜딩이 없으면 fail-closed(광고 미생성)이므로, 여기서 반드시 받아서 전송한다.
+  const [landingUrl, setLandingUrl] = useState('');
 
   const loadDesigns = useCallback(async () => {
     try {
@@ -96,6 +100,11 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
 
   const launch = async () => {
     if (!draft || !draft.allocations?.length) { setMsg({ t: 'err', m: t('autoCamp.needStrategy', '먼저 전략을 생성하세요.') }); return; }
+    // [283차 P0-1] ★랜딩 URL 필수 — 미입력 상태로 집행하면 광고가 잘못된 목적지(벤더 사이트)로 나가거나 매체에서 거부된다.
+    const land = (landingUrl || '').trim();
+    if (!land) { setMsg({ t: 'err', m: t('autoCamp.needLanding', '광고 랜딩 URL을 입력하세요. 광고 클릭 시 이동할 내 사이트/상품 페이지 주소입니다(미입력 시 집행 불가).') }); return; }
+    // [283차 P0-2] ★소재 필수 — 소재 미연결로 집행하면 백엔드 loadDesign 기본값('GenieGo')이 그대로 광고 카피로 게재된다.
+    if (!selDesigns.length) { setMsg({ t: 'err', m: t('autoCamp.needDesign', '광고 소재를 1개 이상 선택하세요. 소재 없이 집행하면 기본 카피로 게재됩니다.') }); return; }
     setBusy(true); setMsg(null);
     try {
       const channels = draft.allocations.map(a => a.ch?.id).filter(Boolean);
@@ -103,6 +112,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       const r = await fetch(`${API}/v423/auto-campaign/launch`, {
         method: 'POST', headers: auth(),
         body: JSON.stringify({ name: campaignName || `${category || '통합'} ${t('autoCamp.autoSuffix', '자동 캠페인')}`, category: category || '', budget: draft.budget, period: period || 'monthly', channels, allocations, est_roas: draft.estimatedRoas, design_ids: selDesigns, ab_mode: abMode && selDesigns.length >= 2,
+          landing_url: land,   // [283차 P0-1] 광고 클릭 목적지(6개 매체 페이로드에 실림)
           // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 적용(min_roas/max_share).
           guardrails: { min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100 } }),
       });
@@ -252,8 +262,25 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
               </span>
             </label>
           )}
-          <button onClick={launch} disabled={busy}
-            style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', cursor: busy ? 'wait' : 'pointer', background: busy ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 15 }}>
+          {/* [283차 P0-1] 랜딩 URL — 광고 클릭 목적지. 미입력 시 집행 차단(백엔드도 fail-closed). */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 5 }}>
+              🔗 {t('autoCamp.landingLabel', '광고 랜딩 URL')} <span style={{ color: '#dc2626' }}>*</span>
+            </div>
+            <input type="url" value={landingUrl} onChange={e => setLandingUrl(e.target.value)}
+              placeholder={t('autoCamp.landingPh', 'https://내쇼핑몰.com/products/best')}
+              style={{ width: '100%', padding: '11px 13px', borderRadius: 10, fontSize: 13, boxSizing: 'border-box', color: '#1e293b', background: '#f8fafc', border: `1px solid ${(landingUrl || '').trim() ? '#e2e8f0' : 'rgba(239,68,68,0.45)'}` }} />
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 5, lineHeight: 1.5 }}>
+              {t('autoCamp.landingDesc', '광고를 클릭한 고객이 이동할 내 사이트/상품 페이지 주소입니다. 미입력 시 광고가 생성되지 않습니다(잘못된 목적지로 광고비가 나가는 것을 차단).')}
+            </div>
+          </div>
+          {!selDesigns.length && (
+            <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', fontSize: 11.5, color: '#92400e', lineHeight: 1.55 }}>
+              ⚠️ {t('autoCamp.needDesign', '광고 소재를 1개 이상 선택하세요. 소재 없이 집행하면 기본 카피로 게재됩니다.')}
+            </div>
+          )}
+          <button onClick={launch} disabled={busy || !(landingUrl || '').trim() || !selDesigns.length}
+            style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', cursor: busy ? 'wait' : (!(landingUrl || '').trim() || !selDesigns.length) ? 'not-allowed' : 'pointer', background: (busy || !(landingUrl || '').trim() || !selDesigns.length) ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 15 }}>
             {busy ? `⏳ ${t('autoCamp.launching', '실행 중…')}` : `🚀 ${t('autoCamp.launch', '광고 마케팅 자동 실행')}`}
           </button>
           {msg && <div style={{ marginTop: 10, padding: '10px 13px', borderRadius: 9, fontSize: 12, fontWeight: 600, background: msg.t === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)', color: msg.t === 'ok' ? '#16a34a' : '#dc2626' }}>{msg.m}</div>}

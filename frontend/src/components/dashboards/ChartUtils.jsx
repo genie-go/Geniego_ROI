@@ -5,6 +5,21 @@ import React, { useState, useRef } from 'react';
 //  폰트 규칙: 축 라벨 11px / 값 라벨 11px / 그리드 11px (모두 동일)
 // ═══════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════
+//  [283차 P0] 리포트 시각화 타입 — 프론트 단일 소스(SSOT).
+//  백엔드 정본은 Reports.php `Reports::VIZ_TYPES` 이며 두 목록은 반드시 동일해야 한다.
+//  과거 3회(R2·282차 R3·본 차수) 백엔드 화이트리스트가 뒤처져 저장 시 무음 'table' 강등이 발생했다.
+//  이제 백엔드는 미지원 viz 를 422 로 거부하고, savedList 가 viz_types 를 내려주므로
+//  ReportBuilder 가 아래 목록과 대조해 불일치를 콘솔 경고한다. ★신규 차트는 양쪽 동시 갱신 필수.
+// ═══════════════════════════════════════════════════════════════════════
+export const REPORT_VIZ_TYPES = ['table', 'bar', 'line', 'donut', 'stacked', 'combo', 'area', 'heatmap', 'scatter', 'treemap'];
+// 단일 차원 전용 차트(2차 차원=피벗이면 표/히트맵으로 안내). heatmap 은 반대로 breakdown 필수.
+export const REPORT_FLAT_VIZ = ['bar', 'line', 'donut', 'stacked', 'combo', 'area', 'scatter', 'treemap'];
+export const REPORT_VIZ_ICONS = {
+    table: '📋', bar: '📊', line: '📈', donut: '🍩', stacked: '🧱',
+    combo: '🔀', area: '🏔️', heatmap: '🔥', scatter: '✴️', treemap: '🗂️',
+};
+
 export function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 export function fmt(n, { prefix = '', suffix = '', digits = 1 } = {}) {

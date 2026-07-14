@@ -104,7 +104,10 @@ class EmailMarketing
             try { $pdo->exec("ALTER TABLE email_sends ADD COLUMN " . $col); } catch (\Throwable $e) {}
         }
         // [현 차수 P2-2b] A/B: 캠페인에 variant B 제목·A/B 플래그·승자(멱등 ALTER).
-        foreach (['subject_b VARCHAR(255) DEFAULT NULL', 'ab_test INT DEFAULT 0', 'ab_winner VARCHAR(8) DEFAULT NULL'] as $col) {
+        // [283차 P0/P1] topic(콘텐츠 카테고리 — 선호센터 토픽 옵트아웃 강제) · sto_opt_in(개인별 예측 발송시간).
+        //   기본 NULL/0 = 기존 캠페인 동작 그대로(무회귀). MySQL TEXT DEFAULT 금지 관례 준수(VARCHAR/INT).
+        foreach (['subject_b VARCHAR(255) DEFAULT NULL', 'ab_test INT DEFAULT 0', 'ab_winner VARCHAR(8) DEFAULT NULL',
+                  'topic VARCHAR(20) DEFAULT NULL', 'sto_opt_in INT DEFAULT 0'] as $col) {
             try { $pdo->exec("ALTER TABLE email_campaigns ADD COLUMN " . $col); } catch (\Throwable $e) {}
         }
     }
@@ -334,18 +337,21 @@ class EmailMarketing
                 // [현 차수 P2-2b] 수신자별 STO — 개인 최적시각이 설정됐고 현재 KST 시각이 아니면 이 cron 사이클 보류(다음에 발송).
                 if (isset($row['sto_hour']) && $row['sto_hour'] !== null && (int)$row['sto_hour'] !== $curHourKst) continue;
                 if (self::isSuppressed($pdo, (string)$tn, $email)) { $pdo->prepare("UPDATE email_sends SET status='suppressed' WHERE id=:id")->execute([':id'=>$row['id']]); continue; }
-                // [현 차수 동의센터 SSOT] 큐 드레인 실발송도 통합 게이트 통과 필수. quiet-hours 계열은 큐 유지(다음 사이클 재드레인), 그 외(옵트아웃/suppression/빈도캡)는 종결 skip. fail-open.
-                $gq = CRM::isMarketingSendAllowed((string)$tn, $uid, 'email', ['email'=>$email]);
+                // [283차 P0] 캠페인 토픽 선(先)로드 — 드레인 실발송도 토픽 옵트아웃을 강제해야 한다(큐 적재 후 수신자가
+                //   선호센터에서 프로모션을 끈 경우까지 차단 = defense-in-depth). 게이트 호출 전에 캐시가 필요해 순서 상향.
+                if (!isset($tplCache[$cid])) {
+                    $cst = $pdo->prepare("SELECT c.name AS cname, c.subject_b, c.topic, t.subject, t.html_body FROM email_campaigns c LEFT JOIN email_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id WHERE c.id=:id AND c.tenant_id=:t");
+                    $cst->execute([':id'=>$cid, ':t'=>$tn]);
+                    $tplCache[$cid] = $cst->fetch(\PDO::FETCH_ASSOC) ?: ['cname'=>'', 'subject_b'=>null, 'topic'=>null, 'subject'=>'(제목 없음)', 'html_body'=>''];
+                }
+                $tpl = $tplCache[$cid];
+                // [현 차수 동의센터 SSOT] 큐 드레인 실발송도 통합 게이트 통과 필수. quiet-hours 계열은 큐 유지(다음 사이클 재드레인), 그 외(옵트아웃/토픽옵트아웃/suppression/빈도캡)는 종결 skip. fail-open.
+                //   ★sto 는 여기서 재평가하지 않는다 — 큐 행의 sto_hour(위 335행)가 이미 최적시각 매칭을 수행(이중 defer 루프 방지).
+                $gq = CRM::isMarketingSendAllowed((string)$tn, $uid, 'email', ['email'=>$email] + CRM::sendOptions($tpl['topic'] ?? null, false));
                 if (!$gq['allowed']) {
                     if (strpos((string)$gq['reason'], 'quiet') === false) { $pdo->prepare("UPDATE email_sends SET status='suppressed' WHERE id=:id")->execute([':id'=>$row['id']]); }
                     continue;
                 }
-                if (!isset($tplCache[$cid])) {
-                    $cst = $pdo->prepare("SELECT c.name AS cname, c.subject_b, t.subject, t.html_body FROM email_campaigns c LEFT JOIN email_templates t ON t.id=c.template_id AND t.tenant_id=c.tenant_id WHERE c.id=:id AND c.tenant_id=:t");
-                    $cst->execute([':id'=>$cid, ':t'=>$tn]);
-                    $tplCache[$cid] = $cst->fetch(\PDO::FETCH_ASSOC) ?: ['cname'=>'', 'subject_b'=>null, 'subject'=>'(제목 없음)', 'html_body'=>''];
-                }
-                $tpl = $tplCache[$cid];
                 $cust = ['email'=>$email, 'name'=>''];
                 if ($uid > 0) { $cs = $pdo->prepare("SELECT name FROM crm_customers WHERE id=:id AND tenant_id=:t"); $cs->execute([':id'=>$uid, ':t'=>$tn]); $cust['name'] = (string)($cs->fetchColumn() ?: ''); }
                 $unsubUrl = self::unsubUrl((string)$tn, $email);
@@ -557,13 +563,18 @@ class EmailMarketing
         // [현 차수 P2-2b] A/B: subject_b(variant B 제목)·ab_test 플래그 수용. subject_b 있으면 자동 A/B 활성.
         $subjectB = trim((string)($b['subject_b'] ?? ''));
         $abTest = (!empty($b['ab_test']) || $subjectB !== '') ? 1 : 0;
-        $pdo->prepare("INSERT INTO email_campaigns (tenant_id,name,template_id,segment_id,status,scheduled_at,subject_b,ab_test,created_at)
-            VALUES (:t,:n,:tpl,:s,:st,:sc,:sb,:ab,:ca)")->execute([
+        // [283차 P0] 토픽(콘텐츠 카테고리) — 화이트리스트 밖/미지정은 NULL(게이트 미적용=무회귀).
+        $topic = strtolower(trim((string)($b['topic'] ?? '')));
+        if ($topic === '' || !isset(PreferenceCenter::TOPICS[$topic])) $topic = null;
+        // [283차 P1] STO opt-in(개인별 예측 발송시각) — 기본 OFF.
+        $stoOptIn = !empty($b['sto_opt_in']) ? 1 : 0;
+        $pdo->prepare("INSERT INTO email_campaigns (tenant_id,name,template_id,segment_id,status,scheduled_at,subject_b,ab_test,topic,sto_opt_in,created_at)
+            VALUES (:t,:n,:tpl,:s,:st,:sc,:sb,:ab,:tp,:sto,:ca)")->execute([
             ':t'=>$tenant, ':n'=>$b['name'], ':tpl'=>(int)($b['template_id']??0),
             ':s'=>(int)($b['segment_id']??0), ':st'=>$b['status']??'draft', ':sc'=>$b['scheduled_at']??null,
-            ':sb'=>($subjectB !== '' ? $subjectB : null), ':ab'=>$abTest, ':ca'=>self::now(),
+            ':sb'=>($subjectB !== '' ? $subjectB : null), ':ab'=>$abTest, ':tp'=>$topic, ':sto'=>$stoOptIn, ':ca'=>self::now(),
         ]);
-        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'ab_test'=>$abTest]);
+        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'ab_test'=>$abTest,'topic'=>$topic,'sto_opt_in'=>$stoOptIn]);
     }
 
     /* ─── POST /email/campaigns/{id}/send ──────────────────────────── */
@@ -605,8 +616,12 @@ class EmailMarketing
         }
         $customerList = $cust->fetchAll(\PDO::FETCH_ASSOC);
 
-        $sent = 0; $failed = 0; $mock = 0; $capped = 0; $suppressed = 0; $queued = 0; $optout = 0; $quietSkipped = 0;
+        $sent = 0; $failed = 0; $mock = 0; $capped = 0; $suppressed = 0; $queued = 0; $optout = 0; $quietSkipped = 0; $stoDeferred = 0;
         $now = self::now();
+        // [283차 P0/P1] 캠페인 발송옵션 → 통합 게이트 입력. topic 지정 시 선호센터 토픽 옵트아웃이 실제로 강제되고,
+        //   sto_opt_in 시 개인 최적시각 밖 수신자는 sto_defer → 큐(sto_hour=best_hour) 적재 후 runQueue 가 그 시각에 발송.
+        //   둘 다 미지정 캠페인은 빈 배열 → 게이트 입력 무변화(무회귀).
+        $sendOpt = CRM::sendOptions($campaign['topic'] ?? null, $campaign['sto_opt_in'] ?? 0);
         // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호). 설정 1회 로드 후 고객별 평가.
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         // [현 차수] STO(발송시간 최적화) — 야간 등 차단 시간엔 즉시발송 대신 큐 적재(cron이 허용시각에 발송).
@@ -626,7 +641,7 @@ class EmailMarketing
         $asyncThreshold = (int)(getenv('EMAIL_ASYNC_THRESHOLD') ?: 200);
         $asyncMode = !empty($bodyIn['async']) || count($customerList) > $asyncThreshold || $deferAll;
         if ($asyncMode) {
-            $r = self::enqueueCampaignBatch($pdo, $tenant, $cid, $customerList, $freqCfg, $abTest, $stoOn, $deferAll, $curHourKst);
+            $r = self::enqueueCampaignBatch($pdo, $tenant, $cid, $customerList, $freqCfg, $abTest, $stoOn, $deferAll, $curHourKst, $sendOpt);
             $campStatus = ($r['queued'] > 0) ? 'scheduled' : 'sent';
             $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
                 ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>count($customerList), ':id'=>$cid, ':tn'=>$tenant]);
@@ -638,8 +653,18 @@ class EmailMarketing
             if (self::isSuppressed($pdo, $tenant, (string)$c['email'])) { $suppressed++; continue; }
             // [현 차수 동의센터 SSOT] 통합 마케팅 발송 게이트 — 채널 옵트아웃/조용시간/빈도캡 단일소스(crm_channel_prefs 등). fail-open.
             // [R3 라벨+무드롭] 조용시간 거부는 opted_out로 오분류·드롭 금지 → 큐 적재(cron이 허용시각 발송)·별도 카운터.
-            $g = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'email', ['email'=>(string)$c['email']]);
+            $g = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'email', ['email'=>(string)$c['email']] + $sendOpt);
             if (!($g['allowed'] ?? false)) {
+                // [283차 P1] STO defer — 개인 최적시각(best_hour) 밖 → 드롭 금지·큐 적재(runQueue 가 best_hour 에 실발송).
+                if (CRM::isStoDefer($g)) {
+                    $variantS = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
+                    try {
+                        $pdo->prepare("INSERT INTO email_sends (tenant_id, campaign_id, customer_id, email, status, scheduled_at, sto_hour, variant) VALUES (:t,:cid,:uid,:email,'queued',:sa,:sh,:v)")
+                            ->execute([':t'=>$tenant, ':cid'=>$cid, ':uid'=>$c['id'], ':email'=>$c['email'], ':sa'=>$now, ':sh'=>(int)($g['best_hour'] ?? 0), ':v'=>$variantS]);
+                        $queued++;
+                    } catch (\Throwable $e) {}
+                    $stoDeferred++; continue;
+                }
                 if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) {
                     $variantQ = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
                     try {
@@ -650,7 +675,7 @@ class EmailMarketing
                     $quietSkipped++; continue;
                 }
                 if (strpos((string)($g['reason'] ?? ''), 'freq') !== false) { $capped++; continue; } // [R4확장] 빈도캡=capped 집계(opted_out 오분류 방지)
-                $optout++; continue; // 옵트아웃/suppression 등 종결 skip(동의 강제 유지)
+                $optout++; continue; // 옵트아웃/토픽 옵트아웃/suppression 등 종결 skip(동의 강제 유지)
             }
             if (CRM::isFrequencyCapped($pdo, $tenant, (int)$c['id'], $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
             // [현 차수 P2-2b] A/B variant 배정(uid 기준 결정론적 50/50). 추적 카운터로 추후 베이지안 승자판정.
@@ -692,7 +717,7 @@ class EmailMarketing
         $campStatus = ($queued > 0 && $sent === 0 && $mock === 0) ? 'scheduled' : 'sent';
         $pdo->prepare("UPDATE email_campaigns SET status=:st, sent_at=:sa, total_sent=:t WHERE id=:id AND tenant_id=:tn")
             ->execute([':st'=>$campStatus, ':sa'=>$now, ':t'=>$total, ':id'=>$cid, ':tn'=>$tenant]);
-        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed,'opted_out'=>$optout,'quiet_deferred'=>$quietSkipped,'queued'=>$queued,'status'=>$campStatus]);
+        return self::jsonRes($res, ['ok'=>true,'total'=>$total,'sent'=>$sent,'mock_sent'=>$mock,'failed'=>$failed,'frequency_capped'=>$capped,'suppressed'=>$suppressed,'opted_out'=>$optout,'quiet_deferred'=>$quietSkipped,'sto_deferred'=>$stoDeferred,'queued'=>$queued,'status'=>$campStatus,'topic'=>($campaign['topic'] ?? null)]);
     }
 
     /**
@@ -700,10 +725,12 @@ class EmailMarketing
      *   suppression/freq-cap 게이트를 per-row 쿼리(O(N)) 대신 사전 일괄조회(set/map, O(1) 쿼리)로 평가해
      *   대량(수만건)에서도 빠르게 큐잉(동기 SMTP 루프 회피). variant(A/B)·sto_hour(개인 최적시각) 부여.
      *   즉시발송 큐(sto_hour=NULL)는 runQueue 가 다음 cron 사이클에 배치 드레인. 전부 테넌트 스코프.
+     *   [283차 P0/P1] $sendOpt(topic·sto) 를 통합 게이트에 전달 — 대량(async) 경로도 토픽 옵트아웃을 강제하고
+     *   STO defer 수신자는 best_hour 로 큐 적재(동기 경로와 동일 정책·비대칭 0).
      *   @return array{queued:int,suppressed:int,frequency_capped:int}
      */
     private static function enqueueCampaignBatch(\PDO $pdo, string $tenant, int $cid, array $customerList,
-        array $freqCfg, bool $abTest, bool $stoOn, bool $deferAll, int $curHourKst): array
+        array $freqCfg, bool $abTest, bool $stoOn, bool $deferAll, int $curHourKst, array $sendOpt = []): array
     {
         $now = self::now();
         // 1) suppression 일괄(테넌트 전체 1쿼리) → 소문자 set.
@@ -724,19 +751,22 @@ class EmailMarketing
                 foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) { $capMap[(int)$r['customer_id']] = (int)$r['cnt']; }
             } catch (\Throwable $e) {}
         }
-        $queued = 0; $suppressed = 0; $capped = 0; $optout = 0;
+        $queued = 0; $suppressed = 0; $capped = 0; $optout = 0; $stoDeferred = 0;
         $rows = [];
         foreach ($customerList as $c) {
             $email = strtolower(trim((string)($c['email'] ?? '')));
             if ($email === '' || isset($supp[$email])) { $suppressed++; continue; }
-            // [현 차수 동의센터 SSOT] 큐 적재 전 통합 게이트 — 옵트아웃/suppression/빈도캡은 여기서 종결 제외.
-            //   단 quiet-hours 계열은 defer(적재 후 runQueue 게이트가 허용시각까지 큐 유지)이므로 여기서는 skip하지 않음.
-            $ge = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'email', ['email'=>$email]);
-            if (!$ge['allowed'] && strpos((string)$ge['reason'], 'quiet') === false) { if (strpos((string)$ge['reason'], 'freq') !== false) { $capped++; } else { $optout++; } continue; }
+            // [현 차수 동의센터 SSOT] 큐 적재 전 통합 게이트 — 옵트아웃/토픽옵트아웃/suppression/빈도캡은 여기서 종결 제외.
+            //   단 quiet-hours·sto_defer 계열은 defer(적재 후 runQueue 가 허용/최적 시각에 드레인)이므로 skip 하지 않음.
+            $ge = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'email', ['email'=>$email] + $sendOpt);
+            $gStoDefer = CRM::isStoDefer($ge); // [283차 P1] 개인 최적시각 대기 → 드롭 금지
+            if (!$ge['allowed'] && !$gStoDefer && strpos((string)$ge['reason'], 'quiet') === false) { if (strpos((string)$ge['reason'], 'freq') !== false) { $capped++; } else { $optout++; } continue; }
             if ($cap > 0 && ($capMap[(int)$c['id']] ?? 0) >= $cap) { $capped++; continue; }
             $variant = $abTest ? (((int)$c['id'] % 2 === 0) ? 'A' : 'B') : null;
             // STO on: 개인 최적시각(과거 오픈 최빈). deferAll(차단시간)인데 STO off 면 sto_hour=NULL → 다음 사이클 즉시.
-            $stoHour = $stoOn ? self::optimalHourFor($pdo, $tenant, (string)$c['email']) : null;
+            // [283차 P1] 캠페인 STO opt-in 이 게이트에서 best_hour 를 산출했으면 그 시각 우선(참여이력 기반 SSOT).
+            $stoHour = $gStoDefer ? (int)($ge['best_hour'] ?? 0) : ($stoOn ? self::optimalHourFor($pdo, $tenant, (string)$c['email']) : null);
+            if ($gStoDefer) $stoDeferred++;
             $rows[] = [$tenant, $cid, (int)$c['id'], (string)$c['email'], $stoHour, $variant, $now];
             $queued++;
         }
@@ -749,7 +779,7 @@ class EmailMarketing
                     VALUES " . implode(',', array_map(fn($p)=>'(?,?,?,?,?,?,?,\'queued\')', $chunk)))->execute($flat);
             } catch (\Throwable $e) { /* chunk 실패는 다음 chunk 진행(부분 적재) */ }
         }
-        return ['queued'=>$queued, 'suppressed'=>$suppressed, 'opted_out'=>$optout, 'frequency_capped'=>$capped];
+        return ['queued'=>$queued, 'suppressed'=>$suppressed, 'opted_out'=>$optout, 'frequency_capped'=>$capped, 'sto_deferred'=>$stoDeferred];
     }
 
     /**

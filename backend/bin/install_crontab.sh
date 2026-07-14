@@ -67,6 +67,15 @@ read -r -d '' CRONTAB <<EOF || true
 # ── Writeback(상품/가격 역연동) ──
 */10 * * * * GENIE_ENV=production php ${PROD}/bin/writeback_cron.php >> /var/log/genie_writeback.log 2>&1
 */13 * * * * GENIE_ENV=demo php ${DEMO}/bin/writeback_cron.php >> /var/log/genie_writeback_demo.log 2>&1
+# ── [283차 GAP-1] 재고 델타 → 채널 가용재고 푸시(초과판매 차단). 실시간 경로는 Wms::recordMovement 훅이고,
+#    본 러너는 드리프트 자가치유 백업(wms_stock ↔ catalog_listing 불일치 SKU 재적재 + 큐 즉시 소비).
+#    재고는 가격보다 시급 → writeback_cron(10분)과 엇갈린 분에 배치해 큐 경합을 피한다. ──
+3,13,23,33,43,53 * * * * GENIE_ENV=production php ${PROD}/bin/stock_sync_cron.php >> /var/log/genie_stock_sync.log 2>&1
+8,28,48 * * * * GENIE_ENV=demo php ${DEMO}/bin/stock_sync_cron.php >> /var/log/genie_stock_sync_demo.log 2>&1
+# ── [283차 GAP-2] 채널 발송처리(송장 전송). WMS 피킹/송장등록 → 채널 "배송중" 전이.
+#    실어댑터=shopify/woocommerce/magento/ebay, 그 외는 honest pending(추측 전송 금지·송장 보존). ──
+*/10 * * * * GENIE_ENV=production php ${PROD}/bin/shipment_confirm_cron.php >> /var/log/genie_shipment.log 2>&1
+*/14 * * * * GENIE_ENV=demo php ${DEMO}/bin/shipment_confirm_cron.php >> /var/log/genie_shipment_demo.log 2>&1
 # ── Attribution(MTA 귀속 재집계) ──
 */30 * * * * GENIE_ENV=production php ${PROD}/bin/attribution_cron.php >> /var/log/genie_attribution.log 2>&1
 */33 * * * * GENIE_ENV=demo php ${DEMO}/bin/attribution_cron.php >> /var/log/genie_attribution_demo.log 2>&1

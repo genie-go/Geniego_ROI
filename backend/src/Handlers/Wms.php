@@ -136,6 +136,48 @@ class Wms
             try { $pdo->exec("ALTER TABLE wms_lots ADD COLUMN {$col}"); } catch (\Throwable $e) {}
         }
         self::ensurePhysicalTables($pdo, $mysql); // 바코드/빈/웨이브/lot 소비원장(멱등)
+        self::ensureOutboundTables($pdo, $mysql); // [283차] 채널 재고 푸시 정책 · 초과판매 원장 · 피킹 송장(멱등)
+    }
+
+    /**
+     * [283차 GAP-1] 커머스 outbound 루프 스키마(멱등 DDL).
+     *
+     *   ① wms_channel_stock_policy — 채널별 안전버퍼(초과판매 방지 유보재고) · 자동푸시 on/off.
+     *      ★행이 없으면 buffer=0 · enabled=true 가 기본 → 기존 테넌트 전원 무회귀(종전과 동일한 전량 노출).
+     *   ② wms_oversell_alert — 초과판매(재고<판매) 발생 원장. 종전엔 error_log 뿐이라 사후 추적·집계가 불가능했다.
+     *      로깅을 '명시적 경고 상태'로 승격(요구 5) — 판매 반영 흐름 자체는 깨지 않는다(채널에서 이미 팔린 주문을
+     *      우리가 되돌릴 수는 없다). 진짜 '차단'은 GAP-1 의 재고 델타 푸시(채널 가용재고를 실물에 맞춰 즉시 내림)와
+     *      strict 출고(adjustStock: on_hand>=need 조건부 UPDATE → insufficient_stock 예외)가 담당한다.
+     *   ③ wms_picking.tracking_no — 피킹 라인의 송장번호(발송처리 전송의 입력). 종전 컬럼 부재.
+     *
+     *   ★MySQL TEXT DEFAULT 거부 트랩 회피 — 문자열 기본값은 VARCHAR 만, 숫자는 DOUBLE/INT DEFAULT.
+     */
+    private static function ensureOutboundTables(\PDO $pdo, bool $mysql): void
+    {
+        if ($mysql) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_channel_stock_policy (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                channel VARCHAR(100) NOT NULL, safety_buffer DOUBLE DEFAULT 0, enabled TINYINT(1) DEFAULT 1,
+                updated_at VARCHAR(32),
+                UNIQUE KEY uq_wcsp (tenant_id, channel), KEY idx_wcsp_tenant (tenant_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_oversell_alert (
+                id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                channel VARCHAR(100), sku VARCHAR(120) NOT NULL, name VARCHAR(255), ref VARCHAR(190),
+                want DOUBLE DEFAULT 0, available DOUBLE DEFAULT 0, shortage DOUBLE DEFAULT 0,
+                severity VARCHAR(20) DEFAULT 'partial', status VARCHAR(20) DEFAULT 'open',
+                created_at VARCHAR(32),
+                UNIQUE KEY uq_woa (tenant_id, ref, sku),
+                KEY idx_woa_tenant (tenant_id), KEY idx_woa_sku (tenant_id, sku)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_channel_stock_policy (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT NOT NULL, safety_buffer REAL DEFAULT 0, enabled INTEGER DEFAULT 1, updated_at TEXT)");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS wms_oversell_alert (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', channel TEXT, sku TEXT NOT NULL, name TEXT, ref TEXT, want REAL DEFAULT 0, available REAL DEFAULT 0, shortage REAL DEFAULT 0, severity TEXT DEFAULT 'partial', status TEXT DEFAULT 'open', created_at TEXT)");
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_wcsp ON wms_channel_stock_policy(tenant_id, channel)"); } catch (\Throwable $e) {}
+            try { $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_woa ON wms_oversell_alert(tenant_id, ref, sku)"); } catch (\Throwable $e) {}
+        }
+        // 피킹 라인 송장번호 — 기 배포된 wms_picking 은 CREATE 를 건너뛰므로 ALTER 로 보강(멱등).
+        try { $pdo->exec($mysql ? "ALTER TABLE wms_picking ADD COLUMN tracking_no VARCHAR(120)" : "ALTER TABLE wms_picking ADD COLUMN tracking_no TEXT"); } catch (\Throwable $e) {}
     }
 
     /**
@@ -575,11 +617,20 @@ class Wms
             $id = (int)$pdo->lastInsertId();
             self::applyMovementToStock($t, $type, $wh, $dwh, $sku, $name, $qty, $ref); // ref → FEFO lot 소비원가 원장 키
             if ($ownTxn) $pdo->commit();
-            return $id;
         } catch (\Throwable $e) {
             if ($ownTxn && $pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
+        // ── [283차 GAP-1] 재고 델타 → 채널 가용재고 자동 푸시(outbound 루프 폐쇄) ──────────────────
+        //   ★근본결함: 종전 wms_stock 은 pull-at-push 였다 — Catalog::writeback 이 **사용자가 버튼을 누를 때만**
+        //     on_hand 를 읽어갔다(Catalog.php:500-507). 입고·재고조정·오프라인 판매·피킹출고로 실물이 변해도
+        //     채널 가용재고는 영영 그대로 → 초과판매. catalog_writeback_job 생산자 5곳이 전부 사용자 액션이었고
+        //     bin/ 어디에도 wms_stock 을 읽는 러너가 없었다(부재증명).
+        //   ★이제 재고가 변하는 **단일 chokepoint**(recordMovement — 입고/출고/조정/이동/취소복원/스캔/피킹/발주입고/
+        //     채널판매/파트너/라이브커머스가 전부 여기를 지난다)에서 델타를 채널 writeback 큐에 자동 적재한다.
+        //   ★트랜잭션 **커밋 후** 실행 — 큐 적재 실패가 재고 원장을 롤백시키지 않는다(무회귀·비throw).
+        try { self::enqueueChannelStockSync($t, $sku, 'movement:' . $type); } catch (\Throwable $e) { error_log('[Wms.recordMovement.enqueue] ' . $e->getMessage()); }
+        return $id;
     }
 
     /**
@@ -631,11 +682,21 @@ class Wms
      *   ① ref(채널 주문 식별자) 멱등 — 재폴링/중복 호출 시 1회만 차감(이중 차감 방지).
      *   ② 물리 추적 SKU 한정 — 해당 SKU 의 wms_stock 행이 최적할당 선택창고에 있을 때만 차감(미추적 SKU/무-WMS
      *      테넌트는 spurious 0행 생성 없이 skip → 수동 WMS 워크플로우/미사용 테넌트 무영향).
-     *   ③ non-throw — 가용분(min(qty,on_hand))만 차감해 strict 출고 예외 회피, 오버셀은 로그(은폐 아님).
+     *   ③ non-throw — 가용분(min(qty,on_hand))만 차감해 strict 출고 예외 회피.
      *   best-effort: 예외는 호출측(채널 동기화) 흐름을 깨지 않도록 흡수.
+     *
+     * [283차 GAP-1 요구5] ★초과판매를 '로깅'에서 '명시적 경고 상태'로 승격.
+     *   종전엔 error_log 두 줄이 전부였다(:661,:669) — 아무도 읽지 않는 로그였고, 초과판매가 몇 건인지·어느
+     *   채널에서 났는지 집계할 방법이 없었다. 이제 wms_oversell_alert 원장에 적재 + 감사로그 + **즉시 채널
+     *   재고 재푸시**(가용재고를 실물에 맞춰 내려 추가 초과판매를 끊는다 = 실질적 차단)를 수행한다.
+     *   ★판매 반영 자체는 차단하지 않는다 — 채널에서 이미 체결된 주문을 우리가 되돌릴 수 없고, 여기서
+     *     throw 하면 CRM 구매기록·귀속·정산 롤업(saveOrders 후속 단계)이 통째로 깨진다(무회귀 원칙).
+     *     사전 차단은 GAP-1 의 델타 푸시와 strict 출고(adjustStock 조건부 UPDATE)가 담당한다.
+     *
+     * @param string $channel 판매 채널(초과판매 귀속용). 기본 '' — 기존 호출부 무영향.
      * @return bool 신규 차감 시 true.
      */
-    public static function reflectChannelSale(string $tenant, string $sku, string $name, float $qty, string $ref, string $shipText = ''): bool
+    public static function reflectChannelSale(string $tenant, string $sku, string $name, float $qty, string $ref, string $shipText = '', string $channel = ''): bool
     {
         $tenant = trim($tenant);
         if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '' || $qty <= 0) return false;
@@ -654,25 +715,51 @@ class Wms
             $sel->execute([$tenant, $sku, $wh]);
             $row = $sel->fetch(\PDO::FETCH_ASSOC);
             if ($row === false) return false; // 미추적 SKU → 물리 차감 대상 아님(채널재고만 차감 유지)
-            // ③ non-throw: 가용분만 차감(strict 출고 예외 회피). 오버셀은 경고 로그.
+            // ③ non-throw: 가용분만 차감(strict 출고 예외 회피). 오버셀은 원장 적재 + 채널 재고 재푸시.
             $onHand = (float)$row['on_hand'];
             $deduct = min($qty, $onHand);
             if ($deduct <= 0) {
-                error_log("[Wms.reflectChannelSale] oversell(stock 0) tenant=$tenant sku=$sku want=$qty");
-                return false; // 재고 0 → 변동 없음(이력 미생성, 다음 입고 후 폴링 시 차감 기회)
+                // 재고 0인데 채널에서 팔렸다 = 확정 초과판매(critical). 이력 미생성(차감할 재고 없음).
+                self::recordOversell($tenant, $channel, $sku, $name, $ref, $qty, 0.0, 'critical');
+                // recordMovement 를 타지 않으므로 델타 훅이 안 걸린다 → 여기서 직접 채널 가용재고를 0 으로 내린다.
+                self::enqueueChannelStockSync($tenant, $sku, 'oversell_zero_stock');
+                return false;
             }
             self::recordMovement($tenant, [
                 'type' => 'Outbound', 'wh_id' => $wh, 'sku' => $sku, 'name' => $name,
                 'qty' => $deduct, 'ref' => $ref, 'reason' => 'channel_sync_sale',
-            ]);
+            ]); // ← recordMovement 가 커밋 후 enqueueChannelStockSync 로 잔여재고를 전 채널에 푸시
             if ($deduct < $qty) {
-                error_log("[Wms.reflectChannelSale] partial(oversell) tenant=$tenant sku=$sku want=$qty avail=$onHand");
+                // 부분 차감 = 재고보다 많이 팔렸다(부분 초과판매). 판매는 반영하되 경고를 원장에 남긴다.
+                self::recordOversell($tenant, $channel, $sku, $name, $ref, $qty, $onHand, 'partial');
             }
             return true;
         } catch (\Throwable $e) {
             error_log('[Wms.reflectChannelSale] ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * [283차 GAP-1] 초과판매 경고 원장 적재(멱등: UNIQUE(tenant,ref,sku)) + 감사로그.
+     *   severity: 'critical'(재고 0에서 판매) | 'partial'(재고보다 많이 판매).
+     *   ★비throw — 경고 기록 실패가 판매 반영을 깨서는 안 된다.
+     */
+    private static function recordOversell(string $tenant, string $channel, string $sku, string $name, string $ref, float $want, float $avail, string $severity): void
+    {
+        $shortage = max(0.0, $want - $avail);
+        error_log("[Wms.oversell] severity={$severity} tenant={$tenant} channel={$channel} sku={$sku} ref={$ref} want={$want} avail={$avail}");
+        try {
+            $pdo = self::db();
+            $pdo->prepare("INSERT INTO wms_oversell_alert (tenant_id,channel,sku,name,ref,want,available,shortage,severity,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,'open',?)")
+                ->execute([$tenant, $channel, $sku, $name, $ref, $want, $avail, $shortage, $severity, self::now()]);
+        } catch (\Throwable $e) { /* UNIQUE 중복 = 이미 기록됨(멱등) */ }
+        try {
+            Db::audit(self::db(), $tenant, 'wms.oversell', [
+                'channel' => $channel, 'sku' => $sku, 'ref' => $ref,
+                'want' => $want, 'available' => $avail, 'shortage' => $shortage, 'severity' => $severity,
+            ]);
+        } catch (\Throwable $e) {}
     }
 
     /** 테넌트 기본(우선) 창고 wh_id. 활성 창고 중 최소 id, 없으면 'default'. */
@@ -1119,15 +1206,19 @@ class Wms
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
+        // [283차 GAP-2] 송장번호 — 발송처리(채널 송장전송)의 입력값. 종전 wms_picking 에 컬럼조차 없었다.
+        $trackingIn = trim((string)($b['trackingNo'] ?? $b['tracking_no'] ?? ''));
         if ($id > 0) {
             $newStatus = (string)($b['status'] ?? 'pending');
             // [현 차수] 219 P2: 피킹 status→shipped 전이 시 물리 재고 차감(기존엔 이력만 갱신, 재고 미차감 결함).
             //   PartnerPortal shipped 경로와 동일 패턴. 멱등(PICK-{id} ref)·재고부족 시 422(출고 거부).
-            $sel = $pdo->prepare("SELECT sku, name, qty, wh_id, status FROM wms_picking WHERE id=? AND tenant_id=? LIMIT 1");
+            $sel = $pdo->prepare("SELECT order_ref, sku, name, qty, wh_id, carrier, tracking_no, status FROM wms_picking WHERE id=? AND tenant_id=? LIMIT 1");
             $sel->execute([$id, $t]);
-            $old = $sel->fetch(\PDO::FETCH_ASSOC);
+            $row = $sel->fetch(\PDO::FETCH_ASSOC);
+            $old = is_array($row) ? $row : [];   // 미존재 시 fetch()=false → 배열 오프셋 접근 경고 방지
             if ($old && ($err = self::guardWarehouse($req, $res, (string)($old['wh_id'] ?? '')))) return $err; // 219 P2 창고 권한
-            if ($old && (string)($old['status'] ?? '') !== 'shipped' && $newStatus === 'shipped') {
+            $shipping = $old && (string)($old['status'] ?? '') !== 'shipped' && $newStatus === 'shipped';
+            if ($shipping) {
                 $psku = (string)($old['sku'] ?? ''); $pqty = (float)($old['qty'] ?? 0); $pwh = (string)($old['wh_id'] ?? '');
                 if ($psku !== '' && $pqty > 0 && $pwh !== '') {
                     $ref = 'PICK-' . $id;
@@ -1145,17 +1236,37 @@ class Wms
                     }
                 }
             }
-            $st = $pdo->prepare("UPDATE wms_picking SET status=:s,carrier=:c,updated_at=:ua WHERE id=:id AND tenant_id=:t");
-            $st->execute([':s' => $newStatus, ':c' => (string)($b['carrier'] ?? ''), ':ua' => $now, ':id' => $id, ':t' => $t]);
+            // 송장/택배사는 부분 갱신 — 요청에 없으면 기존값 보존(빈 문자열로 지워지지 않는다).
+            $carrier  = array_key_exists('carrier', $b) ? (string)$b['carrier'] : (string)($old['carrier'] ?? '');
+            $tracking = $trackingIn !== '' ? $trackingIn : (string)($old['tracking_no'] ?? '');
+            $st = $pdo->prepare("UPDATE wms_picking SET status=:s,carrier=:c,tracking_no=:tn,updated_at=:ua WHERE id=:id AND tenant_id=:t");
+            $st->execute([':s' => $newStatus, ':c' => $carrier, ':tn' => $tracking, ':ua' => $now, ':id' => $id, ':t' => $t]);
             if ($st->rowCount() === 0 && !self::exists('wms_picking', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
-            return self::json($res, ['ok' => true, 'id' => $id]);
+
+            // ── [283차 GAP-2] 출고 완료 → 채널 발송처리(송장 전송) 큐 적재 ────────────────────────
+            //   ★근본결함: WMS 피킹으로 출고가 끝나도 채널로 아무것도 돌아가지 않아 구매자 화면의 주문이
+            //     영원히 "배송준비중"이었다(waybill|shipment_confirm 백엔드 0건 = 부재증명).
+            //   ★송장이 없으면 적재하지 않는다 — 발송처리는 송장 없이 성립하지 않으므로 "처리한 척" 하지 않는다.
+            //     (웨이브 확정 경로는 송장이 아직 없다 → 송장 등록 시점[본 API 재호출 또는 Logistics::track]에 적재된다.)
+            //   ★order_ref 가 채널 주문으로 해석되지 않으면 skip(자체몰/오프라인 출고 = 발송처리 대상 아님).
+            $shipJob = 0;
+            if ($shipping && $tracking !== '') {
+                try {
+                    $shipJob = ChannelSync::enqueueShipment($t, [
+                        'order_ref' => (string)($old['order_ref'] ?? ''), 'sku' => (string)($old['sku'] ?? ''),
+                        'carrier' => $carrier, 'tracking_no' => $tracking,
+                    ]);
+                } catch (\Throwable $e) { error_log('[Wms.savePicking.enqueueShipment] ' . $e->getMessage()); }
+            }
+            return self::json($res, ['ok' => true, 'id' => $id, 'shipment_job' => $shipJob,
+                'shipment_note' => ($shipping && $tracking === '') ? '송장번호가 없어 채널 발송처리를 보류했습니다 — 송장 등록 시 자동 전송됩니다.' : null]);
         }
         if ($err = self::guardWarehouse($req, $res, (string)($b['whId'] ?? $b['wh_id'] ?? ''))) return $err; // 219 P2 창고 권한
-        $st = $pdo->prepare("INSERT INTO wms_picking (tenant_id,order_ref,sku,name,qty,wh_id,carrier,status,created_at,updated_at) VALUES (:t,:o,:sku,:name,:qty,:wh,:c,:s,:ca,:ua)");
+        $st = $pdo->prepare("INSERT INTO wms_picking (tenant_id,order_ref,sku,name,qty,wh_id,carrier,tracking_no,status,created_at,updated_at) VALUES (:t,:o,:sku,:name,:qty,:wh,:c,:tn,:s,:ca,:ua)");
         $st->execute([
             ':t' => $t, ':o' => (string)($b['orderRef'] ?? $b['order_ref'] ?? ''), ':sku' => (string)($b['sku'] ?? ''),
             ':name' => (string)($b['name'] ?? ''), ':qty' => (float)($b['qty'] ?? 0), ':wh' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
-            ':c' => (string)($b['carrier'] ?? ''), ':s' => (string)($b['status'] ?? 'pending'), ':ca' => $now, ':ua' => $now,
+            ':c' => (string)($b['carrier'] ?? ''), ':tn' => $trackingIn, ':s' => (string)($b['status'] ?? 'pending'), ':ca' => $now, ':ua' => $now,
         ]);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
@@ -1702,6 +1813,341 @@ class Wms
         $st = $pdo->prepare("DELETE FROM wms_waves WHERE id=? AND tenant_id=?");
         $st->execute([$id, $t]);
         return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       [283차 GAP-1] 재고 델타 → 채널 가용재고 자동 푸시(outbound 루프 폐쇄).
+
+       ★기존 인프라 재사용(신규 큐 신설 금지 원칙): catalog_writeback_job + Catalog::processWritebackQueue.
+         operation='stock_sync' 잡을 적재하면 기존 큐 소비 워커(writeback_cron / ChannelCreds 등록훅 /
+         수동 플러시)가 그대로 채널 어댑터로 push 한다 — 어댑터 21종을 한 줄도 고치지 않는다.
+         ・큐 소비 시 Catalog::currentListing 이 catalog_listing 에서 product 를 복원하므로,
+           **여기서 catalog_listing.inventory 를 실물(SSOT)로 갱신**해 두면 그 값이 그대로 전송된다.
+         ・cpid(priorChannelProductId) 가 있을 때만 적재 → 어댑터가 '수정(update)' 경로를 타고,
+           ChannelContract::preflight 도 update 규칙(sku 만 필수)으로 통과한다(신규등록 오시도 0).
+
+       ★디바운스/합치기: (tenant,channel,sku,'stock_sync') 미완료 잡이 있으면 payload 만 갱신 →
+         입고 100건이 연속으로 들어와도 채널당 잡은 최대 1행(큐 폭주 0·멱등).
+       ★값 무변화(catalog_listing.inventory == 새 가용수량)면 잡을 만들지 않는다(무의미 전송 0).
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    /** [283차] 채널키 별칭 그룹 — Catalog::channelAliases 와 동일 규약(cred/job/리스팅 표기차 흡수). */
+    private static function channelAliasGroup(string $channel): array
+    {
+        $ch = strtolower(trim($channel));
+        foreach ([['amazon', 'amazon_spapi'], ['tiktok_shop', 'tiktok'], ['naver', 'naver_smartstore'], ['11st', 'st11']] as $g) {
+            if (in_array($ch, $g, true)) return $g;
+        }
+        return [$ch];
+    }
+
+    /**
+     * [283차] 해당 SKU 가 그 채널에 **실제로 등록되어 있는가**(= 채널 상품 id 보유).
+     *   Catalog::priorChannelProductId 와 동일한 2개 소스를 본다:
+     *     ① 우리 앱이 등록에 성공한 이력(catalog_writeback_job status='done')
+     *     ② 채널 동기화로 수집된 상품(channel_products — 셀러가 채널에서 직접 만든 상품 포함)
+     *   미등록이면 재고 잡을 만들지 않는다 — 만들면 어댑터가 **신규등록**을 시도해 'leafCategoryId 필요' 같은
+     *   엉뚱한 오류를 남긴다(bulkPrice 가 이미 겪은 결함 클래스. 227/277차 주석 참조).
+     */
+    private static function channelListed(\PDO $pdo, string $tenant, string $channel, string $sku): bool
+    {
+        $aliases = self::channelAliasGroup($channel);
+        $ph = implode(',', array_fill(0, count($aliases), '?'));
+        try {
+            $st = $pdo->prepare("SELECT 1 FROM catalog_writeback_job WHERE tenant_id=? AND channel IN ($ph) AND sku=? AND status='done' LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases, [$sku]));
+            if ($st->fetchColumn()) return true;
+        } catch (\Throwable $e) { /* 테이블 부재 → 아래 소스 */ }
+        try {
+            $st = $pdo->prepare("SELECT 1 FROM channel_products WHERE tenant_id=? AND channel IN ($ph) AND (sku=? OR channel_product_id=?) LIMIT 1");
+            $st->execute(array_merge([$tenant], $aliases, [$sku, $sku]));
+            if ($st->fetchColumn()) return true;
+        } catch (\Throwable $e) { /* 테이블 부재 */ }
+        return false;
+    }
+
+    /** [283차] 채널별 재고 푸시 정책. 행 없음 = buffer 0 · enabled → 기존 테넌트 무회귀.
+     *  ★프로세스 메모 — recordMovement 는 주문 동기화 루프에서 건당 호출되는 hot path 다. 정책은 저빈도 변경이므로
+     *    요청/크론 1회 실행 동안만 캐시한다(saveStockPolicy 가 명시적으로 무효화). */
+    private static array $policyMemo = [];
+
+    private static function stockPolicies(\PDO $pdo, string $tenant): array
+    {
+        if (isset(self::$policyMemo[$tenant])) return self::$policyMemo[$tenant];
+        $out = [];
+        try {
+            $st = $pdo->prepare("SELECT channel, safety_buffer, enabled FROM wms_channel_stock_policy WHERE tenant_id=?");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $out[strtolower((string)$r['channel'])] = [
+                    'buffer'  => max(0.0, (float)($r['safety_buffer'] ?? 0)),
+                    'enabled' => ((int)($r['enabled'] ?? 1)) === 1,
+                ];
+            }
+        } catch (\Throwable $e) { /* 정책 미설정 = 기본값 */ }
+        self::$policyMemo[$tenant] = $out;
+        return $out;
+    }
+
+    /**
+     * [283차 GAP-1 요구3] 채널 전송용 가용재고 = 실물 on_hand − 채널 안전버퍼(0 하한).
+     *   ★채널 전송 수량의 **단일 계산식(SSOT)**. 자동 델타 푸시(enqueueChannelStockSync)와
+     *     수동 동기화(Catalog::writeback)가 같은 함수를 써야 두 경로가 서로 다른 재고를 보내지 않는다.
+     *   ★정책 미설정 = 버퍼 0 → 종전과 완전히 동일한 수량(무회귀).
+     */
+    public static function channelAvailable(string $tenant, string $channel, float $onHand): int
+    {
+        try {
+            $pol = self::stockPolicies(self::db(), $tenant);
+            $buf = (float)($pol[strtolower(trim($channel))]['buffer'] ?? 0.0);
+            return (int)max(0, (int)floor($onHand - $buf));
+        } catch (\Throwable $e) { return (int)max(0, (int)round($onHand)); }
+    }
+
+    /**
+     * [283차 GAP-1 핵심] SKU 의 실물 재고 델타를 등록된 전 채널에 자동 푸시(큐 적재).
+     *   recordMovement(단일 chokepoint) 커밋 직후 · 초과판매 감지 시 호출된다.
+     *
+     *   가용재고 = SUM(wms_stock.on_hand) − 채널 안전버퍼   (0 하한)
+     *   ★안전버퍼(safety buffer): 여러 채널이 같은 물리재고를 공유할 때 동시주문으로 인한 초과판매를 막는
+     *     유보분. 미설정 시 0 → 종전과 동일 수량이 나간다(무회귀).
+     *
+     * @return int 적재/갱신된 잡 수(비throw — 실패해도 0)
+     */
+    public static function enqueueChannelStockSync(string $tenant, string $sku, string $reason = ''): int
+    {
+        $tenant = trim($tenant); $sku = trim($sku);
+        if ($tenant === '' || strtolower($tenant) === 'demo' || $sku === '') return 0;
+        try {
+            $pdo = self::db(); $now = self::now();
+            // 실물 SSOT — 전 창고 on_hand 합(창고별 분산은 출고 시 allocationPlan 이 해결).
+            $s = $pdo->prepare("SELECT COALESCE(SUM(on_hand),0) FROM wms_stock WHERE tenant_id=? AND sku=?");
+            $s->execute([$tenant, $sku]);
+            $onHand = (float)$s->fetchColumn();
+
+            // 이 SKU 가 실린 채널 리스팅. 0행 = 채널 미등록 상품 → 푸시 대상 없음(WMS 만 쓰는 테넌트 무영향).
+            //   ★catalog_listing 이 존재한다는 것은 Catalog::ensureTables 가 돌았다는 뜻 = catalog_writeback_job 도 존재(불변식).
+            $c = $pdo->prepare("SELECT channel, inventory, action FROM catalog_listing WHERE tenant_id=? AND sku=?");
+            $c->execute([$tenant, $sku]);
+            $rows = $c->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            if (!$rows) return 0;
+
+            $pol = self::stockPolicies($pdo, $tenant);
+            $n = 0;
+            foreach ($rows as $r) {
+                $ch = strtolower(trim((string)($r['channel'] ?? '')));
+                if ($ch === '') continue;
+                if (in_array((string)($r['action'] ?? ''), ['unregister', 'disconnect'], true)) continue; // 해제된 리스팅
+                $p = $pol[$ch] ?? ['buffer' => 0.0, 'enabled' => true];
+                if (empty($p['enabled'])) continue;                                   // 채널별 자동푸시 off
+                $avail = self::channelAvailable($tenant, $ch, $onHand);                // SSOT 계산식(수동 동기화와 동일)
+
+                // catalog_listing.inventory 를 실물로 정합화 — 큐 소비(currentListing)가 이 값을 채널로 싣는다.
+                //   ★Catalog::writeback(:500-507)이 이미 wms_stock 을 SSOT 로 덮어쓰므로 동일 규약(중복 아님·값 일체화).
+                $pdo->prepare("UPDATE catalog_listing SET inventory=?, updated_at=? WHERE tenant_id=? AND channel=? AND sku=?")
+                    ->execute([$avail, $now, $tenant, (string)$r['channel'], $sku]);
+
+                if (!self::channelListed($pdo, $tenant, $ch, $sku)) continue;          // 채널 미등록 → 신규등록 오시도 방지
+
+                $payload = json_encode([
+                    'sku' => $sku, 'inventory' => $avail, 'on_hand' => $onHand,
+                    'safety_buffer' => (float)$p['buffer'], 'reason' => $reason, 'source' => 'wms_stock_delta',
+                ], JSON_UNESCAPED_UNICODE);
+
+                // 이 (채널,SKU)의 최신 stock_sync 잡 1건으로 ①디바운스 ②중복전송 판정을 함께 내린다.
+                $ex = $pdo->prepare("SELECT id, status, payload FROM catalog_writeback_job
+                                      WHERE tenant_id=? AND channel=? AND sku=? AND operation='stock_sync'
+                                      ORDER BY id DESC LIMIT 1");
+                $ex->execute([$tenant, (string)$r['channel'], $sku]);
+                $last = $ex->fetch(\PDO::FETCH_ASSOC) ?: null;
+                $lastStatus = $last ? (string)($last['status'] ?? '') : '';
+
+                // ① 디바운스/합치기 — 아직 전송되지 않은 잡이 있으면 payload 만 최신값으로 덮는다(1행 유지·멱등).
+                //    입고 100건이 연속으로 들어와도 채널당 잡은 최대 1행(큐 폭주 0).
+                if (in_array($lastStatus, ['queued', 'awaiting_credentials'], true)) {
+                    $pdo->prepare("UPDATE catalog_writeback_job SET payload=?, status='queued', attempt=1, updated_at=? WHERE id=?")
+                        ->execute([$payload, $now, (int)$last['id']]);
+                    $n++; continue;
+                }
+
+                // ② 중복전송 방지 — 판정 기준은 **마지막으로 채널에 실제 전송 성공(done)한 수량**이다.
+                //    ★catalog_listing.inventory 로 판정하면 안 된다: 그 값은 바로 위에서 우리가 쓴 로컬값이라,
+                //      직전 잡이 failed(채널 미반영)인데도 "변화 없음"으로 오판해 채널이 **영구 stale** 이 된다.
+                //      last 가 없거나(최초) failed/pending 이면 값이 같아도 다시 보낸다(자가치유).
+                if ($lastStatus === 'done') {
+                    $lp = json_decode((string)($last['payload'] ?? ''), true);
+                    if (is_array($lp) && array_key_exists('inventory', $lp) && (int)$lp['inventory'] === $avail) continue;
+                }
+
+                $pdo->prepare("INSERT INTO catalog_writeback_job(tenant_id,channel,sku,operation,status,attempt,payload,created_at,updated_at)
+                               VALUES(?,?,?,'stock_sync','queued',1,?,?,?)")
+                    ->execute([$tenant, (string)$r['channel'], $sku, $payload, $now, $now]);
+                $n++;
+            }
+            return $n;
+        } catch (\Throwable $e) {
+            error_log('[Wms.enqueueChannelStockSync] ' . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * [283차 GAP-1 요구4] 드리프트 보정 — wms_stock(실물) 과 catalog_listing(채널 가용재고)이 어긋난 SKU×채널을
+     *   찾아 재푸시한다. cron(bin/stock_sync_cron.php) 백업 경로.
+     *   ・델타 훅이 어떤 이유로든(프로세스 크래시·큐 잡 유실·수동 DB 조작) 누락된 건을 주기적으로 자가치유.
+     *   ・enqueueChannelStockSync 를 그대로 재사용 → 정책/디바운스/미등록 가드가 동일하게 적용된다(SSOT).
+     * @return array{scanned:int,enqueued:int}
+     */
+    public static function reconcileChannelStock(string $tenant, int $limit = 500): array
+    {
+        $out = ['scanned' => 0, 'enqueued' => 0];
+        $tenant = trim($tenant);
+        if ($tenant === '' || strtolower($tenant) === 'demo') return $out;
+        try {
+            self::ensureTables();
+            $pdo = self::db();
+            // 실물 합계 ≠ 채널 리스팅 재고인 SKU 만 추린다(전량 재푸시가 아니라 드리프트 후보만 — 큐/트래픽 절약).
+            //   ★안전버퍼가 걸린 채널은 정상 상태에서도 값이 다르다(inventory = on_hand − buffer). 그래서 여기서는
+            //     '후보'만 뽑고 최종 판정(버퍼 반영 후 값 동일 → 잡 미생성)은 enqueueChannelStockSync 에 위임한다(SSOT 단일화).
+            //   ★수치 비교만 사용(CAST 등 MySQL 전용 함수 배제) → MySQL/SQLite 양쪽 동작.
+            $st = $pdo->prepare("SELECT DISTINCT l.sku
+                                   FROM catalog_listing l
+                                   JOIN (SELECT sku, SUM(on_hand) oh FROM wms_stock WHERE tenant_id=:t1 GROUP BY sku) w
+                                     ON w.sku = l.sku
+                                  WHERE l.tenant_id=:t2 AND l.sku<>'' AND l.inventory <> w.oh
+                                  LIMIT " . max(1, min(2000, $limit)));
+            $st->execute([':t1' => $tenant, ':t2' => $tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_COLUMN) ?: [] as $sku) {
+                $out['scanned']++;
+                $out['enqueued'] += self::enqueueChannelStockSync($tenant, (string)$sku, 'reconcile');
+            }
+        } catch (\Throwable $e) {
+            error_log('[Wms.reconcileChannelStock] ' . $e->getMessage());
+        }
+        return $out;
+    }
+
+    /* ── [283차] 채널 재고정책(안전버퍼/자동푸시) ── */
+
+    /** GET /wms/stock-policy — 채널별 안전버퍼·자동푸시 설정. 미설정 채널은 기본(buffer 0·enabled). */
+    public static function listStockPolicy(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req);
+        $st = self::db()->prepare("SELECT channel, safety_buffer, enabled, updated_at FROM wms_channel_stock_policy WHERE tenant_id=? ORDER BY channel");
+        $st->execute([$t]);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        foreach ($rows as &$r) {
+            $r['safety_buffer'] = (float)$r['safety_buffer'];
+            $r['enabled'] = ((int)$r['enabled']) === 1;
+        }
+        return self::json($res, ['ok' => true, 'policies' => $rows, 'default' => ['safety_buffer' => 0, 'enabled' => true]]);
+    }
+
+    /** POST /wms/stock-policy — {channel, safetyBuffer, enabled} upsert(멱등). buffer 0 = 무유보(기본). */
+    public static function saveStockPolicy(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req); $pdo = self::db(); $now = self::now();
+        $ch = strtolower(trim((string)($b['channel'] ?? '')));
+        if ($ch === '') return self::json($res, ['ok' => false, 'error' => 'channel이 필요합니다.'], 422);
+        $buf = max(0.0, (float)($b['safetyBuffer'] ?? $b['safety_buffer'] ?? 0));
+        $en  = array_key_exists('enabled', $b) ? (!empty($b['enabled']) ? 1 : 0) : 1;
+        $ex = $pdo->prepare("SELECT id FROM wms_channel_stock_policy WHERE tenant_id=? AND channel=? LIMIT 1");
+        $ex->execute([$t, $ch]);
+        $id = $ex->fetchColumn();
+        if ($id !== false && $id !== null) {
+            $pdo->prepare("UPDATE wms_channel_stock_policy SET safety_buffer=?, enabled=?, updated_at=? WHERE id=?")
+                ->execute([$buf, $en, $now, (int)$id]);
+        } else {
+            $pdo->prepare("INSERT INTO wms_channel_stock_policy (tenant_id,channel,safety_buffer,enabled,updated_at) VALUES (?,?,?,?,?)")
+                ->execute([$t, $ch, $buf, $en, $now]);
+        }
+        unset(self::$policyMemo[$t]); // 프로세스 메모 무효화 — 아래 재푸시가 방금 저장한 정책을 읽어야 한다.
+        // 정책 변경은 곧 가용재고 변경 → 해당 채널 리스팅 SKU 를 즉시 재푸시(값 일체화).
+        $enq = 0;
+        try {
+            $sk = $pdo->prepare("SELECT DISTINCT sku FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku<>'' LIMIT 500");
+            $sk->execute([$t, $ch]);
+            foreach ($sk->fetchAll(\PDO::FETCH_COLUMN) ?: [] as $sku) { $enq += self::enqueueChannelStockSync($t, (string)$sku, 'policy_change'); }
+        } catch (\Throwable $e) {}
+        Db::audit($pdo, $t, 'wms.stock_policy', ['channel' => $ch, 'safety_buffer' => $buf, 'enabled' => $en, 'requeued' => $enq]);
+        return self::json($res, ['ok' => true, 'channel' => $ch, 'safety_buffer' => $buf, 'enabled' => (bool)$en, 'requeued' => $enq]);
+    }
+
+    /** GET /wms/oversell — 초과판매 경고 원장(신규순). 종전엔 error_log 뿐이라 집계 불가였다. */
+    public static function listOversell(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $q = $req->getQueryParams();
+        $sql = "SELECT * FROM wms_oversell_alert WHERE tenant_id=:t";
+        $p = [':t' => $t];
+        if (!empty($q['status'])) { $sql .= " AND status=:s"; $p[':s'] = (string)$q['status']; }
+        $sql .= " ORDER BY id DESC LIMIT 300";
+        $st = self::db()->prepare($sql); $st->execute($p);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        $open = 0;
+        foreach ($rows as $r) { if ((string)($r['status'] ?? '') === 'open') $open++; }
+        return self::json($res, ['ok' => true, 'alerts' => $rows, 'summary' => ['total' => count($rows), 'open' => $open]]);
+    }
+
+    /* ── [283차 GAP-2] 채널 발송처리(송장 전송) 운영 API ── */
+
+    /** GET /wms/shipments — 채널 발송처리 큐(전송 결과·honest pending 사유 포함). */
+    public static function listShipmentJobs(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req);
+        $jobs = ChannelSync::listShipmentJobs(self::db(), $t, (int)($req->getQueryParams()['limit'] ?? 200));
+        $sum = ['queued' => 0, 'done' => 0, 'pending' => 0, 'failed' => 0, 'awaiting_credentials' => 0];
+        foreach ($jobs as $j) { $k = (string)$j['status']; if (isset($sum[$k])) $sum[$k]++; }
+        return self::json($res, ['ok' => true, 'shipments' => $jobs, 'summary' => $sum, 'live_channels' => ChannelSync::shipLiveChannels()]);
+    }
+
+    /**
+     * POST /wms/shipments — 수동 발송처리(송장 전송) 등록 + 즉시 전송 시도.
+     *   body: {orderRef | channel + orderId, carrier, trackingNo, sku?}
+     *   ★채널 어댑터가 없는 채널은 honest pending 으로 남는다(가짜 성공 반환 금지).
+     */
+    public static function createShipment(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $tracking = trim((string)($b['trackingNo'] ?? $b['tracking_no'] ?? ''));
+        if ($tracking === '') return self::json($res, ['ok' => false, 'error' => '송장번호(trackingNo)가 필요합니다.', 'code' => 'TRACKING_REQUIRED'], 422);
+        $jid = ChannelSync::enqueueShipment($t, [
+            'order_ref'        => (string)($b['orderRef'] ?? $b['order_ref'] ?? ''),
+            'channel'          => (string)($b['channel'] ?? ''),
+            'channel_order_id' => (string)($b['orderId'] ?? $b['order_id'] ?? $b['channel_order_id'] ?? ''),
+            'sku'              => (string)($b['sku'] ?? ''),
+            'carrier'          => (string)($b['carrier'] ?? ''),
+            'tracking_no'      => $tracking,
+        ]);
+        if ($jid <= 0) {
+            return self::json($res, ['ok' => false, 'code' => 'ORDER_NOT_RESOLVED',
+                'error' => '채널 주문을 찾을 수 없습니다 — orderRef 가 채널 주문번호와 일치하는지 확인하세요(자체몰/오프라인 출고는 발송처리 대상이 아닙니다).'], 422);
+        }
+        $sum = ChannelSync::processShipmentQueue(self::db(), $t, null, 20); // 즉시 1회 소비 → 채널의 진짜 응답 반환
+        $jobs = ChannelSync::listShipmentJobs(self::db(), $t, 50);
+        $mine = null;
+        foreach ($jobs as $j) { if ((int)$j['id'] === $jid) { $mine = $j; break; } }
+        return self::json($res, ['ok' => true, 'id' => $jid, 'job' => $mine, 'summary' => $sum]);
+    }
+
+    /** POST /wms/shipments/process — 발송처리 큐 수동 플러시(cron 과 동일 코어). */
+    public static function processShipments(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $ch = trim((string)($b['channel'] ?? ''));
+        $sum = ChannelSync::processShipmentQueue(self::db(), $t, $ch !== '' ? strtolower($ch) : null, 100);
+        return self::json($res, ['ok' => true, 'summary' => $sum]);
     }
 
     /* ── 공통 유틸 ── */

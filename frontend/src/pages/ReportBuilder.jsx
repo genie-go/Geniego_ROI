@@ -6,7 +6,7 @@ import { getJsonAuth, postJsonAuth, patchJson, delJson, requestJsonAuth } from "
 import { useVisibleTabs } from "../auth/useVisibleTabs.js";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
-import { BarChart, LineChart, DonutChart, StackedBarChart, AreaChart, ComboChart, Heatmap, ScatterChart, Treemap } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화 / 현 차수 BI확장 / 282차 산점도·트리맵] 시각화 재사용
+import { BarChart, LineChart, DonutChart, StackedBarChart, AreaChart, ComboChart, Heatmap, ScatterChart, Treemap, REPORT_VIZ_TYPES, REPORT_FLAT_VIZ, REPORT_VIZ_ICONS } from "../components/dashboards/ChartUtils.jsx"; // [239차+ BI심화 / 현 차수 BI확장 / 282차 산점도·트리맵 / 283차 VIZ SSOT] 시각화 재사용
 
 /*
  * ReportBuilder — 리포트 빌더 + 예약 발송 (193차 Sprint4 실구현).
@@ -126,8 +126,16 @@ export default function ReportBuilder() {
   }));
   const [qResult, setQResult] = useState(null);
   const [qLoading, setQLoading] = useState(false);
-  const [viz, setViz] = useState("table"); // [239차+ BI심화 / 현 차수 BI확장] table|bar|line|donut|stacked|combo|area|heatmap
+  const [viz, setViz] = useState("table"); // [283차] 타입 목록은 ChartUtils REPORT_VIZ_TYPES(SSOT) — 백엔드 Reports::VIZ_TYPES 와 1:1
   const [saved, setSaved] = useState([]);
+  // [283차 P0] viz 라벨 — 로케일 파일에 없는 키는 인라인 폴백으로 정직 표기(로케일 파일 편집 금지 원칙).
+  const VIZ_LABEL = {
+    table: t("reportBuilder.vizTable", "표"), bar: t("reportBuilder.vizBar", "막대"),
+    line: t("reportBuilder.vizLine", "선"), donut: t("reportBuilder.vizDonut", "도넛"),
+    stacked: t("reportBuilder.vizStacked", "누적 막대"), combo: t("reportBuilder.vizCombo", "콤보(막대+선)"),
+    area: t("reportBuilder.vizArea", "면적"), heatmap: t("reportBuilder.vizHeatmap", "히트맵"),
+    scatter: t("reportBuilder.vizScatter", "산점도(지표×지표)"), treemap: t("reportBuilder.vizTreemap", "트리맵(구성비)"),
+  };
   // [255차 심화] 사용자정의 메트릭(시맨틱 레이어) — 소스별 로드/저장. 백엔드 /reports/metrics(중복0).
   const [userMetrics, setUserMetrics] = useState([]);
   const [mdForm, setMdForm] = useState({ name: "", label: "", formula: "" });
@@ -166,13 +174,35 @@ export default function ReportBuilder() {
   };
   const clearDrill = () => runWith({ ...qForm, filter_val: "", breakdown: "" });
   // [239차+ BI심화] 저장된 리포트(saved_report)
-  const loadSaved = useCallback(() => { getJsonAuth("/api/reports/saved").then(d => { if (d?.ok) setSaved(d.reports || []); }).catch(() => {}); }, []);
+  const loadSaved = useCallback(() => {
+    getJsonAuth("/api/reports/saved").then(d => {
+      if (!d?.ok) return;
+      setSaved(d.reports || []);
+      // [283차 P0] 계약 드리프트 감지 — 백엔드 Reports::VIZ_TYPES 와 프론트 REPORT_VIZ_TYPES 가 어긋나면 즉시 경고.
+      //   무음 강등이 3회 재발한 결함이라 "조용히 지나가지 않게" 하는 것이 핵심(정직성).
+      const be = d.viz_types;
+      if (Array.isArray(be) && be.length) {
+        const missing = REPORT_VIZ_TYPES.filter(v => !be.includes(v));
+        if (missing.length) console.warn("[ReportBuilder] viz 계약 불일치 — 백엔드 미지원:", missing, "(Reports::VIZ_TYPES 갱신 필요)");
+      }
+    }).catch(() => {});
+  }, []);
   useEffect(() => { loadSaved(); }, [loadSaved]);
   const saveCurrent = useCallback(async () => {
     const name = (typeof window !== "undefined" ? window.prompt(t("reportBuilder.savePrompt", "저장할 리포트 이름:"), `${qForm.dimension} ${qForm.period_days}d`) : "");
     if (!name) return;
-    try { await postJsonAuth("/api/reports/saved", { name, config: qForm, viz }); flash(t("reportBuilder.saved", "저장됨")); loadSaved(); }
-    catch { flash(t("reportBuilder.saveFail", "저장 실패")); }
+    // [283차 P0] 백엔드가 미지원 viz 를 422 로 거부 → 조용히 table 로 강등 저장되지 않고 사용자에게 실패를 알린다.
+    //   ★apiClient.requestJsonAuth 는 비2xx 에서 throw 하므로(에러 본문이 message 에 실려온다) catch 에서 사유를 판별한다.
+    try {
+      const d = await postJsonAuth("/api/reports/saved", { name, config: qForm, viz });
+      if (d?.ok) { flash(t("reportBuilder.saved", "저장됨")); loadSaved(); }
+      else flash(d?.error || t("reportBuilder.saveFail", "저장 실패"));
+    }
+    catch (e) {
+      const msg = String(e?.message || "");
+      if (msg.includes("unsupported_viz")) flash(`${t("reportBuilder.vizUnsupported", "이 차트 유형은 서버가 아직 지원하지 않습니다")}: ${viz}`);
+      else flash(t("reportBuilder.saveFail", "저장 실패"));
+    }
   }, [qForm, viz, t, loadSaved]);
   const applySaved = useCallback(async (r) => {
     const c = r.config || {};
@@ -294,8 +324,9 @@ export default function ReportBuilder() {
             <div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 6 }}>{t("reportBuilder.viz", "시각화")}</div>
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap", maxWidth: 300 }}>
-                {[["table", "📋", t("reportBuilder.vizTable", "표")], ["bar", "📊", t("reportBuilder.vizBar", "막대")], ["line", "📈", t("reportBuilder.vizLine", "선")], ["donut", "🍩", t("reportBuilder.vizDonut", "도넛")], ["stacked", "🧱", t("reportBuilder.vizStacked", "누적 막대")], ["combo", "🔀", t("reportBuilder.vizCombo", "콤보(막대+선)")], ["area", "🏔️", t("reportBuilder.vizArea", "면적")], ["heatmap", "🔥", t("reportBuilder.vizHeatmap", "히트맵")], ["scatter", "✴️", t("reportBuilder.vizScatter", "산점도(지표×지표)")], ["treemap", "🗂️", t("reportBuilder.vizTreemap", "트리맵(구성비)")]].map(([v, ic, lab]) => (
-                  <button key={v} onClick={() => setViz(v)} title={lab} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{ic}</button>
+                {/* [283차 P0] 버튼 목록을 REPORT_VIZ_TYPES(SSOT)에서 파생 — 하드코딩 배열 제거로 백엔드 화이트리스트와의 드리프트 차단. */}
+                {REPORT_VIZ_TYPES.map((v) => (
+                  <button key={v} onClick={() => setViz(v)} title={VIZ_LABEL[v] || v} style={{ padding: "6px 9px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, background: viz === v ? "#4f8ef7" : "rgba(0,0,0,0.05)" }}>{REPORT_VIZ_ICONS[v] || "📊"}</button>
                 ))}
               </div>
             </div>
@@ -323,8 +354,7 @@ export default function ReportBuilder() {
             const rowsN = (qResult.rows || []).length;
             // [현 차수 BI확장] 히트맵은 2차원(피벗) 전용, 그 외 차트는 단일차원(피벗 없음) 전용.
             const isHeatmap = viz === "heatmap" && !!qResult.breakdown && rowsN > 0;
-            const flatVizes = ["bar", "line", "donut", "stacked", "combo", "area", "scatter", "treemap"];
-            const isChart = flatVizes.includes(viz) && !qResult.breakdown && rowsN > 0;
+            const isChart = REPORT_FLAT_VIZ.includes(viz) && !qResult.breakdown && rowsN > 0; // [283차] SSOT 파생
             const canDrill = !qResult.breakdown && !qResult.filter_val && qResult.dimension !== "date" && qResult.dimension !== "period" && Q_DIMS.length > 1;
             return (
             <div style={{ ...card, marginTop: 12, overflowX: "auto" }}>
@@ -344,8 +374,8 @@ export default function ReportBuilder() {
                     const dims = [...new Set(qResult.rows.map(r => String(r.dim)))].slice(0, 40);
                     const brks = [...new Set(qResult.rows.map(r => String(r.brk)))].slice(0, 24);
                     const idx = {};
-                    qResult.rows.forEach(r => { idx[String(r.dim) + " " + String(r.brk)] = Number(r[pm] ?? 0); });
-                    const matrix = dims.map(dv => brks.map(bv => idx[dv + " " + bv] ?? 0));
+                    qResult.rows.forEach(r => { idx[String(r.dim) + "\u0000" + String(r.brk)] = Number(r[pm] ?? 0); });
+                    const matrix = dims.map(dv => brks.map(bv => idx[dv + "\u0000" + bv] ?? 0));
                     return (<>
                       <div style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>{colLabel("dim")} × {colLabel("brk")} · {colLabel(pm)}</div>
                       <Heatmap rows={dims} cols={brks} matrix={matrix} color={PALETTE[0]} width={720} />
@@ -412,7 +442,7 @@ export default function ReportBuilder() {
               ) : (
                 <>
                   {viz === "heatmap" && !qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.heatmapNeedsBreakdown", "히트맵은 2차 차원(피벗)이 필요합니다. 위에서 2차 차원을 선택하세요.")}</div>}
-                  {["bar", "line", "donut", "stacked", "combo", "area", "scatter", "treemap"].includes(viz) && qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.chartNeedsSingleDim", "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.")}</div>}
+                  {REPORT_FLAT_VIZ.includes(viz) && qResult.breakdown && <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 8 }}>💡 {t("reportBuilder.chartNeedsSingleDim", "이 차트는 단일 차원 전용입니다. 2차 차원(피벗) 데이터는 표 또는 히트맵으로 보세요.")}</div>}
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead><tr style={{ borderBottom: "2px solid var(--border)" }}>
                     {(qResult.columns || []).map(c => <th key={c} style={{ padding: "8px 10px", textAlign: (c === "dim" || c === "brk") ? "left" : "right", color: "var(--text-3)", fontWeight: 700, fontSize: 11 }}>{colLabel(c)}</th>)}

@@ -674,7 +674,8 @@ class JourneyBuilder
             // [277차] ★발송 노드 멱등 — 발송(HTTP) 직후 current_node 커밋 전에 프로세스가 죽으면(배포/OOM/kill)
             //   다음 크론이 같은 노드를 다시 실행해 **재발송**한다. claim 만으로는 이 창을 막지 못한다.
             //   발송 전에 (enrollment_id, node_id) 마커를 선점하고, 이미 있으면 건너뛴다(실비용·정보통신망법 방어).
-            if (in_array($type, ['email', 'kakao', 'sms'], true)) {
+            // [283차 P2-3] push 도 발송 노드 → 멱등 마커 대상(재발송 방지). line 은 저니 노드로 지원하지 않는다(하단 주석 참조).
+            if (in_array($type, ['email', 'kakao', 'sms', 'push'], true)) {
                 if (!self::claimSendOnce($pdo, $tenant, (int)$enrollId, (string)$nodeId)) {
                     $actions[] = ['node' => $nodeId, 'action' => 'skipped_already_sent'];
                     $nodeId = self::nextNode($edges, $nodeId, null);
@@ -685,6 +686,7 @@ class JourneyBuilder
                 case 'email': $a = self::sendEmailNode($pdo, $tenant, $enr, $node); break;
                 case 'kakao': $a = self::sendKakaoNode($pdo, $tenant, $enr, $node); break;
                 case 'sms':   $a = self::sendSmsNode($pdo, $tenant, $enr, $node); break;
+                case 'push':  $a = self::sendPushNode($pdo, $tenant, $enr, $node); break; // [283차 P2-3] 웹푸시(RFC8291 암호화 페이로드·개인 타겟)
                 case 'webhook': $a = self::webhookNode($pdo, $tenant, $enr, $node); break; // [255차 심화] 외부 HTTP 액션
                 case 'nba':   $a = self::nbaNode($pdo, $tenant, $enr, $node); break; // [현 차수 초고도화 ②] RL/Next-Best-Action(Thompson). defer 전파는 기존 로직(하단) 재사용.
                 case 'decision': $a = self::decisionNode($pdo, $tenant, $enr, $node); break; // [263차 Track A] 메시지레벨 1:1 결정(contextual bandit)
@@ -989,12 +991,14 @@ class JourneyBuilder
         $c = self::contact($pdo, $tenant, $cid);
         $hasEmail = trim((string)($c['email'] ?? '')) !== '';
         $hasPhone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? '')) !== '';
-        $allow = (array)(($node['config']['channels'] ?? null) ?: ['email', 'kakao', 'sms']);
+        $hasPush  = WebPush::hasSubscription($pdo, $tenant, $cid); // [283차 P2-3] 웹푸시 도달가능성
+        $allow = (array)(($node['config']['channels'] ?? null) ?: ['email', 'kakao', 'sms']); // 기본 후보 불변(무회귀)
         $cands = [];
         foreach ($allow as $ch) {
             $ch = (string)$ch;
             if ($ch === 'email' && $hasEmail) $cands[] = 'email';
             elseif (($ch === 'kakao' || $ch === 'sms') && $hasPhone) $cands[] = $ch;
+            elseif ($ch === 'push' && $hasPush) $cands[] = 'push'; // [283차 P2-3] 노드가 명시적으로 push 를 허용한 경우만
         }
         $cands = array_values(array_unique($cands));
         if (!$cands) return ['action' => 'skipped', 'reason' => 'no_reachable_channel'];
@@ -1009,6 +1013,7 @@ class JourneyBuilder
             'email' => self::sendEmailNode($pdo, $tenant, $enr, $node),
             'kakao' => self::sendKakaoNode($pdo, $tenant, $enr, $node),
             'sms'   => self::sendSmsNode($pdo, $tenant, $enr, $node),
+            'push'  => self::sendPushNode($pdo, $tenant, $enr, $node), // [283차 P2-3]
             default => ['action' => 'skipped'],
         };
         $out = ['action' => 'nba:' . $bestCh . ':' . (string)($r['action'] ?? 'sent'), 'chosen_channel' => $bestCh, 'samples' => $samples];
@@ -1021,7 +1026,8 @@ class JourneyBuilder
     {
         static $cache = [];
         if (array_key_exists($tenant, $cache)) return $cache[$tenant];
-        $stats = ['email' => ['s' => 0, 't' => 0], 'kakao' => ['s' => 0, 't' => 0], 'sms' => ['s' => 0, 't' => 0]];
+        // [283차 P2-3] push 채널효과도 학습 대상 — WebPush 가 이제 push_sent 를 실제로 적재하므로 통계가 채워진다.
+        $stats = ['email' => ['s' => 0, 't' => 0], 'kakao' => ['s' => 0, 't' => 0], 'sms' => ['s' => 0, 't' => 0], 'push' => ['s' => 0, 't' => 0]];
         try {
             $sql = "SELECT a.channel AS ch,
                            COUNT(DISTINCT a.customer_id) AS trials,
@@ -1029,7 +1035,7 @@ class JourneyBuilder
                       FROM crm_activities a
                       LEFT JOIN (SELECT DISTINCT customer_id FROM crm_activities WHERE tenant_id = ? AND type = 'purchase') p
                         ON p.customer_id = a.customer_id
-                     WHERE a.tenant_id = ? AND a.type IN ('email_sent','kakao_sent','sms_sent')
+                     WHERE a.tenant_id = ? AND a.type IN ('email_sent','kakao_sent','sms_sent','push_sent')
                      GROUP BY a.channel";
             $st = $pdo->prepare($sql);
             $st->execute([$tenant, $tenant]);
@@ -1066,11 +1072,12 @@ class JourneyBuilder
         $c   = self::contact($pdo, $tenant, $cid);
         $hasEmail = trim((string)($c['email'] ?? '')) !== '';
         $hasPhone = preg_replace('/[^0-9]/', '', (string)($c['phone'] ?? '')) !== '';
+        $hasPush  = WebPush::hasSubscription($pdo, $tenant, $cid); // [283차 P2-3]
         $cfg      = (array)($node['config'] ?? []);
         $variants = is_array($cfg['variants'] ?? null) ? $cfg['variants'] : [];
         if (!$variants) { // 변형 없음 → 단일 발송 폴백(기존 노드 재사용)
             $ch = (string)($cfg['channel'] ?? 'email');
-            return match ($ch) { 'kakao' => self::sendKakaoNode($pdo,$tenant,$enr,$node), 'sms' => self::sendSmsNode($pdo,$tenant,$enr,$node), default => self::sendEmailNode($pdo,$tenant,$enr,$node) };
+            return match ($ch) { 'kakao' => self::sendKakaoNode($pdo,$tenant,$enr,$node), 'sms' => self::sendSmsNode($pdo,$tenant,$enr,$node), 'push' => self::sendPushNode($pdo,$tenant,$enr,$node), default => self::sendEmailNode($pdo,$tenant,$enr,$node) };
         }
         $cands = [];
         foreach ($variants as $i => $v) {
@@ -1078,6 +1085,7 @@ class JourneyBuilder
             $vch = (string)($v['channel'] ?? 'email');
             if ($vch === 'email' && !$hasEmail) continue;
             if (($vch === 'kakao' || $vch === 'sms') && !$hasPhone) continue;
+            if ($vch === 'push' && !$hasPush) continue; // [283차 P2-3] 구독 없는 고객은 push 변형 제외(도달 불가)
             $cands[] = ['id' => (string)($v['id'] ?? ('v' . $i)), 'channel' => $vch, 'cfg' => $v];
         }
         if (!$cands) return ['action' => 'skipped', 'reason' => 'no_reachable_variant'];
@@ -1093,6 +1101,7 @@ class JourneyBuilder
         $r = match ($best['channel']) {
             'kakao' => self::sendKakaoNode($pdo, $tenant, $enr, $sendNode),
             'sms'   => self::sendSmsNode($pdo, $tenant, $enr, $sendNode),
+            'push'  => self::sendPushNode($pdo, $tenant, $enr, $sendNode), // [283차 P2-3]
             default => self::sendEmailNode($pdo, $tenant, $enr, $sendNode),
         };
         $act = (string)($r['action'] ?? 'sent');
@@ -1188,8 +1197,13 @@ class JourneyBuilder
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 채널 옵트아웃/suppression 등 단일소스(crm_channel_prefs). fail-open(오류 시 발송).
         // [R1 메시지손실 방지] 조용시간(quiet_hours/quiet_hours_tenant) 거부는 노드 유지 defer(뒤 실행에서 재시도)·그 외(옵트아웃/suppression/빈도)만 종결 skip.
-        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'email', ['email' => $email]);
+        // [283차 P0/P1] 발송 노드 config 의 topic/sto → 통합 게이트 입력(토픽 옵트아웃 실강제 · 개인 최적시각 발송).
+        //   저니 그래프(nodes JSON)에 담기므로 스키마 변경 0. 미지정 노드 = 빈배열 = 기존 동작(무회귀).
+        //   sto_defer 는 quiet 과 동일하게 **노드 유지 defer** — 다음 cron 이 최적시각에 재시도(메시지 유실 0).
+        $sendOpt = CRM::sendOptions(($node['config']['topic'] ?? null), ($node['config']['sto'] ?? false));
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'email', ['email' => $email] + $sendOpt);
         if (!($g['allowed'] ?? false)) {
+            if (CRM::isStoDefer($g)) return ['action' => 'deferred_sto', 'defer' => true, 'reason' => 'sto_defer', 'best_hour' => ($g['best_hour'] ?? null)];
             if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
             return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
         }
@@ -1219,8 +1233,11 @@ class JourneyBuilder
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         // [현 차수 동의센터 SSOT] 통합 발송 게이트 — SMS 채널 옵트아웃 단일소스(crm_channel_prefs). fail-open.
         // [R1 메시지손실 방지] 조용시간 거부는 노드 유지 defer(재시도)·그 외만 종결 skip.
-        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'sms');
+        // [283차 P0/P1] 노드 topic/sto → 통합 게이트(토픽 옵트아웃 실강제 · 개인 최적시각). 미지정 = 무회귀.
+        $sendOpt = CRM::sendOptions(($node['config']['topic'] ?? null), ($node['config']['sto'] ?? false));
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'sms', ['phone' => $phone] + $sendOpt);
         if (!($g['allowed'] ?? false)) {
+            if (CRM::isStoDefer($g)) return ['action' => 'deferred_sto', 'defer' => true, 'reason' => 'sto_defer', 'best_hour' => ($g['best_hour'] ?? null)];
             if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
             return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
         }
@@ -1244,8 +1261,11 @@ class JourneyBuilder
         if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
         // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 카카오 채널 옵트아웃 단일소스(crm_channel_prefs). fail-open.
         // [R1 메시지손실 방지] 조용시간 거부는 노드 유지 defer(재시도)·그 외만 종결 skip.
-        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'kakao');
+        // [283차 P0/P1] 노드 topic/sto → 통합 게이트(토픽 옵트아웃 실강제 · 개인 최적시각). 미지정 = 무회귀.
+        $sendOpt = CRM::sendOptions(($node['config']['topic'] ?? null), ($node['config']['sto'] ?? false));
+        $g = CRM::isMarketingSendAllowed($tenant, (int)($enr['customer_id'] ?? 0), 'kakao', ['phone' => $phone] + $sendOpt);
         if (!($g['allowed'] ?? false)) {
+            if (CRM::isStoDefer($g)) return ['action' => 'deferred_sto', 'defer' => true, 'reason' => 'sto_defer', 'best_hour' => ($g['best_hour'] ?? null)];
             if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
             return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
         }
@@ -1257,6 +1277,54 @@ class JourneyBuilder
         // [현 차수] CRM 활동 기록 — 저니 발송도 빈도캡 카운트 대상에 포함.
         if (($r['ok'] ?? false) && ($r['mode'] ?? '') !== 'unconfigured') { self::recordCrmActivity($pdo, $tenant, (int)($enr['customer_id'] ?? 0), 'kakao_sent', 'kakao', ['journey_id' => (string)($enr['journey_id'] ?? '')]); }
         return ['action' => ($r['ok'] ?? false) ? 'kakao_sent' : ('kakao_' . ($r['mode'] ?? 'failed')), 'to' => $phone];
+    }
+
+    /**
+     * [283차 P2-3] push 노드 — 웹푸시 개인 타겟 발송(RFC8291 aes128gcm 암호화 페이로드).
+     *
+     *   ★종전: JourneyBuilder.jsx 팔레트에 push·line 이 있었지만 compileGraph 가 ['email','kakao','sms']로 필터해
+     *     **조용히 폐기**했고 백엔드 노드타입에도 없었다(가짜 버튼). 사용자가 push 를 골라도 아무 일도 안 일어났다.
+     *     이제 WebPush 프리미티브(sendToCustomer)를 재사용해 실발송한다(중복 구현 0).
+     *   ★LINE 은 저니 노드로 지원하지 않는다(정직 표기): Line.php 는 /message/broadcast 전용 —
+     *     채널 팔로워 **전원**에게 나가는 브로드캐스트라 수신자 식별자(userId) 자체가 없다. 저니는 등록건(enrollment)
+     *     당 1회 실행되므로 line 노드를 허용하면 고객 1명이 진입할 때마다 전 팔로워에게 브로드캐스트가 나가는
+     *     대형 사고가 된다. 개인 타겟이 가능해지려면 LINE /message/push + userId 매핑이 선행돼야 한다.
+     *     → 프론트 팔레트에서 line 을 비활성화(사유 표기)하고 백엔드는 노드타입 미지원(조용한 폐기 금지).
+     *
+     *   구독 부재 = 도달 불가 → skipped(정직, 가짜 성공 금지). 발송 성공 시 crm_activities('push_sent')는
+     *   WebPush::sendToTenant 가 적재(중복 기록 방지 — 여기서 재기록하지 않는다).
+     */
+    private static function sendPushNode(\PDO $pdo, string $tenant, array $enr, array $node): array
+    {
+        $cid = (int)($enr['customer_id'] ?? 0);
+        if ($cid <= 0) return ['action' => 'skipped', 'reason' => 'no_customer'];
+        if (!WebPush::hasSubscription($pdo, $tenant, $cid)) return ['action' => 'skipped', 'reason' => 'no_push_subscription'];
+        // 크로스채널 빈도캡 + 조용시간(형제 노드와 동일 정책).
+        $fc = CRM::commsFreqConfig($pdo, $tenant);
+        if (CRM::isFrequencyCapped($pdo, $tenant, $cid, $fc['cap'], $fc['window'])) return ['action' => 'skipped', 'reason' => 'frequency_capped'];
+        if (!CRM::commsSendAllowedNow($fc)) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => 'quiet_hours'];
+        // [283차 P0/P1] 노드 topic/sto → 통합 게이트(토픽 옵트아웃 실강제 · 개인 최적시각). 미지정 = 무회귀.
+        $sendOpt = CRM::sendOptions(($node['config']['topic'] ?? null), ($node['config']['sto'] ?? false));
+        $g = CRM::isMarketingSendAllowed($tenant, $cid, 'push', $sendOpt);
+        if (!($g['allowed'] ?? false)) {
+            if (CRM::isStoDefer($g)) return ['action' => 'deferred_sto', 'defer' => true, 'reason' => 'sto_defer', 'best_hour' => ($g['best_hour'] ?? null)];
+            if (strpos((string)($g['reason'] ?? ''), 'quiet') !== false) return ['action' => 'deferred_quiet_hours', 'defer' => true, 'reason' => (string)($g['reason'] ?? 'quiet_hours')];
+            return ['action' => 'skipped', 'reason' => (string)($g['reason'] ?? '') ?: 'consent_opt_out'];
+        }
+        $cfg   = (array)($node['config'] ?? []);
+        $c     = self::contact($pdo, $tenant, $cid);
+        $title = (string)($cfg['title'] ?? $cfg['subject'] ?? '') ?: (string)($node['label'] ?? '알림');
+        $body  = (string)($cfg['body'] ?? $cfg['content'] ?? $cfg['message'] ?? '');
+        if ($body === '') $body = (string)($c['name'] ?? '고객') . '님, ' . $title;
+        $url   = (string)($cfg['url'] ?? '/');
+        // 동의 게이트는 위에서 이 채널로 이미 평가 완료 → marketing=false 로 이중 게이트 회피(정책 동일).
+        $r = WebPush::sendToCustomer($tenant, $cid, ['title' => $title, 'body' => $body, 'url' => $url], false);
+        $sent = (int)($r['sent'] ?? 0);
+        if ($sent > 0) {
+            try { Attribution::recordOwnedTouch($pdo, $tenant, 'journey', null, null, 'journey:'.(string)($enr['journey_id'] ?? ''), ['node' => 'push']); } catch (\Throwable $e) {}
+        }
+        return ['action' => $sent > 0 ? 'push_sent' : 'push_failed', 'sent' => $sent,
+                'encrypted' => (int)($r['encrypted'] ?? 0), 'note' => $r['note'] ?? null];
     }
 
     /** [현 차수] CRM 활동 기록 헬퍼 — 저니 발송이 빈도캡(crm_activities)에 카운트되도록.

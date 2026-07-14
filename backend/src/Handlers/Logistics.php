@@ -179,7 +179,21 @@ final class Logistics
         $res = self::fetchLive($pdo, $tenant, $carrier, $invoice);
         // 조회 성공/미설정 무관, 등록은 보존(미설정이면 status=pending 으로 저장 → 키 등록 후 refresh).
         self::upsert($pdo, $tenant, $carrier, $invoice, $orderRef, $res);
-        return self::json($response, $res + ['carrier' => $carrier, 'tracking_no' => $invoice], $res['ok'] ? 200 : 200);
+
+        // ── [283차 GAP-2] 송장 등록 → 채널 발송처리(송장 전송) 자동 진입 ──────────────────────────
+        //   배경: 송장을 등록해도 그것이 **판매 채널로 돌아가지 않아** 구매자 주문은 계속 "배송준비중"이었다.
+        //   order_ref 가 채널 주문으로 해석될 때만 큐에 적재한다(자체몰/오프라인 송장은 skip = 정직).
+        //   ★비차단 — 발송처리 큐 적재 실패가 배송추적 등록(본 API 의 계약)을 깨지 않는다.
+        //   ★어댑터 미보유 채널은 큐에서 honest pending 으로 남는다(가짜 성공 0).
+        $shipJob = 0;
+        if ($orderRef !== '') {
+            try {
+                $shipJob = \Genie\Handlers\ChannelSync::enqueueShipment($tenant, [
+                    'order_ref' => $orderRef, 'carrier' => $carrier, 'tracking_no' => $invoice,
+                ]);
+            } catch (\Throwable $e) { error_log('[Logistics.track.enqueueShipment] ' . $e->getMessage()); }
+        }
+        return self::json($response, $res + ['carrier' => $carrier, 'tracking_no' => $invoice, 'shipment_job' => $shipJob], 200);
     }
 
     // ── POST /v427/logistics/refresh ────────────────────────────────────────

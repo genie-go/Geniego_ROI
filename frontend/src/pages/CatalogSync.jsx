@@ -296,6 +296,8 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
     // Channelper 커스텀 Sale Price (Recommend가 override 가능)
     const selChsArr = useMemo(() => [...selChs].filter(id => dynamicChannels.some(c => c.id === id)), [selChs, dynamicChannels]);
     const [customPrices, setCustomPrices] = useState({});
+    // [현 차수 P0] 상품별 개별 판매가 지정(키 `${chId}::${sku}`) — 채널 일괄가보다 우선.
+    const [prodPrices, setProdPrices] = useState({});
     const [approved, setApproved] = useState(false);
     const [running, setRunning] = useState(false);
     const [done, setDone] = useState(false);
@@ -344,15 +346,27 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
         return Math.round(sum / selProds.length);
     }, [selProds]);
 
-    // Channelper Recommend가 계산
-    const recPrices = useMemo(() => {
+    // [현 차수 P0] 상품별 원가 — 종전엔 선택 상품 전체의 '평균원가'로 채널당 단일 추천가를 만들고
+    //   전송 루프가 모든 상품에 그 값을 그대로 써서, 원가가 다른 상품 N개를 선택해도 전부 같은
+    //   판매가로 등록됐다(대량등록 판매가 1개 결함). 이제 각 상품 자신의 원가로 산출한다.
+    const costOf = useCallback(p => Number(p.productCost || p.purchaseCost || 0) || 0, []);
+
+    // 채널×상품 판매가 맵 — 우선순위: 상품별 지정가 > 채널 일괄가 > 상품 원가 기반 추천가.
+    //   원가가 없는 항목(재고/채널 유래)은 기존 판매가를 보존(0원 등록 방지).
+    const priceMap = useMemo(() => {
         const res = {};
         selChsArr.forEach(chId => {
-            const rec = calcRecommendedPrice(avgCost, chId, margins[chId] ?? 30);
-            res[chId] = customPrices[chId] ?? rec;
+            const margin = margins[chId] ?? 30;
+            const bySku = {};
+            selProds.forEach(p => {
+                const cost = costOf(p);
+                const rec = cost > 0 ? calcRecommendedPrice(cost, chId, margin) : (Number(p.price) || 0);
+                bySku[p.sku] = prodPrices[`${chId}::${p.sku}`] ?? customPrices[chId] ?? rec;
+            });
+            res[chId] = bySku;
         });
         return res;
-    }, [selChsArr, avgCost, margins, customPrices]);
+    }, [selChsArr, selProds, margins, customPrices, prodPrices, costOf]);
 
     const handleApply = async () => {
         if (!selChs.size) return;
@@ -383,7 +397,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                         //   채널에 이미지 없는 빈 상세로 등록됐다. 등록상품(po_products) 유래 항목만 값이 있다.
                         const imgs = Array.isArray(prod.images) ? prod.images.filter(Boolean) : [];
                         const d = await postJson(`/api/catalog/writeback/${encodeURIComponent(chId)}/${encodeURIComponent(prod.sku)}`, {
-                            price: recPrices[chId] ?? prod.price,
+                            price: priceMap[chId]?.[prod.sku] ?? prod.price,   // [현 차수 P0] 상품별 판매가(종전=채널당 단일가)
                             name: prod.name,
                             category: prod.category,
                             inventory: prod.inventory,
@@ -410,7 +424,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
 
             // 결과 반영 (Success한 항목만 onApply로 전달)
             const successChannels = [...new Set(results.filter(r => r.ok).map(r => r.chId))];
-            onApply(action, successChannels.length > 0 ? successChannels : [...selChs], recPrices);
+            onApply(action, successChannels.length > 0 ? successChannels : [...selChs], priceMap);
             setDone(true);
             // [277차] ★실패를 console.warn 으로만 흘려 화면은 성공처럼 보였다 — 같은 문제가 반복 신고된 직접 원인.
             //   채널이 준 실제 사유를 사용자에게 그대로 보여준다(모달 유지 → 사용자가 읽고 조치 가능).
@@ -550,9 +564,14 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                         const ch = CHANNELS.find(c => c.id === chId) || { name: chId, color: "#4f8ef7", icon: "🔌" };
                                         const rate = CHANNEL_RATES[chId] || { commission: 0.10, vat: 0.10, region: "Other" };
                                         const margin = margins[chId] ?? 30;
-                                        const recPrice = calcRecommendedPrice(avgCost, chId, margin);
-                                        const finalPrice = customPrices[chId] ?? recPrice;
-                                        const actualMargin = avgCost > 0 ? (((finalPrice - avgCost) / finalPrice - rate.commission - rate.vat) * 100).toFixed(1) : 0;
+                                        const recPrice = calcRecommendedPrice(avgCost, chId, margin); // 채널 일괄가 입력 placeholder(평균원가 기준)
+                                        // [현 차수 P0] 상품별 가격 — 채널당 단일가가 아니라 선택 상품 각각의 원가로 산출된 값의 분포를 보여준다.
+                                        const chPrices = selProds.map(p => priceMap[chId]?.[p.sku] || 0).filter(v => v > 0);
+                                        const minP = chPrices.length ? Math.min(...chPrices) : 0;
+                                        const maxP = chPrices.length ? Math.max(...chPrices) : 0;
+                                        const multiPrice = chPrices.length > 1 && minP !== maxP;
+                                        const finalPrice = chPrices.length ? Math.round(chPrices.reduce((a, b) => a + b, 0) / chPrices.length) : 0;
+                                        const actualMargin = avgCost > 0 && finalPrice > 0 ? (((finalPrice - avgCost) / finalPrice - rate.commission - rate.vat) * 100).toFixed(1) : 0;
                                         return (
                                             <tr key={chId} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: customPrices[chId] ? "rgba(245,158,11,0.04)" : "" }}>
                                                 <td style={{ padding: "10px 10px" }}>
@@ -577,8 +596,16 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                 </td>
                                                 <td style={{ padding: "10px 6px", fontFamily: "monospace", color: "#f97316", fontWeight: 700 }}>{fmtKRW(avgCost)}</td>
                                                 <td style={{ padding: "10px 10px" }}>
-                                                    <div style={{ fontWeight: 900, fontSize: 14, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
-                                                    <div style={{ fontSize: 9, color: actualMargin > 0 ? "#22c55e" : "#ef4444", marginTop: 2 }}>{t('catalogSync.actualMarginLabel')} {actualMargin}%</div>
+                                                    {multiPrice ? (
+                                                        <div style={{ fontWeight: 900, fontSize: 12, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>
+                                                            {fmtKRW(minP)} ~ {fmtKRW(maxP)}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ fontWeight: 900, fontSize: 14, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
+                                                    )}
+                                                    <div style={{ fontSize: 9, color: actualMargin > 0 ? "#22c55e" : "#ef4444", marginTop: 2 }}>
+                                                        {t('catalogSync.actualMarginLabel')} {actualMargin}%{multiPrice ? ` · ${t('catalogSync.perProductAvg', '평균')}` : ''}
+                                                    </div>
                                                 </td>
                                                 <td style={{ padding: "10px 6px" }}>
                                                     <input
@@ -597,6 +624,68 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* [현 차수 P0] 상품별 판매가 — 종전엔 채널당 단일가만 지정 가능해, 원가가 다른 상품을
+                            여러 개 선택해도 전부 같은 가격으로 등록됐다. 상품마다 개별 지정/확인이 가능해야 한다. */}
+                        {selProds.length > 0 && selChsArr.length > 0 && (
+                            <div style={{ marginBottom: 18 }}>
+                                <div style={{ fontWeight: 700, fontSize: 12, color: "#0f172a", marginBottom: 6 }}>
+                                    🧾 {t('catalogSync.perProductPriceTitle', '상품별 판매가')} ({selProds.length})
+                                </div>
+                                <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 8 }}>
+                                    {t('catalogSync.perProductPriceDesc', '각 상품의 원가로 계산된 추천가입니다. 값을 입력하면 그 상품만 개별 지정됩니다(비우면 추천가/채널 일괄가 적용).')}
+                                </div>
+                                <div style={{ overflowX: "auto", border: "1px solid rgba(99,140,255,0.15)", borderRadius: 10 }}>
+                                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                                        <thead>
+                                            <tr style={{ background: "rgba(99,140,255,0.05)" }}>
+                                                <th style={{ padding: "8px 10px", textAlign: "left", fontSize: 10, color: "#6b7280", fontWeight: 700, whiteSpace: "nowrap" }}>{t('catalogSync.colProduct', '상품')}</th>
+                                                <th style={{ padding: "8px 10px", textAlign: "right", fontSize: 10, color: "#6b7280", fontWeight: 700, whiteSpace: "nowrap" }}>{t('catalogSync.productCostTotal')}</th>
+                                                {selChsArr.map(chId => {
+                                                    const ch = CHANNELS.find(c => c.id === chId) || { name: chId, color: "#4f8ef7", icon: "🔌" };
+                                                    return (
+                                                        <th key={chId} style={{ padding: "8px 10px", textAlign: "left", fontSize: 10, color: ch.color, fontWeight: 700, whiteSpace: "nowrap" }}>
+                                                            {ch.icon} {ch.name}
+                                                        </th>
+                                                    );
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selProds.map(p => (
+                                                <tr key={p.id} style={{ borderTop: "1px solid rgba(99,140,255,0.08)" }}>
+                                                    <td style={{ padding: "8px 10px", maxWidth: 220 }}>
+                                                        <div style={{ fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                                                        <div style={{ fontSize: 9, color: "#94a3b8", fontFamily: "monospace" }}>{p.sku}</div>
+                                                    </td>
+                                                    <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "monospace", color: costOf(p) > 0 ? "#f97316" : "#cbd5e1", fontWeight: 700, whiteSpace: "nowrap" }}>
+                                                        {costOf(p) > 0 ? fmtKRW(costOf(p)) : '—'}
+                                                    </td>
+                                                    {selChsArr.map(chId => {
+                                                        const key = `${chId}::${p.sku}`;
+                                                        const eff = priceMap[chId]?.[p.sku] || 0;
+                                                        return (
+                                                            <td key={chId} style={{ padding: "6px 10px" }}>
+                                                                <input
+                                                                    type="number"
+                                                                    placeholder={fmtKRW(eff)}
+                                                                    value={prodPrices[key] ?? ""}
+                                                                    onChange={e => {
+                                                                        const v = e.target.value;
+                                                                        setProdPrices(pp => v ? { ...pp, [key]: Number(v) } : (({ [key]: _, ...rest }) => rest)(pp));
+                                                                    }}
+                                                                    style={{ width: 110, padding: "5px 8px", borderRadius: 7, fontSize: 11, color: "#1f2937", background: "#ffffff", border: prodPrices[key] ? "1px solid #f59e0b" : "1px solid rgba(99,140,255,0.2)" }}
+                                                                />
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Summary */}
                         <div style={{ padding: "12px 16px", borderRadius: 12, background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", marginBottom: 18, fontSize: 11, color: "#374151" }}>
@@ -622,8 +711,18 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                 {selChsArr.map(chId => {
                                     const ch = CHANNELS.find(c => c.id === chId) || { name: chId, icon: "🔌", color: "#4f8ef7" };
                                     const rate = CHANNEL_RATES[chId] || { commission: 0.10, vat: 0.10 };
-                                    const finalPrice = recPrices[chId] ?? 0;
-                                    const profit = finalPrice - avgCost - Math.round(finalPrice * (rate.commission + rate.vat));
+                                    // [현 차수 P0] 상품별 판매가 합계 기준 — 종전엔 채널당 단일가 1건만 표기해
+                                    //   여러 상품을 등록해도 한 상품치 손익만 보였다.
+                                    const rows = selProds.map(p => ({ price: priceMap[chId]?.[p.sku] || 0, cost: costOf(p) }));
+                                    const sumPrice = rows.reduce((s, x) => s + x.price, 0);
+                                    const sumCost = rows.reduce((s, x) => s + x.cost, 0);
+                                    const sumFee = Math.round(sumPrice * (rate.commission + rate.vat));
+                                    const prices = rows.map(x => x.price).filter(v => v > 0);
+                                    const minP = prices.length ? Math.min(...prices) : 0;
+                                    const maxP = prices.length ? Math.max(...prices) : 0;
+                                    const multiPrice = prices.length > 1 && minP !== maxP;
+                                    const finalPrice = sumPrice;
+                                    const profit = sumPrice - sumCost - sumFee;
                                     return (
                                         <div key={chId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 12px", borderRadius: 8, background: '#ffffff', border: '1px solid #e5e7eb' }}>
                                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -633,7 +732,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                             <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                                                 <div style={{ textAlign: "right" }}>
                                                     <div style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.commissionTaxLabel')}</div>
-                                                    <div style={{ fontSize: 11, color: "#ef4444", fontFamily: "monospace" }}>{fmtKRW(Math.round(finalPrice * (rate.commission + rate.vat)))}</div>
+                                                    <div style={{ fontSize: 11, color: "#ef4444", fontFamily: "monospace" }}>{fmtKRW(sumFee)}</div>
                                                 </div>
                                                 <div style={{ textAlign: "right" }}>
                                                     <div style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.estProfitLabel')}</div>
@@ -641,7 +740,14 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                 </div>
                                                 <div style={{ textAlign: "right" }}>
                                                     <div style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.colSalePrice')}</div>
-                                                    <div style={{ fontSize: 15, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
+                                                    {multiPrice ? (
+                                                        <>
+                                                            <div style={{ fontSize: 12, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(minP)} ~ {fmtKRW(maxP)}</div>
+                                                            <div style={{ fontSize: 9, color: "#94a3b8" }}>{t('catalogSync.sumLabel', '합계')} {fmtKRW(finalPrice)}</div>
+                                                        </>
+                                                    ) : (
+                                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -922,6 +1028,10 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
     const [q, setQ] = useState('');
     const [found, setFound] = useState([]);
     const [searching, setSearching] = useState(false);
+    // [현 차수 P1] 카테고리 자동조회 미지원 채널(11번가 등) — 서버가 manual_entry 를 주면 코드 직접 입력을 연다.
+    //   종전엔 자동조회 실패를 "자격증명 확인"으로만 안내하고 대안 경로가 없어 등록이 원천 차단됐다.
+    const [hint, setHint] = useState(null);          // { text, manual }
+    const [manualCode, setManualCode] = useState('');
 
     const load = useCallback(() => {
         setLoading(true);
@@ -947,12 +1057,14 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
     };
 
     const doSearch = async (it, term) => {
-        setSearching(true);
+        setSearching(true); setHint(null);
         try {
             const qs = new URLSearchParams({ channel: it.channel, ...(term ? { q: term } : {}) }).toString();
             const d = await getJsonAuth(`/api/catalog/channel-categories?${qs}`);
             setFound(d.ok ? (d.categories || []) : []);
-        } catch { setFound([]); }
+            // 서버가 실패 사유를 구분해 준다: category_catalog_unsupported / credentials_required / category_fetch_failed
+            if (!d.ok) setHint({ text: d.hint || d.error || '', manual: !!d.manual_entry });
+        } catch (e) { setFound([]); setHint({ text: e.message, manual: true }); }
         finally { setSearching(false); }
     };
 
@@ -1030,6 +1142,29 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
                                 {searching ? '…' : t('catalogSync.pcSearchBtn', '검색')}
                             </button>
                         </div>
+                        {/* [현 차수 P1] 자동조회 실패 사유 + 코드 직접 입력(미지원 채널이어도 등록이 막히지 않도록) */}
+                        {hint && (
+                            <div style={{ margin: "0 16px 10px", padding: "10px 12px", borderRadius: 8, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.35)" }}>
+                                <div style={{ fontSize: 11, color: "#92400e", lineHeight: 1.5 }}>⚠️ {hint.text}</div>
+                                {hint.manual && (
+                                    <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center" }}>
+                                        <input
+                                            value={manualCode}
+                                            onChange={e => setManualCode(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) { const it = searchFor; setSearchFor(null); assign(it, manualCode.trim(), ''); setManualCode(''); } }}
+                                            placeholder={t('catalogSync.pcManualPh', '카테고리 코드 직접 입력 (예: 11번가 dispCtgrNo)')}
+                                            style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "7px 10px", fontSize: 12, fontFamily: "monospace" }}
+                                        />
+                                        <button
+                                            onClick={() => { if (!manualCode.trim()) return; const it = searchFor; setSearchFor(null); assign(it, manualCode.trim(), ''); setManualCode(''); }}
+                                            disabled={!manualCode.trim()}
+                                            style={{ padding: "7px 14px", borderRadius: 6, border: "none", background: manualCode.trim() ? "#f59e0b" : "#e2e8f0", color: "#fff", fontSize: 12, fontWeight: 700, cursor: manualCode.trim() ? "pointer" : "default" }}>
+                                            {t('catalogSync.pcManualApply', '이 코드로 등록')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 12px" }}>
                             {!searching && found.length === 0 && <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('catalogSync.pcNoResult', '검색 결과가 없습니다')}</div>}
                             {found.map(c => (
@@ -1261,22 +1396,25 @@ const CatalogTab = memo(function CatalogTab() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleBulkRegister = async (action, channels, recPrices = {}) => {
+    const handleBulkRegister = async (action, channels, priceMap = {}) => {
         // 209차 P1: 채널 등록가 백엔드 영속 items 사전 수집(setProducts updater 부작용 회피).
+        // [현 차수 P0] priceMap = { [channel]: { [sku]: price } } — 종전 { [channel]: price }(채널당 단일가)는
+        //   선택 상품 전체에 같은 값을 영속시켜, 대량등록 시 상품별 판매가가 뭉개지던 결함의 전파 지점이었다.
+        const priceOf = (ch, sku) => priceMap?.[ch]?.[sku];
         const persistItems = [];
         if (action === "register") {
             products.forEach(p => {
                 if (!selected.has(p.id)) return;
-                channels.forEach(ch => { if (recPrices[ch]) persistItems.push({ channel: ch, sku: p.sku, price: recPrices[ch] }); });
+                channels.forEach(ch => { const v = priceOf(ch, p.sku); if (v) persistItems.push({ channel: ch, sku: p.sku, price: v }); });
             });
         }
         setProducts(prev => prev.map(p => {
             if (!selected.has(p.id)) return p;
             const channelPrices = { ...(p.channelPrices || {}) };
-            if (action === "register" && Object.keys(recPrices).length > 0) {
-                channels.forEach(ch => { if (recPrices[ch]) channelPrices[ch] = recPrices[ch]; });
+            if (action === "register") {
+                channels.forEach(ch => { const v = priceOf(ch, p.sku); if (v) channelPrices[ch] = v; });
             }
-            const firstChPrice = channels.map(ch => recPrices[ch]).find(v => v);
+            const firstChPrice = channels.map(ch => priceOf(ch, p.sku)).find(v => v);
 
             // [v11] GlobalDataContext에 Channelper Sale Price Sync (OrderHub, PriceOpt에서 소비)
             if (action === "register" && Object.keys(channelPrices).length > 0) {

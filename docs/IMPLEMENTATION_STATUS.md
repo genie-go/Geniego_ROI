@@ -91,7 +91,8 @@
 ## 7) 보안·엔터프라이즈 (Security) — ✅ 완비
 - RBAC(viewer<connector<analyst<admin+scope)·ABAC(channel/product/brand). 
 - 테넌트 격리 airtight(전 쿼리 tenant_id 스코프·X-Tenant 위조차단, 전수감사 실증). `index.php:428-435`, `UserAuth::authedTenant:338`
-- SSO(OIDC/SAML C14N)·**SCIM 2.0 완전지원**(Looker보다 우위)·MFA(TOTP)·KEK 회전·불변 감사 해시체인·rate-limit·No-PII.
+- SSO(OIDC/SAML C14N)·**SCIM 2.0 완전지원**(Looker보다 우위)·MFA(TOTP)·KEK 회전·불변 감사 해시체인·rate-limit.
+- **★[283차 정정] "No-PII" 표기는 v418.1 decisioning 집계 엔드포인트 한정 설계다.** 플랫폼 전체 주장이 아니다 — `CRM.php:51`(crm_customers)은 email/name/phone/kakao_id 를 **평문 보유**하며 `Crypto::encrypt` 는 자격증명 계열에만 적용된다. 종전 표기가 DSAR·필드암호화 갭을 "해당없음"으로 오분류시키는 원인이었다. 필드암호화·DSAR 현황은 283차 재평가(`docs/COMPETITIVE_REVALIDATION_283.md` §1-7) 참조.
 - 하위 관리자(sub-admin)+접속키 최고관리자 전용(2026-07 GAP/보안 수정 반영).
 - **GAP-1(2026-07 완료)**: 감사로그 내보내기 admin전용(교차유출 차단). `Compliance.php:184`
 - **★257차(2026-07 완료) 컴플라이언스 posture 테넌트 스코프**: `Compliance::posture` 의 gdpr/email_suppression COUNT 가 `WHERE tenant_id` 누락으로 플랫폼 전역 건수(숫자만·PII/행 무유출)를 임의 Pro 테넌트 카드에 노출하던 것 수정(형제 sso_config 는 정상 스코프였음). 레거시 무-tenant 컬럼 테이블은 예외 시 집계 제외(fail-closed). `Compliance.php:68-76`
@@ -145,6 +146,22 @@
 - **공개/기타**: Landing/Pricing 공개페이지, PartnerPortal(파트너토큰 자가인증), DeveloperHub, CaseStudy, FeedbackCenter, Reports/ReportBuilder(사용자정의 메트릭), DataSchema/DataTrust/DataProduct, PixelTracking, WebPush.
 - **★온사이트 CRO 라이브 WYSIWYG 오버레이 에디터[257차 net-new]**: 크로스오리진(머천트 라이브사이트)이라 북마클릿이 GeniegoROI 서빙 독립 에디터(`frontend/public/cro-editor.js`) 주입 → 요소 클릭선택·CSS셀렉터 생성·액션(텍스트/숨기기/CSS/HTML)·단기 edit-token 저장(`Onsite::editToken`/`editSave`·onsite_edit_token)→변형B changes 갱신(applyChanges 정합). OnsiteCro "🎨 비주얼 에디터" 버튼+북마클릿. ★부수: /v424/cro/experiments 세션게이트 편입(실 테넌트 401 잠재버그 수정).
 - **온사이트 CRO(`/onsite-cro`, OnsiteCro.jsx·Onsite.php)**: 실험 CRUD·결정론 버킷팅·z검정 승자·세그먼트 타겟(기기/방문자)·비콘 metric-poisoning 방어(배정원장+레이트리밋). **노코드 변경(체인지셋 selector→text/html/css/hide/redirect)**: 백엔드 저장(variants_json)+비콘 반환+**클라 자동적용**(`lib/onsiteCro.js applyChanges`·`assignVariant(key,{autoApply})`) = 246차 완료. **★257차 추가=노코드 변경 빌더 UI**(생성폼에서 코드 없이 체인지셋 작성). 심화 여지=라이브 페이지 WYSIWYG 오버레이 에디터(브라우저확장급·외부).
+
+## 14) ★283차 경쟁약점 초고도화 (2026-07-14 완료·운영+데모 배포) — 재구현/재플래그 금지
+
+> 재평가 정본 `docs/COMPETITIVE_REVALIDATION_283.md` · 점수 이력 `docs/COMPETITIVE_SCORE_HISTORY.md`
+> **283차 핵심 교훈: "코드 존재" ≠ "구현 완료".** 이번 실결함의 대부분이 **코드는 있는데 호출부가 없는(미배선)** 클래스였다. 다음 감사는 반드시 **호출부까지** 확인할 것.
+
+- **마케팅 실집행 P0 3건**: ①랜딩URL — 벤더 도메인(`genieroi.com`) 하드코딩 기본값 **제거 → fail-closed**(`landing_url_required`), 테넌트 `tenant_business_profile.website` 폴백, 프론트 3경로 입력 UI+전송. `AdAdapters.php:1036-1085` ②라이브 경로 `design_ids` 전송(소재 0개면 집행 차단 — 종전엔 'GenieGo' 카피가 고객 광고로 게재) ③`updateBudget` → `logExecution('budget_change')` 감사로그. +검색광고 키워드 생성(Google `adGroupCriteria` KeywordInfo · Naver `POST /ncc/keywords`, 키워드 0개면 광고 미생성 → 기존 readiness 게이트가 활성화 자동 차단).
+- **CRM**: 토픽 옵트아웃 게이트를 **5개 발송처 전부 배선**(282차엔 수집만 되고 집행 0 = 수신거부 무시). `CRM::sendOptions` 단일 변환점. **웹푸시 RFC8291 페이로드 암호화 실구현**(ECDH P-256+HKDF+AES-128-GCM, RFC 공식 테스트벡터 26/26 PASS·실패 시 payload-less graceful fallback)·`push_subscription.customer_id`·`push_sent` 빈도캡 개통. 개인별 STO 배선(Email/Journey/Omni만 — SMS/Kakao는 워커 부재로 의도적 미제공). 옴니 워터폴 SMS/push 정식 편입. 저니 push 노드 실발송·LINE은 broadcast 한계 정직 표기(조용한 폐기 제거).
+- **커머스 outbound 루프**: **재고 델타 자동 푸시**(`Wms::recordMovement` 커밋 후 훅 → 기존 `catalog_writeback_job` 재사용·신규 큐 0·디바운스·채널별 safety buffer·초과판매 `wms_oversell_alert` 승격) + **출고 → 채널 발송처리**(shopify/woocommerce/magento/ebay **실구현**, 나머지는 `no-live-adapter` **honest pending** — 추측 API 구현 금지). cron 2종 신설·crontab 등재.
+- **어트리뷰션**: 크로스디바이스 아이덴티티 **픽셀 실배선**(`PixelTracking::collect` → `Attribution::linkIdentity`+`recordDeviceSigAndStitch`) + 구매 백필을 동일 아이덴티티 전 세션으로 확장. **캠페인/소재 단위 MTA**(`granularity=channel|campaign|creative`, 기본 channel=무회귀·캐시키 하위호환, 데이터는 이미 적재돼 있었음).
+- **BI/AI**: viz 화이트리스트 **SSOT 3중차단**(무음 강등 → 422 거부). ★**3회 재발의 진짜 원인 = `ReportBuilder.jsx`의 raw NUL 바이트** → ripgrep 이 바이너리로 분류해 **모든 grep 교차감사가 이 파일을 통째로 건너뜀**. ` ` 이스케이프로 정정(repo 전역 NUL 0건). PnL 가짜 내보내기(손상 .pdf) → 실 XLSX+print-to-PDF. DataExport 무음실패(성공 위장) 제거 + 커서 페이징. **코파일럿 도구 1→6종**(crm/pnl/inventory/orders/review — prepared+tenant 스코프+화이트리스트, 취소정의는 `OrderHub::cancelExclusion()` SSOT 재사용)+대화 메모리.
+- **보안**: `Dsar.php` 신설(접수→신원확인→삭제/익명화/이동권·증적·SLA30일. 완전삭제 22테이블·법정보존 5종 익명화·`email_suppression`은 보존[지우면 수신거부 해제=재발송 역설]). `tenant_security_policy`(MFA/SIEM/감사 테넌트 스코프·미설정 시 전역 폴백=무회귀). `.github/workflows/security-scan.yml`+`dependabot.yml`(PR/스케줄 전용·**deploy.yml 무변경**). **CodeQL은 PHP 미지원** → 백엔드는 `composer audit`.
+- **판매문구 정직화 6건**: Landing/PlanPricing 의 "세금계산서·ERP 연동"·"합배송·상업송장 자동생성"은 **코드 0건** → 실재 기능(부가세 산출·정산 대사·LOT/FEFO·운송사 추적 API)으로 정정.
+- **⏸ 정직한 보류**: CRM PII 필드암호화(전화번호가 SQL 조회조건·발송경로에 사용 → 그대로 암호화하면 **암호문으로 문자 발송**. 5단계 이행계획 수립).
+
+---
 
 > **참고**: 전체 세션별 상세 구현 이력은 `NEXT_SESSION.md` 및 사용자 자동메모리(`MEMORY.md` 인덱스 → project_* 파일들)에 250+ 차수로 누적. 본 문서는 도메인별 정본 요약. 신규 감사 시 이 문서 + NEXT_SESSION.md 최근 차수 + FP 레지스트리(reference_audit_false_positives)를 함께 참조.
 

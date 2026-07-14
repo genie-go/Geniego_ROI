@@ -1068,6 +1068,39 @@ class CRM
         } catch (\Throwable $e) { return null; }
     }
 
+    /**
+     * [283차 P0/P1] 캠페인 발송옵션(토픽·STO) → 게이트 contact 확장 배열.
+     *   ★282차 R3 자기회귀 종결: isMarketingSendAllowed 의 topic/sto 게이트는 $contact['topic']·$contact['sto']
+     *     가 지정될 때만 평가되는데, 발송 핸들러 5종(Email/Kakao/Sms/Omni/Journey) 중 어느 곳도 이를 넘기지
+     *     않아 **공개 선호센터의 "프로모션 수신거부"가 한 번도 강제되지 않았다**(법적 리스크). 이 헬퍼가 캠페인
+     *     저장값(topic/sto_opt_in) → 게이트 입력으로 잇는 단일 변환점이다(중복 로직 0).
+     *   ▸ 토픽 화이트리스트 = PreferenceCenter::TOPICS 재사용(promo/newsletter/product/event).
+     *     'transactional'(주문·배송·결제 등 거래성)은 TOPICS 에 없으므로 자동으로 게이트 대상 아님(항상 발송).
+     *   ▸ 미지정(빈 토픽 · sto=false) → 빈 배열 = 기존 동작 그대로(무회귀).
+     *
+     * @param  string|null $topic     캠페인 토픽(promo|newsletter|product|event). 미지정/미정의 = 게이트 없음.
+     * @param  mixed       $stoOptIn  개인별 예측 발송시간(STO) opt-in. truthy 일 때만 sto_defer 평가.
+     * @param  int         $stoWindow 최적시각 허용 오차(±시간, 0~6, 기본 2).
+     * @return array{topic?:string, sto?:bool, sto_window?:int}
+     */
+    public static function sendOptions($topic, $stoOptIn = false, int $stoWindow = 2): array
+    {
+        $out = [];
+        $tp = strtolower(trim((string)$topic));
+        if ($tp !== '' && isset(PreferenceCenter::TOPICS[$tp])) $out['topic'] = $tp;
+        if ($stoOptIn === true || $stoOptIn === 1 || $stoOptIn === '1' || $stoOptIn === 'true') {
+            $out['sto'] = true;
+            $out['sto_window'] = max(0, min(6, $stoWindow));
+        }
+        return $out;
+    }
+
+    /** [283차] 게이트 거부사유가 STO defer(개인 최적시각 대기)인지 — 발송측이 skip 이 아니라 큐/재시도로 처리해야 함. */
+    public static function isStoDefer(array $gate): bool
+    {
+        return ($gate['allowed'] ?? true) === false && (string)($gate['reason'] ?? '') === 'sto_defer';
+    }
+
     /* ═══ 통합 마케팅 발송 게이트(단일 정본) ═══════════════════════════════
      *   [현 차수 동기화감사] 신규 동의센터(crm_channel_prefs)·quiet-hours·빈도캡을 **하나의 게이트**로 통합.
      *   중복 시스템 신설 금지 — 기존 실가동 로직(PreferenceCenter::isChannelAllowed / isQuietNow /

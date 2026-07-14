@@ -50,6 +50,12 @@ final class AttributionEngine
     private const DEFAULT_HALFLIFE = 7.0;
     /** 분석 상한(과부하 방지). */
     private const MAX_ORDERS = 20000;
+    /** [283차 P2] 크레딧 산출 차원. channel=기존 동작(회귀0)·campaign=채널×캠페인·creative=채널×캠페인×소재. */
+    private const GRANULARITIES = ['channel', 'campaign', 'creative'];
+    /** [283차 P2 성능] 비채널 차원의 markov 상태공간 상한. markovRemovalEffect 는 키 1개당 흡수연쇄를 1회씩
+     *  재수렴(O(K)×solveConversion)하므로 소재 차원에서 키가 수백 개로 폭증하면 응답이 초 단위로 악화된다.
+     *  터치 빈도 상위 K개만 고유키로 두고 나머지는 '<채널> / (other)' 로 접어 상태공간을 제한한다(크레딧 총합 보존). */
+    private const MAX_GRAN_KEYS = 80;
 
     // ── GET /v424/attribution/models ───────────────────────────────────────
     public static function models(Request $request, Response $response, array $args): Response
@@ -57,7 +63,8 @@ final class AttributionEngine
         $start = microtime(true);
         $t = self::tenant($request);
         $empty = ['models' => new \stdClass(), 'channels' => [], 'data_driven' => 'markov',
-                  'journeys' => 0, 'converted' => 0, 'window_days' => self::DEFAULT_WINDOW];
+                  'journeys' => 0, 'converted' => 0, 'window_days' => self::DEFAULT_WINDOW,
+                  'granularity' => 'channel']; // [283차 P2]
         if ($t === '') return self::ok($response, $empty + ['response_time_ms' => self::elapsed($start)]);
 
         try {
@@ -74,19 +81,26 @@ final class AttributionEngine
             // [차기 P1 준실시간] fresh=1 → 캐시 우회 강제 재계산(대시보드 "지금 새로고침"). max_age 로 신선도 임계 조정 가능(기본 1800s).
             $fresh = in_array((string)($q['fresh'] ?? ''), ['1', 'true', 'yes'], true);
             $maxAge = max(60, min(1800, (int)($q['max_age'] ?? 1800)));
+            // [283차 P2] ad/creative-level MTA — 크레딧 산출 차원. attribution_touch 는 utm_campaign/content/term 을
+            //   이미 저장(PixelTracking::bridgeToAttribution)하는데 엔진이 채널 단일키로만 group-by 해서
+            //   "어떤 캠페인·어떤 소재가 기여했나"(Northbeam/Triple Whale 핵심 판매포인트)에 답할 수 없었다.
+            //   신규 수집 불요(데이터 이미 적재). 기본 channel = 기존 동작 그대로(회귀 0).
+            $gran = strtolower(trim((string)($q['granularity'] ?? 'channel')));
+            if (!in_array($gran, self::GRANULARITIES, true)) $gran = 'channel';
 
             $pdo = Db::pdo();
             // [228차 S2] ★캐시 우선 — attribution_cron 선계산 결과가 신선하면 즉시 반환.
             //   기존엔 대시보드 히트마다 동기 재계산(대용량 테넌트 MAX_ORDERS=20000 스캔 지연). 캐시 미스 시 라이브 계산+저장.
+            //   [283차 P2] 캐시 키에 granularity 포함(ckey) → 차원별 캐시 격리(오염 방지).
             if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && $vtWindow <= 0.0 && !$fresh) {
-                $cached = self::cacheGet($pdo, $t, $window, $halflife, $maxAge);
+                $cached = self::cacheGet($pdo, $t, $window, $halflife, $maxAge, $gran);
                 if ($cached !== null) {
                     $cached['cached'] = true;
                     $cached['response_time_ms'] = self::elapsed($start);
                     return self::ok($response, $cached);
                 }
             }
-            $result = self::precompute($pdo, $t, $window, $halflife, $vtWeight, $vtHalflife, $vtAuto, $vtWindow);
+            $result = self::precompute($pdo, $t, $window, $halflife, $vtWeight, $vtHalflife, $vtAuto, $vtWindow, $gran);
             $result['response_time_ms'] = self::elapsed($start);
             return self::ok($response, $result);
         } catch (Throwable $e) {
@@ -1025,9 +1039,117 @@ final class AttributionEngine
         } catch (Throwable $e) { return self::fail($response, $e, ['ok' => false, 'channels' => []]); }
     }
 
-    private static function loadJourneys(PDO $pdo, string $tenant, int $window): array
+    /**
+     * [283차 P2] 크레딧 키 산출 — granularity 별 group-by 키.
+     *   channel  : <채널>                              (기존 동작 — normChannel 결과 그대로, 회귀 0)
+     *   campaign : <채널> / <utm_campaign>
+     *   creative : <채널> / <utm_campaign> / <utm_content|utm_term>
+     * 빈 캠페인/소재는 '(none)' 으로 명시(정직성 — 임의 병합·날조 금지). $allowed 가 주어지면(성능 상한)
+     * 상위 키 집합 밖은 '<채널> / (other)' 로 접는다.
+     */
+    private static function creditKey(string $ch, array $row, string $gran, ?array $allowed = null): string
+    {
+        if ($ch === '' || $gran === 'channel') return $ch;
+        $norm = static function ($v): string {
+            $s = trim((string)($v ?? ''));
+            if ($s === '') return '';
+            $s = preg_replace('/\s+/u', ' ', $s);
+            return mb_strtolower(mb_substr((string)$s, 0, 80));
+        };
+        $camp = $norm($row['utm_campaign'] ?? '');
+        if ($camp === '') $camp = '(none)';
+        if ($gran === 'campaign') {
+            $key = $ch . ' / ' . $camp;
+        } else {
+            $cr = $norm($row['utm_content'] ?? '');
+            if ($cr === '') $cr = $norm($row['utm_term'] ?? '');
+            if ($cr === '') $cr = '(none)';
+            $key = $ch . ' / ' . $camp . ' / ' . $cr;
+        }
+        if ($allowed !== null && !isset($allowed[$key])) return $ch . ' / (other)';
+        return $key;
+    }
+
+    /**
+     * [283차 P2 성능] 비채널 차원의 상위 키 집합(터치 빈도 상위 MAX_GRAN_KEYS). markov 상태공간 폭증 차단.
+     * channel 차원은 null(무제한 = 기존 동작 그대로).
+     */
+    private static function topKeys(PDO $pdo, string $tenant, string $sinceDate, string $gran): ?array
+    {
+        if ($gran === 'channel') return null;
+        try {
+            $st = $pdo->prepare(
+                'SELECT channel, utm_campaign, utm_content, utm_term, COUNT(*) AS c FROM attribution_touch '
+                . 'WHERE tenant_id = :t AND channel IS NOT NULL AND channel <> \'\' AND DATE(touched_at) >= :since '
+                . 'GROUP BY channel, utm_campaign, utm_content, utm_term'
+            );
+            $st->execute([':t' => $tenant, ':since' => $sinceDate]);
+        } catch (Throwable $e) {
+            return null; // 스키마 변형 — 상한 없이 진행(정확도 우선)
+        }
+        $freq = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $ch = self::normChannel((string)$row['channel']);
+            if ($ch === '') continue;
+            $k = self::creditKey($ch, $row, $gran, null);
+            $freq[$k] = ($freq[$k] ?? 0) + (int)$row['c'];
+        }
+        // 상한 이내면 null(=화이트리스트 미적용). ★중요: 화이트리스트를 걸면 윈도우 밖 터치(최근 주문에 달린
+        //   오래된 터치 — 이 조회는 touched_at 필터가 있으나 전환 여정 조회는 order_id 기준이라 윈도우 밖 터치도
+        //   포함될 수 있다)가 (other) 로 접혀 정확도가 떨어진다. 접는 것은 상태공간 폭증 시에만.
+        if (count($freq) <= self::MAX_GRAN_KEYS) return null;
+        arsort($freq);                                   // 빈도 내림차순(동률은 삽입순 — 결정적)
+        return array_slice($freq, 0, self::MAX_GRAN_KEYS, true);
+    }
+
+    /**
+     * [283차 P1] 세션 → 아이덴티티 맵(크로스디바이스 여정 병합용).
+     *   attribution_identity_link 에 링크가 0건이면 빈 배열 → 모든 여정이 세션 단위로 남는다(= 기존 동작, 회귀 0).
+     *   확률적 링크(confidence < 0.999)는 테넌트 opt-in(app_setting attribution_prob_stitch@<t>) 시에만 포함
+     *   — Attribution::sessionsForIdentity 와 동일 임계·동일 규약(기본 off).
+     *   한 세션이 복수 아이덴티티에 링크될 수 있으므로(확률 스티칭) confidence 최고 1건만 채택하고,
+     *   동률은 identity_hash 사전순으로 tie-break 해 run 간 결정성을 보장한다.
+     */
+    private static function identityMap(PDO $pdo, string $tenant): array
+    {
+        $map = [];
+        try {
+            $incProb = false;
+            try {
+                $g = $pdo->prepare('SELECT svalue FROM app_setting WHERE skey=? LIMIT 1');
+                $g->execute(['attribution_prob_stitch@' . $tenant]);
+                $incProb = ((string)($g->fetchColumn() ?: '0')) === '1';
+            } catch (Throwable $e) { /* 설정 테이블 없음 → 결정론만 */ }
+            $minConf = $incProb ? 0.4 : 0.999;
+            $st = $pdo->prepare(
+                'SELECT session_id, identity_hash, COALESCE(confidence,1.0) AS conf FROM attribution_identity_link '
+                . 'WHERE tenant_id = ? AND COALESCE(confidence,1.0) >= ? '
+                . 'ORDER BY session_id, conf DESC, identity_hash ASC LIMIT 200000'
+            );
+            $st->execute([$tenant, $minConf]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $sid = (string)$r['session_id'];
+                $idh = (string)$r['identity_hash'];
+                if ($sid === '' || $idh === '' || isset($map[$sid])) continue; // 첫 행 = 최고 confidence
+                $map[$sid] = $idh;
+            }
+        } catch (Throwable $e) { /* 테이블 미존재 등 — 세션 단위 폴백(기존 동작) */ }
+        return $map;
+    }
+
+    /** [283차 P1] 여정 그룹 키 — 아이덴티티가 있으면 아이덴티티(크로스디바이스 병합), 없으면 세션 단위(기존).
+     *  own:<hash> 의사세션(오운드채널 발송 터치)은 접두를 벗기면 그 자체가 아이덴티티다. */
+    private static function journeyGroup(string $sessionId, array $idMap): string
+    {
+        if (isset($idMap[$sessionId])) return 'id:' . $idMap[$sessionId];
+        if (strncmp($sessionId, 'own:', 4) === 0) return 'id:' . substr($sessionId, 4);
+        return 'sess:' . $sessionId;
+    }
+
+    private static function loadJourneys(PDO $pdo, string $tenant, int $window, string $gran = 'channel'): array
     {
         $sinceDate = gmdate('Y-m-d', time() - $window * 86400);
+        $allowed = self::topKeys($pdo, $tenant, $sinceDate, $gran); // [283차 P2] 상태공간 상한(channel=null)
 
         // 1) 전환된 order_id 집합 + 전환 시각(created_at) — attribution_result.
         $rs = $pdo->prepare(
@@ -1047,15 +1169,19 @@ final class AttributionEngine
         foreach ($rs->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
             $convAt[(string)$r['order_id']] = self::ts((string)$r['conv_at']);
         }
-        if (empty($convAt)) return [[], self::loadNullJourneys($pdo, $tenant, $sinceDate, [])];
+        if (empty($convAt)) return [[], self::loadNullJourneys($pdo, $tenant, $sinceDate, [], $gran, $allowed)];
 
         // 2) 전환 order 들의 모든 터치(시간순).
+        //   ★크로스디바이스는 여기서 자동 반영된다: 여정 조립이 session_id 가 아니라 order_id 기준이므로,
+        //     PixelTracking::bridgeToAttribution 의 아이덴티티 백필(283차)이 모바일 세션 터치에 같은 order_id 를
+        //     찍어주면 그 터치들이 이 쿼리에 함께 잡혀 하나의 여정으로 병합된다(touched_at 순 인터리브).
         $orderIds = array_keys($convAt);
         $convJourneys = [];
         foreach (array_chunk($orderIds, 500) as $chunk) {
             $ph = implode(',', array_fill(0, count($chunk), '?'));
             $st = $pdo->prepare(
-                'SELECT order_id, channel, touched_at, extra_json FROM attribution_touch '
+                // [283차 P2] utm_campaign/content/term 소비 — 이미 적재돼 있으나 엔진이 읽지 않던 컬럼.
+                'SELECT order_id, channel, touched_at, extra_json, utm_campaign, utm_content, utm_term FROM attribution_touch '
                 . 'WHERE tenant_id = ? AND order_id IN (' . $ph . ') AND channel IS NOT NULL AND channel <> \'\' '
                 . 'ORDER BY order_id, touched_at, id'
             );
@@ -1080,6 +1206,9 @@ final class AttributionEngine
                 foreach ($touches as $tr) {
                     $ch = self::normChannel((string)$tr['channel']);
                     if ($ch === '') continue;
+                    // [283차 P2] 크레딧 키 = granularity 차원. channel 차원에서는 $ch 그대로(기존과 완전 동일).
+                    $ch = self::creditKey($ch, $tr, $gran, $allowed);
+                    if ($ch === '') continue;
                     $isView = self::isViewThrough((string)($tr['extra_json'] ?? '')); // [240차 ⑧-A] 노출 터치 여부
                     // 연속 중복 채널은 self-loop 회피를 위해 축약(시퀀스 의미 보존).
                     if (!empty($channels) && end($channels) === $ch) {
@@ -1101,16 +1230,20 @@ final class AttributionEngine
             }
         }
 
-        $nullJourneys = self::loadNullJourneys($pdo, $tenant, $sinceDate, array_flip($orderIds));
+        $nullJourneys = self::loadNullJourneys($pdo, $tenant, $sinceDate, array_flip($orderIds), $gran, $allowed);
         return [$convJourneys, $nullJourneys];
     }
 
-    /** 비전환 여정 — session_id 단위(전환 order 에 속하지 않은 터치). Markov null 경로용. */
-    private static function loadNullJourneys(PDO $pdo, string $tenant, string $sinceDate, array $convOrderSet): array
+    /** 비전환 여정 — 전환 order 에 속하지 않은 터치. Markov null 경로용.
+     *  [283차 P1] 그룹 단위가 session_id → "아이덴티티(있으면) / 세션(없으면)" 으로 확장. 동일인의 모바일·데스크톱
+     *  익명 세션이 하나의 비전환 여정으로 병합돼 markov 의 null 경로가 실제 사람 단위와 일치한다.
+     *  ★회귀 0: attribution_identity_link 가 비면 idMap 이 빈 배열 → 그룹키 = 'sess:'.<session_id> → 기존과 동일. */
+    private static function loadNullJourneys(PDO $pdo, string $tenant, string $sinceDate, array $convOrderSet, string $gran = 'channel', ?array $allowed = null): array
     {
         try {
             $st = $pdo->prepare(
-                'SELECT session_id, channel, order_id, touched_at FROM attribution_touch '
+                // [283차 P2] utm_* 소비(granularity). channel 차원에서는 읽기만 하고 키에 반영하지 않는다.
+                'SELECT session_id, channel, order_id, touched_at, utm_campaign, utm_content, utm_term FROM attribution_touch '
                 . 'WHERE tenant_id = :t AND session_id IS NOT NULL AND session_id <> \'\' '
                 . 'AND channel IS NOT NULL AND channel <> \'\' AND DATE(touched_at) >= :since '
                 . 'ORDER BY session_id, touched_at, id LIMIT 100000'
@@ -1120,25 +1253,43 @@ final class AttributionEngine
             return [];
         }
         $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $idMap = self::identityMap($pdo, $tenant); // [283차 P1] 링크 0건이면 빈 배열(= 세션 단위 = 기존 동작)
+
         // [현 차수 P3] ★전환 세션 '전체' 제외 — 기존엔 전환 order_id 를 가진 '행'만 skip 하고 같은 세션의 나머지
         //   비전환 터치(order_id 공백/미백필)는 null journey 로 남겨, 실제 전환한 세션이 전환+비전환 양쪽에
         //   이중 계수됐다 → Markov removal effect(전환/비전환 대비) 왜곡. 세션에 전환 터치가 하나라도 있으면 통째 제외.
-        $convertedSessions = [];
+        // [283차 P1] 동일 논리를 아이덴티티 그룹으로 승격 — 크로스디바이스 백필로 그룹 내 어느 세션이든 전환에
+        //   귀속됐다면 그 그룹의 채널 시퀀스는 이미 전환 여정에 반영돼 있다. 그룹째 제외해야 이중 계수가 없다.
+        $convertedGroups = [];
         foreach ($rows as $row) {
             $oid = (string)($row['order_id'] ?? '');
-            if ($oid !== '' && isset($convOrderSet[$oid])) $convertedSessions[(string)$row['session_id']] = true;
+            if ($oid !== '' && isset($convOrderSet[$oid])) {
+                $convertedGroups[self::journeyGroup((string)$row['session_id'], $idMap)] = true;
+            }
         }
-        $bySession = [];
-        foreach ($rows as $row) {
-            $sid = (string)$row['session_id'];
-            if (isset($convertedSessions[$sid])) continue; // 전환 세션 전체 제외(비전환 여정 아님)
+
+        // 그룹별 터치 수집(크로스디바이스 병합 시 세션이 섞이므로 touched_at 으로 재정렬해야 시퀀스가 옳다).
+        $byGroup = [];
+        foreach ($rows as $i => $row) {
+            $g = self::journeyGroup((string)$row['session_id'], $idMap);
+            if (isset($convertedGroups[$g])) continue; // 전환 그룹 전체 제외(비전환 여정 아님)
             $ch = self::normChannel((string)$row['channel']);
             if ($ch === '') continue;
-            if (!empty($bySession[$sid]) && end($bySession[$sid]) === $ch) continue; // 연속중복 축약
-            $bySession[$sid][] = $ch;
+            $ch = self::creditKey($ch, $row, $gran, $allowed); // [283차 P2]
+            if ($ch === '') continue;
+            $byGroup[$g][] = ['ch' => $ch, 't' => self::ts((string)($row['touched_at'] ?? '')), 'i' => $i];
         }
+
         $out = [];
-        foreach ($bySession as $channels) {
+        foreach ($byGroup as $touches) {
+            // 시간순 정렬(동시각은 원 쿼리 순서 = touched_at,id 로 tie-break → 결정적).
+            // ★단일세션 그룹은 원 쿼리가 이미 touched_at,id 순이라 이 정렬이 항등(회귀 0).
+            usort($touches, static fn($a, $b) => ($a['t'] <=> $b['t']) ?: ($a['i'] <=> $b['i']));
+            $channels = [];
+            foreach ($touches as $tr) {
+                if (!empty($channels) && end($channels) === $tr['ch']) continue; // 연속중복 축약(self-loop 회피)
+                $channels[] = $tr['ch'];
+            }
             if (!empty($channels)) $out[] = ['channels' => $channels];
         }
         return $out;
@@ -1547,12 +1698,14 @@ final class AttributionEngine
      * markov 모델 계산 + 캐시 저장(attribution_cron·models 공용). 전환 여정이 없으면 빈 결과도 캐시한다.
      *   (cron 이 주기 선계산 → models 는 캐시 신선 시 즉시 반환. 캐시 미스 시 본 메서드가 라이브 계산+저장.)
      */
-    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0, bool $vtAuto = false, float $vtWindow = 0.0): array
+    public static function precompute(PDO $pdo, string $t, int $window = self::DEFAULT_WINDOW, float $halflife = self::DEFAULT_HALFLIFE, float $vtWeight = 1.0, float $vtHalflife = 0.0, bool $vtAuto = false, float $vtWindow = 0.0, string $gran = 'channel'): array
     {
-        [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window);
+        // [283차 P2] granularity 방어 — cron 등 내부 호출은 기본 'channel'(기존 동작).
+        if (!in_array($gran, self::GRANULARITIES, true)) $gran = 'channel';
+        [$convJourneys, $nullJourneys] = self::loadJourneys($pdo, $t, $window, $gran);
         if (empty($convJourneys)) {
             $r = ['models' => new \stdClass(), 'channels' => [], 'data_driven' => 'markov',
-                  'window_days' => $window, 'journeys' => count($nullJourneys), 'converted' => 0,
+                  'window_days' => $window, 'journeys' => count($nullJourneys), 'converted' => 0, 'granularity' => $gran,
                   'note' => '전환(attribution_result)에 연결된 터치 여정이 아직 없습니다. 전환 스코어링 후 자동 반영됩니다.'];
         } else {
             if ($vtAuto) $vtWeight = self::autoVtWeight($convJourneys); // [260차] 데이터 기반 뷰스루 가중 자동보정
@@ -1562,9 +1715,11 @@ final class AttributionEngine
             $r['vt_window_days'] = $vtWindow; // [264차 성숙화]
             $r['journeys'] = count($convJourneys) + count($nullJourneys);
             $r['converted'] = count($convJourneys); $r['data_driven'] = 'markov';
+            $r['granularity'] = $gran; // [283차 P2]
         }
         // [240차 ⑧-A · 260차 · 264차] 비기본(vtWeight≠1·vtHalflife>0·auto·vtWindow>0) 결과는 캐시 저장 스킵(기본 캐시 오염 방지).
-        if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && $vtWindow <= 0.0) self::cachePut($pdo, $t, $window, $halflife, $r);
+        // [283차 P2] 캐시 키에 granularity 포함 → 차원별 격리(채널 캐시가 소재 결과로 덮이는 오염 차단).
+        if ($vtWeight >= 1.0 && $vtHalflife <= 0.0 && !$vtAuto && $vtWindow <= 0.0) self::cachePut($pdo, $t, $window, $halflife, $r, $gran);
         return $r;
     }
 
@@ -1585,9 +1740,12 @@ final class AttributionEngine
         return max(0.15, min(0.7, 0.2 + 0.6 * $share));
     }
 
-    private static function ckey(string $t, int $w, float $hl): string
+    /** [283차 P2] 캐시 키 — granularity 포함(차원별 격리). 단, 'channel' 은 접미를 붙이지 않아 기존 키와 동일하게
+     *  유지한다 → 배포 즉시 기존 캐시·attribution_cron 선계산 결과가 그대로 히트(캐시 스탬피드 0·회귀 0). */
+    private static function ckey(string $t, int $w, float $hl, string $gran = 'channel'): string
     {
-        return $t . ':' . $w . ':' . number_format($hl, 1, '.', '');
+        $base = $t . ':' . $w . ':' . number_format($hl, 1, '.', '');
+        return ($gran === 'channel' || $gran === '') ? $base : ($base . ':' . $gran);
     }
 
     private static function ensureCacheTable(PDO $pdo): void
@@ -1601,12 +1759,12 @@ final class AttributionEngine
     }
 
     /** 신선한 캐시(ttl초 이내)면 디코드 결과 반환, 아니면 null. */
-    private static function cacheGet(PDO $pdo, string $t, int $w, float $hl, int $ttl): ?array
+    private static function cacheGet(PDO $pdo, string $t, int $w, float $hl, int $ttl, string $gran = 'channel'): ?array
     {
         try {
             self::ensureCacheTable($pdo);
             $st = $pdo->prepare("SELECT result_json, computed_at FROM attribution_model_cache WHERE ckey=? LIMIT 1");
-            $st->execute([self::ckey($t, $w, $hl)]);
+            $st->execute([self::ckey($t, $w, $hl, $gran)]);
             $r = $st->fetch(PDO::FETCH_ASSOC);
             if (!$r) return null;
             $computedAt = strtotime((string)($r['computed_at'] ?? ''));
@@ -1619,11 +1777,11 @@ final class AttributionEngine
         } catch (\Throwable $e) { return null; }
     }
 
-    private static function cachePut(PDO $pdo, string $t, int $w, float $hl, array $r): void
+    private static function cachePut(PDO $pdo, string $t, int $w, float $hl, array $r, string $gran = 'channel'): void
     {
         try {
             self::ensureCacheTable($pdo);
-            $json = json_encode($r, JSON_UNESCAPED_UNICODE); $now = gmdate('c'); $ck = self::ckey($t, $w, $hl);
+            $json = json_encode($r, JSON_UNESCAPED_UNICODE); $now = gmdate('c'); $ck = self::ckey($t, $w, $hl, $gran);
             $u = $pdo->prepare("UPDATE attribution_model_cache SET result_json=?, computed_at=?, tenant_id=? WHERE ckey=?");
             $u->execute([$json, $now, $t, $ck]);
             if ($u->rowCount() === 0) {

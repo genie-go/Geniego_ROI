@@ -72,6 +72,8 @@ class KakaoChannel
         foreach (['kakao_settings','kakao_templates','kakao_campaigns','kakao_sends'] as $tbl) {
             try { $pdo->exec("ALTER TABLE {$tbl} ADD COLUMN tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo'"); } catch (\Throwable $e) {}
         }
+        // [283차 P0] topic(콘텐츠 카테고리) — 선호센터 토픽 옵트아웃을 카카오 캠페인에도 강제(멱등 ALTER, 기본 NULL=무회귀).
+        try { $pdo->exec("ALTER TABLE kakao_campaigns ADD COLUMN topic VARCHAR(20) DEFAULT NULL"); } catch (\Throwable $e) {}
     }
 
     /* ─── 설정 ─────────────────────────────────────────────────────── */
@@ -239,11 +241,14 @@ class KakaoChannel
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
         if (empty($b['name'])) return self::jsonRes($res, ['ok'=>false,'error'=>'name 필수'], 400);
-        $pdo->prepare("INSERT INTO kakao_campaigns (tenant_id, name, template_code, segment_id, status, scheduled_at, created_at) VALUES (:t,:n,:tc,:sid,:st,:sch,:ca)")->execute([
+        // [283차 P0] 토픽(콘텐츠 카테고리) — 화이트리스트 밖/미지정은 NULL(게이트 미적용=무회귀).
+        $topic = strtolower(trim((string)($b['topic'] ?? '')));
+        if ($topic === '' || !isset(PreferenceCenter::TOPICS[$topic])) $topic = null;
+        $pdo->prepare("INSERT INTO kakao_campaigns (tenant_id, name, template_code, segment_id, status, scheduled_at, topic, created_at) VALUES (:t,:n,:tc,:sid,:st,:sch,:tp,:ca)")->execute([
             ':t'=>$tenant, ':n'=>$b['name'], ':tc'=>$b['template_code']??'',
-            ':sid'=>(int)($b['segment_id']??0), ':st'=>$b['status']??'draft', ':sch'=>$b['scheduled_at']??null, ':ca'=>self::now(),
+            ':sid'=>(int)($b['segment_id']??0), ':st'=>$b['status']??'draft', ':sch'=>$b['scheduled_at']??null, ':tp'=>$topic, ':ca'=>self::now(),
         ]);
-        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+        return self::jsonRes($res, ['ok'=>true,'id'=>(int)$pdo->lastInsertId(),'topic'=>$topic]);
     }
 
     /* ─── POST /kakao/campaigns/{id}/send ──────────────────────────── */
@@ -297,11 +302,15 @@ class KakaoChannel
         $success = 0; $failed = 0; $capped = 0; $optout = 0; $quiet = 0; $now = self::now();
         // [240차 약점⑥] 빈도캡 — 과발송 차단(딜리버러빌리티 보호).
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
+        // [283차 P0] 캠페인 토픽 → 통합 게이트 입력(선호센터 토픽 옵트아웃 실강제). 미지정=빈배열=무회귀.
+        //   ★STO(개인 예측 발송시각)는 카카오 캠페인에 노출하지 않는다 — 카카오는 큐/워커(cron 드레인)가 없어
+        //     defer 하면 그 메시지가 영구 미발송된다(무음 유실). STO 는 워커가 있는 이메일 캠페인·저니·옴니에서만 제공(정직).
+        $sendOpt = CRM::sendOptions($campaign['topic'] ?? null, false);
         foreach ($customers as $c) {
             $phone   = preg_replace('/[^0-9]/', '', $c['phone']);
             // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 카카오 채널 옵트아웃/조용시간 단일소스(crm_channel_prefs). 세그먼트 조회에서 c.id=customer_id. fail-open.
             // [R4 라벨교정] 게이트 거부사유별 정확 집계 — 빈도=capped·조용시간=quiet·그 외(옵트아웃/suppression)만 opted_out.
-            $g = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'kakao', ['phone'=>$phone]);
+            $g = CRM::isMarketingSendAllowed($tenant, (int)$c['id'], 'kakao', ['phone'=>$phone] + $sendOpt);
             if (!($g['allowed'] ?? false)) {
                 $rc = (string)($g['reason'] ?? '');
                 if (strpos($rc, 'freq') !== false) { $capped++; }
@@ -331,7 +340,7 @@ class KakaoChannel
         $pdo->prepare("UPDATE kakao_campaigns SET status='sent', sent_at=:sa, total=:t, success=:s, failed=:f WHERE id=:id AND tenant_id=:tn")->execute([
             ':sa'=>$now, ':t'=>$total, ':s'=>$success, ':f'=>$failed, ':id'=>$cid, ':tn'=>$tenant,
         ]);
-        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout]);
+        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'topic'=>($campaign['topic'] ?? null)]);
     }
 
     /* ─── 성과 조회 ────────────────────────────────────────────────── */

@@ -132,16 +132,26 @@ final class Compliance
     /**
      * 감사 이벤트 통합 수집 — audit_log(운영 액션) + auth_audit_log(인증/권한, IP·UA·risk) UNION 정규화.
      *   공통 스키마 {ts, source, actor, role, tenant, action, detail, ip, ua, risk}. 최신순.
+     *
+     * [283차] $tenant 스코프 옵션 추가.
+     *   - $tenant=null → 종전과 완전히 동일한 **전역 수집**(최고관리자 경로·무회귀).
+     *   - $tenant='...' → 해당 테넌트 이벤트만. enterprise 고객이 자기 감사증적을 내보낼 수 있게 하는 근거.
+     *   ★fail-closed: audit_log 는 tenant_id 컬럼이 **없는** 플랫폼 전역 테이블이므로, 테넌트 스코프
+     *     수집에서는 통째로 제외한다. 포함시키면 타 테넌트 운영액션이 그대로 새어나간다
+     *     (posture() 가 :64-70 에서 같은 이유로 audit_log 를 배제한 것과 동일 정책).
      */
-    private static function collectAuditEvents(\PDO $pdo, int $days, int $limit): array
+    private static function collectAuditEvents(\PDO $pdo, int $days, int $limit, ?string $tenant = null): array
     {
         $since = gmdate('c', time() - $days * 86400);
+        $scoped = ($tenant !== null && $tenant !== '');
         $events = [];
         // ① auth_audit_log — 로그인/MFA/권한변경(가장 SIEM 가치 높음: IP·UA·risk 포함).
         if (self::tableExists($pdo, 'auth_audit_log')) {
             try {
-                $st = $pdo->prepare("SELECT at, actor, role, tenant_id, action, detail, ip, ua, risk FROM auth_audit_log WHERE at>=? ORDER BY at DESC LIMIT {$limit}");
-                $st->execute([$since]);
+                $sql = "SELECT at, actor, role, tenant_id, action, detail, ip, ua, risk FROM auth_audit_log WHERE at>=?"
+                     . ($scoped ? " AND tenant_id=?" : "") . " ORDER BY at DESC LIMIT {$limit}";
+                $st = $pdo->prepare($sql);
+                $st->execute($scoped ? [$since, $tenant] : [$since]);
                 foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $events[] = ['ts' => (string)$r['at'], 'source' => 'auth', 'actor' => (string)$r['actor'], 'role' => (string)$r['role'],
                         'tenant' => (string)$r['tenant_id'], 'action' => (string)$r['action'], 'detail' => (string)$r['detail'],
@@ -152,8 +162,10 @@ final class Compliance
         // ② security_audit_log — 해시체인 무결성 보안감사(SecurityAudit, append-only). 데이터접근·키회전 등.
         if (self::tableExists($pdo, 'security_audit_log')) {
             try {
-                $st = $pdo->prepare("SELECT created_at, actor, tenant_id, action, details_json, ip_address, user_agent FROM security_audit_log WHERE created_at>=? ORDER BY created_at DESC LIMIT {$limit}");
-                $st->execute([$since]);
+                $sql = "SELECT created_at, actor, tenant_id, action, details_json, ip_address, user_agent FROM security_audit_log WHERE created_at>=?"
+                     . ($scoped ? " AND tenant_id=?" : "") . " ORDER BY created_at DESC LIMIT {$limit}";
+                $st = $pdo->prepare($sql);
+                $st->execute($scoped ? [$since, $tenant] : [$since]);
                 foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $events[] = ['ts' => (string)$r['created_at'], 'source' => 'security', 'actor' => (string)$r['actor'], 'role' => '',
                         'tenant' => (string)$r['tenant_id'], 'action' => (string)$r['action'], 'detail' => (string)($r['details_json'] ?? ''),
@@ -161,8 +173,8 @@ final class Compliance
                 }
             } catch (\Throwable $e) {}
         }
-        // ③ audit_log — 운영 액션(성장/알림/매핑 등).
-        if (self::tableExists($pdo, 'audit_log')) {
+        // ③ audit_log — 운영 액션(성장/알림/매핑 등). ★테넌트 스코프에서는 제외(위 fail-closed 주석).
+        if (!$scoped && self::tableExists($pdo, 'audit_log')) {
             try {
                 $st = $pdo->prepare("SELECT actor, action, details_json, created_at FROM audit_log WHERE created_at>=? ORDER BY created_at DESC LIMIT {$limit}");
                 $st->execute([$since]);
@@ -175,6 +187,25 @@ final class Compliance
         }
         usort($events, fn($a, $b) => strcmp((string)$b['ts'], (string)$a['ts']));
         return array_slice($events, 0, $limit);
+    }
+
+    /**
+     * [283차] 요청자의 감사 스코프 결정.
+     *   admin(최고관리자) → null(=전역, 종전 동작). enterprise → 자기 tenant. 그 외 → false(권한없음).
+     *   ★테넌트는 세션에서 서버 도출 — 쿼리/헤더로 지정 불가(교차 테넌트 열람 원천 차단).
+     * @return string|null|false
+     */
+    private static function auditScope(Request $req)
+    {
+        $u = UserAuth::authedUser($req);
+        if (!is_array($u)) return false;
+        $plan = strtolower(trim((string)($u['plan'] ?? '')));
+        if ($plan === 'admin') return null;                       // 전역
+        if ($plan === 'enterprise') {
+            $t = trim((string)($u['tenant_id'] ?? ''));
+            return $t !== '' ? $t : false;                        // 자기 테넌트만
+        }
+        return false;                                            // pro 이하 = 감사 익스포트 불가
     }
 
     /** ArcSight CEF 1행 직렬화(SIEM 표준). risk→severity 매핑. */
@@ -237,16 +268,21 @@ final class Compliance
      */
     public static function auditExport(Request $req, Response $res): Response
     {
-        // [현 차수 감사 GAP-1] 전 테넌트 감사로그 교차유출 차단 — collectAuditEvents 가 tenant 조건 없이
-        //   auth/security/audit 로그를 통합 반환하므로 반드시 관리자 전용(형제 siemPush 와 정합).
-        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
+        // [현 차수 감사 GAP-1] 전 테넌트 감사로그 교차유출 차단.
+        // [283차] admin=전역(종전 그대로) · enterprise=자기 테넌트만(신규). pro 이하는 403.
+        //   종전엔 admin 전용이라 enterprise 고객이 **자기 감사증적조차 내보낼 수 없었다**(SOC2 심사 대응 불가).
+        if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        $scope = self::auditScope($req);
+        if ($scope === false) {
+            return self::json($res, ['ok' => false, 'error' => '감사 증적 내보내기 권한이 없습니다.', 'code' => 'PLAN_REQUIRED'], 403);
+        }
         $q = $req->getQueryParams();
         $days = max(1, min(365, (int)($q['window'] ?? 30)));
         // [282차 R3] LEEF(QRadar)·Syslog(RFC5424) 형식 추가.
         $format = in_array(($q['format'] ?? 'json'), ['json', 'ndjson', 'cef', 'leef', 'syslog'], true) ? (string)$q['format'] : 'json';
         $limit = 5000;
         $events = [];
-        try { $events = self::collectAuditEvents(Db::pdo(), $days, $limit); } catch (\Throwable $e) { /* graceful */ }
+        try { $events = self::collectAuditEvents(Db::pdo(), $days, $limit, $scope); } catch (\Throwable $e) { /* graceful */ }
         if ($format === 'ndjson') {
             $res->getBody()->write(self::serializeEvents($events, 'ndjson'));
             return $res->withHeader('Content-Type', 'application/x-ndjson')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.ndjson"');
@@ -256,12 +292,24 @@ final class Compliance
             $res->getBody()->write(self::serializeEvents($events, $format));
             return $res->withHeader('Content-Type', 'text/plain; charset=utf-8')->withHeader('Content-Disposition', 'attachment; filename="genie_audit.' . $ext . '"');
         }
-        return self::json($res, ['ok' => true, 'window_days' => $days, 'format' => 'json', 'count' => count($events), 'capped_at' => $limit, 'events' => $events]);
+        return self::json($res, ['ok' => true, 'window_days' => $days, 'format' => 'json',
+            'scope' => ($scope === null ? 'global' : 'tenant'), 'count' => count($events), 'capped_at' => $limit, 'events' => $events]);
     }
 
-    /** SIEM 대상 설정 로드(app_setting siem_config). */
-    private static function siemCfg(\PDO $pdo): array
+    /**
+     * SIEM 대상 설정 로드.
+     * [283차] $tenant 지정 시 **테넌트 설정(tenant_security_policy.siem_config) 우선**, 없으면 전역
+     *   (app_setting siem_config)으로 폴백. $tenant=null 호출은 종전과 완전히 동일(무회귀).
+     */
+    private static function siemCfg(\PDO $pdo, ?string $tenant = null): array
     {
+        if ($tenant !== null && $tenant !== '') {
+            try {
+                $tp = UserAuth::tenantPolicy($pdo, $tenant);
+                $v = (string)($tp['siem_config'] ?? '');
+                if ($v !== '') { $d = json_decode($v, true); if (is_array($d)) return $d; }
+            } catch (\Throwable $e) {}
+        }
         try {
             $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='siem_config' LIMIT 1");
             $st->execute(); $v = $st->fetchColumn();
@@ -276,7 +324,11 @@ final class Compliance
         $pdo = Db::pdo();
         $method = strtoupper($req->getMethod());
         if ($method === 'PUT') {
-            if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
+            // [283차] enterprise 이상. admin=전역(종전) · enterprise=자기 테넌트 SIEM(신규).
+            //   종전엔 admin 전용 단일 전역설정이라 **고객이 자기 SIEM 으로 스트리밍할 수 없었다**.
+            if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+            $scope = self::auditScope($req);
+            if ($scope === false) return self::json($res, ['ok' => false, 'error' => 'forbidden'], 403);
             $b = (array)($req->getParsedBody() ?? []);
             if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
             $endpoint = trim((string)($b['endpoint'] ?? ''));
@@ -287,7 +339,9 @@ final class Compliance
             if ($endpoint !== '' && !self::isSafeSiemUrl($endpoint)) {
                 return self::json($res, ['ok' => false, 'error' => 'SIEM 엔드포인트가 허용되지 않는 주소(사설/내부/메타데이터 IP)입니다.'], 422);
             }
-            $cur = self::siemCfg($pdo);
+            // [283차] 마스킹 토큰('••••') 보존은 **저장할 스코프와 같은 설정**에서 읽어야 한다.
+            //   전역 설정을 읽어 테넌트에 쓰면 남의 토큰이 테넌트 설정으로 복제된다.
+            $cur = self::siemCfg($pdo, $scope);
             $rawTok = (string)($b['token'] ?? '');
             $tok = ($rawTok === '' || strpos($rawTok, '•') !== false) ? (string)($cur['token'] ?? '') : \Genie\Crypto::encrypt($rawTok);
             $cfg = [
@@ -301,20 +355,33 @@ final class Compliance
                 'realtime' => array_key_exists('realtime', $b) ? (!empty($b['realtime']) ? 1 : 0) : (int)($cur['realtime'] ?? 0),
                 'realtime_min_severity' => in_array(($b['realtime_min_severity'] ?? ($cur['realtime_min_severity'] ?? 'high')), ['medium', 'high'], true) ? (string)($b['realtime_min_severity'] ?? ($cur['realtime_min_severity'] ?? 'high')) : 'high',
             ];
-            try {
-                $now = gmdate('c'); $json = json_encode($cfg);
-                $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
-                $sql = $isMy
-                    ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
-                    : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
-                $pdo->prepare($sql)->execute([$json, $now]);
-            } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
-            try { UserAuth::logAudit($req, 'siem_config_update', 'endpoint=' . $endpoint . ' enabled=' . $cfg['enabled'], 'medium'); } catch (\Throwable $e) {}
-            return self::json($res, ['ok' => true, 'configured' => $endpoint !== '', 'enabled' => $cfg['enabled']]);
+            $json = json_encode($cfg);
+            if ($scope === null) {
+                // 전역(최고관리자) — 기존 코드 경로 그대로.
+                try {
+                    $now = gmdate('c');
+                    $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+                    $sql = $isMy
+                        ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                        : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('siem_config',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                    $pdo->prepare($sql)->execute([$json, $now]);
+                } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
+            } else {
+                // 테넌트 스코프(enterprise 고객) — sso_config 와 동일한 테넌트 격리 저장소.
+                if (!UserAuth::setTenantPolicy($pdo, (string)$scope, 'siem_config', $json)) {
+                    return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500);
+                }
+            }
+            try { UserAuth::logAudit($req, 'siem_config_update', 'scope=' . ($scope === null ? 'global' : 'tenant') . ' endpoint=' . $endpoint . ' enabled=' . $cfg['enabled'], 'medium'); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'scope' => ($scope === null ? 'global' : 'tenant'), 'configured' => $endpoint !== '', 'enabled' => $cfg['enabled']]);
         }
         if ($err = UserAuth::requirePro($req, $res)) return $err;
-        $c = self::siemCfg($pdo);
-        return self::json($res, ['ok' => true, 'config' => [
+        // [283차] 조회도 스코프 반영 — enterprise 는 자기 테넌트 설정을(없으면 전역 폴백), admin 은 전역을 본다.
+        //   auditScope()가 false(pro 이하)면 전역 조회(종전 동작 유지 — GET 은 원래 requirePro 였다).
+        $gScope = self::auditScope($req);
+        $c = self::siemCfg($pdo, ($gScope === false || $gScope === null) ? null : (string)$gScope);
+        return self::json($res, ['ok' => true, 'scope' => (is_string($gScope) && $gScope !== '') ? 'tenant' : 'global',
+            'can_edit' => ($gScope !== false), 'config' => [
             'endpoint' => $c['endpoint'] ?? '', 'token' => (!empty($c['token']) ? '••••••••' : ''),
             'format' => $c['format'] ?? 'ndjson', 'enabled' => (int)($c['enabled'] ?? 0),
             // [282차 R3] 실시간 포워딩 상태 노출 — UI 가 표시/보존할 수 있도록(종전 미노출로 항상 0 취급됐음).
@@ -358,7 +425,11 @@ final class Compliance
         try {
             $rank = ['low' => 1, 'medium' => 2, 'high' => 3];
             $sev = (string)($event['risk'] ?? $event['severity'] ?? 'low');
-            $cfg = self::siemCfg(Db::pdo());
+            // [283차] 이벤트에 테넌트가 실려 있으면 **그 테넌트의 SIEM 설정**으로 포워딩한다(없으면 전역 폴백).
+            //   → enterprise 고객이 자기 보안이벤트를 자기 SIEM 으로 실시간 수신할 수 있게 되는 지점.
+            //   테넌트 미상 이벤트는 종전대로 전역 설정을 따른다(무회귀).
+            $evTenant = trim((string)($event['tenant'] ?? ''));
+            $cfg = self::siemCfg(Db::pdo(), $evTenant !== '' ? $evTenant : null);
             if (empty($cfg['enabled']) || empty($cfg['realtime']) || empty($cfg['endpoint'])) return;
             $minSev = (string)($cfg['realtime_min_severity'] ?? 'high');
             if (($rank[$sev] ?? 1) < ($rank[$minSev] ?? 3)) return;
@@ -384,16 +455,20 @@ final class Compliance
 
     public static function siemPush(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePlan($req, $res, 'admin')) return $err;
+        // [283차] admin=전역 설정·전역 이벤트(종전) · enterprise=자기 SIEM·자기 테넌트 이벤트(신규).
+        if ($err = UserAuth::requirePlan($req, $res, 'enterprise')) return $err;
+        $scope = self::auditScope($req);
+        if ($scope === false) return self::json($res, ['ok' => false, 'error' => 'forbidden'], 403);
         $pdo = Db::pdo();
-        $cfg = self::siemCfg($pdo);
+        $cfg = self::siemCfg($pdo, $scope);
         $endpoint = (string)($cfg['endpoint'] ?? '');
         if ($endpoint === '' || empty($cfg['enabled'])) {
             return self::json($res, ['ok' => false, 'error' => 'SIEM 대상이 설정/활성화되지 않았습니다.'], 422);
         }
         if (!preg_match('#^https://#i', $endpoint) || !self::isSafeSiemUrl($endpoint)) return self::json($res, ['ok' => false, 'error' => 'bad_endpoint'], 422);   // [280차 P2] SSRF
         $days = max(1, min(30, (int)($req->getQueryParams()['window'] ?? 1)));
-        $events = self::collectAuditEvents($pdo, $days, 2000);
+        // ★테넌트 스코프 푸시는 자기 테넌트 이벤트만 전송한다(타 테넌트 감사로그가 고객 SIEM 으로 흘러가면 유출).
+        $events = self::collectAuditEvents($pdo, $days, 2000, $scope);
         if (!$events) return self::json($res, ['ok' => true, 'sent' => 0, 'note' => '내보낼 이벤트가 없습니다.']);
         $fmt = (string)($cfg['format'] ?? 'ndjson');
         $token = (string)($cfg['token'] ?? '');

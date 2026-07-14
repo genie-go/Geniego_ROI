@@ -251,6 +251,13 @@ function AIRecommendTab() {
     const [executing, setExecuting] = useState({});
     const [executed, setExecuted] = useState({});
     const [execNote, setExecNote] = useState(''); // [현 차수] 실 집행 결과 안내(가짜 집행 제거)
+    // [283차 P0-1] ★광고 랜딩 URL — 이 경로도 landing_url 미전송이라 백엔드 어댑터의 벤더 기본값(genieroi.com)이
+    //   광고 목적지로 실렸다. activate:false(PAUSED)라 즉시 지출은 없었지만, /auto-marketing 에서 활성화하는 순간
+    //   잘못된 목적지로 라이브가 됐다. 이제 백엔드가 fail-closed 이므로 여기서 반드시 받아 전송한다.
+    const [landingUrl, setLandingUrl] = useState('');
+    // [283차 P0-2] ★저장 광고 소재(ad_design) — design_ids 미전송 시 loadDesign 기본값('GenieGo')이 광고 카피로 게재된다.
+    //   이 화면의 creatives 는 AI 생성 미리보기(비영속)라 매체 소재로 쓸 수 없다 → 저장된 소재 목록을 실어 보낸다.
+    const [savedDesigns, setSavedDesigns] = useState([]);
     const [activeTab, setActiveTab] = useState('channels');
     const [customReq, setCustomReq] = useState({});
     const [searchQ, setSearchQ] = useState('');
@@ -435,8 +442,30 @@ function AIRecommendTab() {
         tiktok: 'tiktok', kakao: 'kakao_moment', kakao_moment: 'kakao_moment',
         line: 'line', line_ads: 'line',
     };
+    // [283차 P0-2] 저장된 광고 소재(ad_design) 로드 — 집행 페이로드의 design_ids 소스. 미보유 시 집행 차단.
+    useEffect(() => {
+        let alive = true;
+        (async () => {
+            try {
+                const tok = localStorage.getItem('genie_token') || localStorage.getItem('demo_genie_token') || '';
+                if (!tok) return;
+                const r = await fetch(`${API}/v422/ai/ad-design/list`, { headers: { Authorization: `Bearer ${tok}` } });
+                const d = await r.json().catch(() => ({}));
+                const list = (d && (d.designs || d.items)) || [];
+                if (alive && Array.isArray(list)) setSavedDesigns(list);
+            } catch (_) { /* 미로그인/네트워크 — 집행 시 안내 */ }
+        })();
+        return () => { alive = false; };
+    }, []);
+
     const handleExecute = async (ch) => {
         const cid = ch.channel_id;
+        // [283차 P0-1] ★랜딩 URL 필수 — 없으면 광고 목적지가 없어 백엔드가 fail-closed 로 광고를 만들지 않는다(사전 차단·안내).
+        const land = (landingUrl || '').trim();
+        if (!land) { setExecNote('⚠️ 광고 랜딩 URL을 먼저 입력하세요 — 광고 클릭 시 이동할 내 사이트/상품 페이지 주소입니다. (미입력 시 광고가 생성되지 않습니다)'); return; }
+        // [283차 P0-2] ★소재 필수 — 소재 없이 집행하면 광고 카피가 기본값('GenieGo')으로 게재된다.
+        const designIds = savedDesigns.map(d => d.id).filter(Boolean);
+        if (!designIds.length) { setExecNote('⚠️ 저장된 광고 소재가 없습니다 — [마케팅 자동화 → 크리에이티브 스튜디오]에서 소재를 생성·적용한 뒤 집행하세요. (소재 없이 집행하면 기본 카피로 게재됩니다)'); return; }
         setExecuting(prev => ({ ...prev, [cid]: true }));
         setExecNote('');
         try {
@@ -459,6 +488,8 @@ function AIRecommendTab() {
                     allocations: [{ channel: adKey, alloc: perBudget, roas }],
                     est_roas: String(roas || ''),
                     activate: false, // 안전 생성(휴먼-인-루프) — 활성화는 /auto-marketing 게이트에서
+                    landing_url: land,     // [283차 P0-1] 광고 클릭 목적지(미전송 시 벤더 사이트로 랜딩되던 결함 해소)
+                    design_ids: designIds, // [283차 P0-2] 저장 소재 — 미전송 시 기본 카피('GenieGo')로 게재되던 결함 해소
                 }),
             });
             const ld = await r.json().catch(() => ({}));
@@ -618,6 +649,26 @@ function AIRecommendTab() {
             {status === 'error' && (
                 <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', fontSize: 12 }}>
                     ❌ {result?.error}
+                </div>
+            )}
+
+            {/* [283차 P0-1·P0-2] 실 집행 전제조건 — 랜딩 URL(광고 클릭 목적지) + 저장 소재. 둘 다 없으면 집행 차단. */}
+            {status === 'done' && result && (
+                <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6 }}>
+                        🔗 {t('gAiRec.landingLabel', '광고 랜딩 URL')} <span style={{ color: '#dc2626' }}>*</span>
+                    </div>
+                    <input type="url" value={landingUrl} onChange={e => setLandingUrl(e.target.value)}
+                        placeholder={t('gAiRec.landingPh', 'https://내쇼핑몰.com/products/best')}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 12, boxSizing: 'border-box', background: 'var(--bg-2, #f8fafc)', color: 'var(--text-1)', border: `1px solid ${(landingUrl || '').trim() ? 'rgba(120,140,200,0.25)' : 'rgba(239,68,68,0.45)'}` }} />
+                    <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 5, lineHeight: 1.5 }}>
+                        {t('gAiRec.landingDesc', '광고를 클릭한 고객이 이동할 내 사이트/상품 페이지 주소입니다. 미입력 시 광고가 생성되지 않습니다(잘못된 목적지로 광고비가 나가는 것을 차단).')}
+                    </div>
+                    {savedDesigns.length === 0 && (
+                        <div style={{ marginTop: 8, fontSize: 10.5, fontWeight: 700, color: '#b45309', lineHeight: 1.5 }}>
+                            ⚠️ {t('gAiRec.noDesigns', '저장된 광고 소재가 없습니다 — [마케팅 자동화 → 크리에이티브 스튜디오]에서 소재를 만들어야 집행할 수 있습니다(소재 없이는 기본 카피로 게재됨).')}
+                        </div>
+                    )}
                 </div>
             )}
 

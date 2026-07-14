@@ -246,6 +246,16 @@ function TemplatesTab() {
     );
 }
 
+/* [283차 P0] 캠페인 토픽(콘텐츠 카테고리) — 백엔드 PreferenceCenter::TOPICS 가 SSOT(promo/newsletter/product/event).
+ *   수신자가 공개 선호센터에서 특정 주제를 끄면 그 주제의 캠페인은 발송되지 않는다(CRM::isMarketingSendAllowed 토픽 게이트).
+ *   'transactional'(주문·배송·결제 등 거래성)은 억제 대상이 아니라 목록에 없다 = 항상 발송. */
+const CAMPAIGN_TOPICS = [
+    { id:'promo',      icon:'🏷️', ko:'프로모션·할인' },
+    { id:'newsletter', icon:'📰', ko:'뉴스레터·소식' },
+    { id:'product',    icon:'✨', ko:'신상품·업데이트' },
+    { id:'event',      icon:'🎪', ko:'이벤트·웨비나' },
+];
+
 /* Campaigns Tab */
 function CampaignsTab() {
     const {t}=useI18n();
@@ -257,7 +267,8 @@ function CampaignsTab() {
     const emailCampaignsLinked = isDemo ? gdCampaigns : opCampaigns;
     const emailTemplates = isDemo ? gdTemplates : opTemplates;
     const crmSegments = isDemo ? gdSegments : opSegments;
-    const [form,setForm]=useState({name:"",template_id:"",segment_id:"",subject_b:"",ab_test:false});
+    // [283차 P0/P1] topic(콘텐츠 카테고리 — 선호센터 토픽 옵트아웃 강제) · sto_opt_in(개인별 예측 발송시각).
+    const [form,setForm]=useState({name:"",template_id:"",segment_id:"",subject_b:"",ab_test:false,topic:"",sto_opt_in:false});
     const [sending,setSending]=useState(null);
     const [msg,setMsg]=useState("");
     const [abModal,setAbModal]=useState(null); // [현 차수] A/B 결과 모달 대상 캠페인
@@ -296,7 +307,8 @@ function CampaignsTab() {
                 status:"draft",total_sent:computeTargetSize(form.segment_id),opened:0,clicked:0,failed:0,at:new Date().toISOString()};
             addEmailCampaign(nc);
         } else {
-            try{ await emailApi.createCampaign({name:sanitizeInput(form.name),template_id:form.template_id?Number(form.template_id):0,segment_id:form.segment_id?Number(form.segment_id):0,subject_b:subjectB,ab_test:abOn}); await reloadCampaigns(); }
+            // [283차 P0/P1] topic(토픽 옵트아웃 강제) · sto_opt_in(개인 최적시각 발송) 동봉.
+            try{ await emailApi.createCampaign({name:sanitizeInput(form.name),template_id:form.template_id?Number(form.template_id):0,segment_id:form.segment_id?Number(form.segment_id):0,subject_b:subjectB,ab_test:abOn,topic:form.topic||"",sto_opt_in:form.sto_opt_in?1:0}); await reloadCampaigns(); }
             catch(e){ addAlert({type:'error',msg:'캠페인 생성 실패: '+(e?.message||'')}); return; }
         }
         setMsg(t('email.msgCampDone', 'Campaign created!'));setForm({name:"",template_id:"",segment_id:"",subject_b:"",ab_test:false});setTimeout(()=>setMsg(""),3000);
@@ -418,6 +430,47 @@ function CampaignsTab() {
                             <div style={{ fontSize:10.5, color:'#9ca3af', marginTop:6 }}>{t('email.abSubjectBNote', "Variant A uses the template's subject. Leave empty to disable A/B.")}</div>
                         </div>
                     )}
+                </div>
+                {/* [283차 P0] 콘텐츠 주제(토픽) — 선택 시 수신자의 선호센터 주제별 수신거부가 발송 직전 강제된다.
+                    미선택(주제 없음)은 기존과 동일하게 토픽 게이트 미적용. 거래성 알림은 애초에 이 캠페인 경로가 아니다. */}
+                <div style={{ marginTop:14, padding:"14px 16px", borderRadius:12, background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.16)' }}>
+                    <div style={{ fontWeight:700, fontSize:13, color:'#1d4ed8', marginBottom:4 }}>🗂️ {t('email.topicTitle', '콘텐츠 주제(수신거부 강제)')}</div>
+                    <div style={{ fontSize:11, color:'#6b7280', marginBottom:10 }}>{t('email.topicHint', '주제를 지정하면 해당 주제를 수신거부한 고객에게는 발송되지 않습니다(선호센터 연동).')}</div>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <button type="button" onClick={()=>setForm(f=>({...f,topic:""}))}
+                            style={{ padding:"7px 13px", borderRadius:9, cursor:"pointer", fontSize:12, fontWeight:700,
+                                border: form.topic===""?'2px solid #64748b':'1px solid #e2e8f0',
+                                background: form.topic===""?'rgba(100,116,139,0.10)':'#f8fafc', color: form.topic===""?'#475569':'#94a3b8' }}>
+                            {t('email.topicNone', '주제 없음')}
+                        </button>
+                        {CAMPAIGN_TOPICS.map(tp=>{ const sel=form.topic===tp.id; return (
+                            <button key={tp.id} type="button" onClick={()=>setForm(f=>({...f,topic:sel?"":tp.id}))}
+                                style={{ padding:"7px 13px", borderRadius:9, cursor:"pointer", fontSize:12, fontWeight:700,
+                                    border: sel?'2px solid #2563eb':'1px solid #e2e8f0',
+                                    background: sel?'rgba(37,99,235,0.10)':'#f8fafc', color: sel?'#1d4ed8':'#64748b' }}>
+                                {tp.icon} {t('email.topic_'+tp.id, tp.ko)}
+                            </button>
+                        );})}
+                    </div>
+                    {/* [283차 P0] 안전 기본값 '제안'(강제 아님) — 미지정 캠페인은 기존처럼 토픽 게이트 없이 발송되므로,
+                        프로모션성 캠페인에는 promo 지정을 권고한다(수신거부 미준수 = 법적 리스크). */}
+                    {form.topic==="" && (
+                        <div style={{ marginTop:10, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", fontSize:11, color:'#b45309' }}>
+                            <span>⚠️ {t('email.topicSuggest', '주제 미지정 캠페인은 주제별 수신거부가 적용되지 않습니다. 할인·프로모션 발송이라면 「프로모션·할인」을 지정하세요.')}</span>
+                            <button type="button" onClick={()=>setForm(f=>({...f,topic:'promo'}))}
+                                style={{ padding:"4px 10px", borderRadius:7, border:'1px solid rgba(180,83,9,0.35)', background:'rgba(251,191,36,0.12)', color:'#b45309', fontSize:11, fontWeight:800, cursor:"pointer" }}>
+                                {t('email.topicSuggestApply', '프로모션으로 지정')}
+                            </button>
+                        </div>
+                    )}
+                </div>
+                {/* [283차 P1] STO(개인별 예측 발송시각) — ON 시 수신자별 과거 참여 최빈시각에 큐잉 발송(cron 드레인). 기본 OFF=즉시발송. */}
+                <div style={{ marginTop:12, padding:"14px 16px", borderRadius:12, background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.16)' }}>
+                    <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", userSelect:"none" }}>
+                        <input type="checkbox" checked={!!form.sto_opt_in} onChange={e=>setForm(f=>({...f,sto_opt_in:e.target.checked}))} style={{ width:16, height:16, accentColor:C.green, cursor:"pointer" }}/>
+                        <span style={{ fontWeight:700, fontSize:13, color:'#15803d' }}>⏰ {t('email.stoEnable', '개인별 최적 발송시간(STO)')}</span>
+                        <span style={{ fontSize:11, color:'#6b7280' }}>{t('email.stoHint', '수신자별 과거 오픈·클릭 최빈 시각에 맞춰 자동 예약 발송(즉시발송 대신 큐 적재)')}</span>
+                    </label>
                 </div>
                 {msg && <div style={{ marginTop:12, fontSize:12, color:C.green, fontWeight:600 }}>✅ {msg}</div>}
                 <button onClick={create} disabled={!form.name} style={{ ...BTN, marginTop:16, opacity:!form.name?0.5:1, background:C.accent }}>

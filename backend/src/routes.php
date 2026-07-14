@@ -233,6 +233,15 @@ return function (App $app): void {
         'POST /wms/waves'                      => 'Genie\\Handlers\\Wms::createWave',
         'POST /wms/waves/{id}/confirm'         => 'Genie\\Handlers\\Wms::confirmWave',
         'DELETE /wms/waves/{id}'               => 'Genie\\Handlers\\Wms::deleteWave',
+        // [283차] 커머스 outbound 루프 — 재고 델타 채널푸시 정책 / 초과판매 원장 / 채널 발송처리(송장전송).
+        //   ★루프 자체는 기존 라우트(POST /wms/movements · PUT /wms/picking/{id} · POST /v427/logistics/track)와
+        //     cron 으로 이미 닫힌다. 아래는 운영/관측 API(정책 설정·초과판매 조회·발송처리 큐).
+        'GET /wms/stock-policy'                => 'Genie\\Handlers\\Wms::listStockPolicy',
+        'POST /wms/stock-policy'               => 'Genie\\Handlers\\Wms::saveStockPolicy',
+        'GET /wms/oversell'                    => 'Genie\\Handlers\\Wms::listOversell',
+        'GET /wms/shipments'                   => 'Genie\\Handlers\\Wms::listShipmentJobs',
+        'POST /wms/shipments'                  => 'Genie\\Handlers\\Wms::createShipment',
+        'POST /wms/shipments/process'          => 'Genie\\Handlers\\Wms::processShipments',
         // 212차 #3: 매입처(suppliers) registry
         // [현 차수] CCTV — 창고/사용자지정 장소 카메라 자격등록 + 원격 실시간 조회.
         //   자격증명은 Crypto(AES-256-GCM) 저장, 재생은 서버 중계(브라우저로 평문 미노출).
@@ -1080,6 +1089,18 @@ return function (App $app): void {
         'PUT /api/v424/compliance/siem'      => 'Genie\\Handlers\\Compliance::siemConfig',
         'POST /v424/compliance/siem/push'    => 'Genie\\Handlers\\Compliance::siemPush',
         'POST /api/v424/compliance/siem/push' => 'Genie\\Handlers\\Compliance::siemPush',
+        // [283차] DSAR(정보주체 요청) — 열람/삭제/이동권. Privacy.jsx 가 약속만 하고 코드가 없던 법적 노출 해소.
+        //   ★/dsar/verify 는 정보주체(비로그인)가 이메일 링크로 접근 → index.php public bypass 필요(토큰이 인증 수행).
+        'POST /v424/dsar/requests'           => 'Genie\\Handlers\\Dsar::create',
+        'POST /api/v424/dsar/requests'       => 'Genie\\Handlers\\Dsar::create',
+        'GET /v424/dsar/requests'            => 'Genie\\Handlers\\Dsar::listRequests',
+        'GET /api/v424/dsar/requests'        => 'Genie\\Handlers\\Dsar::listRequests',
+        'GET /v424/dsar/verify'              => 'Genie\\Handlers\\Dsar::verify',
+        'GET /api/v424/dsar/verify'          => 'Genie\\Handlers\\Dsar::verify',
+        'GET /v424/dsar/requests/{id}/export'     => 'Genie\\Handlers\\Dsar::export',
+        'GET /api/v424/dsar/requests/{id}/export' => 'Genie\\Handlers\\Dsar::export',
+        'POST /v424/dsar/requests/{id}/execute'     => 'Genie\\Handlers\\Dsar::execute',
+        'POST /api/v424/dsar/requests/{id}/execute' => 'Genie\\Handlers\\Dsar::execute',
         // [R-P3-8] 온사이트 CRO 실험 — assign/convert 공개 비콘(세션불요·index.php bypass), CRUD/results 인증.
         'GET /v424/cro/assign'               => 'Genie\\Handlers\\Onsite::assign',
         'GET /api/v424/cro/assign'           => 'Genie\\Handlers\\Onsite::assign',
@@ -3045,6 +3066,14 @@ return function (App $app): void {
     $register('POST',   '/wms/waves');
     $register('POST',   '/wms/waves/{id}/confirm');
     $register('DELETE', '/wms/waves/{id}');
+    // [283차] 커머스 outbound — 재고 채널푸시 정책 / 초과판매 원장 / 채널 발송처리(송장전송) 큐.
+    //   ★$custom 맵 등록만으로는 라우트가 살지 않는다($register 미호출 = inert). 205차 트랩 정본.
+    $register('GET',    '/wms/stock-policy');
+    $register('POST',   '/wms/stock-policy');
+    $register('GET',    '/wms/oversell');
+    $register('GET',    '/wms/shipments');
+    $register('POST',   '/wms/shipments');
+    $register('POST',   '/wms/shipments/process');
     // [현 차수] CCTV — 자격등록 + 원격 실시간 조회. 미디어 경로는 재생토큰(?tk=) 인가.
     $register('GET',    '/wms/cctv/vendors');
     $register('GET',    '/wms/cameras');
@@ -3452,6 +3481,12 @@ return function (App $app): void {
     $register('GET',  '/v424/compliance/siem'); $register('GET', '/api/v424/compliance/siem');
     $register('PUT',  '/v424/compliance/siem'); $register('PUT', '/api/v424/compliance/siem');
     $register('POST', '/v424/compliance/siem/push'); $register('POST', '/api/v424/compliance/siem/push');
+    // [283차] DSAR — 라우트 맵 등록만으로는 부팅되지 않는다($register 동반 필수·프로젝트 함정).
+    $register('POST', '/v424/dsar/requests'); $register('POST', '/api/v424/dsar/requests');
+    $register('GET',  '/v424/dsar/requests'); $register('GET',  '/api/v424/dsar/requests');
+    $register('GET',  '/v424/dsar/verify');   $register('GET',  '/api/v424/dsar/verify');
+    $register('GET',  '/v424/dsar/requests/{id}/export');  $register('GET',  '/api/v424/dsar/requests/{id}/export');
+    $register('POST', '/v424/dsar/requests/{id}/execute'); $register('POST', '/api/v424/dsar/requests/{id}/execute');
     $register('GET',  '/v424/cro/assign'); $register('GET', '/api/v424/cro/assign');
     $register('POST', '/v424/cro/convert'); $register('POST', '/api/v424/cro/convert');
     $register('GET',  '/v424/cro/experiments'); $register('GET', '/api/v424/cro/experiments');

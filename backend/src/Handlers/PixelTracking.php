@@ -258,6 +258,33 @@ class PixelTracking
         if ($inserted) {
             if ($sessionId) { self::updateSession($pdo, $tenant, $sessionId, $pixelId, $effEvent, $effValue, $b); }
             if ($trusted && $eventName === 'purchase' && $emailHash) { self::syncToCRM($pdo, $tenant, $eventName, $effValue, $eventId, (string)($b['email'] ?? '')); }
+
+            // [283차 P1] ★크로스디바이스 아이덴티티 그래프 배선 — "부재"가 아니라 "미배선"이었다.
+            //   Attribution::linkIdentity/recordDeviceSigAndStitch 는 구현돼 있으나 유일한 호출부가
+            //   POST /v419/attribution/touch 였고, 픽셀(=실질 유일한 터치 수집 경로)도 프론트도 그 엔드포인트를
+            //   호출하지 않았다 → attribution_identity_link 가 영구 0행.
+            //   실피해 ① identityCoverage 가 항상 0(대시보드 cross-device 카드 영구 0)
+            //          ② bridgeToAttribution 의 order_id 백필이 동일 session_id 한정 → "모바일 광고클릭 →
+            //             데스크톱 구매" 여정의 상단 터치가 통째로 소실(유료채널 크레딧 과소·direct 과대).
+            //   collect 는 이미 $b['email']/$b['phone'] 원문을 보유하므로(pixel.js 가 전송) 여기서 결정론 링크를
+            //   맺는 것이 정문이다. ★PII 미저장(Attribution::identityHash = SHA-256 절단 해시).
+            //   ★반드시 bridgeToAttribution 앞 — 구매 비콘이 email 을 함께 실어오는 경우(일반적)에
+            //     그 구매의 백필이 방금 맺은 링크를 즉시 사용할 수 있어야 한다.
+            //   신뢰 게이트($trusted)는 syncToCRM/bridgeToAttribution 와 동일한 fail-closed 모델을 따른다
+            //   (위조 비콘이 임의 email 로 타인 세션을 아이덴티티에 묶는 그래프 오염 차단).
+            if ($trusted && $sessionId) {
+                try {
+                    $idH = Attribution::identityHash(
+                        isset($b['email']) ? (string)$b['email'] : null,
+                        isset($b['phone']) ? (string)$b['phone'] : null
+                    );
+                    if ($idH !== null) Attribution::linkIdentity($pdo, $tenant, $idH, $sessionId);
+                    // 확률적 스티칭: 디바이스 시그니처(ip+ua 해시)는 항상 기록하되, 여정 조립 반영은
+                    //   테넌트 opt-in(app_setting attribution_prob_stitch@<t>)에서만 — sessionsForIdentity 가
+                    //   confidence 임계로 걸러낸다(기존 recordTouch 와 동일 규약, 기본 off = 회귀 0).
+                    Attribution::recordDeviceSigAndStitch($pdo, $tenant, $sessionId, (string)$ipRaw, (string)$ua);
+                } catch (\Throwable $e) { /* 아이덴티티 링크 실패는 픽셀 수집에 무영향(best-effort) */ }
+            }
             // [227차 Tier3] Pixel → attribution_touch 브릿지: 1st-party 멀티터치 데이터로 markov 엔진 활성화.
             //   기존엔 픽셀 이벤트가 attribution_touch 에 안 들어가 AttributionEngine(markov-removal-effect)이
             //   실 전환 여정 0 → 항상 빈 결과였다. 이제 마케팅 터치(utm_source 보유)와 구매 전환을 적재한다.
@@ -408,6 +435,35 @@ class PixelTracking
                 $pdo->prepare(
                     "UPDATE attribution_touch SET order_id=? WHERE tenant_id=? AND session_id=? AND (order_id IS NULL OR order_id='')"
                 )->execute([$orderId, $tenant, $sessionId]);
+
+                // [283차 P1] ★크로스디바이스 백필 — 위 UPDATE 는 동일 session_id 한정이라 "모바일에서 광고 클릭 →
+                //   데스크톱에서 구매" 여정의 상단 터치(모바일 세션)가 order_id 를 못 받아 loadJourneys 의 전환
+                //   여정(order_id 기준 조립)에서 통째로 누락됐다 = 유료채널 크레딧 과소·direct 과대.
+                //   이제 동일 아이덴티티에 링크된 전 세션(+오운드채널 own:<hash> 의사세션)의 미귀속 터치도 귀속한다.
+                //   · 30일 룩백 컷오프: 무관한 과거 터치(수개월 전 브라우징)의 무한 흡수를 차단.
+                //     Attribution::backfillOwnedTouches 의 기본 윈도우(30일)와 동일 규약 → 두 경로가 같은 결과.
+                //   · order_id 가 이미 있는 터치는 건드리지 않는다(다른 주문 크레딧 강탈 방지).
+                //   · 확률적 링크는 sessionsForIdentity($incProb) 로 테넌트 opt-in 시에만 포함(기본 off = 회귀 0).
+                $idH = Attribution::identityHash(
+                    isset($b['email']) ? (string)$b['email'] : null,
+                    isset($b['phone']) ? (string)$b['phone'] : null
+                );
+                if ($idH !== null) {
+                    $incProb = false;
+                    try {
+                        $g = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey=? LIMIT 1");
+                        $g->execute(['attribution_prob_stitch@' . $tenant]);
+                        $incProb = ((string)($g->fetchColumn() ?: '0')) === '1';
+                    } catch (\Throwable $e) {}
+                    $cutoff = gmdate('Y-m-d H:i:s', time() - 30 * 86400);
+                    $xup = $pdo->prepare(
+                        "UPDATE attribution_touch SET order_id=? WHERE tenant_id=? AND session_id=? AND (order_id IS NULL OR order_id='') AND touched_at >= ?"
+                    );
+                    foreach (Attribution::sessionsForIdentity($pdo, $tenant, $idH, $incProb) as $sess) {
+                        if ($sess === $sessionId) continue;   // 현재 세션은 위에서 이미 처리
+                        $xup->execute([$orderId, $tenant, $sess, $cutoff]);
+                    }
+                }
                 // attributed_channel = 마지막 마케팅 터치 채널(없으면 현재 채널/direct).
                 $attrCh = $channel ?? 'direct';
                 try {

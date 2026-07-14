@@ -26,7 +26,12 @@ class DataExport
     private const TYPES = ['http', 'google_sheets', 'bigquery', 'snowflake', 's3'];
     private const DATASETS = ['orders', 'ad_metrics', 'settlements', 'attribution', 'kpi_summary', 'web_analytics'];
     private const SECRET_KEYS = ['secret', 'service_account_json', 'private_key']; // 마스킹·암호화 대상
-    private const MAX_ROWS = 5000;     // 실행당 데이터셋 행 상한(페이로드 보호)
+    // [283차 P1] 종전 MAX_ROWS=5000 은 '실행당 전체 상한'이라 5,000행 초과분이 조용히 유실되면서도
+    //   rows_exported=5000 / status=ok 로 기록됐다(무경고 절삭). 이제 PAGE_ROWS 는 '한 페이지 크기'이고
+    //   runDestination 이 커서(OFFSET) 페이징으로 전량 내보낸다. MAX_EXPORT_ROWS 는 폭주 방지 안전 상한이며,
+    //   여기에 걸리면 truncated=true + 실제 처리건수를 반드시 반환/로깅한다(무음 절삭 금지).
+    private const PAGE_ROWS = 5000;         // 한 페이지(조회·전송 배치) 크기
+    private const MAX_EXPORT_ROWS = 200000; // 실행당 안전 상한 — 초과 시 truncated 로 정직 보고
     private const BQ_BATCH = 500;      // BigQuery insertAll 배치
     private const SHEET_BATCH = 1000;  // Sheets append 배치
 
@@ -274,14 +279,30 @@ class DataExport
             if (!in_array($ds, self::DATASETS, true)) continue;
             $start = self::now();
             try {
-                [$cols, $rows] = self::datasetRows($pdo, $tenant, $ds, $period);
-                $pushed = self::pushDataset($type, $cfg, $ds, $cols, $rows);
-                self::logRun($pdo, $tenant, $did, $ds, count($rows), $pushed['ok'] ? 'ok' : 'failed', (int)($pushed['code'] ?? 0), $pushed['error'] ?? null, $start);
-                $perDataset[$ds] = ['rows' => count($rows), 'ok' => $pushed['ok'], 'code' => $pushed['code'] ?? 0, 'error' => $pushed['error'] ?? null];
-                if (!$pushed['ok']) $okAll = false;
+                // [283차 P1] 커서(OFFSET) 페이징 — 5,000행 하드캡 무음 절삭 제거. 페이지 단위로 조회→전송을 반복해 전량 내보낸다.
+                $total = 0; $code = 0; $err = null; $truncated = false; $offset = 0;
+                while (true) {
+                    [$cols, $rows] = self::datasetRows($pdo, $tenant, $ds, $period, $offset, self::PAGE_ROWS);
+                    $n = count($rows);
+                    if ($n === 0) break;                       // 데이터 부재/마지막 페이지 — 정상 종료
+                    $pushed = self::pushDataset($type, $cfg, $ds, $cols, $rows);
+                    $code = (int)($pushed['code'] ?? 0);
+                    if (empty($pushed['ok'])) { $err = $pushed['error'] ?? ('http ' . $code); break; }
+                    $total += $n;
+                    if ($n < self::PAGE_ROWS) break;           // 마지막 페이지
+                    $offset += self::PAGE_ROWS;
+                    if ($offset >= self::MAX_EXPORT_ROWS) { $truncated = true; break; } // ★안전상한 — 정직 보고
+                }
+                // 절삭은 'ok' 로 위장하지 않는다. 실패=failed / 절삭=partial(사유 명시) / 정상=ok.
+                $status = $err !== null ? 'failed' : ($truncated ? 'partial' : 'ok');
+                $note = $err ?? ($truncated ? ('truncated at ' . $total . ' rows (safety cap ' . self::MAX_EXPORT_ROWS . ') — 남은 행은 다음 실행/기간축소로 내보내세요') : null);
+                self::logRun($pdo, $tenant, $did, $ds, $total, $status, $code, $note !== null ? substr($note, 0, 240) : null, $start);
+                $perDataset[$ds] = ['rows' => $total, 'ok' => $err === null, 'code' => $code, 'error' => $err, 'truncated' => $truncated];
+                if ($err !== null) $okAll = false;
             } catch (\Throwable $e) {
+                // ★SQL 실패·스키마 드리프트가 여기로 전파된다(종전엔 datasetRows 가 삼켜 'ok(0행)'로 위장).
                 self::logRun($pdo, $tenant, $did, $ds, 0, 'failed', 0, substr($e->getMessage(), 0, 240), $start);
-                $perDataset[$ds] = ['rows' => 0, 'ok' => false, 'error' => substr($e->getMessage(), 0, 240)];
+                $perDataset[$ds] = ['rows' => 0, 'ok' => false, 'error' => substr($e->getMessage(), 0, 240), 'truncated' => false];
                 $okAll = false;
             }
         }
@@ -304,50 +325,60 @@ class DataExport
         } catch (\Throwable $e) {}
     }
 
-    /** SSOT 데이터셋 직렬화 → [columns[], rows(assoc)[]]. 테넌트 격리·실패 시 빈셋(정직). */
-    private static function datasetRows(\PDO $pdo, string $tenant, string $ds, int $periodDays): array
+    /**
+     * SSOT 데이터셋 한 페이지 조회 → [columns[], rows(assoc)[]]. 테넌트 격리.
+     *
+     * [283차 P1] ★예외를 삼키지 않는다. 종전 `catch { return [[],[]]; }` 는 스키마 드리프트로 쿼리가 깨져도
+     *   빈셋을 돌려줬고 → pushDataset 이 204 'no rows' ok → logRun('ok') 로 기록돼 파이프라인 사망이
+     *   "정상(0행)"으로 위장됐다. 이제 예외는 상위(runDestination)로 전파되어 status='failed' 로 남는다.
+     *   즉 "데이터 부재(0행)"와 "파이프라인 사망"이 로그에서 반드시 구분된다.
+     */
+    private static function datasetRows(\PDO $pdo, string $tenant, string $ds, int $periodDays, int $offset = 0, int $limit = self::PAGE_ROWS): array
     {
         $since = gmdate('Y-m-d', time() - $periodDays * 86400);
-        $lim = self::MAX_ROWS;
-        try {
-            switch ($ds) {
-                case 'orders':
-                    $cols = ['channel', 'order_no', 'sku', 'product_name', 'qty', 'total_price', 'status', 'event_type', 'ordered_at'];
-                    $st = $pdo->prepare("SELECT channel, COALESCE(order_no,channel_order_id) AS order_no, sku, product_name, qty, total_price, status, event_type, ordered_at FROM channel_orders WHERE tenant_id=? AND ordered_at>=? ORDER BY ordered_at DESC LIMIT {$lim}");
-                    $st->execute([$tenant, $since]);
-                    return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
-                case 'ad_metrics':
-                    $cols = ['channel', 'campaign_ext_id', 'ad_ext_id', 'date', 'impressions', 'clicks', 'conversions', 'spend', 'revenue'];
-                    $st = $pdo->prepare("SELECT channel, campaign_ext_id, ad_ext_id, date, impressions, clicks, conversions, spend, revenue FROM performance_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim}");
-                    $st->execute([$tenant, $since]);
-                    return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
-                case 'settlements':
-                    $cols = ['period', 'channel', 'gross_sales', 'net_payout', 'platform_fee', 'ad_fee', 'coupon_discount', 'return_fee', 'orders_count', 'returns_count', 'updated_at'];
-                    $st = $pdo->prepare("SELECT period, channel, gross_sales, net_payout, platform_fee, ad_fee, coupon_discount, return_fee, orders_count, returns_count, updated_at FROM orderhub_settlements WHERE tenant_id=? ORDER BY period DESC LIMIT {$lim}");
-                    $st->execute([$tenant]);
-                    return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
-                case 'attribution':
-                    $st = $pdo->prepare("SELECT * FROM attribution_result WHERE tenant_id=? ORDER BY id DESC LIMIT {$lim}");
-                    $st->execute([$tenant]);
-                    $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-                    $cols = $rows ? array_keys($rows[0]) : ['order_id', 'channel', 'model'];
-                    return [$cols, $rows];
-                case 'kpi_summary':
-                    $s = Reports::generateKpiSummary($pdo, $tenant, $periodDays);
-                    return [array_keys($s), [$s]];
-                case 'web_analytics':
-                    $cols = ['source', 'date', 'channel_group', 'source_medium', 'sessions', 'users', 'new_users', 'page_views', 'conversions', 'revenue', 'engaged_sessions', 'avg_session_sec', 'bounce_rate', 'currency'];
-                    $st = $pdo->prepare("SELECT source, date, channel_group, source_medium, sessions, users, new_users, page_views, conversions, revenue, engaged_sessions, avg_session_sec, bounce_rate, currency FROM web_analytics_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim}");
-                    $st->execute([$tenant, $since]);
-                    return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
-            }
-        } catch (\Throwable $e) { return [[], []]; }
-        return [[], []];
+        $lim = max(1, (int)$limit);
+        $off = max(0, (int)$offset);
+        switch ($ds) {
+            case 'orders':
+                $cols = ['channel', 'order_no', 'sku', 'product_name', 'qty', 'total_price', 'status', 'event_type', 'ordered_at'];
+                $st = $pdo->prepare("SELECT channel, COALESCE(order_no,channel_order_id) AS order_no, sku, product_name, qty, total_price, status, event_type, ordered_at FROM channel_orders WHERE tenant_id=? AND ordered_at>=? ORDER BY ordered_at DESC LIMIT {$lim} OFFSET {$off}");
+                $st->execute([$tenant, $since]);
+                return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
+            case 'ad_metrics':
+                $cols = ['channel', 'campaign_ext_id', 'ad_ext_id', 'date', 'impressions', 'clicks', 'conversions', 'spend', 'revenue'];
+                $st = $pdo->prepare("SELECT channel, campaign_ext_id, ad_ext_id, date, impressions, clicks, conversions, spend, revenue FROM performance_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim} OFFSET {$off}");
+                $st->execute([$tenant, $since]);
+                return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
+            case 'settlements':
+                $cols = ['period', 'channel', 'gross_sales', 'net_payout', 'platform_fee', 'ad_fee', 'coupon_discount', 'return_fee', 'orders_count', 'returns_count', 'updated_at'];
+                $st = $pdo->prepare("SELECT period, channel, gross_sales, net_payout, platform_fee, ad_fee, coupon_discount, return_fee, orders_count, returns_count, updated_at FROM orderhub_settlements WHERE tenant_id=? ORDER BY period DESC LIMIT {$lim} OFFSET {$off}");
+                $st->execute([$tenant]);
+                return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
+            case 'attribution':
+                $st = $pdo->prepare("SELECT * FROM attribution_result WHERE tenant_id=? ORDER BY id DESC LIMIT {$lim} OFFSET {$off}");
+                $st->execute([$tenant]);
+                $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+                $cols = $rows ? array_keys($rows[0]) : ['order_id', 'channel', 'model'];
+                return [$cols, $rows];
+            case 'kpi_summary':
+                // 단일 행 데이터셋 — 2페이지 이후는 빈셋(페이징 루프 자연 종료).
+                if ($off > 0) return [[], []];
+                $s = Reports::generateKpiSummary($pdo, $tenant, $periodDays);
+                return [array_keys($s), [$s]];
+            case 'web_analytics':
+                $cols = ['source', 'date', 'channel_group', 'source_medium', 'sessions', 'users', 'new_users', 'page_views', 'conversions', 'revenue', 'engaged_sessions', 'avg_session_sec', 'bounce_rate', 'currency'];
+                $st = $pdo->prepare("SELECT source, date, channel_group, source_medium, sessions, users, new_users, page_views, conversions, revenue, engaged_sessions, avg_session_sec, bounce_rate, currency FROM web_analytics_metrics WHERE tenant_id=? AND date>=? ORDER BY date DESC LIMIT {$lim} OFFSET {$off}");
+                $st->execute([$tenant, $since]);
+                return [$cols, $st->fetchAll(\PDO::FETCH_ASSOC) ?: []];
+        }
+        throw new \InvalidArgumentException('unknown dataset: ' . $ds);
     }
 
     /** 대상 타입별 push 디스패치. */
     private static function pushDataset(string $type, array $cfg, string $ds, array $cols, array $rows): array
     {
+        // [283차 P1] 방어적 가드. runDestination 은 빈 페이지에서 이미 루프를 끊으므로 여기 도달하지 않는다.
+        //   (종전엔 datasetRows 가 SQL 실패를 빈셋으로 삼켜 이 경로가 '성공(0행)' 위장의 마지막 고리였다.)
         if (!$rows) return ['ok' => true, 'code' => 204, 'note' => 'no rows'];
         switch ($type) {
             case 'http':          return self::pushHttp($cfg, $ds, $cols, $rows);

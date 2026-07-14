@@ -4,9 +4,11 @@
  *
  *  - push-only SW(push-sw.js, fetch핸들러 부재=화이트스크린 트랩 회피)와 짝.
  *  - VAPID 키(공개/개인 PEM)는 admin 설정(app_setting webpush_vapid_*) 또는 env — 미설정 시 전 동작 graceful(무영향).
- *  - 발송은 payload-less(VAPID JWT ES256 인증만) → RFC8291 aes128gcm 암호화 불요(복잡성/오류위험 회피).
- *    SW push 핸들러가 일반 알림 표기(제목/본문은 향후 암호화 페이로드 라운드에서 확장).
- *  - 전부 테넌트 격리(구독은 tenant_id 스코프). PII 미저장(endpoint=익명 푸시 채널).
+ *  - [283차 P1] 발송은 **RFC8291 aes128gcm 암호화 페이로드**(제목·본문·딥링크 실적재). 종전 payload-less(Content-Length: 0)
+ *    구현은 push-sw.js 가 항상 폴백 문구("GeniegoROI / 새 알림이 도착했습니다")만 띄워 캠페인 내용이 0이었다.
+ *    암호화 실패(구키 누락/openssl 미지원 등) 시 기존 payload-less 로 graceful fallback(무회귀).
+ *  - [283차 P1] push_subscription.customer_id — 세그먼트/개인 타겟팅 + 크로스채널 빈도캡(push_sent) 근거.
+ *  - 전부 테넌트 격리(구독은 tenant_id 스코프). PII 미저장(endpoint=익명 푸시 채널·customer_id 는 내부 FK).
  */
 declare(strict_types=1);
 
@@ -32,8 +34,12 @@ final class WebPush
         return $t;
     }
 
+    /** [283차 성능] 프로세스당 1회 가드 — 발송 루프에서 DDL 재실행 회피(DDL 자체가 idempotent 라 동작 무변화). */
+    private static bool $tablesReady = false;
+
     private static function ensure(PDO $pdo): void
     {
+        if (self::$tablesReady) return;
         $isMy = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
         $AI = $isMy ? 'INT AUTO_INCREMENT PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
         try {
@@ -42,6 +48,12 @@ final class WebPush
                 ua VARCHAR(255), created_at VARCHAR(32)
             )");
             try { $pdo->exec("CREATE UNIQUE INDEX uq_push_ep ON push_subscription(endpoint)"); } catch (\Throwable $e) {}
+            // [283차 P1] customer_id — 구독을 CRM 고객에 결속(세그먼트/개인 타겟팅 + push_sent 빈도캡 근거).
+            //   종전 스키마엔 수신자 식별자가 전혀 없어 per-customer 옵트아웃/타겟팅이 구조적으로 불가능했다.
+            //   기본 0 = 미결속(익명 구독) → 기존 테넌트 브로드캐스트 동작 그대로(무회귀). 멱등 ALTER.
+            try { $pdo->exec("ALTER TABLE push_subscription ADD COLUMN customer_id INT DEFAULT 0"); } catch (\Throwable $e) {}
+            try { $pdo->exec("CREATE INDEX idx_push_cust ON push_subscription(tenant_id, customer_id)"); } catch (\Throwable $e) {}
+            self::$tablesReady = true;
         } catch (\Throwable $e) { /* graceful */ }
     }
 
@@ -63,7 +75,9 @@ final class WebPush
         } catch (\Throwable $e) { return self::json($res, ['ok' => true, 'enabled' => false, 'public_key' => '']); }
     }
 
-    /** POST /v426/push/subscribe — 브라우저 PushSubscription 저장(테넌트). body: {endpoint, keys:{p256dh,auth}}. */
+    /** POST /v426/push/subscribe — 브라우저 PushSubscription 저장(테넌트). body: {endpoint, keys:{p256dh,auth}, customer_id?}.
+     *  [283차 P1] customer_id(선택) — 전달 시 구독을 CRM 고객에 결속(세그먼트/개인 타겟팅·per-customer 옵트아웃 가능).
+     *    ★테넌트 소유 검증 필수(타 테넌트 고객 결속 차단). 미전달/미소유 = 0(익명 구독, 기존 동작). */
     public static function subscribe(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
@@ -75,14 +89,27 @@ final class WebPush
         if ($endpoint === '') return self::json($res, ['ok' => false, 'error' => 'endpoint 누락'], 422);
         try {
             $pdo = Db::pdo(); self::ensure($pdo);
-            $up = $pdo->prepare("UPDATE push_subscription SET tenant_id=?, p256dh=?, auth=?, ua=? WHERE endpoint=?");
-            $up->execute([$t, $p256dh, $auth, substr((string)($req->getHeaderLine('User-Agent')), 0, 255), $endpoint]);
+            $cid = self::ownedCustomerId($pdo, $t, (int)($b['customer_id'] ?? 0));
+            $ua = substr((string)($req->getHeaderLine('User-Agent')), 0, 255);
+            $up = $pdo->prepare("UPDATE push_subscription SET tenant_id=?, p256dh=?, auth=?, ua=?, customer_id=? WHERE endpoint=?");
+            $up->execute([$t, $p256dh, $auth, $ua, $cid, $endpoint]);
             if ($up->rowCount() === 0) {
-                $pdo->prepare("INSERT INTO push_subscription(tenant_id,endpoint,p256dh,auth,ua,created_at) VALUES(?,?,?,?,?,?)")
-                    ->execute([$t, $endpoint, $p256dh, $auth, substr((string)($req->getHeaderLine('User-Agent')), 0, 255), gmdate('c')]);
+                $pdo->prepare("INSERT INTO push_subscription(tenant_id,endpoint,p256dh,auth,ua,customer_id,created_at) VALUES(?,?,?,?,?,?,?)")
+                    ->execute([$t, $endpoint, $p256dh, $auth, $ua, $cid, gmdate('c')]);
             }
-            return self::json($res, ['ok' => true]);
+            return self::json($res, ['ok' => true, 'customer_id' => $cid]);
         } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => $e->getMessage()]); }
+    }
+
+    /** [283차] 테넌트 소유 고객만 통과(크로스테넌트 결속 차단). 미소유/미존재 = 0. */
+    private static function ownedCustomerId(PDO $pdo, string $tenant, int $cid): int
+    {
+        if ($cid <= 0 || $tenant === '') return 0;
+        try {
+            $st = $pdo->prepare("SELECT id FROM crm_customers WHERE id=? AND tenant_id=? LIMIT 1");
+            $st->execute([$cid, $tenant]);
+            return (int)($st->fetchColumn() ?: 0);
+        } catch (\Throwable $e) { return 0; }
     }
 
     /** POST /v426/push/unsubscribe — 구독 해지. body: {endpoint}. */
@@ -97,14 +124,21 @@ final class WebPush
         } catch (\Throwable $e) { return self::json($res, ['ok' => false]); }
     }
 
-    /** POST /v426/push/test — 본 테넌트 구독 전체에 테스트 푸시(VAPID JWT, payload-less). */
+    /** POST /v426/push/test — 본 테넌트 구독 전체에 테스트 푸시(VAPID JWT + [283차] 암호화 페이로드).
+     *  body(선택): {title, body, url} — 미전달 시 진단 기본문구. 암호화 성공 여부(encrypted)를 응답에 정직 표기. */
     public static function test(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         $t = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
         // [현 차수 동의센터 SSOT] 진단용 테스트 푸시 — 마케팅 캠페인이 아니므로 동의 게이트 우회($marketing=false).
-        $r = self::sendToTenant($t, false);
-        return self::json($res, ['ok' => $r['ok'], 'sent' => $r['sent'], 'failed' => $r['failed'], 'note' => $r['note'] ?? null]);
+        $r = self::sendToTenant($t, false, ['payload' => [
+            'title' => (string)($b['title'] ?? 'GeniegoROI 테스트 알림'),
+            'body'  => (string)($b['body'] ?? '웹푸시 설정이 정상 동작합니다.'),
+            'url'   => (string)($b['url'] ?? '/'),
+        ]]);
+        return self::json($res, ['ok' => $r['ok'], 'sent' => $r['sent'], 'failed' => $r['failed'],
+            'encrypted' => $r['encrypted'] ?? 0, 'payload_less' => $r['payload_less'] ?? 0, 'note' => $r['note'] ?? null]);
     }
 
     /** [admin] POST /v426/push/vapid-config — VAPID 키 설정(public/private PEM/subject). */
@@ -129,49 +163,246 @@ final class WebPush
     }
 
     /**
-     * 테넌트 구독 전체에 payload-less 푸시 발송(VAPID JWT ES256 인증). VAPID 미설정 시 graceful skip.
-     * @return array{ok:bool, sent:int, failed:int, note?:string}
+     * 테넌트 구독에 푸시 발송(VAPID JWT ES256 인증 + [283차] RFC8291 암호화 페이로드). VAPID 미설정 시 graceful skip.
+     *
+     * [283차 P1] 종전 구현의 3대 결함을 정문 수정:
+     *   ① payload-less(CURLOPT_POSTFIELDS='' · Content-Length: 0) → push-sw.js 가 항상 폴백 문구만 표기.
+     *      캠페인 제목·본문·딥링크가 수신자에게 **0** 전달됐다. → RFC8291(aes128gcm) 암호화 페이로드 실적재.
+     *   ② push_subscription 에 수신자 식별자가 없어 세그먼트/개인 타겟팅·per-customer 옵트아웃이 구조적 불가.
+     *      → customer_id 결속(ensure() ALTER) + segment_id/customer_id 타겟팅 + 행별 동의 게이트.
+     *   ③ push_sent 활동이 repo 전체에서 한 번도 INSERT 되지 않아 크로스채널 빈도캡(CRM::countSentSignals 화이트리스트)에
+     *      푸시가 영영 잡히지 않았다. → 실발송 성공 시 crm_activities('push_sent') 적재.
+     *
+     * @param string $tenant
+     * @param bool   $marketing 마케팅 발송(동의 게이트 적용). 진단/트랜잭션 알림은 false.
+     * @param array  $opts {
+     *   payload?:    array{title?:string, body?:string, url?:string, icon?:string, tag?:string} 알림 내용(미지정 시 payload-less)
+     *   segment_id?: int  CRM 세그먼트 타겟(해당 세그먼트 멤버에 결속된 구독만)
+     *   customer_id?:int  단일 고객 타겟
+     *   topic?:      string 콘텐츠 카테고리(promo/newsletter/product/event) — 토픽 옵트아웃 강제
+     *   ttl?:        int
+     * }
+     * @return array{ok:bool, sent:int, failed:int, encrypted?:int, payload_less?:int, opted_out?:int, note?:string}
      */
-    public static function sendToTenant(string $tenant, bool $marketing = true): array
+    public static function sendToTenant(string $tenant, bool $marketing = true, array $opts = []): array
     {
         try {
             $pdo = Db::pdo(); self::ensure($pdo);
             $priv = self::vapidPrivateKey($pdo); $pub = self::vapidPublicKey($pdo);
             if ($priv === '' || $pub === '') return ['ok' => false, 'sent' => 0, 'failed' => 0, 'note' => 'VAPID 키 미설정 — admin 푸시 설정에서 키를 등록하세요.'];
             $sub = self::vapidSubject($pdo);
-            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 마케팅 브로드캐스트 한정($marketing=true).
-            //   ★한계: push_subscription 행은 per-customer 식별자(customer_id/email/phone)를 저장하지 않는
-            //   익명 엔드포인트 구독(무PII 정책)이라 수신자별 옵트아웃 해석이 구조적으로 불가하다.
-            //   따라서 테넌트 스코프(cid=0)로 1회 평가해 테넌트 옵트아웃/조용시간/빈도캡만 존중(fail-open).
+
+            // [현 차수 동의센터 SSOT] 통합 발송 게이트 — 마케팅 발송 한정($marketing=true).
+            //   (a) 테넌트 스코프(cid=0) 1회 평가 = 테넌트 조용시간/글로벌 정책(익명 구독까지 커버).
+            //   (b) [283차] customer_id 가 결속된 구독은 **행별**로 재평가 → 개인 채널/토픽 옵트아웃·빈도캡이 실제 강제된다.
             //   진단용 test push 는 마케팅이 아니므로 test()가 $marketing=false 로 우회(트랜잭션/관리자 알림 비게이트 원칙).
             if ($marketing) {
                 $g = CRM::isMarketingSendAllowed($tenant, 0, 'push');
                 if (!($g['allowed'] ?? true)) return ['ok' => true, 'sent' => 0, 'failed' => 0, 'note' => 'consent_gate:' . ($g['reason'] ?? 'blocked')];
             }
-            $st = $pdo->prepare("SELECT id, endpoint FROM push_subscription WHERE tenant_id=?");
-            $st->execute([$tenant]);
+
+            // ── 수신 대상 해석(무지정 = 테넌트 전체 브로드캐스트 = 기존 동작) ──
+            $segId  = (int)($opts['segment_id'] ?? 0);
+            $onlyId = (int)($opts['customer_id'] ?? 0);
+            $sql = "SELECT id, endpoint, p256dh, auth, customer_id FROM push_subscription WHERE tenant_id=?";
+            $par = [$tenant];
+            if ($onlyId > 0) { $sql .= " AND customer_id=?"; $par[] = $onlyId; }
+            elseif ($segId > 0) {
+                // 세그먼트 타겟 — 고객 결속 구독만(익명 구독은 세그먼트 해석 불가 → 정직하게 제외).
+                $sql .= " AND customer_id>0 AND customer_id IN (SELECT customer_id FROM crm_segment_members WHERE segment_id=? AND tenant_id=?)";
+                $par[] = $segId; $par[] = $tenant;
+            }
+            $st = $pdo->prepare($sql); $st->execute($par);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
-            if (!$rows) return ['ok' => true, 'sent' => 0, 'failed' => 0, 'note' => '구독자가 없습니다.'];
-            $sent = 0; $failed = 0;
+            if (!$rows) return ['ok' => true, 'sent' => 0, 'failed' => 0, 'note' => '대상 구독자가 없습니다.'];
+
+            // ── 페이로드(암호화 대상) ──
+            $payload = (array)($opts['payload'] ?? []);
+            $json = '';
+            if ($payload) {
+                $json = (string)json_encode([
+                    'title' => mb_substr((string)($payload['title'] ?? 'GeniegoROI'), 0, 120),
+                    'body'  => mb_substr((string)($payload['body'] ?? ''), 0, 500),
+                    'url'   => (string)($payload['url'] ?? '/'),
+                    'icon'  => (string)($payload['icon'] ?? '/icon-192.png'),
+                    'tag'   => (string)($payload['tag'] ?? 'geniego'),
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                // RFC8188 레코드(rs=4096) 한도 — 헤더(21B)+구분자(1B)+GCM태그(16B) 여유 확보. 초과 시 본문 절단.
+                if (strlen($json) > self::MAX_PLAINTEXT) $json = '';
+            }
+            $ttl = max(0, (int)($opts['ttl'] ?? 86400));
+            $sendOpt = CRM::sendOptions($opts['topic'] ?? null, false); // [283차 P0] 토픽 옵트아웃(행별 게이트 입력)
+
+            $sent = 0; $failed = 0; $enc = 0; $plain = 0; $optout = 0;
             foreach ($rows as $r) {
                 $endpoint = (string)$r['endpoint'];
+                $cid = (int)($r['customer_id'] ?? 0);
+                // [283차 P1] 행별 동의 게이트 — customer_id 결속 구독은 개인 옵트아웃/토픽/빈도캡을 실제로 강제.
+                //   익명 구독(cid=0)은 위 테넌트 스코프 평가로 이미 커버(fail-open 정책 유지).
+                if ($marketing && $cid > 0) {
+                    $gr = CRM::isMarketingSendAllowed($tenant, $cid, 'push', $sendOpt);
+                    if (!($gr['allowed'] ?? true)) { $optout++; continue; }
+                }
                 $aud = self::originOf($endpoint);
                 $jwt = self::vapidJwt($aud, $sub, $priv);
                 if ($jwt === '') { $failed++; continue; }
+
+                // [283차 P1] RFC8291 암호화 — 실패 시 payload-less 로 graceful fallback(무회귀: 최소한 알림은 뜬다).
+                $body = ''; $headers = ['TTL: ' . $ttl, 'Authorization: vapid t=' . $jwt . ', k=' . $pub];
+                $cipher = ($json !== '') ? self::encryptPayload($json, (string)$r['p256dh'], (string)$r['auth']) : null;
+                if ($cipher !== null) {
+                    $body = $cipher;
+                    $headers[] = 'Content-Encoding: aes128gcm';
+                    $headers[] = 'Content-Type: application/octet-stream';
+                    $headers[] = 'Content-Length: ' . strlen($body);
+                    $enc++;
+                } else {
+                    $headers[] = 'Content-Length: 0';
+                    $plain++;
+                }
+
                 $ch = curl_init($endpoint);
                 curl_setopt_array($ch, [
-                    CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => '',
+                    CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body,
                     CURLOPT_TIMEOUT => 10, CURLOPT_SSL_VERIFYPEER => true,
-                    CURLOPT_HTTPHEADER => ['TTL: 86400', 'Content-Length: 0', 'Authorization: vapid t=' . $jwt . ', k=' . $pub],
+                    CURLOPT_HTTPHEADER => $headers,
                 ]);
                 curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
                 if ($code === 404 || $code === 410) { // 만료 구독 → 정리
                     try { $pdo->prepare("DELETE FROM push_subscription WHERE id=?")->execute([(int)$r['id']]); } catch (\Throwable $e) {}
                     $failed++;
-                } elseif ($code >= 200 && $code < 300) { $sent++; } else { $failed++; }
+                } elseif ($code >= 200 && $code < 300) {
+                    $sent++;
+                    // [283차 P1] ★push_sent 신호 적재 — repo 전체에서 단 한 번도 INSERT 되지 않아 크로스채널 빈도캡
+                    //   화이트리스트(CRM::countSentSignals 의 'push_sent')가 영구 dead 였다. 고객 결속 구독만 기록.
+                    if ($cid > 0) {
+                        try {
+                            $pdo->prepare("INSERT INTO crm_activities (tenant_id, customer_id, type, channel, data, created_at) VALUES (?,?,'push_sent','push',?,?)")
+                                ->execute([$tenant, $cid, json_encode(['title' => (string)($payload['title'] ?? ''), 'topic' => ($sendOpt['topic'] ?? null)], JSON_UNESCAPED_UNICODE), gmdate('Y-m-d H:i:s')]);
+                        } catch (\Throwable $e) {}
+                    }
+                } else { $failed++; }
             }
-            return ['ok' => true, 'sent' => $sent, 'failed' => $failed];
+            return ['ok' => true, 'sent' => $sent, 'failed' => $failed, 'encrypted' => $enc, 'payload_less' => $plain, 'opted_out' => $optout];
         } catch (\Throwable $e) { return ['ok' => false, 'sent' => 0, 'failed' => 0, 'note' => $e->getMessage()]; }
+    }
+
+    /** [283차] 고객 1인에게 푸시(저니 push 노드 등). 구독 부재 시 sent=0(정직 — 가짜 성공 금지). */
+    public static function sendToCustomer(string $tenant, int $customerId, array $payload, bool $marketing = true, ?string $topic = null): array
+    {
+        if ($customerId <= 0) return ['ok' => false, 'sent' => 0, 'failed' => 0, 'note' => 'no_customer'];
+        return self::sendToTenant($tenant, $marketing, ['payload' => $payload, 'customer_id' => $customerId, 'topic' => $topic]);
+    }
+
+    /** [283차] 고객에게 활성 웹푸시 구독이 있는지(저니 노드 도달가능성 판정). */
+    public static function hasSubscription(PDO $pdo, string $tenant, int $customerId): bool
+    {
+        if ($customerId <= 0) return false;
+        try {
+            self::ensure($pdo);
+            $st = $pdo->prepare("SELECT 1 FROM push_subscription WHERE tenant_id=? AND customer_id=? LIMIT 1");
+            $st->execute([$tenant, $customerId]);
+            return (bool)$st->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════════
+     *  [283차 P1] RFC8291 Web Push Message Encryption + RFC8188 aes128gcm 콘텐츠 인코딩
+     *  ─────────────────────────────────────────────────────────────────────────────
+     *  ▸ 절차(RFC8291 §3.1, RFC8188 §2):
+     *      1. ECDH(P-256): as_private(임시) × ua_public(p256dh) → ecdh_secret(32B)
+     *      2. PRK_key = HMAC-SHA256(auth_secret, ecdh_secret)                      ← HKDF-Extract(salt=auth)
+     *      3. key_info = "WebPush: info" ‖ 0x00 ‖ ua_public(65B) ‖ as_public(65B)
+     *         IKM     = HKDF-Expand(PRK_key, key_info, 32)
+     *      4. salt(16B, random); PRK = HMAC-SHA256(salt, IKM)                      ← HKDF-Extract(salt=salt)
+     *      5. CEK   = HKDF-Expand(PRK, "Content-Encoding: aes128gcm" ‖ 0x00, 16)
+     *         NONCE = HKDF-Expand(PRK, "Content-Encoding: nonce" ‖ 0x00, 12)       ← seq=0 이라 XOR 생략
+     *      6. ciphertext = AES-128-GCM(CEK, NONCE, plaintext ‖ 0x02)  (0x02 = 마지막 레코드 구분자)
+     *      7. body = salt(16) ‖ rs(4, uint32be) ‖ idlen(1=65) ‖ as_public(65) ‖ ciphertext‖tag(16)
+     *  ▸ 실패(구키 누락·openssl 미지원·좌표 파싱 실패)는 전부 null → 호출측이 payload-less 로 폴백(무회귀).
+     * ═══════════════════════════════════════════════════════════════════════════════ */
+
+    /** RFC8188 레코드 크기(rs). body = 21B 헤더 + as_public(65B) + ciphertext. */
+    private const RECORD_SIZE = 4096;
+    /** 평문 최대 — rs - (구분자 1B + GCM 태그 16B). 여유를 두고 보수적으로 제한. */
+    private const MAX_PLAINTEXT = 3800;
+
+    /**
+     * @param  string      $plaintext 알림 JSON
+     * @param  string      $p256dhB64 구독 공개키(base64url, 65B 비압축점)
+     * @param  string      $authB64   구독 auth secret(base64url, 16B)
+     * @return string|null 전송 본문(aes128gcm) — 실패 시 null
+     */
+    public static function encryptPayload(string $plaintext, string $p256dhB64, string $authB64): ?string
+    {
+        try {
+            if (!function_exists('openssl_pkey_derive') || !function_exists('openssl_encrypt')) return null;
+            $uaPublic = self::b64urlDecode($p256dhB64);
+            $authSecret = self::b64urlDecode($authB64);
+            // P-256 비압축점 = 0x04 ‖ X(32) ‖ Y(32). auth secret = 16B(RFC8291 §3.2).
+            if (strlen($uaPublic) !== 65 || $uaPublic[0] !== "\x04" || strlen($authSecret) !== 16) return null;
+            if (strlen($plaintext) > self::MAX_PLAINTEXT) return null;
+
+            // 1) 임시(ephemeral) ECDH 키쌍 — 구독마다 새로 생성(RFC8291 §3.1 필수).
+            $asKey = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
+            if ($asKey === false) return null;
+            $d = openssl_pkey_get_details($asKey);
+            if (!$d || !isset($d['ec']['x'], $d['ec']['y'])) return null;
+            $asPublic = "\x04" . str_pad($d['ec']['x'], 32, "\x00", STR_PAD_LEFT) . str_pad($d['ec']['y'], 32, "\x00", STR_PAD_LEFT);
+
+            // 2) ECDH 공유비밀 — 구독 공개키(raw) → SPKI PEM 변환 후 derive.
+            $uaPem = self::rawP256ToPem($uaPublic);
+            if ($uaPem === null) return null;
+            $peer = openssl_pkey_get_public($uaPem);
+            if ($peer === false) return null;
+            $ecdh = openssl_pkey_derive($peer, $asKey, 32);
+            if ($ecdh === false || strlen($ecdh) !== 32) return null;
+
+            // 3) IKM = HKDF(auth_secret, ecdh, "WebPush: info" ‖ 0x00 ‖ ua_public ‖ as_public, 32)
+            $prkKey = hash_hmac('sha256', $ecdh, $authSecret, true);                  // HKDF-Extract(salt=auth)
+            $keyInfo = "WebPush: info\x00" . $uaPublic . $asPublic;
+            $ikm = self::hkdfExpand($prkKey, $keyInfo, 32);
+
+            // 4~5) salt → PRK → CEK/NONCE
+            $salt  = random_bytes(16);
+            $prk   = hash_hmac('sha256', $ikm, $salt, true);                          // HKDF-Extract(salt=salt)
+            $cek   = self::hkdfExpand($prk, "Content-Encoding: aes128gcm\x00", 16);
+            $nonce = self::hkdfExpand($prk, "Content-Encoding: nonce\x00", 12);        // seq=0 → XOR 불요
+
+            // 6) AES-128-GCM(평문 ‖ 0x02 마지막-레코드 구분자). 패딩 없음(RFC8188 상 선택).
+            $tag = '';
+            $ct = openssl_encrypt($plaintext . "\x02", 'aes-128-gcm', $cek, OPENSSL_RAW_DATA, $nonce, $tag, '', 16);
+            if ($ct === false || strlen($tag) !== 16) return null;
+
+            // 7) aes128gcm 헤더 ‖ ciphertext‖tag
+            $header = $salt . pack('N', self::RECORD_SIZE) . chr(strlen($asPublic)) . $asPublic;
+            return $header . $ct . $tag;
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /** HKDF-Expand(RFC5869) — L ≤ 32 이므로 1블록(T(1) = HMAC(PRK, info ‖ 0x01))으로 충분. */
+    private static function hkdfExpand(string $prk, string $info, int $len): string
+    {
+        return substr(hash_hmac('sha256', $info . "\x01", $prk, true), 0, $len);
+    }
+
+    /** raw P-256 비압축점(65B) → SubjectPublicKeyInfo PEM. openssl_pkey_get_public 이 raw 점을 못 받아 필요. */
+    private static function rawP256ToPem(string $raw): ?string
+    {
+        if (strlen($raw) !== 65 || $raw[0] !== "\x04") return null;
+        // DER: SEQUENCE{ SEQUENCE{ OID id-ecPublicKey, OID prime256v1 }, BIT STRING(0x00 ‖ point) }
+        $der = hex2bin('3059301306072a8648ce3d020106082a8648ce3d030107034200') . $raw;
+        if ($der === false) return null;
+        return "-----BEGIN PUBLIC KEY-----\n" . chunk_split(base64_encode($der), 64, "\n") . "-----END PUBLIC KEY-----\n";
+    }
+
+    private static function b64urlDecode(string $s): string
+    {
+        $s = strtr(trim($s), '-_', '+/');
+        $pad = strlen($s) % 4;
+        if ($pad) $s .= str_repeat('=', 4 - $pad);
+        $d = base64_decode($s, true);
+        return $d === false ? '' : $d;
     }
 
     private static function originOf(string $url): string

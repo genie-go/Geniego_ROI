@@ -937,7 +937,7 @@ function GuideTab({ t }) {
 /* ═══════════ MAIN ═══════════ */
 export default function PnLDashboard() {
     const { t } = useI18n();
-    const { fmt } = useCurrency();
+    const { fmt, currency, convert } = useCurrency(); // [283차 P1] 내보내기에 표시통화·환산값 동봉
     const navigate = useNavigate();
     const { pnlStats, settlementStats, budgetStats, orderStats, orders, totalInventoryValue, lowStockCount, addAlert, isDemo } = useGlobalData();
     const { user, isAdmin } = useAuth(); // [현 차수] 구독플랜별 탭 노출(데모/관리자/Enterprise 전체)
@@ -1068,16 +1068,125 @@ export default function PnLDashboard() {
         { key: 'custom', label: t('pnl.dateCustom') },
     ];
 
-    const handleExport = (format) => {
-        const data = { format, date: new Date().toISOString(), dateRange, live };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `pnl_report_${Date.now()}.${format === 'excel' ? 'json' : format}`; a.click(); URL.revokeObjectURL(url);
+    /* ── [283차 P1] P&L 내보내기 실구현 ─────────────────────────────────────────────
+     * 종전 handleExport 는 손익 행이 아니라 {format,date,dateRange,live} 스냅샷 JSON 을 Blob 으로 만들어
+     *   `.pdf` 확장자로 저장했다 → 어떤 뷰어에서도 열리지 않는 손상 파일(excel 은 확장자마저 .json).
+     * 수정: ①실제 손익계산서 행을 산출(pnlRows) ②Excel = xlsx 실파일(커머스 페이지와 동일 패턴·중복 라이브러리 0)
+     *       ③PDF = 브라우저 print-to-PDF(@media print + 인쇄 전용 표) — 가짜 포맷 버튼은 남기지 않는다.
+     * 값 출처는 화면과 동일한 `live`(SSOT) 이므로 화면-파일 불일치가 원천적으로 없다.
+     */
+    const pnlRows = useMemo(() => {
+        const R = (label, amount, kind = 'cost') => ({ label, amount: Number(amount) || 0, kind });
+        return [
+            R(t('pnl.exRevenue', '매출'), live.grossRevenue, 'revenue'),
+            R(t('pnl.exCogs', '매출원가(COGS)'), -(live.cogs || 0)),
+            R(t('pnl.exGrossProfit', '매출총이익'), live.grossProfit, 'subtotal'),
+            R(t('pnl.exAdSpend', '광고비'), -(live.adSpend || 0)),
+            R(t('pnl.exPlatformFee', '플랫폼 수수료'), -(live.platformFee || 0)),
+            R(t('pnl.exCoupon', '쿠폰 할인'), -(live.couponDiscount || 0)),
+            R(t('pnl.exReturnFee', '반품 비용'), -(live.returnFee || 0)),
+            R(t('pnl.exShipping', '배송비'), -(live.shippingCost || 0)),
+            R(t('pnl.exInfluencer', '인플루언서 비용'), -(live.influencerCost || 0)),
+            R(t('pnl.exOperatingProfit', '영업이익'), live.operatingProfit, 'total'),
+        ];
+    }, [live, t]);
+
+    // 참고지표(손익 행이 아닌 보조 KPI) — 별도 시트/섹션으로 분리해 손익합계를 오염시키지 않는다.
+    const pnlKpis = useMemo(() => ([
+        { label: 'ROAS', value: `${Number(live.roas || 0).toFixed(2)}x` },
+        { label: t('pnl.exOrders', '주문 수'), value: String(live.totalOrders || 0) },
+        { label: t('pnl.exReturns', '반품 수'), value: String(live.totalReturns || 0) },
+        { label: t('pnl.exReturnRate', '반품률'), value: `${Number(live.returnRate || 0).toFixed(1)}%` },
+        { label: t('pnl.exNetPayout', '정산 수령액'), value: fmt(live.netPayout) },
+        { label: t('pnl.exPendingPayout', '미수 정산금'), value: fmt(live.pendingPayout) },
+    ]), [live, t, fmt]);
+
+    const exportMeta = () => {
+        const rangeLabel = (DATE_RANGES.find(d => d.key === dateRange) || {}).label || dateRange;
+        return { rangeLabel, generatedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') };
     };
+
+    // Excel — xlsx 실파일(PriceOpt/CatalogSync/OrderHub 와 동일한 동적 import 패턴).
+    const exportExcel = async () => {
+        try {
+            const mod = await import('xlsx');
+            const XLSX = mod.default || mod;
+            const { rangeLabel, generatedAt } = exportMeta();
+            const code = currency?.code || 'KRW';
+            const head = [t('pnl.exItem', '항목'), 'KRW', code, t('pnl.exType', '구분')];
+            const body = pnlRows.map(r => [r.label, r.amount, Number(convert(r.amount).toFixed(2)), r.kind]);
+            const aoa = [
+                [t('pnl.exTitle', '손익계산서 (P&L)')],
+                [t('pnl.exPeriod', '기간'), rangeLabel, t('pnl.exGenerated', '생성일시'), generatedAt],
+                [],
+                head, ...body,
+                [],
+                [t('pnl.exKpiSection', '참고 지표')],
+                ...pnlKpis.map(k => [k.label, k.value]),
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 10 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'PnL');
+            XLSX.writeFile(wb, `PnL_${dateRange}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        } catch (e) {
+            // 정직: 실패를 조용히 삼키지 않는다(종전엔 손상 파일이 '성공'처럼 다운로드됐다).
+            addAlert && addAlert({ type: 'error', message: t('pnl.exFailed', '내보내기에 실패했습니다') + ': ' + String(e?.message || e) });
+        }
+    };
+
+    // PDF — 브라우저 print-to-PDF. 인쇄 전용 표(.pnl-print) 만 출력되도록 @media print 로 나머지를 숨긴다.
+    const exportPdf = () => { if (typeof window !== 'undefined') window.print(); };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', margin: '-14px -16px -20px', height: 'calc(100vh - 52px)', overflow: 'hidden' }}>
             <SecurityOverlay threats={threats} onDismiss={() => setThreats([])} t={t} />
+
+            {/* [283차 P1] 인쇄(PDF) 전용 손익계산서 — 화면에서는 숨김(.pnl-print{display:none}), 인쇄 시에만 노출.
+                position:fixed 로 조상(overflow:hidden·height:100vh)의 클리핑을 회피한다. 표가 짧아 1페이지에 수록된다. */}
+            <style>{`
+                .pnl-print { display: none; }
+                @media print {
+                    html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+                    body * { visibility: hidden !important; }
+                    .pnl-print, .pnl-print * { visibility: visible !important; }
+                    .pnl-print { display: block !important; position: fixed !important; left: 0; top: 0; width: 100%;
+                                 background: #fff; color: #000; font-family: system-ui, sans-serif; }
+                    .pnl-print table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+                    .pnl-print th, .pnl-print td { border: 1px solid #999; padding: 6px 10px; font-size: 12px; text-align: left; }
+                    .pnl-print td.num { text-align: right; font-variant-numeric: tabular-nums; }
+                    .pnl-print tr.sub td, .pnl-print tr.tot td { font-weight: 800; background: #f1f5f9; }
+                    @page { size: A4 portrait; margin: 14mm; }
+                }
+            `}</style>
+            <div className="pnl-print">
+                <h2 style={{ margin: '0 0 4px' }}>{t('pnl.exTitle', '손익계산서 (P&L)')}</h2>
+                <div style={{ fontSize: 11, marginBottom: 12 }}>
+                    {t('pnl.exPeriod', '기간')}: {exportMeta().rangeLabel} · {t('pnl.exGenerated', '생성일시')}: {exportMeta().generatedAt}
+                </div>
+                <table>
+                    <thead><tr>
+                        <th>{t('pnl.exItem', '항목')}</th><th>KRW</th><th>{currency?.code || 'KRW'}</th>
+                    </tr></thead>
+                    <tbody>
+                        {pnlRows.map(r => (
+                            <tr key={r.label} className={r.kind === 'subtotal' ? 'sub' : r.kind === 'total' ? 'tot' : ''}>
+                                <td>{r.label}</td>
+                                <td className="num">{Math.round(r.amount).toLocaleString()}</td>
+                                <td className="num">{Number(convert(r.amount)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <h3 style={{ margin: '0 0 6px', fontSize: 13 }}>{t('pnl.exKpiSection', '참고 지표')}</h3>
+                <table>
+                    <tbody>
+                        {pnlKpis.map(k => (
+                            <tr key={k.label}><td>{k.label}</td><td className="num">{k.value}</td></tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             {/* Header */}
             <div style={{ flexShrink: 0, padding: '14px 16px 0', background: 'var(--surface-1, #070f1a)', zIndex: 10, borderBottom: '1px solid rgba(99,140,255,0.06)' }}>
@@ -1108,8 +1217,9 @@ export default function PnLDashboard() {
                         <button key={d.key} onClick={() => setDateRange(d.key)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid', fontSize: 10, fontWeight: 700, cursor: 'pointer', borderColor: dateRange === d.key ? ACCENT : 'rgba(255,255,255,0.1)', background: dateRange === d.key ? 'rgba(79,142,247,0.15)' : 'transparent', color: dateRange === d.key ? ACCENT : '#888' }}>{d.label}</button>
                     ))}
                     <div style={{ flex: 1 }} />
-                    <button onClick={() => handleExport('pdf')} style={BTN('rgba(239,68,68,0.12)', RED)}>📄 PDF</button>
-                    <button onClick={() => handleExport('excel')} style={BTN('rgba(34,197,94,0.12)', GREEN)}>📊 Excel</button>
+                    {/* [283차 P1] 실제 손익 데이터 내보내기 — PDF=브라우저 인쇄(print-to-PDF), Excel=xlsx 실파일. 가짜 포맷 버튼 없음. */}
+                    <button onClick={exportPdf} title={t('pnl.exPdfHint', '브라우저 인쇄 창에서 "PDF로 저장"을 선택하세요')} style={BTN('rgba(239,68,68,0.12)', RED)}>📄 PDF</button>
+                    <button onClick={exportExcel} style={BTN('rgba(34,197,94,0.12)', GREEN)}>📊 Excel</button>
                 </div>
                 
                 {/* Badge Row */}

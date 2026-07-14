@@ -91,7 +91,8 @@ const SEED_PLANS = [
     // Pro — 풀 운영 자동화(1계정 $399). +WMS/가격최적화/공급망/라이브/자동화/데이터.
     plan_id: 'pro', name: 'Pro', display_order: 30, is_active: true, is_custom_quote: false, is_recommended: 1,
     description: '풀 운영 자동화 · 1계정 $399 기준',
-    features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·상업 송장 자동', '계정 수 선택', '우선 지원 (8시간 내)'],
+    // [283차 정직성] '상업 송장 자동'은 코드 부재(commercial_invoice → 0건) → 실제 구현분(DataExport)으로 정정.
+    features: ['무제한 판매 채널·창고(WMS)', '가격최적화·공급망·수요예측·반품', '라이브 커머스·AI 룰엔진·라이트백', '데이터 스키마/신뢰도·데이터프로덕트', 'AI 디자인·데이터 내보내기', '계정 수 선택', '우선 지원 (8시간 내)'],
     limits: { channels: -1, orders_monthly: 50000, products: 10000, users: -1, suppliers: -1, logistics: -1, warehouses: -1, image_hosting_gb: 49 },
     price_usd: 399, price_annual_usd: 319,
   },
@@ -128,7 +129,8 @@ function basePeriods(planPP) {
 /** GeniegoROI 서비스 8개 핵심 기능 — Landing.jsx (f1~f8) 정합. 구버전 카피 참고. */
 const SERVICE_FEATURES = [
   { icon: '🌐', titleKey: 'svcOmniTitle', title: '옴니채널 커머스',    descKey: 'svcOmniDesc', desc: '쿠팡·네이버·아마존·쇼피파이·틱톡샵 등 30+ 마켓을 하나의 허브로 연결. 주문·재고·배송을 표준화합니다.' },
-  { icon: '🏭', titleKey: 'svcWmsTitle', title: 'WMS 창고·물류',      descKey: 'svcWmsDesc', desc: '다중 창고 재고 추적, 합배송 관리, 운송사 API 연동, 국제 특송 상업 송장 자동 생성.' },
+  // [283차 정직성] '합배송 관리·국제 특송 상업 송장 자동 생성'은 코드 부재 → 실제 구현분(Wms.php LOT/FEFO·피킹/패킹, Logistics.php 배송추적)으로 정정. Landing.jsx f2d 와 문구 정합.
+  { icon: '🏭', titleKey: 'svcWmsTitle', title: 'WMS 창고·물류',      descKey: 'svcWmsDesc', desc: '다중 창고 재고 추적, LOT·FEFO 관리, 피킹·패킹 워크플로, 운송사 배송추적 API 연동.' },
   { icon: '🤖', titleKey: 'svcAiMktTitle', title: 'AI 마케팅 인텔리전스', descKey: 'svcAiMktDesc', desc: '8차원 광고 기여도 분석, 인플루언서 캠페인, 쿠폰 흐름 종합 분석. AI 예산 추천과 실시간 승인.' },
   { icon: '🤝', titleKey: 'svcInfluTitle', title: '인플루언서 분석',    descKey: 'svcInfluDesc', desc: '도달률·참여율·전환율·ROI 평가. 자동 수수료 관리 + 실시간 캠페인 성과 추적.' },
   { icon: '📊', titleKey: 'svcPnlTitle', title: '통합 손익 분석',     descKey: 'svcPnlDesc', desc: 'SKU·채널·캠페인·크리에이터별 실시간 손익. ROAS 하락·반품 급증·쿠폰 이상 패턴 자동 감지.' },

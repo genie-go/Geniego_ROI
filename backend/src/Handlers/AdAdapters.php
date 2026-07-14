@@ -238,17 +238,26 @@ final class AdAdapters
     {
         $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $externalId === '') return ['ok' => false, 'status' => 'skipped'];
+        // [283차 P0-3] ★감사로그 누락 근본수정 — 형제 액추에이터(create_campaign:232·pause:275·activate:392)는 전부
+        //   logExecution 을 남기는데 updateBudget 만 즉시 return 하여 **AI/옵티마이저가 자동 증감액한 예산변경이
+        //   ad_execution_log 에 한 줄도 안 남았다**(광고비 변동의 감사추적 단절). 반환 경로를 $res 로 모아 동일 형태로 기록.
         try {
             switch ($channel) {
-                case 'meta_ads':        return self::metaUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                case 'google_ads':      return self::googleUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                case 'tiktok_business': return self::tiktokUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                case 'naver_sa':        return self::naverUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                case 'kakao_moment':    return self::kakaoUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                case 'line_ads':        return self::lineUpdateBudget($pdo, $tenant, $externalId, $newDaily);
-                default:                return ['ok' => false, 'status' => 'unsupported'];
+                case 'meta_ads':        $res = self::metaUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                case 'google_ads':      $res = self::googleUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                case 'tiktok_business': $res = self::tiktokUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                case 'naver_sa':        $res = self::naverUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                case 'kakao_moment':    $res = self::kakaoUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                case 'line_ads':        $res = self::lineUpdateBudget($pdo, $tenant, $externalId, $newDaily); break;
+                default:                $res = ['ok' => false, 'status' => 'unsupported']; break;
             }
-        } catch (Throwable $e) { return ['ok' => false, 'error' => $e->getMessage()]; }
+        } catch (Throwable $e) { $res = ['ok' => false, 'error' => $e->getMessage()]; }
+        $res['external_id'] = $res['external_id'] ?? $externalId;
+        // note 에 변경 일예산을 남겨 "얼마로 바꿨는지"까지 추적(detail 컬럼 500자).
+        //   logExecution 은 note 우선·없으면 error 를 기록하므로, 실패 시에도 사유가 유실되지 않도록 error 를 앞에 결합.
+        $res['note'] = trim((string)($res['note'] ?? ($res['error'] ?? '')) . ' · daily=' . $newDaily);
+        self::logExecution($pdo, $tenant, $channel, 'budget_change', $res);
+        return $res;
     }
 
     /** 일시정지(손해 채널 회수). */
@@ -1024,17 +1033,60 @@ final class AdAdapters
         return [$tmp, $mime, 'creative.' . $ext];
     }
 
+    /* ════════════════ [283차 P0-1] 랜딩 URL 안전화(벤더 도메인 하드코딩 제거) ════════════════
+     *   종전: buildDelivery 가 랜딩 URL 미지정 시 'https://www.genieroi.com'(벤더=우리 사이트)를 기본값으로 박아
+     *   6개 매체 페이로드(Google finalUrls·Naver pc/mobile final·Meta link_data.link·TikTok landing_page_url·
+     *   Kakao mobile/pcLandingUrl·LINE landingUrl)에 그대로 실렸다. 프론트 3개 런치 경로가 landing_url 을
+     *   하나도 전송하지 않았으므로, 구독사가 라이브로 태운 광고비가 전부 **우리 사이트로 랜딩**되는 구조였다.
+     *   개선: ① 사용자 입력 → ② 테넌트 자기 사이트(tenant_business_profile.website · DataPlatform 이 관리하는
+     *   실재 SSOT) → ③ 없으면 **fail-closed**(광고 미생성). 추측 기본값을 두지 않는다. */
+
+    /** 랜딩 URL 정규화·검증. http(s) 절대 URL + 호스트 필수. 부적합/미설정 = '' (호출부가 fail-closed 판단). */
+    private static function normLanding(string $u): string
+    {
+        $u = trim($u);
+        if ($u === '') return '';
+        if (!preg_match('#^https?://#i', $u)) $u = 'https://' . $u;   // 'shop.example.com' 입력 허용(스킴 보정)
+        if (filter_var($u, FILTER_VALIDATE_URL) === false) return '';
+        $host = parse_url($u, PHP_URL_HOST);
+        if (!is_string($host) || strpos($host, '.') === false) return '';
+        return mb_substr($u, 0, 500);
+    }
+
+    /** 테넌트 자기 사이트 URL — DataPlatform 의 tenant_business_profile.website(실재 컬럼). 미설정=''. */
+    private static function tenantSiteUrl(PDO $pdo, string $tenant): string
+    {
+        try {
+            $st = $pdo->prepare('SELECT website FROM tenant_business_profile WHERE tenant_id=? LIMIT 1');
+            $st->execute([$tenant]);
+            return self::normLanding((string)($st->fetchColumn() ?: ''));
+        } catch (Throwable $e) { return ''; }  // 테이블 부재(구스키마) = 미설정과 동일 취급
+    }
+
+    /** 랜딩 URL 확정: 사용자 입력 > 테넌트 사이트. 둘 다 없으면 '' → 광고 생성 중단(fail-closed). */
+    public static function resolveLanding(PDO $pdo, string $tenant, string $landing): string
+    {
+        $u = self::normLanding($landing);
+        return $u !== '' ? $u : self::tenantSiteUrl($pdo, $tenant);
+    }
+
     /** 캠페인 하위 adset/adgroup + ad 생성(PAUSED). 매체별 딜리버리 완성 레이어. */
     public static function buildDelivery(PDO $pdo, string $tenant, string $channel, string $campExtId, int $designId, int $daily, string $landing, array $settings = []): array
     {
         $channel = self::normConnKey($channel); // [265차] 경계 정규화(멱등) — raw short key 유입 시 unsupported 방지
         if (!self::executionEnabled() || $campExtId === '') return ['ok' => false, 'status' => 'skipped'];
         $d = self::loadDesign($pdo, $tenant, $designId);
-        if ($landing === '') $landing = 'https://www.genieroi.com';
+        // [283차 P0-1] ★fail-closed — 랜딩 URL 이 없으면 광고를 만들지 않는다(실 광고비의 잘못된 목적지 유입을 구조적 차단).
+        //   캠페인은 이미 PAUSED 로 생성돼 있고 ad 가 없으므로 applyStatus 의 readiness 게이트(ad_ext_id 부재)가 활성화까지 차단.
+        $landing = self::resolveLanding($pdo, $tenant, $landing);
+        if ($landing === '') {
+            return ['ok' => false, 'status' => 'landing_url_required',
+                'error' => '랜딩 URL 미설정 — 광고 목적지가 없어 소재 생성을 중단했습니다. 캠페인에 랜딩 URL을 입력하거나 회사 프로필(website)에 사이트 주소를 등록하세요.'];
+        }
         try {
             switch ($channel) {
                 case 'google_ads':      $r = self::googleDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
-                case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing); break;
+                case 'naver_sa':        $r = self::naverDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break; // [283차 P1] 키워드 도출용 $settings 전달
                 case 'meta_ads':        $r = self::metaDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 case 'tiktok_business': $r = self::tiktokDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
                 case 'kakao_moment':    $r = self::kakaoDeliver($pdo, $tenant, $campExtId, $d, $daily, $landing, $settings); break;
@@ -1072,7 +1124,8 @@ final class AdAdapters
     {
         if (!empty($dl['ok'])) return false;
         $st = (string)($dl['status'] ?? '');
-        if (in_array($st, ['no_credentials', 'skipped', 'unsupported', 'execution_disabled', 'needs_channel', 'partial'], true)) return false;
+        // [283차 P0-1] landing_url_required = 설정 누락(사용자 입력 대기)이지 일시 장애가 아니다 → 재시도 금지(무한 DLQ 방지).
+        if (in_array($st, ['no_credentials', 'skipped', 'unsupported', 'execution_disabled', 'needs_channel', 'partial', 'landing_url_required'], true)) return false;
         // deliver 레벨은 status 미설정·error 문자열만 줄 수 있음 → 자격증명/미지원도 비-transient 처리(불필요 재시도 방지).
         $err = strtolower((string)($dl['error'] ?? ''));
         if ($err !== '' && (strpos($err, 'credential') !== false || strpos($err, 'unsupported') !== false)) return false;
@@ -1187,7 +1240,63 @@ final class AdAdapters
         } catch (\Throwable $e) {}
     }
 
-    /* ── Google: 광고그룹 + 반응형 검색광고(텍스트) — 완전 빌드 가능 ── */
+    /* ════════════════ [283차 P1] 검색광고 키워드 도출 ════════════════
+     *   Google Search / Naver SA 는 **키워드(criteria)가 없으면 매칭 자체가 발생하지 않아 영구 노출0** 이다.
+     *   종전 googleDeliver/naverDeliver 는 광고그룹+광고만 만들고 ok=true 를 반환 → activate 되어 "라이브"로 보이지만
+     *   실제로는 단 한 번의 노출도 없는 사망 캠페인이었다.
+     *   ★새 키워드 엔진을 신설하지 않는다 — 이미 있는 데이터(캠페인명·카테고리·저장 소재 카피)에서만 도출한다.
+     *   설정으로 명시 키워드($settings['keywords'])를 주면 최우선. 도출 0개면 광고를 만들지 않고 honest partial. */
+
+    /** 키워드에서 제외할 범용어(매체 품질평가 하락·무의미 매칭 방지). 소문자 비교. */
+    private const KW_STOP = [
+        '자동' => 1, '캠페인' => 1, '광고' => 1, '마케팅' => 1, '통합' => 1, '전체' => 1, '기본' => 1, '테스트' => 1,
+        'genie' => 1, 'geniego' => 1, 'genieroi' => 1, 'roi' => 1, 'ad' => 1, 'ads' => 1, 'the' => 1, 'and' => 1,
+        'for' => 1, 'with' => 1, 'new' => 1, 'auto' => 1, 'campaign' => 1, 'test' => 1, 'default' => 1,
+    ];
+
+    /**
+     * 검색 키워드 도출 — 소스: ① $settings['keywords'](명시) ② 캠페인명 ③ 카테고리(콤마 다중) ④ 소재 헤드라인/서브헤드라인.
+     * 구(phrase) + 개별 토큰을 모두 후보로 두고 중복/불용어/길이(2~40자)를 정리해 최대 $max 개 반환.
+     * @return string[] 정규화된 키워드(중복 제거·원문 표기 보존)
+     */
+    private static function deriveKeywords(array $d, array $settings, int $max = 12): array
+    {
+        $out = [];
+        $push = static function ($s) use (&$out) {
+            $s = (string)$s;
+            // 매체 금칙문자(구두점·이모지·특수기호) 제거 → 문자/숫자/공백만.
+            $s = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $s);
+            $s = trim(preg_replace('/\s+/u', ' ', (string)$s));
+            if ($s === '') return;
+            $len = mb_strlen($s);
+            if ($len < 2 || $len > 40) return;
+            $k = mb_strtolower($s);
+            if (isset(self::KW_STOP[$k])) return;
+            if (!isset($out[$k])) $out[$k] = $s;   // 중복 제거(대소문자 무시), 원문 표기 유지
+        };
+        // ① 명시 키워드(최우선)
+        foreach ((array)($settings['keywords'] ?? []) as $k) $push($k);
+        // ② 캠페인명 ③ 카테고리(AutoCampaign 이 다중 카테고리를 콤마 결합해 저장)
+        $phrases = [];
+        $cn = trim((string)($settings['campaign_name'] ?? ''));
+        if ($cn !== '') $phrases[] = $cn;
+        foreach (preg_split('/[,·|\/]+/u', (string)($settings['category'] ?? '')) ?: [] as $c) {
+            $c = trim((string)$c);
+            if ($c !== '') $phrases[] = $c;
+        }
+        // ④ 저장 소재 카피(loadDesign 결과) — 채널 매칭된 실제 광고 문구에서 상품/브랜드 어휘를 얻는다.
+        foreach (['headline', 'subheadline'] as $f) {
+            $v = trim((string)($d[$f] ?? ''));
+            if ($v !== '' && $v !== 'GenieGo') $phrases[] = $v;
+        }
+        foreach ($phrases as $p) {
+            $push($p);                                                  // 구(phrase) 매칭용
+            foreach (preg_split('/\s+/u', $p) ?: [] as $w) $push($w);   // 개별 토큰(BROAD 매칭용)
+        }
+        return array_slice(array_values($out), 0, max(1, $max));
+    }
+
+    /* ── Google: 광고그룹 + 키워드 + 반응형 검색광고(텍스트) — 완전 빌드 가능 ── */
     private static function googleDeliver(PDO $pdo, string $tenant, string $campRes, array $d, int $daily, string $landing, array $settings = []): array
     {
         $dev   = self::cred($pdo, $tenant, 'google_ads', 'developer_token');
@@ -1217,7 +1326,30 @@ final class AdAdapters
             return ['ok' => true, 'adgroup_id' => $agNumEarly, 'ad_id' => '', 'status' => 'partial',
                 'note' => 'Google ' . $chType . ' 광고그룹 생성(PAUSED·프리퀀시 캡 적용). 소재 보류 — 반응형 ' . ($chType === 'VIDEO' ? '동영상(YouTube 영상 에셋)' : '디스플레이(이미지/로고 에셋)') . ' 소재 등록 후 자동 완성.'];
         }
-        // 2) 반응형 검색광고(헤드라인 3+, 설명 2)
+        // 2) ★[283차 P1] 검색 키워드(adGroupCriteria) — 키워드 없는 SEARCH 광고그룹은 매칭 자체가 없어 영구 노출0.
+        //    종전엔 이 단계가 통째로 없었고 RSA 만 만든 뒤 ok=true 를 반환 → activate 되어 "라이브"로 보이지만 실집행 0.
+        //    2어절 이상=PHRASE(정확도), 1어절=BROAD(도달). 실패/0개면 **광고(RSA)를 만들지 않고** honest partial 반환 →
+        //    ad_ext_id 가 비어 applyStatus readiness 게이트가 활성화를 차단(가짜 라이브 방지·무지출).
+        $kws  = self::deriveKeywords($d, $settings);
+        $kwOk = 0; $kwErr = '';
+        if (!empty($kws)) {
+            $kwOps = [];
+            foreach ($kws as $kw) {
+                $kwOps[] = ['create' => [
+                    'adGroup' => $agRes, 'status' => 'ENABLED',
+                    'keyword' => ['text' => mb_substr($kw, 0, 80), 'matchType' => (mb_strpos($kw, ' ') !== false ? 'PHRASE' : 'BROAD')],
+                ]];
+            }
+            [$kc, $kr] = self::http('POST', "{$base}/adGroupCriteria:mutate", $hdr, json_encode(['operations' => $kwOps], JSON_UNESCAPED_UNICODE));
+            $kwOk = is_array($kr) ? count($kr['results'] ?? []) : 0;
+            if ($kwOk === 0) $kwErr = self::errMsg($kr) ?: ('HTTP ' . $kc);
+        }
+        if ($kwOk === 0) {
+            return ['ok' => true, 'adgroup_id' => $agNumEarly, 'ad_id' => '', 'status' => 'partial', 'keywords' => 0,
+                'note' => 'Google 검색 광고그룹 생성(PAUSED). ★키워드 0개 — 검색광고는 키워드가 없으면 단 한 번도 노출되지 않아 광고(RSA) 생성을 보류했습니다(활성화 차단·무지출). '
+                    . ($kwErr !== '' ? '사유: ' . $kwErr : '캠페인명·카테고리·소재 카피에서 키워드를 도출하지 못했습니다 — 캠페인명/카테고리를 구체화하거나 소재 헤드라인을 등록하세요.')];
+        }
+        // 3) 반응형 검색광고(헤드라인 3+, 설명 2)
         $h = array_values(array_filter([$d['headline'], $d['subheadline'] ?: ($d['headline'] . ' 지금'), 'GenieGo ROI']));
         $desc = array_values(array_filter([$d['copy'] ?: '데이터 기반 마케팅 자동화', '최적 채널·예산으로 성과 극대화']));
         $heads = array_map(fn($t) => ['text' => mb_substr($t, 0, 30)], array_slice($h, 0, 15));
@@ -1237,11 +1369,12 @@ final class AdAdapters
         $agNum = (strrpos($agRes, '/') !== false) ? substr($agRes, strrpos($agRes, '/') + 1) : $agRes;          // customers/cid/adGroups/{id}
         $adNum = (strpos($adRes, '~') !== false) ? substr($adRes, strpos($adRes, '~') + 1)                       // ...adGroupAds/{ag}~{adId}
                : ((strrpos($adRes, '/') !== false) ? substr($adRes, strrpos($adRes, '/') + 1) : $adRes);
-        return ['ok' => true, 'adgroup_id' => $agNum, 'ad_id' => $adNum, 'note' => 'Google 광고그룹+RSA 생성(PAUSED)'];
+        return ['ok' => true, 'adgroup_id' => $agNum, 'ad_id' => $adNum, 'keywords' => $kwOk,
+            'note' => 'Google 광고그룹+키워드 ' . $kwOk . '개+RSA 생성(PAUSED)'];
     }
 
-    /* ── Naver: 광고그룹 + 텍스트 광고. (비즈채널 ID 필요 — cred 'channel_id' 사용) ── */
-    private static function naverDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing): array
+    /* ── Naver: 광고그룹 + 키워드 + 텍스트 광고. (비즈채널 ID 필요 — cred 'channel_id' 사용) ── */
+    private static function naverDeliver(PDO $pdo, string $tenant, string $campId, array $d, int $daily, string $landing, array $settings = []): array
     {
         $chId = self::cred($pdo, $tenant, 'naver_sa', 'channel_id'); // 등록된 비즈채널(사이트) ID
         if ($chId === '') return ['ok' => false, 'status' => 'needs_channel', 'note' => 'Naver 비즈채널(사이트) ID(channel_id) 등록 필요 — 광고그룹 생성 보류'];
@@ -1253,7 +1386,37 @@ final class AdAdapters
         [$ac, $ar] = self::http('POST', 'https://api.searchad.naver.com' . $agPath, $agHdr, $agBody);
         $agId = $ar['nccAdgroupId'] ?? '';
         if ($agId === '') return ['ok' => false, 'error' => 'adgroup: ' . (self::errMsg($ar) ?: ('HTTP ' . $ac))];
-        // 2) 텍스트 광고
+        // 2) ★[283차 P1] 키워드 등록(POST /ncc/keywords) — Naver SA 도 키워드가 없으면 매칭 0(영구 노출0).
+        //    종전엔 광고그룹+텍스트광고만 만들고 ok=true → activate 되어 "라이브"인데 실제 노출 0 이었다.
+        //    (Connectors.php:3274 의 /ncc/keywords 는 GET 리포팅 전용 — 생성 경로는 전무했다.)
+        //    Naver 키워드는 공백 미허용 → 어절 결합. 실패/0개면 광고(TEXT_45)를 만들지 않고 honest partial(활성화 차단).
+        $kws  = self::deriveKeywords($d, $settings);
+        $kwOk = 0; $kwErr = '';
+        $kwPath = '/ncc/keywords';
+        $kwHdr  = self::naverHeaders($pdo, $tenant, 'POST', $kwPath);
+        if ($kwHdr !== null && !empty($kws)) {
+            $bid  = max(70, (int)($daily / 100));
+            $rows = [];
+            foreach ($kws as $kw) {
+                $k = preg_replace('/\s+/u', '', $kw);   // 네이버 키워드는 공백 불가(어절 결합)
+                if (!is_string($k) || $k === '' || mb_strlen($k) < 2 || mb_strlen($k) > 25) continue;
+                $rows[] = ['keyword' => $k, 'bidAmt' => $bid, 'useGroupBidAmt' => false, 'userLock' => false];
+            }
+            if (!empty($rows)) {
+                // 서명은 path 기준(쿼리스트링 제외) — naverHeaders 규약 유지.
+                [$kc, $kr] = self::http('POST', 'https://api.searchad.naver.com' . $kwPath . '?nccAdgroupId=' . rawurlencode((string)$agId), $kwHdr, json_encode($rows, JSON_UNESCAPED_UNICODE));
+                if (is_array($kr)) {
+                    foreach ($kr as $krow) { if (is_array($krow) && !empty($krow['nccKeywordId'])) $kwOk++; }
+                }
+                if ($kwOk === 0) $kwErr = self::errMsg($kr) ?: ('HTTP ' . $kc);
+            }
+        }
+        if ($kwOk === 0) {
+            return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => '', 'status' => 'partial', 'keywords' => 0,
+                'note' => 'Naver 광고그룹 생성(userLock). ★키워드 0개 — 검색광고는 키워드가 없으면 노출되지 않아 광고 생성을 보류했습니다(활성화 차단·무지출). '
+                    . ($kwErr !== '' ? '사유: ' . $kwErr : '캠페인명·카테고리·소재 카피에서 키워드를 도출하지 못했습니다.')];
+        }
+        // 3) 텍스트 광고
         $adPath = '/ncc/ads';
         $adHdr = self::naverHeaders($pdo, $tenant, 'POST', $adPath);
         $adBody = json_encode(['nccAdgroupId' => $agId, 'type' => 'TEXT_45', 'ad' => [
@@ -1263,7 +1426,8 @@ final class AdAdapters
         [$adc, $adr] = self::http('POST', 'https://api.searchad.naver.com' . $adPath, $adHdr, $adBody);
         $adId = $adr['nccAdId'] ?? '';
         if ($adId === '') return ['ok' => false, 'error' => 'ad: ' . (self::errMsg($adr) ?: ('HTTP ' . $adc))];
-        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => $adId, 'note' => 'Naver 광고그룹+텍스트광고 생성(userLock)'];
+        return ['ok' => true, 'adgroup_id' => $agId, 'ad_id' => $adId, 'keywords' => $kwOk,
+            'note' => 'Naver 광고그룹+키워드 ' . $kwOk . '개+텍스트광고 생성(userLock)'];
     }
 
     /* ── Meta: 광고세트 + 광고. 이미지/페이지 필요(page_id cred + 래스터 이미지). ── */
@@ -1429,7 +1593,8 @@ final class AdAdapters
             'image_ids'        => $imageId !== '' ? [$imageId] : null,
             'ad_text'          => mb_substr($d['copy'] ?: $d['headline'], 0, 100),
             'call_to_action'   => 'LEARN_MORE',
-            'landing_page_url' => $landing !== '' ? $landing : 'https://www.genieroi.com',
+            // [283차 P0-1] 벤더 도메인 기본값 제거 — buildDelivery 가 fail-closed 로 비어있지 않음을 보장(2중 방어: 빈 값이면 매체가 거부=정직 실패).
+            'landing_page_url' => $landing,
             'operation_status' => 'DISABLE',
         ], fn($v) => $v !== null);
         $adBody = json_encode(['advertiser_id' => $advId, 'adgroup_id' => $agId, 'creatives' => [$creative]], JSON_UNESCAPED_UNICODE);

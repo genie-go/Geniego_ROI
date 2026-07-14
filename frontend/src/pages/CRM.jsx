@@ -1160,14 +1160,29 @@ function GuideTab() {
 const OMNI_CH_META = {
   whatsapp: { label: 'WhatsApp', icon: '🟢' },
   kakao:    { label: '카카오 알림톡', icon: '💬' },
+  // [283차 P2-1] SMS 워터폴 정식 편입 — 백엔드 deliverWaterfall 에 발송코드가 있었으나 WATERFALL_CHANNELS/normalizeChannels 가
+  //   sms 를 제거해 호출 0(데드코드)이었다. 이제 순서에 넣으면 실제로 SMS 로 폴백 발송된다.
+  sms:      { label: 'SMS(문자)', icon: '📱' },
   email:    { label: '이메일', icon: '✉️' },
+  // [283차 P2-3] 웹푸시 개인 타겟 — RFC8291 암호화 페이로드로 제목·본문·딥링크가 실제로 실린다(구독 결속 고객 한정).
+  push:     { label: '웹푸시(개인)', icon: '🔔' },
 };
+/* [283차 P0] 캠페인 토픽 — 백엔드 PreferenceCenter::TOPICS 가 SSOT. 지정 시 해당 주제 수신거부 고객은 발송 제외. */
+const OMNI_TOPICS = [
+  { id: 'promo',      icon: '🏷️', ko: '프로모션·할인' },
+  { id: 'newsletter', icon: '📰', ko: '뉴스레터·소식' },
+  { id: 'product',    icon: '✨', ko: '신상품·업데이트' },
+  { id: 'event',      icon: '🎪', ko: '이벤트·웨비나' },
+];
+/** 워터폴 순서를 고를 수 있는 채널(주소 지정형). line 은 브로드캐스트 전용이라 워터폴 편입 불가. */
+const OMNI_WATERFALL = ['whatsapp', 'kakao', 'sms', 'email', 'push'];
 function OmnichannelTab({ t, segments, addAlert }) {
   const [channels, setChannels] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [stats, setStats] = useState({});
   const [busy, setBusy] = useState(false);
-  const emptyForm = { name: '', segment_id: 0, channels: ['whatsapp', 'kakao', 'email'], email_subject: '', body: '', kakao_template_code: '', also_webpush: false };
+  // 기본 채널 순서는 종전과 동일(whatsapp→kakao→email) — sms/push 는 사용자가 명시적으로 켤 때만 활성(회귀 0).
+  const emptyForm = { name: '', segment_id: 0, channels: ['whatsapp', 'kakao', 'email'], email_subject: '', body: '', kakao_template_code: '', also_webpush: false, topic: '', sto: false, push_title: '', push_url: '' };
   const [form, setForm] = useState(emptyForm);
 
   const reload = useCallback(() => { crmApi.omniListCampaigns().then(r => setCampaigns(r.campaigns || [])).catch(() => {}); }, []);
@@ -1183,7 +1198,9 @@ function OmnichannelTab({ t, segments, addAlert }) {
   const create = async () => {
     if (!form.name.trim()) { addAlert?.({ type: 'error', msg: t('crm.omniNeedName', '캠페인 이름을 입력하세요') }); return; }
     if (!form.channels.length) { addAlert?.({ type: 'error', msg: t('crm.omniNeedCh', '채널을 1개 이상 선택하세요') }); return; }
-    const config = { email_subject: form.email_subject, email_body: form.body, whatsapp_body: form.body, kakao_content: form.body, kakao_template_code: form.kakao_template_code, also_webpush: !!form.also_webpush };
+    // [283차 P0/P1] topic(주제 수신거부 강제) · sto(개인 최적시각) · push_* (웹푸시 실콘텐츠) 를 config 에 동봉.
+    //   omni_campaigns.config(TEXT JSON) 재사용 → 스키마 변경 0. 백엔드 deliverWaterfall 이 게이트 입력으로 사용.
+    const config = { email_subject: form.email_subject, email_body: form.body, whatsapp_body: form.body, kakao_content: form.body, sms_content: form.body, kakao_template_code: form.kakao_template_code, also_webpush: !!form.also_webpush, topic: form.topic || '', sto: !!form.sto, push_title: form.push_title || form.email_subject, push_body: form.body, push_url: form.push_url || '/' };
     try {
       await crmApi.omniCreateCampaign({ name: form.name, segment_id: Number(form.segment_id) || 0, channels: form.channels, config });
       addAlert?.({ type: 'success', msg: t('crm.omniCreated', '옴니채널 캠페인이 생성되었습니다') });
@@ -1212,7 +1229,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
         <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 4 }}>📡 {t('crm.omniChTitle', '연결 채널 상태')}</div>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>{t('crm.omniChSub', '자격을 등록하면 즉시 해당 채널로 실발송됩니다(미설정 채널은 다음 채널로 자동 폴백).')}</div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {['whatsapp', 'kakao', 'email', 'webpush'].map(ch => {
+          {['whatsapp', 'kakao', 'sms', 'email', 'webpush'].map(ch => {
             const st = channels?.[ch];
             const live = !!st?.live;
             const m = OMNI_CH_META[ch] || { label: ch === 'webpush' ? '웹 푸시' : ch, icon: '🔔' };
@@ -1223,7 +1240,8 @@ function OmnichannelTab({ t, segments, addAlert }) {
                 <span style={{ fontSize: 11, fontWeight: 700, color: live ? '#16a34a' : '#94a3b8' }}>
                   {live ? `🟢 ${t('crm.omniLive', '라이브')}` : (ch === 'email' ? `🟢 ${t('crm.omniFallback', '폴백 가능')}` : `⚪ ${t('crm.omniUnset', '미설정')}`)}
                 </span>
-                {ch === 'webpush' && st?.subscribers != null && <span style={{ fontSize: 11, color: C.muted }}>({st.subscribers})</span>}
+                {/* [283차] 웹푸시는 전체 구독수와 '개인 타겟 가능(고객 결속)' 구독수를 분리 표기(정직). */}
+                {ch === 'webpush' && st?.subscribers != null && <span style={{ fontSize: 11, color: C.muted }}>({st.subscribers}{st?.targetable != null ? ` · ${t('crm.omniPushTargetable', '타겟가능')} ${st.targetable}` : ''})</span>}
               </div>
             );
           })}
@@ -1250,7 +1268,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
         {/* 채널 워터폴 순서 */}
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>{t('crm.omniWaterfall', '채널 우선순위(위 채널 미도달/미설정 시 다음 채널로 폴백)')}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-          {['whatsapp', 'kakao', 'email'].sort((a, b) => {
+          {OMNI_WATERFALL.slice().sort((a, b) => {
             const ia = form.channels.indexOf(a), ib = form.channels.indexOf(b);
             return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
           }).map(ch => {
@@ -1283,6 +1301,31 @@ function OmnichannelTab({ t, segments, addAlert }) {
           <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniBody', '메시지 본문(전 채널 공통 · {{name}} 치환)')}</div>
           <textarea style={{ ...inputSt, minHeight: 70, resize: 'vertical' }} value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder={t('crm.omniBodyPh', '{{name}}님, 이번 주만 특별 할인 진행 중입니다!')} />
         </div>
+        {/* [283차 P0] 콘텐츠 주제 — 지정 시 해당 주제를 수신거부한 고객에게는 전 채널 발송이 차단된다(선호센터 연동). */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>{t('crm.omniTopic', '콘텐츠 주제 — 지정 시 해당 주제 수신거부 고객은 자동 제외됩니다')}</div>
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => setForm({ ...form, topic: '' })}
+              style={{ padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                border: form.topic === '' ? '2px solid #64748b' : `1px solid ${C.border}`,
+                background: form.topic === '' ? 'rgba(100,116,139,0.10)' : '#f8fafc', color: form.topic === '' ? '#475569' : '#94a3b8' }}>
+              {t('crm.omniTopicNone', '주제 없음')}
+            </button>
+            {OMNI_TOPICS.map(tp => { const sel = form.topic === tp.id; return (
+              <button key={tp.id} type="button" onClick={() => setForm({ ...form, topic: sel ? '' : tp.id })}
+                style={{ padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                  border: sel ? '2px solid #2563eb' : `1px solid ${C.border}`,
+                  background: sel ? 'rgba(37,99,235,0.10)' : '#f8fafc', color: sel ? '#1d4ed8' : '#64748b' }}>
+                {tp.icon} {t('crm.omniTopic_' + tp.id, tp.ko)}
+              </button>
+            ); })}
+          </div>
+        </div>
+        {/* [283차 P1] STO — ON 시 수신자별 과거 참여 최빈시각까지 아웃박스에 보류했다가 그 시각에 발송(드롭 없음·cron 재시도). */}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#0f172a', marginBottom: 10, cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.sto} onChange={e => setForm({ ...form, sto: e.target.checked })} />
+          ⏰ {t('crm.omniSto', '개인별 최적 발송시간(STO) — 수신자 참여 최빈 시각에 자동 발송')}
+        </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#0f172a', marginBottom: 14, cursor: 'pointer' }}>
           <input type="checkbox" checked={form.also_webpush} onChange={e => setForm({ ...form, also_webpush: e.target.checked })} />
           🔔 {t('crm.omniAlsoPush', '웹 푸시 동시 발송(구독자 전체)')}

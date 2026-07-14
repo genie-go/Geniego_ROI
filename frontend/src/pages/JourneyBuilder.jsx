@@ -59,7 +59,8 @@ export default function JourneyBuilder() {
     const [canvasSaving, setCanvasSaving] = useState(false);
     const [templates, setTemplates] = useState([]);       // [현 차수] 추천 여정 템플릿
     const [showTemplates, setShowTemplates] = useState(false);
-    const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+    // [283차 P0/P1] topic(주제 수신거부 강제) · sto(개인별 최적 발송시각) — 발송 노드 config 로 컴파일되어 백엔드 게이트가 강제.
+    const [form, setForm] = useState({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false });
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 768px)').matches);
     useEffect(() => {
@@ -92,6 +93,7 @@ export default function JourneyBuilder() {
             segment: cfg.segment || r.description || '',
             channels: Array.isArray(cfg.channels) && cfg.channels.length ? cfg.channels : ['email'],
             delay: dl, delay_label: delayLabel(dl),
+            topic: cfg.topic || '', sto: !!cfg.sto, // [283차 P0/P1] 주제·STO 왕복 보존(수정 시 값 유실 방지)
             status: r.status || 'draft',
             createdAt: (r.created_at || '').slice(0, 10),
             executions: Number(cfg.executions || 0),
@@ -105,24 +107,32 @@ export default function JourneyBuilder() {
     };
     // [현 차수 P1] ★간편폼 → 실행가능 노드/엣지 그래프 컴파일. 기존엔 trigger_config 만 보내 백엔드가
     //   하드코딩 defaultNodes(제목없는 환영메일 1통)로 생성 → 사용자가 고른 채널/지연이 실행 미반영이었다.
-    //   실행엔진 지원 채널(email/kakao/sms)만 send 노드화(push/line 미지원 → 제외). delay 는 대기 노드로.
+    //   [283차 P2-3] push 를 실행엔진 지원 채널로 승격 — 백엔드 JourneyBuilder::sendPushNode(RFC8291 암호화 웹푸시)
+    //     신설로 실발송된다. 종전엔 팔레트에 push 가 있는데 여기서 조용히 폐기돼 '가짜 버튼'이었다.
+    //   ★line 은 지원 채널이 아니다(팔레트에서 비활성·사유 표기) — Line API 가 /message/broadcast 전용이라
+    //     수신자 지정이 불가능하고, 저니는 등록건마다 실행되므로 노드로 두면 고객 1명 진입시마다 전 팔로워
+    //     브로드캐스트가 나간다. 개인 타겟(/message/push + userId 매핑) 지원 전까지 편입 금지.
+    const JOURNEY_SEND_CHANNELS = ['email', 'kakao', 'sms', 'push'];
     const _delayCfg = (d) => ({ '1h': { unit: 'hours', value: 1 }, '1d': { unit: 'days', value: 1 }, '3d': { unit: 'days', value: 3 }, '7d': { unit: 'days', value: 7 } }[d] || null);
     const compileGraph = (j) => {
-        const supported = (j.channels || ['email']).filter(c => ['email', 'kakao', 'sms'].includes(c));
+        const supported = (j.channels || ['email']).filter(c => JOURNEY_SEND_CHANNELS.includes(c));
         const chans = supported.length ? supported : ['email'];
         const nodes = [{ id: 'trigger_1', type: 'trigger', label: 'trigger', config: { type: j.trigger_type || 'manual' }, x: 300, y: 40 }];
         const edges = [];
         let prev = 'trigger_1', y = 40;
         const dc = _delayCfg(j.delay);
         if (dc) { y += 140; nodes.push({ id: 'delay_1', type: 'delay', label: j.delay_label || 'delay', config: dc, x: 300, y }); edges.push({ from: prev, to: 'delay_1' }); prev = 'delay_1'; }
-        chans.forEach((ch, i) => { y += 140; const nid = `${ch}_${i + 1}`; nodes.push({ id: nid, type: ch, label: ch, config: { template_id: null, subject: '' }, x: 300, y }); edges.push({ from: prev, to: nid }); prev = nid; });
+        // [283차 P0/P1] 발송 노드 config 에 topic/sto 를 실어 백엔드 통합 게이트(CRM::isMarketingSendAllowed)가 강제하게 한다.
+        //   topic 미지정 = 게이트 미적용(무회귀) · sto=false = 즉시발송(기존 동작).
+        const gate = { ...(j.topic ? { topic: j.topic } : {}), ...(j.sto ? { sto: true } : {}) };
+        chans.forEach((ch, i) => { y += 140; const nid = `${ch}_${i + 1}`; nodes.push({ id: nid, type: ch, label: ch, config: { template_id: null, subject: '', ...gate }, x: 300, y }); edges.push({ from: prev, to: nid }); prev = nid; });
         return { nodes, edges };
     };
     const toBackend = (j, withGraph = false) => {
         const base = {
             name: j.name, description: j.segment || '',
             trigger_type: j.trigger_type || 'manual',
-            trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0 },
+            trigger_config: { channels: j.channels || ['email'], delay: j.delay || 'none', segment: j.segment || '', executions: j.executions || 0, topic: j.topic || '', sto: !!j.sto },
         };
         // 신규 생성만 그래프 동봉(수정은 캔버스 편집 그래프 보존 — 덮어쓰기 방지).
         if (withGraph) { const g = compileGraph(j); base.nodes = g.nodes; base.edges = g.edges; }
@@ -179,7 +189,25 @@ export default function JourneyBuilder() {
     }, []);
 
     const TRIGGERS = [{ id: 'signup', label: tr(K.triggerSignup) }, { id: 'purchase', label: tr(K.triggerPurchase) }, { id: 'abandon', label: tr(K.triggerAbandon) }, { id: 'churn', label: tr(K.triggerChurn) }, { id: 'segment', label: tr(K.triggerSegment) }, { id: 'manual', label: tr(K.triggerManual) }];
-    const CHANNELS = [{ id: 'email', label: tr(K.email), icon: '📧' }, { id: 'kakao', label: tr(K.kakao), icon: '💬' }, { id: 'sms', label: tr(K.sms), icon: '📱' }, { id: 'push', label: tr(K.push), icon: '🔔' }, { id: 'line', label: tr(K.line), icon: '💚' }];
+    // [283차 P2-3] ★가짜 버튼 종결 — push 는 백엔드 push 노드(RFC8291 암호화 웹푸시) 신설로 실발송된다.
+    //   line 은 **비활성 + 사유 표기**: LINE Messaging API 의 broadcast 는 채널 팔로워 전원 대상이라 수신자 지정이
+    //   불가능하다. 저니는 고객 1명이 진입할 때마다 노드를 실행하므로 line 을 허용하면 진입 1건당 전 팔로워
+    //   브로드캐스트가 발송되는 사고가 난다. 조용히 폐기(종전 동작)하는 대신 이유를 밝히고 막는다.
+    const CHANNELS = [
+        { id: 'email', label: tr(K.email), icon: '📧' },
+        { id: 'kakao', label: tr(K.kakao), icon: '💬' },
+        { id: 'sms', label: tr(K.sms), icon: '📱' },
+        { id: 'push', label: tr(K.push), icon: '🔔' },
+        { id: 'line', label: tr(K.line), icon: '💚', disabled: true,
+          reason: t('journeyBuilder.lineNoTarget', 'LINE은 전체 팔로워 브로드캐스트만 지원해 개인 타겟 발송이 불가합니다. LINE 캠페인 메뉴에서 브로드캐스트로 발송하세요.') },
+    ];
+    // [283차 P0] 저니 주제(수신거부 강제) — 백엔드 PreferenceCenter::TOPICS 가 SSOT.
+    const JOURNEY_TOPICS = [
+        { id: 'promo', icon: '🏷️', ko: '프로모션·할인' },
+        { id: 'newsletter', icon: '📰', ko: '뉴스레터·소식' },
+        { id: 'product', icon: '✨', ko: '신상품·업데이트' },
+        { id: 'event', icon: '🎪', ko: '이벤트·웨비나' },
+    ];
     const DELAYS = [{ id: 'none', label: tr(K.delayNone) }, { id: '1h', label: tr(K.delay1h) }, { id: '1d', label: tr(K.delay1d) }, { id: '3d', label: tr(K.delay3d) }, { id: '7d', label: tr(K.delay7d) }];
 
     const TABS = [{ id: 'builder', label: tr(K.tabBuilder), icon: '🗺️' }, { id: 'list', label: tr(K.tabList), icon: '📋' }, { id: 'logs', label: tr(K.tabLogs), icon: '📜' }, { id: 'analytics', label: tr(K.tabAnalytics), icon: '📈' }, { id: 'guide', label: tr(K.tabGuide), icon: '📖' }];
@@ -213,6 +241,8 @@ export default function JourneyBuilder() {
             channels: form.channels,
             delay: form.delay,
             delay_label: delayLabel(form.delay),
+            topic: form.topic || '',   // [283차 P0] 주제(수신거부 강제)
+            sto: !!form.sto,           // [283차 P1] 개인별 최적 발송시각
             status: 'draft',
             createdAt: editId ? (journeys.find(j => j.id === editId)?.createdAt || new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR')) : new Date().toLocaleDateString(LANG_LOCALE_MAP[lang] || 'ko-KR'),
             executions: editId ? (journeys.find(j => j.id === editId)?.executions || 0) : 0,
@@ -232,13 +262,13 @@ export default function JourneyBuilder() {
         }
         setShowCreate(false);
         setEditId(null);
-        setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+        setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false });
         addToast(editId ? '경로가 수정되었습니다.' : '새 경로가 생성되었습니다.', 'success', 3000);
     };
 
     const openEdit = j => {
         setEditId(j.id);
-        setForm({ name: j.name, trigger_type: j.trigger_type, segment: j.segment || '', channels: j.channels || ['email'], delay: j.delay || 'none' });
+        setForm({ name: j.name, trigger_type: j.trigger_type, segment: j.segment || '', channels: j.channels || ['email'], delay: j.delay || 'none', topic: j.topic || '', sto: !!j.sto });
         setShowCreate(true);
     };
 
@@ -438,7 +468,7 @@ export default function JourneyBuilder() {
                                 <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                     <button onClick={openTemplates} style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.4)', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontWeight: 800, fontSize: 13 }}>{t('journeyBuilder.startWithTemplate', '✨ 추천 여정으로 시작')}</button>
-                                    <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
+                                    <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
                                 </div>
                             </div>
                         </div>
@@ -466,7 +496,7 @@ export default function JourneyBuilder() {
                             <EmptyState
                                 onCreateClick={() => {
                                     setEditId(null);
-                                    setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' });
+                                    setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false });
                                     setShowCreate(true);
                                 }}
                                 onTemplateClick={(template) => {
@@ -477,7 +507,8 @@ export default function JourneyBuilder() {
                                             trigger_type: template.trigger,
                                             segment: '',
                                             channels: template.channels,
-                                            delay: template.delay
+                                            delay: template.delay,
+                                            topic: '', sto: false, // [283차] 템플릿은 주제/STO 미지정(사용자가 폼에서 선택)
                                         });
                                         setShowCreate(true);
                                     } else {
@@ -494,7 +525,7 @@ export default function JourneyBuilder() {
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         <div style={{ ...CARD, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>📋 {tr(K.tabList)} ({journeys.length})</div>
-                            <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none' }); setShowCreate(true); }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 12 }}>+ {tr(K.createJourney)}</button>
+                            <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false }); setShowCreate(true); }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 12 }}>+ {tr(K.createJourney)}</button>
                         </div>
                         {journeys.length === 0 ? (
                             <div style={{ ...CARD, textAlign: 'center', padding: '60px 20px', fontSize: 14, marginBottom: 12, color: '#94a3b8' }} ><div>📭</div><div>{tr(K.noData)}</div></div>
@@ -754,9 +785,39 @@ export default function JourneyBuilder() {
                     <div>
                         <label style={LBL}>{tr(K.channels)}</label>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            {CHANNELS.map(ch => { const sel = form.channels.includes(ch.id); return (<button key={ch.id} onClick={() => setForm(p => ({ ...p, channels: sel ? p.channels.filter(x => x !== ch.id) : [...p.channels, ch.id] }))} style={{ padding: '8px 16px', borderRadius: 10, border: sel ? `2px solid ${CH_COLORS[ch.id]}` : '1px solid #e2e8f0', cursor: 'pointer', background: sel ? `${CH_COLORS[ch.id]}12` : '#f8fafc', color: sel ? CH_COLORS[ch.id] : '#64748b', fontWeight: 700, fontSize: 12 }}>{ch.icon} {ch.label}</button>); })}
+                            {/* [283차 P2-3] 미지원 채널(line)은 비활성 + 사유 툴팁 — 조용한 폐기 금지(가짜 버튼 종결). */}
+                            {CHANNELS.map(ch => {
+                                const sel = form.channels.includes(ch.id);
+                                if (ch.disabled) return (
+                                    <button key={ch.id} type="button" disabled title={ch.reason}
+                                        style={{ padding: '8px 16px', borderRadius: 10, border: '1px dashed #e2e8f0', cursor: 'not-allowed', background: '#f8fafc', color: '#cbd5e1', fontWeight: 700, fontSize: 12 }}>
+                                        {ch.icon} {ch.label} <span style={{ fontSize: 10, fontWeight: 800 }}>({t('journeyBuilder.chUnsupported', '미지원')})</span>
+                                    </button>
+                                );
+                                return (<button key={ch.id} onClick={() => setForm(p => ({ ...p, channels: sel ? p.channels.filter(x => x !== ch.id) : [...p.channels, ch.id] }))} style={{ padding: '8px 16px', borderRadius: 10, border: sel ? `2px solid ${CH_COLORS[ch.id]}` : '1px solid #e2e8f0', cursor: 'pointer', background: sel ? `${CH_COLORS[ch.id]}12` : '#f8fafc', color: sel ? CH_COLORS[ch.id] : '#64748b', fontWeight: 700, fontSize: 12 }}>{ch.icon} {ch.label}</button>);
+                            })}
+                        </div>
+                        {CHANNELS.some(c => c.disabled) && (
+                            <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 6, lineHeight: 1.5 }}>
+                                💚 {CHANNELS.find(c => c.disabled)?.reason}
+                            </div>
+                        )}
+                    </div>
+                    {/* [283차 P0] 콘텐츠 주제 — 지정 시 해당 주제를 수신거부한 고객에게는 이 여정의 발송이 차단된다(선호센터 연동). */}
+                    <div>
+                        <label style={LBL}>{t('journeyBuilder.topicLabel', '콘텐츠 주제(수신거부 강제)')}</label>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <button type="button" onClick={() => setForm(p => ({ ...p, topic: '' }))} style={{ padding: '7px 14px', borderRadius: 8, border: form.topic === '' ? '2px solid #64748b' : '1px solid #e2e8f0', cursor: 'pointer', background: form.topic === '' ? 'rgba(100,116,139,0.08)' : '#f8fafc', color: form.topic === '' ? '#475569' : '#94a3b8', fontWeight: 700, fontSize: 12 }}>{t('journeyBuilder.topicNone', '주제 없음')}</button>
+                            {JOURNEY_TOPICS.map(tp => { const sel = form.topic === tp.id; return (
+                                <button key={tp.id} type="button" onClick={() => setForm(p => ({ ...p, topic: sel ? '' : tp.id }))} style={{ padding: '7px 14px', borderRadius: 8, border: sel ? '2px solid #2563eb' : '1px solid #e2e8f0', cursor: 'pointer', background: sel ? 'rgba(37,99,235,0.08)' : '#f8fafc', color: sel ? '#1d4ed8' : '#64748b', fontWeight: 700, fontSize: 12 }}>{tp.icon} {t('journeyBuilder.topic_' + tp.id, tp.ko)}</button>
+                            ); })}
                         </div>
                     </div>
+                    {/* [283차 P1] STO — ON 시 개인 최적시각 전에는 노드를 진행하지 않고 defer(다음 cron 재시도) → 유실 0. */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#1e293b', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={!!form.sto} onChange={e => setForm(p => ({ ...p, sto: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#22c55e', cursor: 'pointer' }} />
+                        ⏰ {t('journeyBuilder.stoEnable', '개인별 최적 발송시간(STO) — 수신자 참여 최빈 시각에 발송')}
+                    </label>
                     <div><label style={LBL}>{tr(K.delayLabel)}</label><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{DELAYS.map(d => (<button key={d.id} onClick={() => setForm(p => ({ ...p, delay: d.id }))} style={{ padding: '7px 14px', borderRadius: 8, border: form.delay === d.id ? '2px solid #4f8ef7' : '1px solid #e2e8f0', cursor: 'pointer', background: form.delay === d.id ? 'rgba(79,142,247,0.08)' : '#f8fafc', color: form.delay === d.id ? '#4f8ef7' : '#64748b', fontWeight: 700, fontSize: 12 }}>{d.label}</button>))}</div></div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>

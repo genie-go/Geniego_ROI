@@ -1,0 +1,119 @@
+name: "Security Scan (deps + CodeQL)"
+
+# [283차] 의존성/취약점 스캔 CI 신설.
+#   부재증명: .github/workflows/ 에 deploy.yml 1개뿐 · codeql|dependabot|npm audit|composer audit|snyk|trivy → 0건.
+#   → 프론트(npm)·백엔드(composer) 의존성 CVE 와 JS 코드 취약점이 어떤 게이트도 통과하지 않고 배포돼 왔다.
+#
+# ★설계 원칙 — 기존 배포 파이프라인 무간섭:
+#   1) deploy.yml 은 절대 건드리지 않는다(master push = 운영 배포 트리거).
+#   2) 본 워크플로는 PR·스케줄·수동(workflow_dispatch) 에서만 돈다. `push: master` 트리거 없음
+#      → 이 파일이 배포를 유발하거나 막는 일이 구조적으로 불가능하다.
+#   3) 초기 도입기엔 리포트 전용(continue-on-error: true) — 기존 취약점 백로그가 PR 을 즉시 막지 않도록.
+#      백로그 정리 후 `continue-on-error` 를 제거하면 그대로 차단 게이트로 승격된다(운영 전환점 주석 표기).
+#
+# ★CodeQL 언어 범위(실측 확인):
+#   CodeQL 지원 = C/C++, C#, Go, Java/Kotlin, JavaScript/TypeScript, Python, Ruby, Swift, GitHub Actions.
+#   **PHP 는 CodeQL 미지원** → 백엔드는 CodeQL 대신 `composer audit`(Packagist 보안권고 DB) 로 커버한다.
+#   PHP 정적분석을 추측으로 선구현하지 않는다(미지원 언어를 매트릭스에 넣으면 잡이 상시 실패).
+
+on:
+  pull_request:
+    branches: ['**']
+  schedule:
+    # 매주 월요일 03:17 UTC — 신규 CVE 공시분을 코드 변경이 없어도 주기적으로 재평가.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+# 최소 권한 원칙. CodeQL 결과 업로드에 security-events: write 필요.
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 프론트엔드 의존성 CVE (npm audit) — 루트 + frontend/ 양쪽 lockfile ──────────────
+  npm-audit:
+    name: "npm audit (frontend deps)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # npm audit 는 lockfile 만 있으면 install 없이 동작(설치 시간·공급망 노출 최소화).
+      - name: "npm audit — repo root"
+        continue-on-error: true   # [283차] 리포트 전용. 백로그 정리 후 제거 → 차단 게이트로 승격.
+        run: npm audit --audit-level=high
+
+      - name: "npm audit — frontend/"
+        continue-on-error: true
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      # 사람이 읽을 요약을 Actions 잡 서머리에 남긴다(실패해도 파이프라인 무영향).
+      - name: "Summary"
+        if: always()
+        continue-on-error: true
+        run: |
+          {
+            echo "## npm audit 요약"
+            echo '```'
+            npm audit --audit-level=high 2>&1 | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ── 백엔드 의존성 CVE (composer audit) — CodeQL 이 PHP 를 지원하지 않아 이 잡이 PHP 측 커버리지 ──
+  composer-audit:
+    name: "composer audit (backend deps)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Setup PHP 8.1"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'   # 운영 호스트(PHP 8.1.34)와 정합.
+          tools: composer:v2
+          coverage: none
+
+      # composer.lock 기준 Packagist 보안권고 대조. install 불필요.
+      - name: "composer audit"
+        continue-on-error: true   # [283차] 리포트 전용.
+        working-directory: backend
+        run: composer audit --no-interaction --locked
+
+  # ── JS/TS 정적 코드 취약점 (CodeQL). PHP 는 미지원이라 매트릭스에서 의도적으로 제외 ──────
+  codeql:
+    name: "CodeQL (javascript-typescript)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Initialize CodeQL"
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+          # clean_src = 읽기전용 히스토리 미러(.clineignore), dist/node_modules = 빌드산출물·의존성,
+          #   backend/public/assets = 배포된 번들 사본 → 스캔 시 실코드가 아닌 노이즈만 대량 생성된다.
+          #   루트의 일회성 패치 스크립트(fix_*/patch_*/_*.cjs)도 이미 실행 완료된 역사적 산물이라 제외.
+          config: |
+            paths-ignore:
+              - clean_src
+              - backup
+              - '**/dist'
+              - '**/node_modules'
+              - 'backend/public/assets'
+              - 'frontend/src/i18n/locales'
+
+      # 빌드 없이 소스 스캔(JS 는 컴파일 불요). vite build 를 돌리지 않으므로 배포 산출물에 무영향.
+      - name: "Perform CodeQL Analysis"
+        continue-on-error: true   # [283차] 리포트 전용. 결과는 Security 탭(code scanning alerts)에 적재된다.
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"

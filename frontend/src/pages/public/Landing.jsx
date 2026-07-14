@@ -165,7 +165,9 @@ const DICT = {
     f1t: { ko: "옴니채널 커머스", en: "OmniChannel Commerce", ja: "オムニチャネルコマース", zh: "全渠道电商", "zh-TW": "全通路電商", vi: "Thương mại đa kênh", th: "ค้าปลีกหลายช่องทาง", id: "OmniChannel Commerce", de: "Omni-Channel Commerce", fr: "Commerce Omnicanal", es: "Comercio Omnicanal" },
     f1d: { ko: "쿠팡, 네이버, 아마존, 쇼피파이, 틱톡샵 등 30개 이상 마켓을 하나의 허브로 연결. 주문·재고·배송을 표준화합니다.", en: "Connect 30+ domestic & global marketplaces — Coupang, Naver, Amazon, Shopify, TikTok Shop. Standardize orders, inventory, and fulfillment in one unified hub.", ja: "30以上の国内外マーケットプレイスを接続。注文・在庫・出荷を統合ハブで標準化。", zh: "连接30+国内外市场，统一管理订单、库存和履约。", "zh-TW": "連接30+國內外市場，統一管理訂單、庫存和履約。", vi: "Kết nối 30+ sàn thương mại, chuẩn hoá đơn hàng, tồn kho và vận chuyển.", th: "เชื่อมต่อ 30+ ตลาด มาตรฐานคำสั่งซื้อ สินค้า และการจัดส่ง", id: "Hubungkan 30+ marketplace, standarisasi pesanan, inventori, dan fulfillment.", de: "Verbinden Sie 30+ Marktplätze. Standardisieren Sie Bestellungen, Lager & Versand.", fr: "Connectez 30+ places de marché. Standardisez commandes, stock et expédition.", es: "Conecte 30+ marketplaces. Estandarice pedidos, inventario y fulfillment." },
     f2t: { ko: "WMS — 창고·물류 관리", en: "WMS — Warehouse & Logistics", ja: "WMS — 倉庫・物流", zh: "WMS — 仓储物流", "zh-TW": "WMS — 倉儲物流", vi: "WMS — Kho & Logistics", th: "WMS — คลังสินค้า & โลจิสติกส์", id: "WMS — Gudang & Logistik", de: "WMS — Lager & Logistik", fr: "WMS — Entrepôt & Logistique", es: "WMS — Almacén y Logística" },
-    f2d: { ko: "다중 창고 재고 추적, 합배송 관리, 운송사 API 연동, 국제 특송 상업 송장 자동 생성.", en: "Multi-warehouse inventory tracking, combined-shipment management, carrier API integration, and auto-generated commercial invoices for international express.", ja: "マルチ倉庫在庫管理、合配送、キャリアAPI連携、国際速達の商業送り状自動作成。", zh: "多仓库库存追踪、合单管理、承运商API集成及国际快递商业发票自动生成。", "zh-TW": "多倉庫庫存追蹤、合單管理、承運商API整合及國際快遞商業發票自動生成。", vi: "Theo dõi kho đa điểm, quản lý gộp đơn, tích hợp API vận chuyển, tự động tạo hoá đơn quốc tế.", th: "ติดตามสินค้าคลังหลายแห่ง จัดการรวมส่ง เชื่อม API ขนส่ง ออกใบกำกับสินค้าอัตโนมัติ", id: "Pelacakan inventori multi-gudang, manajemen gabung kirim, integrasi carrier API, invoice komersial otomatis.", de: "Multi-Lager-Tracking, Kombi-Versand, Carrier-API und automatische Handelsrechnungen.", fr: "Suivi multi-entrepôt, gestion groupée, API transporteurs et factures automatiques.", es: "Seguimiento multi-almacén, envío combinado, API de transporte y facturas automáticas." },
+    // [283차 정직성] 합배송·국제특송 상업송장 자동생성은 코드 부재(부재증명: consolidat|commercial_invoice → backend 0건)였다.
+    //   실제 구현분(Wms.php 다중창고·LOT/FEFO·피킹/패킹, Logistics.php shipment_tracking·carriers·track)만 표기.
+    f2d: { ko: "다중 창고 재고 추적, LOT·FEFO 관리, 피킹·패킹 워크플로, 운송사 배송추적 API 연동.", en: "Multi-warehouse inventory tracking, LOT/FEFO management, picking & packing workflows, and carrier tracking API integration.", ja: "マルチ倉庫在庫管理、LOT・FEFO管理、ピッキング・パッキング、配送追跡API連携。", zh: "多仓库库存追踪、LOT/FEFO 管理、拣货打包流程及承运商物流追踪 API 集成。", "zh-TW": "多倉庫庫存追蹤、LOT/FEFO 管理、揀貨打包流程及承運商物流追蹤 API 整合。", vi: "Theo dõi kho đa điểm, quản lý LOT/FEFO, quy trình soạn & đóng gói, tích hợp API theo dõi vận chuyển.", th: "ติดตามสินค้าคลังหลายแห่ง จัดการ LOT/FEFO หยิบ-แพ็กสินค้า เชื่อม API ติดตามขนส่ง", id: "Pelacakan inventori multi-gudang, manajemen LOT/FEFO, alur picking & packing, integrasi API pelacakan kurir.", de: "Multi-Lager-Tracking, LOT-/FEFO-Verwaltung, Kommissionierung & Verpackung sowie Carrier-Tracking-API.", fr: "Suivi multi-entrepôt, gestion LOT/FEFO, préparation et emballage, API de suivi transporteurs.", es: "Seguimiento multi-almacén, gestión LOT/FEFO, preparación y embalaje, API de seguimiento de transportistas." },
     f3t: { ko: "멀티채널 어트리뷰션 분석", en: "Multi-Channel Attribution Analytics", ja: "マルチチャネル・アトリビューション分析", zh: "多渠道归因分析", "zh-TW": "多通路歸因分析", vi: "Phân tích Attribution đa kênh", th: "การวิเคราะห์ Attribution หลายช่องทาง", id: "Analitik Atribusi Multi-Channel", de: "Multi-Channel-Attributionsanalyse", fr: "Analyse d'attribution multicanal", es: "Análisis de atribución multicanal" },
     f3d: { ko: "8차원 광고 기여도 분석, 인플루언서 캠페인, 쿠폰 흐름 종합 분석. 데이터 기반 예산 추천과 사람 검토·승인.", en: "8-dimensional contribution scoring across ad channels, influencer campaigns, and coupon flows. Analytics-assisted budget recommendations with human review and approval.", ja: "8次元の広告貢献度分析、インフルエンサーキャンペーン、クーポン分析。データに基づく予算提案と人による確認・承認。", zh: "8维广告贡献度分析，覆盖网红活动和优惠券流向。基于数据的预算建议，由人工审核批准。", "zh-TW": "8維廣告貢獻度分析，涵蓋網紅活動和優惠券流向。基於數據的預算建議，由人工審核批准。", vi: "Phân tích đóng góp quảng cáo 8 chiều, chiến dịch influencer, dòng coupon. Đề xuất ngân sách dựa trên dữ liệu, con người xem xét và phê duyệt.", th: "การวิเคราะห์โฆษณา 8 มิติ แคมเปญอินฟลูเอนเซอร์ และคูปอง คำแนะนำงบจากข้อมูล พร้อมการตรวจสอบและอนุมัติโดยคน", id: "Skor kontribusi 8-dimensi, kampanye influencer, alur kupon. Rekomendasi anggaran berbasis data dengan peninjauan dan persetujuan manusia.", de: "8-dimensionale Beitragsanalyse, Influencer-Kampagnen, Coupon-Flüsse. Datenbasierte Budgetempfehlungen mit menschlicher Prüfung und Freigabe.", fr: "Scoring 8 dimensions, campagnes influenceurs, flux de coupons. Recommandations budgétaires basées sur les données, avec revue et approbation humaines.", es: "Análisis de contribución en 8 dimensiones, campañas de influencers, flujos de cupones. Recomendaciones de presupuesto basadas en datos con revisión y aprobación humana." },
     f4t: { ko: "인플루언서 분석", en: "Influencer Analytics", ja: "インフルエンサー分析", zh: "网红分析", "zh-TW": "網紅分析", vi: "Phân tích Influencer", th: "วิเคราะห์อินฟลูเอนเซอร์", id: "Analitik Influencer", de: "Influencer-Analytik", fr: "Analytique Influenceur", es: "Analítica de Influencer" },
@@ -309,10 +311,10 @@ const DICT_EXT = {
         "hi": "WMS — गोदाम और लॉजिस्टिक्स"
     },
     "f2d": {
-        "pt": "Rastreamento multi-armazém, gestão de envio combinado, integração de API de transportadoras e faturas comerciais automáticas para expresso internacional.",
-        "ru": "Учёт по нескольким складам, объединённые отправления, интеграция API перевозчиков и автогенерация коммерческих инвойсов.",
-        "ar": "تتبّع المخزون متعدد المستودعات، إدارة الشحن المجمّع، تكامل API لشركات الشحن، وإنشاء فواتير تجارية تلقائيًا.",
-        "hi": "बहु-गोदाम इन्वेंटरी ट्रैकिंग, संयुक्त शिपमेंट प्रबंधन, कैरियर API इंटीग्रेशन और स्वतः वाणिज्यिक चालान।"
+        "pt": "Rastreamento multi-armazém, gestão LOT/FEFO, fluxos de separação e embalagem e integração de API de rastreio de transportadoras.",
+        "ru": "Учёт по нескольким складам, управление LOT/FEFO, процессы сборки и упаковки, интеграция API отслеживания перевозчиков.",
+        "ar": "تتبّع المخزون متعدد المستودعات، إدارة LOT/FEFO، سير عمل الانتقاء والتغليف، وتكامل API لتتبّع الشحنات.",
+        "hi": "बहु-गोदाम इन्वेंटरी ट्रैकिंग, LOT/FEFO प्रबंधन, पिकिंग-पैकिंग वर्कफ़्लो और कैरियर ट्रैकिंग API इंटीग्रेशन।"
     },
     "f3t": {
         "pt": "Análise de Atribuição Multicanal",
@@ -691,8 +693,9 @@ const DICT_RICH = {
     "en": "Pre-built connectors: Coupang, Naver, Amazon, Shopify, TikTok Shop"
   },
   "m1b2": {
-    "ko": "통합 카탈로그·재고 동기화, 합배송 관리",
-    "en": "Unified catalog & inventory sync, combined shipments"
+    // [283차 정직성] '합배송 관리' → 코드 부재. 실제 구현분(ChannelSync 주문 상태/배송정보 표준화)으로 정정.
+    "ko": "통합 카탈로그·재고 동기화, 주문·배송 상태 표준화",
+    "en": "Unified catalog & inventory sync, standardized order & delivery status"
   },
   "m1b3": {
     "ko": "OAuth 자격증명 관리·자동 동기화",
@@ -735,8 +738,10 @@ const DICT_RICH = {
     "en": "Carrier API integration & shipment tracking"
   },
   "m3b3": {
-    "ko": "국제 특송 상업 송장 자동 생성",
-    "en": "Auto-generated commercial invoices for international express"
+    // [283차 정직성] '국제 특송 상업 송장 자동 생성' → 코드 부재(commercial_invoice → backend 0건).
+    //   실제 구현분(Wms.php: wms_barcodes·wms_bins/bin_stock·wms_waves/wave_items)으로 교체.
+    "ko": "바코드·빈 로케이션 관리, 웨이브 피킹",
+    "en": "Barcode & bin location management, wave picking"
   },
   "m4t": {
     "ko": "통합 손익 · 정산 대사",
@@ -755,8 +760,10 @@ const DICT_RICH = {
     "en": "Auto-reconcile all channels, catch discrepancies instantly"
   },
   "m4b3": {
-    "ko": "세금계산서·전자 정산·ERP 연동",
-    "en": "Tax invoices, e-settlement, ERP integration"
+    // [283차 정직성] '세금계산서 발행·ERP 연동'은 코드 부재(부재증명: tax_invoice|erp → backend 0건).
+    //   실제 구현분(Pnl::vat 부가세 자동 산출 · 정산 대사 · DataExport 회계 데이터 내보내기)으로 정정.
+    "ko": "부가세 자동 산출·정산 대사·회계 데이터 내보내기",
+    "en": "Automated VAT calculation, settlement reconciliation, accounting data export"
   },
   "m5t": {
     "ko": "인플루언서 · CRM",
@@ -1367,19 +1374,19 @@ const DICT_RICH_EXT = {
   "hi": "पूर्व-निर्मित कनेक्टर: Coupang, Naver, Amazon, Shopify, TikTok Shop"
  },
  "m1b2": {
-  "ja": "統合カタログ・在庫同期、合配送管理",
-  "zh": "统一目录与库存同步、合单管理",
-  "zh-TW": "統一目錄與庫存同步、合單管理",
-  "vi": "Đồng bộ catalog & tồn kho, quản lý gộp đơn",
-  "th": "ซิงค์แคตตาล็อกและสต็อก จัดการรวมส่ง",
-  "id": "Sinkron katalog & inventori, manajemen gabung kirim",
-  "de": "Katalog- & Lagersynchronisation, Kombi-Versand",
-  "fr": "Synchro catalogue & stock, expéditions groupées",
-  "es": "Sincronización de catálogo e inventario, envíos combinados",
-  "pt": "Sincronização de catálogo e estoque, envios combinados",
-  "ru": "Синхронизация каталога и склада, объединённые отправления",
-  "ar": "مزامنة الكتالوج والمخزون وإدارة الشحن المجمّع",
-  "hi": "कैटलॉग व इन्वेंटरी सिंक, संयुक्त शिपमेंट प्रबंधन"
+  "ja": "統合カタログ・在庫同期、注文・配送ステータス標準化",
+  "zh": "统一目录与库存同步、订单与配送状态标准化",
+  "zh-TW": "統一目錄與庫存同步、訂單與配送狀態標準化",
+  "vi": "Đồng bộ catalog & tồn kho, chuẩn hoá trạng thái đơn & giao hàng",
+  "th": "ซิงค์แคตตาล็อกและสต็อก มาตรฐานสถานะออเดอร์และการจัดส่ง",
+  "id": "Sinkron katalog & inventori, standardisasi status pesanan & pengiriman",
+  "de": "Katalog- & Lagersynchronisation, standardisierte Bestell- und Versandstatus",
+  "fr": "Synchro catalogue & stock, statuts de commande et livraison normalisés",
+  "es": "Sincronización de catálogo e inventario, estados de pedido y envío estandarizados",
+  "pt": "Sincronização de catálogo e estoque, status de pedido e entrega padronizados",
+  "ru": "Синхронизация каталога и склада, стандартизация статусов заказов и доставки",
+  "ar": "مزامنة الكتالوج والمخزون وتوحيد حالات الطلب والشحن",
+  "hi": "कैटलॉग व इन्वेंटरी सिंक, ऑर्डर व डिलीवरी स्टेटस मानकीकरण"
  },
  "m1b3": {
   "ja": "OAuth認証管理・自動同期",
@@ -1532,19 +1539,19 @@ const DICT_RICH_EXT = {
   "hi": "कैरियर API इंटीग्रेशन व ट्रैकिंग"
  },
  "m3b3": {
-  "ja": "国際速達の商業送り状を自動生成",
-  "zh": "国际快递商业发票自动生成",
-  "zh-TW": "國際快遞商業發票自動生成",
-  "vi": "Tự động tạo hoá đơn thương mại quốc tế",
-  "th": "สร้างใบกำกับสินค้าระหว่างประเทศอัตโนมัติ",
-  "id": "Buat invoice komersial ekspres internasional otomatis",
-  "de": "Automatische Handelsrechnungen für internationalen Express",
-  "fr": "Factures commerciales auto pour l'express international",
-  "es": "Facturas comerciales automáticas para envío internacional",
-  "pt": "Faturas comerciais automáticas para expresso internacional",
-  "ru": "Автогенерация коммерческих инвойсов для международной доставки",
-  "ar": "إنشاء فواتير تجارية تلقائيًا للشحن الدولي السريع",
-  "hi": "अंतरराष्ट्रीय एक्सप्रेस के लिए स्वतः वाणिज्यिक चालान"
+  "ja": "バーコード・ビンロケーション管理、ウェーブピッキング",
+  "zh": "条码与储位管理、波次拣货",
+  "zh-TW": "條碼與儲位管理、波次揀貨",
+  "vi": "Quản lý mã vạch & vị trí bin, soạn hàng theo wave",
+  "th": "จัดการบาร์โค้ดและตำแหน่งบิน หยิบสินค้าแบบเวฟ",
+  "id": "Manajemen barcode & lokasi bin, wave picking",
+  "de": "Barcode- und Lagerplatzverwaltung, Wave-Picking",
+  "fr": "Gestion des codes-barres et emplacements, prélèvement par vagues",
+  "es": "Gestión de códigos de barras y ubicaciones, picking por olas",
+  "pt": "Gestão de códigos de barras e localizações, picking por ondas",
+  "ru": "Управление штрихкодами и ячейками, волновая комплектация",
+  "ar": "إدارة الباركود ومواقع التخزين، والانتقاء الموجي",
+  "hi": "बारकोड व बिन लोकेशन प्रबंधन, वेव पिकिंग"
  },
  "m4t": {
   "ja": "統合P&L・精算照合",
@@ -1607,19 +1614,19 @@ const DICT_RICH_EXT = {
   "hi": "सभी चैनल स्वतः मिलान, विसंगतियाँ तुरंत पहचानें"
  },
  "m4b3": {
-  "ja": "税金計算書・電子精算・ERP連携",
-  "zh": "税务发票、电子结算、ERP集成",
-  "zh-TW": "稅務發票、電子結算、ERP整合",
-  "vi": "Hoá đơn thuế, e-settlement, tích hợp ERP",
-  "th": "ใบกำกับภาษี การชำระอิเล็กทรอนิกส์ เชื่อม ERP",
-  "id": "Faktur pajak, e-settlement, integrasi ERP",
-  "de": "Steuerrechnungen, E-Abrechnung, ERP-Integration",
-  "fr": "Factures fiscales, e-règlement, intégration ERP",
-  "es": "Facturas fiscales, liquidación electrónica, integración ERP",
-  "pt": "Notas fiscais, liquidação eletrônica, integração ERP",
-  "ru": "Налоговые счета, э-расчёты, интеграция с ERP",
-  "ar": "فواتير ضريبية، تسوية إلكترونية، تكامل ERP",
-  "hi": "टैक्स इनवॉइस, ई-सेटलमेंट, ERP इंटीग्रेशन"
+  "ja": "消費税の自動算出・精算照合・会計データ書き出し",
+  "zh": "增值税自动核算、结算对账、会计数据导出",
+  "zh-TW": "加值稅自動核算、結算對帳、會計資料匯出",
+  "vi": "Tự động tính VAT, đối soát quyết toán, xuất dữ liệu kế toán",
+  "th": "คำนวณ VAT อัตโนมัติ กระทบยอดการชำระ ส่งออกข้อมูลบัญชี",
+  "id": "Perhitungan PPN otomatis, rekonsiliasi settlement, ekspor data akuntansi",
+  "de": "Automatische USt-Berechnung, Abrechnungsabgleich, Export von Buchhaltungsdaten",
+  "fr": "Calcul automatique de la TVA, rapprochement des règlements, export comptable",
+  "es": "Cálculo automático del IVA, conciliación de liquidaciones, exportación contable",
+  "pt": "Cálculo automático de IVA, conciliação de liquidações, exportação contábil",
+  "ru": "Автоматический расчёт НДС, сверка расчётов, экспорт бухгалтерских данных",
+  "ar": "احتساب ضريبة القيمة المضافة تلقائيًا، مطابقة التسويات، تصدير البيانات المحاسبية",
+  "hi": "स्वतः VAT गणना, सेटलमेंट मिलान, लेखा डेटा निर्यात"
  },
  "m5t": {
   "ja": "インフルエンサー・CRM",

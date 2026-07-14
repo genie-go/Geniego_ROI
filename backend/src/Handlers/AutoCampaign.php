@@ -69,6 +69,9 @@ class AutoCampaign
         foreach (['next_optimize_at VARCHAR(32)', 'last_optimized_at VARCHAR(32)', 'opt_cadence_hours VARCHAR(8)'] as $col) {
             try { $pdo->exec("ALTER TABLE auto_campaign ADD COLUMN $col"); } catch (\Throwable $e) {}
         }
+        // [283차 P0-1] 랜딩 URL 영속 — 종전엔 launch 가 받은 landing_url 을 딜리버리에 넘기기만 하고 저장하지 않아,
+        //   재딜리버리/조회 시 "이 캠페인이 어디로 보내는 광고인지"를 알 수 없었다(감사·재현 불가). 멱등 ALTER.
+        try { $pdo->exec("ALTER TABLE auto_campaign ADD COLUMN landing_url VARCHAR(500)"); } catch (\Throwable $e) {}
         // 196차 Phase3 — 실시간 최적화 결정 로그
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS optimization_log (
@@ -187,7 +190,10 @@ class AutoCampaign
                 } catch (\Throwable $e) { $validDesigns = []; $designCh = []; }
             }
             $firstDesign = $validDesigns[0] ?? 0;
-            $landing = (string)($d['landing_url'] ?? '');   // 광고 랜딩 URL(미설정 시 어댑터가 기본값)
+            // [283차 P0-1] ★광고 랜딩 URL — 사용자 입력이 없으면 테넌트 자기 사이트(tenant_business_profile.website)로 폴백하고,
+            //   그것도 없으면 어댑터가 fail-closed(광고 미생성). 종전 어댑터 기본값은 벤더 사이트(genieroi.com)였고 프론트는
+            //   landing_url 을 단 한 곳도 보내지 않아, 라이브 광고가 전부 우리 사이트로 랜딩되던 구조적 결함이었다.
+            $landing = AdAdapters::resolveLanding($pdo, $tenant, (string)($d['landing_url'] ?? ''));
             // [현 차수 초고도화] 집행 설정 — 목표(기본 전환) + 자동입찰(기본 auto=매체 머신러닝) + 타깃CPA/ROAS + 타깃국가.
             //   매체에 픽셀/전환추적/계정통화 자격증명이 있으면 전환목표·자동입찰·멀티통화로 집행, 없으면 honest 폴백.
             $objective = strtolower((string)($d['objective'] ?? 'conversions'));
@@ -204,6 +210,13 @@ class AutoCampaign
                 // [현 차수 초고도화] 오디언스 모드 — retarget(고객 리타겟)·lookalike(유사확장)·prospect(기존고객 제외=신규획득).
                 //   syncAudience 가 생성·영속한 오디언스를 metaDeliver adset 타겟팅에 자동 attach(최고 ROI 레버). 빈값=지오만(기존).
                 'audience_mode'  => strtolower((string)($d['audience_mode'] ?? '')),
+                // [283차 P1] 검색광고(Google Search·Naver SA) 키워드 도출 소스 — 새 엔진 신설 없이 기존 캠페인 데이터를 전달.
+                //   AdAdapters::deriveKeywords 가 캠페인명·카테고리(콤마 다중)·소재 카피에서 키워드를 뽑아 adGroupCriteria /
+                //   /ncc/keywords 를 생성한다. 키워드 없는 검색 캠페인은 매칭 자체가 없어 영구 노출0 이었다.
+                //   settings 는 DLQ(settings_json)에도 그대로 실려 재시도 딜리버리에서 동일 키워드가 재현된다.
+                'campaign_name'  => $name,
+                'category'       => $category,
+                'keywords'       => is_array($d['keywords'] ?? null) ? array_values(array_filter(array_map('strval', $d['keywords']))) : [],
             ];
             // [현 차수] A/B 모드: 디자인(variant) 2+ 선택 시 같은 캠페인 하위에 동시 집행 → 승자 자동 선정.
             $abMode = !empty($d['ab_mode']) && count($validDesigns) >= 2;
@@ -284,6 +297,12 @@ class AutoCampaign
             ]);
             $id = (int)$pdo->lastInsertId();
 
+            // [283차 P0-1] 랜딩 URL 영속 — INSERT 컬럼목록에 넣지 않고 별도 UPDATE(멱등 ALTER 가 구버전 DB 에서 실패하더라도
+            //   launch 자체가 깨지지 않도록 격리. 회귀0). 이후 재딜리버리/감사/UI 표시가 동일 URL 을 참조한다.
+            if ($landing !== '') {
+                try { $pdo->prepare("UPDATE auto_campaign SET landing_url=? WHERE id=? AND tenant_id=?")->execute([mb_substr($landing, 0, 500), $id, $tenant]); } catch (\Throwable $e) {}
+            }
+
             // [현 차수] 일시 실패 딜리버리 → DLQ 적재(campaignId 로 성공 시 allocations 영속·cron 지수백오프 재시도).
             foreach ($retryQueue as $q) {
                 // [272차 G-P1] 인자수 정합 — 시그니처는 8번째가 string $landing, 9번째 array $settings, 10번째 string $error.
@@ -350,6 +369,7 @@ class AutoCampaign
                 'active_channels' => $activeCount,
                 'pending_channels' => $pendingCount,
                 'linked_designs' => count($validDesigns),
+                'landing_url' => $landing,     // [283차 P0-1] 실제 확정된 랜딩(입력>회사프로필). ''=미설정 → 딜리버리 fail-closed.
                 'activation' => $activation,   // 승인 즉시집행 결과(null=즉시집행 미요청). ok=라이브, message=보류 사유.
                 'live' => $liveNow,
                 'message' => $msg,

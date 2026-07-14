@@ -1046,26 +1046,40 @@ const MTA_MODEL_META = [
   { id: 'first_touch',    label: '퍼스트터치',         lk: 'mtaModelFirstTouch', color: '#a855f7' },
 ];
 
+// [283차 P2] ad/creative-level MTA — 크레딧 산출 차원. attribution_touch 는 utm_campaign/content/term 을 이미
+//   저장하는데 엔진이 채널 단일키로만 group-by 해서 "어떤 캠페인·어떤 소재가 기여했나"에 답할 수 없었다.
+//   서버 granularity 파라미터(기본 channel = 기존 동작)를 그대로 노출한다. 신규 수집 불요.
+const MTA_GRAIN_META = [
+  { id: 'channel',  label: '채널',   lk: 'mtaGrainChannel' },
+  { id: 'campaign', label: '캠페인', lk: 'mtaGrainCampaign' },
+  { id: 'creative', label: '소재',   lk: 'mtaGrainCreative' },
+];
+
 const ServerMtaPanel = memo(function ServerMtaPanel() {
   const t = useT();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vtAuto, setVtAuto] = useState(false); // [260차] 뷰스루 자동감쇠(전용 반감기 1일 + 데이터 자동보정)
+  const [gran, setGran] = useState('channel'); // [283차 P2] 크레딧 차원(channel|campaign|creative)
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
     // [264차] 자동감쇠 시 결정론적 뷰스루 윈도우(1일) 동반 → VTC/CTC 세그먼트 산출.
-    const url = '/v424/attribution/models?window=90' + (vtAuto ? '&vt_weight=auto&vt_halflife=1&vt_window=1' : '');
+    // [283차 P2] 기본(channel)에서는 파라미터를 붙이지 않는다 → 기존 URL·서버 캐시 키 그대로(회귀 0).
+    const url = '/v424/attribution/models?window=90'
+      + (vtAuto ? '&vt_weight=auto&vt_halflife=1&vt_window=1' : '')
+      + (gran !== 'channel' ? '&granularity=' + gran : '');
     getJsonAuth(url)
       .then(r => { if (alive) setData(r || null); })
       .catch(() => { if (alive) setData(null); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [vtAuto]);
+  }, [vtAuto, gran]);
 
   const rows = (data && Array.isArray(data.channels)) ? data.channels : [];
   const converted = Number(data?.converted || 0);
+  const isChannelGrain = gran === 'channel';
 
   return (
     <div className="card card-glass" style={{ borderColor: 'rgba(34,197,94,0.28)' }}>
@@ -1077,6 +1091,19 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
           style={{ marginLeft: 'auto', fontSize: 10.5, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', fontWeight: 700, border: '1px solid ' + (vtAuto ? '#22c55e' : 'var(--border,#e2e8f0)'), background: vtAuto ? 'rgba(34,197,94,0.12)' : 'transparent', color: vtAuto ? '#16a34a' : 'var(--text-3)' }}>
           {vtAuto ? '✓ ' : ''}{t('attrData.vtDecayToggle', '뷰스루 자동감쇠')}{vtAuto && data?.vt_weight != null ? ' (w=' + Number(data.vt_weight).toFixed(2) + ')' : ''}
         </button>
+        {/* [283차 P2] 크레딧 차원 선택 — 채널 / 캠페인 / 소재(ad·creative-level MTA) */}
+        <div role="group" aria-label={t('attrData.grainAria', '크레딧 산출 차원')}
+          style={{ display: 'inline-flex', border: '1px solid var(--border,#e2e8f0)', borderRadius: 20, overflow: 'hidden' }}>
+          {MTA_GRAIN_META.map(g => (
+            <button key={g.id} onClick={() => setGran(g.id)} aria-pressed={gran === g.id}
+              title={t('attrData.grainHint', '터치에 이미 적재된 utm_campaign/utm_content 기준으로 크레딧을 분해합니다(신규 수집 불요).')}
+              style={{ fontSize: 10.5, padding: '3px 10px', cursor: 'pointer', fontWeight: 700, border: 'none',
+                background: gran === g.id ? 'rgba(79,142,247,0.14)' : 'transparent',
+                color: gran === g.id ? '#2563eb' : 'var(--text-3)' }}>
+              {t('attributionPage.' + g.lk, g.label)}
+            </button>
+          ))}
+        </div>
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12, lineHeight: 1.6 }}>
         {t('attrData.serverMtaDesc', '서버가 attribution_touch 여정을 전환과 결합해 6개 모델을 계산합니다. Markov removal-effect(제거 효과)는 채널 부재 시 전환 손실을 측정하는 데이터기반(data-driven) 어트리뷰션입니다.')}
@@ -1109,7 +1136,10 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
           <table className="table">
             <thead>
               <tr>
-                <th>{t('attrData.colChannel', 'Channel')}</th>
+                {/* [283차 P2] 차원에 따라 첫 열 라벨 전환(채널 / 채널 › 캠페인 / 채널 › 캠페인 › 소재) */}
+                <th>{isChannelGrain
+                  ? t('attrData.colChannel', 'Channel')
+                  : (gran === 'campaign' ? t('attrData.colCampaign', '채널 / 캠페인') : t('attrData.colCreative', '채널 / 캠페인 / 소재'))}</th>
                 {MTA_MODEL_META.map(m => (
                   <th key={m.id} style={{ color: m.color, whiteSpace: 'nowrap' }}>
                     {m.tag ? `★ ${t('attributionPage.' + m.lk, m.label)}` : t('attributionPage.' + m.lk, m.label)}
@@ -1122,7 +1152,10 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
                 const total = Math.max(0, converted);
                 return (
                   <tr key={row.channel}>
-                    <td style={{ fontWeight: 800, textTransform: 'capitalize' }}>{CH_LABELS[row.channel] || row.channel}</td>
+                    {/* [283차 P2] 캠페인/소재 차원의 키는 'channel / campaign / creative' 합성문자열 → 라벨맵 미적용·원문 표기 */}
+                    <td style={{ fontWeight: 800, textTransform: isChannelGrain ? 'capitalize' : 'none' }}>
+                      {isChannelGrain ? (CH_LABELS[row.channel] || row.channel) : row.channel}
+                    </td>
                     {MTA_MODEL_META.map(m => {
                       const v = Number(row[m.id] || 0);
                       const pct = total > 0 ? (v / total * 100) : 0;
@@ -1139,6 +1172,8 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
           </table>
           <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             {t('attrData.serverMtaFoot', '값 = 모델별 채널 전환 크레딧(합 = 총 전환). ★ Markov = 데이터기반 권장 모델.')}
+            {/* [283차 P2] 소재/캠페인 차원은 상태공간 상한(상위 80키) 초과분을 '(other)'로 접는다 — 정직 표기 */}
+            {!isChannelGrain && ' ' + t('attrData.grainFoot', 'utm_campaign/utm_content 기준 분해. 캠페인·소재 미표기 터치는 (none), 상위 80키 초과분은 (other)로 집계됩니다.')}
           </div>
         </div>
       )}

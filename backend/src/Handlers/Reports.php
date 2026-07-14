@@ -19,6 +19,21 @@ use Genie\Mailer;
  */
 class Reports
 {
+    /**
+     * [283차 P0] 저장 리포트 시각화 화이트리스트 — ★단일 소스(SSOT).
+     *
+     * 재발이력: 이 목록이 프론트(ReportBuilder.jsx REPORT_VIZ_TYPES)보다 뒤처질 때마다
+     *   savedCreate 가 미지원 viz 를 조용히 'table' 로 강등해 저장 → 재열람 시 차트유형이 소실됐다.
+     *   R2(4→8종)에서 한 번 고쳤으나 282차 R3 가 scatter·treemap 을 프론트에만 추가해 3회째 재발.
+     *   근본원인: ReportBuilder.jsx 가 피벗 키 조인에 raw NUL 바이트를 써서 ripgrep 이 'binary' 로 분류 →
+     *   grep 기반 교차감사가 그 파일을 통째로 건너뛰었다(283차에 유니코드 이스케이프로 정정).
+     *
+     * 영구차단 3중: ①본 상수(SSOT) ②미지원 viz = 무음강등이 아니라 422 로 시끄럽게 거부
+     *   ③savedList 가 viz_types 를 내려주고 프론트가 자기 목록과 대조해 불일치 시 경고.
+     * ★신규 차트 추가 시 반드시 여기 + ReportBuilder.jsx REPORT_VIZ_TYPES 를 함께 갱신할 것.
+     */
+    public const VIZ_TYPES = ['table', 'bar', 'line', 'donut', 'stacked', 'combo', 'area', 'heatmap', 'scatter', 'treemap'];
+
     private static function db(): \PDO { return Db::pdo(); }
     private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
     private static function now(): string { return gmdate('Y-m-d H:i:s'); }
@@ -559,7 +574,8 @@ class Reports
         $st->execute([self::tenant($req)]);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         foreach ($rows as &$r) { $r['config'] = json_decode((string)$r['config'], true) ?: []; }
-        return self::json($res, ['ok' => true, 'reports' => $rows]);
+        // [283차 P0] viz_types 동봉 — 프론트가 자기 VIZ 집합과 대조해 드리프트를 즉시 경고(3회 재발 영구차단 ③).
+        return self::json($res, ['ok' => true, 'reports' => $rows, 'viz_types' => self::VIZ_TYPES]);
     }
 
     /** POST /reports/saved — 저장(name, config{metrics,dimension,breakdown,period_days}, viz). */
@@ -571,9 +587,13 @@ class Reports
         $name = trim((string)($b['name'] ?? ''));
         if ($name === '') return self::json($res, ['ok' => false, 'error' => 'name_required'], 400);
         $cfg = (array)($b['config'] ?? []);
-        // [282차 R2 P2] 프론트 제공 8종과 정합 — 종전 4종 화이트리스트가 stacked/combo/area/heatmap 저장을
-        //   조용히 table 로 강등해 저장 리포트 재열람 시 차트유형이 소실됐다(ReportBuilder.jsx VIZ 집합과 통일).
-        $viz = in_array(($b['viz'] ?? 'table'), ['table', 'bar', 'line', 'donut', 'stacked', 'combo', 'area', 'heatmap'], true) ? (string)$b['viz'] : 'table';
+        // [283차 P0] 무음강등 제거 — 미지원 viz 를 'table' 로 조용히 바꿔 저장하던 것이 3회 재발한 결함의 본체다.
+        //   이제는 거부(422)해서 프론트/백엔드 불일치가 즉시 드러나게 한다(silent → loud).
+        $viz = (string)($b['viz'] ?? 'table');
+        if ($viz === '') $viz = 'table';
+        if (!in_array($viz, self::VIZ_TYPES, true)) {
+            return self::json($res, ['ok' => false, 'error' => 'unsupported_viz', 'viz' => $viz, 'supported' => self::VIZ_TYPES], 422);
+        }
         self::db()->prepare("INSERT INTO saved_report(tenant_id,name,config,viz,created_at) VALUES(?,?,?,?,?)")
             ->execute([self::tenant($req), mb_substr($name, 0, 200), json_encode($cfg, JSON_UNESCAPED_UNICODE), $viz, self::now()]);
         return self::json($res, ['ok' => true, 'id' => (int)self::db()->lastInsertId()]);

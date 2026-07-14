@@ -20,6 +20,9 @@ final class ClaudeAI {
     private const MODEL   = 'claude-sonnet-4-6';
     private const API_URL = 'https://api.anthropic.com/v1/messages';
     private const MAX_TOKENS = 4096;
+    // [283차 P1] 코파일럿 대화 메모리 상한 — 토큰 폭주/비용 방지(agenticAsk 에서만 사용).
+    private const HIST_MAX_TURNS = 10;    // 최근 10턴(user+assistant 합산)
+    private const HIST_MAX_CHARS = 4000;  // 턴당 문자 상한
 
     /**
      * [282차 F-P1 저장형 XSS 심층방어] 클라이언트가 제출한 소재 SVG 에서 활성 콘텐츠(스크립트/이벤트핸들러)를
@@ -676,6 +679,158 @@ KB;
         } catch (\Throwable $e) { return ['error' => 'query_failed', 'rows' => []]; }
     }
 
+    /* ═══════════════════════════════════════════════════════════════════════════════════
+     * [283차 P1] 코파일럿 읽기전용 도구 증설 — 최대 갭 해소.
+     *
+     * 종전 코파일럿은 bi_query(performance_metrics 광고 1테이블·3차원)만 볼 수 있어
+     *   "VIP 고객 재구매율은?" · "악성재고 얼마나?" · "채널별 순이익은?" 같은 질문에 답할 수 없었다
+     *   (ThoughtSpot·Triple Whale Willy 대비 최대 열세). 아래 5개 도구로 CRM·P&L·재고·주문·리뷰를 개통한다.
+     *
+     * 안전 규약(전 도구 공통 · biQueryTool 패턴 그대로):
+     *   ①읽기 전용(SELECT) — 쓰기·DDL 없음   ②tenant_id 는 항상 prepared 바인딩(테넌트 격리)
+     *   ③차원은 화이트리스트 매칭된 상수만 SQL 에 삽입 — 사용자/모델 입력을 SQL 문자열에 절대 조립하지 않음
+     *   ④LIMIT 필수   ⑤PII 미반환(집계만 — 이메일·이름·전화 컬럼은 SELECT 하지 않는다)
+     *   ⑥실패는 error 로 정직 반환(빈 결과로 위장하지 않음 — 모델이 "조회 실패"를 사용자에게 말할 수 있게)
+     * 신규 엔드포인트 0 · 신규 메뉴 0 — 기존 /v422/ai/agentic 의 tools 배열에만 증설.
+     * ═══════════════════════════════════════════════════════════════════════════════════ */
+
+    /** crm_query — CRM 세그먼트/RFM/LTV/재구매 집계. ★PII 미반환(집계 전용). */
+    private static function crmQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $dim = in_array(($args['dimension'] ?? 'grade'), ['grade', 'rfm_r', 'rfm_f', 'rfm_m'], true) ? (string)($args['dimension'] ?? 'grade') : 'grade';
+        try {
+            $st = $pdo->prepare("SELECT {$dim} AS dim, COUNT(*) customers, ROUND(AVG(ltv)) avg_ltv, ROUND(SUM(ltv)) total_ltv,
+                    ROUND(AVG(rfm_score),2) avg_rfm_score, SUM(CASE WHEN rfm_f>=2 THEN 1 ELSE 0 END) repeat_customers
+                FROM crm_customers WHERE tenant_id=? GROUP BY {$dim} ORDER BY total_ltv DESC LIMIT 50");
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $tot = ['customers' => 0, 'total_ltv' => 0.0, 'repeat_customers' => 0];
+            foreach ($rows as &$r) {
+                $c = (int)$r['customers'];
+                // 재구매율 = 구매 2회 이상(rfm_f>=2) 고객 비중. crm_customers.rfm_f 는 CRM 이 갱신하는 SSOT 빈도값.
+                $r['repeat_rate_pct'] = $c > 0 ? round(((int)$r['repeat_customers']) / $c * 100, 1) : 0;
+                $tot['customers'] += $c; $tot['total_ltv'] += (float)$r['total_ltv']; $tot['repeat_customers'] += (int)$r['repeat_customers'];
+            }
+            unset($r);
+            $tot['repeat_rate_pct'] = $tot['customers'] > 0 ? round($tot['repeat_customers'] / $tot['customers'] * 100, 1) : 0;
+            $tot['avg_ltv'] = $tot['customers'] > 0 ? round($tot['total_ltv'] / $tot['customers']) : 0;
+            return ['dimension' => $dim, 'rows' => $rows, 'totals' => $tot,
+                'note' => '집계 전용(개인정보 미포함). repeat_rate_pct=구매 2회 이상 고객 비중(%). grade 예: vip/normal.'];
+        } catch (\Throwable $e) { return ['error' => 'crm_query_failed: ' . substr($e->getMessage(), 0, 160), 'rows' => []]; }
+    }
+
+    /** pnl_query — 채널/월별 손익(정산 SSOT). net_profit 공식은 Reports 커스텀분석과 동일(값 단일소스). */
+    private static function pnlQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $dim = in_array(($args['dimension'] ?? 'channel'), ['channel', 'period'], true) ? (string)($args['dimension'] ?? 'channel') : 'channel';
+        try {
+            $st = $pdo->prepare("SELECT {$dim} AS dim, ROUND(SUM(gross_sales)) gross_sales, ROUND(SUM(net_payout)) net_payout,
+                    ROUND(SUM(platform_fee)) platform_fee, ROUND(SUM(ad_fee)) ad_fee, ROUND(SUM(coupon_discount)) coupon_discount,
+                    ROUND(SUM(return_fee)) return_fee, SUM(orders_count) orders, SUM(returns_count) returns_count,
+                    ROUND(SUM(net_payout)-SUM(ad_fee)) net_profit
+                FROM orderhub_settlements WHERE tenant_id=? GROUP BY {$dim} ORDER BY gross_sales DESC LIMIT 50");
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $tot = ['gross_sales' => 0.0, 'net_payout' => 0.0, 'ad_fee' => 0.0, 'platform_fee' => 0.0, 'net_profit' => 0.0, 'orders' => 0];
+            foreach ($rows as $r) {
+                $tot['gross_sales'] += (float)$r['gross_sales']; $tot['net_payout'] += (float)$r['net_payout'];
+                $tot['ad_fee'] += (float)$r['ad_fee']; $tot['platform_fee'] += (float)$r['platform_fee'];
+                $tot['net_profit'] += (float)$r['net_profit']; $tot['orders'] += (int)$r['orders'];
+            }
+            $tot['net_margin_pct'] = $tot['gross_sales'] > 0 ? round($tot['net_profit'] / $tot['gross_sales'] * 100, 2) : 0;
+            return ['dimension' => $dim, 'rows' => $rows, 'totals' => $tot,
+                'note' => 'orderhub_settlements(정산 SSOT) 기준. net_profit=정산수령액-광고비차감. COGS·배송비는 이 테이블에 없으므로 미포함(과장 금지).'];
+        } catch (\Throwable $e) { return ['error' => 'pnl_query_failed: ' . substr($e->getMessage(), 0, 160), 'rows' => []]; }
+    }
+
+    /** inventory_query — 재고 요약 / 악성재고(기간 내 판매 0 + 재고>0) / 재고 상위. */
+    private static function inventoryQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $period = max(1, min(365, (int)($args['period_days'] ?? 60)));
+        $since = gmdate('Y-m-d', time() - $period * 86400);
+        $mode = in_array(($args['mode'] ?? 'summary'), ['summary', 'deadstock', 'top'], true) ? (string)($args['mode'] ?? 'summary') : 'summary';
+        try {
+            $s = $pdo->prepare("SELECT COUNT(*) sku_rows, ROUND(SUM(on_hand)) total_on_hand,
+                    SUM(CASE WHEN on_hand<=0 THEN 1 ELSE 0 END) out_of_stock_rows FROM wms_stock WHERE tenant_id=?");
+            $s->execute([$tenant]);
+            $summary = $s->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $rows = [];
+            if ($mode === 'deadstock') {
+                // 악성재고 후보 = 재고 보유 중 + 최근 {period}일 판매 이력 0건.
+                $st = $pdo->prepare("SELECT sku, MAX(name) name, ROUND(SUM(on_hand)) on_hand FROM wms_stock
+                    WHERE tenant_id=? AND on_hand>0 AND sku IS NOT NULL AND sku<>''
+                      AND sku NOT IN (SELECT sku FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND sku IS NOT NULL AND sku<>'')
+                    GROUP BY sku ORDER BY on_hand DESC LIMIT 30");
+                $st->execute([$tenant, $tenant, $since]);
+                $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            } elseif ($mode === 'top') {
+                $st = $pdo->prepare("SELECT sku, MAX(name) name, ROUND(SUM(on_hand)) on_hand FROM wms_stock
+                    WHERE tenant_id=? GROUP BY sku ORDER BY on_hand DESC LIMIT 30");
+                $st->execute([$tenant]);
+                $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            }
+            return ['mode' => $mode, 'period_days' => $period, 'summary' => $summary, 'rows' => $rows,
+                'note' => $mode === 'deadstock' ? "악성재고 후보 = 재고>0 이면서 최근 {$period}일 판매 0건(수량 기준·금액 아님)." : '수량(on_hand) 기준. 금액 환산 아님.'];
+        } catch (\Throwable $e) { return ['error' => 'inventory_query_failed: ' . substr($e->getMessage(), 0, 160), 'rows' => []]; }
+    }
+
+    /** orders_query — 채널/상태/SKU/일자별 주문·취소·반품 집계. */
+    private static function ordersQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $period = max(1, min(365, (int)($args['period_days'] ?? 30)));
+        $since = gmdate('Y-m-d', time() - $period * 86400);
+        $dim = in_array(($args['dimension'] ?? 'channel'), ['channel', 'status', 'sku', 'date'], true) ? (string)($args['dimension'] ?? 'channel') : 'channel';
+        // 'date' 만 표현식 — 나머지는 화이트리스트 통과한 컬럼명 상수.
+        $expr = $dim === 'date' ? 'SUBSTR(ordered_at,1,10)' : $dim;
+        try {
+            // ★취소 판정은 OrderHub::cancelExclusion() SSOT 재사용(event_type + status 토큰 2축).
+            //   자체 LIKE '%cancel%' 로 조립하면 Pnl/Rollup 과 취소 정의가 갈라져 코파일럿만 다른 숫자를 말하게 된다.
+            [$cancelSql, $cancelTokens] = OrderHub::cancelExclusion();
+            $st = $pdo->prepare("SELECT {$expr} AS dim,
+                    SUM(CASE WHEN NOT {$cancelSql} THEN 1 ELSE 0 END) orders,
+                    SUM(CASE WHEN {$cancelSql} THEN 1 ELSE 0 END) cancels,
+                    SUM(CASE WHEN COALESCE(event_type,'order')='return' THEN 1 ELSE 0 END) returns_count,
+                    ROUND(SUM(CASE WHEN NOT {$cancelSql} THEN qty ELSE 0 END)) units,
+                    ROUND(SUM(CASE WHEN NOT {$cancelSql} THEN total_price ELSE 0 END)) revenue
+                FROM channel_orders WHERE tenant_id=? AND ordered_at>=? GROUP BY {$expr} ORDER BY revenue DESC LIMIT 50");
+            // 플레이스홀더 순서 = SQL 텍스트 등장 순서(orders, cancels, units, revenue) → 취소토큰 4벌 + tenant + since.
+            $st->execute(array_merge($cancelTokens, $cancelTokens, $cancelTokens, $cancelTokens, [$tenant, $since]));
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $tot = ['orders' => 0, 'units' => 0, 'revenue' => 0.0, 'cancels' => 0, 'returns_count' => 0];
+            foreach ($rows as $r) {
+                $tot['orders'] += (int)$r['orders']; $tot['units'] += (int)$r['units']; $tot['revenue'] += (float)$r['revenue'];
+                $tot['cancels'] += (int)$r['cancels']; $tot['returns_count'] += (int)$r['returns_count'];
+            }
+            $tot['aov'] = $tot['orders'] > 0 ? round($tot['revenue'] / $tot['orders']) : 0;
+            $tot['return_rate_pct'] = $tot['orders'] > 0 ? round($tot['returns_count'] / $tot['orders'] * 100, 2) : 0;
+            return ['dimension' => $dim, 'period_days' => $period, 'rows' => $rows, 'totals' => $tot,
+                'note' => 'channel_orders 기준. orders/units/revenue 는 취소 제외(반품은 Pnl 머니경로 정합상 매출에 포함·반품비로 별도 반영). 취소 판정=OrderHub SSOT(event_type+status).'];
+        } catch (\Throwable $e) { return ['error' => 'orders_query_failed: ' . substr($e->getMessage(), 0, 160), 'rows' => []]; }
+    }
+
+    /** review_query — 채널/감성/카테고리/SKU별 리뷰 집계(평점·긍부정). */
+    private static function reviewQueryTool(\PDO $pdo, string $tenant, array $args): array {
+        $period = max(1, min(365, (int)($args['period_days'] ?? 90)));
+        $since = gmdate('Y-m-d', time() - $period * 86400);
+        $dim = in_array(($args['dimension'] ?? 'channel'), ['channel', 'sentiment', 'category', 'sku'], true) ? (string)($args['dimension'] ?? 'channel') : 'channel';
+        try {
+            $st = $pdo->prepare("SELECT {$dim} AS dim, COUNT(*) reviews, ROUND(AVG(rating),2) avg_rating,
+                    SUM(CASE WHEN sentiment='positive' THEN 1 ELSE 0 END) positive,
+                    SUM(CASE WHEN sentiment='negative' THEN 1 ELSE 0 END) negative,
+                    SUM(CASE WHEN sentiment='neutral' THEN 1 ELSE 0 END) neutral
+                FROM product_review WHERE tenant_id=? AND COALESCE(reviewed_at,collected_at)>=?
+                GROUP BY {$dim} ORDER BY reviews DESC LIMIT 50");
+            $st->execute([$tenant, $since]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $tot = ['reviews' => 0, 'positive' => 0, 'negative' => 0];
+            foreach ($rows as &$r) {
+                $n = (int)$r['reviews'];
+                $r['negative_rate_pct'] = $n > 0 ? round(((int)$r['negative']) / $n * 100, 1) : 0;
+                $tot['reviews'] += $n; $tot['positive'] += (int)$r['positive']; $tot['negative'] += (int)$r['negative'];
+            }
+            unset($r);
+            $tot['negative_rate_pct'] = $tot['reviews'] > 0 ? round($tot['negative'] / $tot['reviews'] * 100, 1) : 0;
+            return ['dimension' => $dim, 'period_days' => $period, 'rows' => $rows, 'totals' => $tot,
+                'note' => 'product_review 기준. sentiment=positive|negative|neutral. 리뷰 본문·작성자는 미반환(집계 전용).'];
+        } catch (\Throwable $e) { return ['error' => 'review_query_failed: ' . substr($e->getMessage(), 0, 160), 'rows' => []]; }
+    }
+
     /**
      * [255차 심화] POST /v422/ai/agentic — 에이전틱 코파일럿(tool-use). 읽기도구(bi_query)로 실데이터 조회 +
      *   액션도구(예산/일시정지/세그먼트)는 ★제안만 생성(자동집행 금지). 제안은 agenticExecute(휴먼-인-루프 승인) 로만 집행.
@@ -694,6 +849,17 @@ KB;
         $tools = [
             ['name' => 'bi_query', 'description' => '광고 성과 데이터를 채널/캠페인/일자 차원으로 집계 조회(spend/revenue/conversions/roas).',
                 'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['channel', 'campaign_ext_id', 'date']], 'period_days' => ['type' => 'integer']])],
+            // ── [283차 P1] 읽기전용 도구 증설 — 광고 외 도메인(CRM·P&L·재고·주문·리뷰) 개통. 액션 없음=안전.
+            ['name' => 'crm_query', 'description' => '고객 CRM 집계 조회 — 등급/RFM 차원별 고객수·평균LTV·총LTV·재구매율(구매 2회 이상 비중). VIP 재구매율 같은 질문에 사용. 개인정보는 반환되지 않는다(집계 전용).',
+                'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['grade', 'rfm_r', 'rfm_f', 'rfm_m']]])],
+            ['name' => 'pnl_query', 'description' => '손익(P&L) 집계 조회 — 채널별/월별 매출·정산수령액·플랫폼수수료·광고비·쿠폰·반품비·순이익(net_profit=정산수령액-광고비). 채널별 순이익·수익성 질문에 사용.',
+                'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['channel', 'period']]])],
+            ['name' => 'inventory_query', 'description' => '재고 조회 — mode=summary(총재고·품절), deadstock(악성재고: 재고>0 이면서 기간 내 판매 0건), top(재고 상위 SKU). 재고회전·악성재고 질문에 사용.',
+                'input_schema' => $obj(['mode' => ['type' => 'string', 'enum' => ['summary', 'deadstock', 'top']], 'period_days' => ['type' => 'integer']])],
+            ['name' => 'orders_query', 'description' => '주문 집계 조회 — 채널/상태/SKU/일자 차원별 주문수·수량·매출·취소·반품·객단가(AOV)·반품률.',
+                'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['channel', 'status', 'sku', 'date']], 'period_days' => ['type' => 'integer']])],
+            ['name' => 'review_query', 'description' => '리뷰 집계 조회 — 채널/감성/카테고리/SKU 차원별 리뷰수·평균평점·긍정/부정 건수·부정비율. 상품 불만·감성 질문에 사용.',
+                'input_schema' => $obj(['dimension' => ['type' => 'string', 'enum' => ['channel', 'sentiment', 'category', 'sku']], 'period_days' => ['type' => 'integer']])],
             // ── 액션 도구(제안만·자동집행 금지) ──
             ['name' => 'propose_pause_campaign', 'description' => '낭비 캠페인 일시정지를 제안한다(실행 아님·사용자 승인 필요). 전환 없이 지출 큰 캠페인 등.',
                 'input_schema' => $obj(['channel' => ['type' => 'string'], 'campaign_ext_id' => ['type' => 'string'], 'reason' => ['type' => 'string']], ['channel', 'campaign_ext_id'])],
@@ -702,12 +868,43 @@ KB;
             ['name' => 'propose_create_segment', 'description' => 'CRM 세그먼트 생성을 제안한다(실행 아님·승인 필요). rules=[{field,op,value}].',
                 'input_schema' => $obj(['name' => ['type' => 'string'], 'rules' => ['type' => 'array']], ['name'])],
         ];
-        $system = "당신은 GeniegoROI 광고 ROI·CRM 자동화 코파일럿입니다. 데이터가 필요하면 bi_query 로 실제 수치를 조회하세요. "
+        $system = "당신은 GeniegoROI 커머스 ROI·CRM 자동화 코파일럿입니다. 데이터가 필요하면 반드시 도구로 실제 수치를 조회하세요. "
+            . "도구 선택: 광고성과=bi_query, 고객/RFM/LTV/재구매=crm_query, 손익/순이익=pnl_query, 재고/악성재고=inventory_query, "
+            . "주문/취소/반품/AOV=orders_query, 리뷰/감성=review_query. 한 질문에 여러 도구를 조합해도 됩니다. "
             . "예산 변경·캠페인 정지·세그먼트 생성 같은 액션은 propose_* 도구로 '제안'만 하세요(절대 직접 실행 아님). "
-            . "한국어로 간결·정확하게 근거(수치) 기반 답하고, 제안한 액션은 사용자가 승인해야 실행됨을 명시하세요. 추측 금지.";
-        $messages = [['role' => 'user', 'content' => $q]];
+            . "한국어로 간결·정확하게 근거(수치) 기반 답하고, 제안한 액션은 사용자가 승인해야 실행됨을 명시하세요. "
+            . "도구가 error 를 반환하면 수치를 지어내지 말고 조회 실패를 그대로 알리세요. 추측 금지.";
+
+        // [283차 P1] 대화 메모리 — 종전엔 매 요청이 단발($messages=[현재 질문]) 이라 "그럼 그 캠페인 예산 올려줘" 같은
+        //   후속 질문이 맥락을 잃었다. 프론트가 보낸 이전 턴을 수용하되, 토큰 폭주를 막기 위해 상한을 둔다.
+        //   ★안전: 과거 턴은 text 로만 재구성한다(assistant 의 tool_use 블록을 그대로 신뢰해 재주입하지 않음 —
+        //     tool_use/tool_result 짝이 깨지면 API 400 이 나고, 위조된 tool_result 주입 경로도 차단된다).
+        $messages = [];
+        $hist = $body['history'] ?? $body['messages'] ?? [];
+        if (is_array($hist)) {
+            $clean = [];
+            foreach ($hist as $m) {
+                if (!is_array($m)) continue;
+                $role = ($m['role'] ?? '') === 'assistant' ? 'assistant' : (($m['role'] ?? '') === 'user' ? 'user' : '');
+                $txt = trim((string)($m['content'] ?? $m['text'] ?? ''));
+                if ($role === '' || $txt === '') continue;
+                $clean[] = ['role' => $role, 'content' => mb_substr($txt, 0, self::HIST_MAX_CHARS)];
+            }
+            // 최근 N턴만 유지 + 반드시 user 로 시작(Claude API 규약: 첫 메시지는 user).
+            if (count($clean) > self::HIST_MAX_TURNS) $clean = array_slice($clean, -self::HIST_MAX_TURNS);
+            while ($clean && $clean[0]['role'] !== 'user') array_shift($clean);
+            // 연속 동일 role 병합(API 는 role 교대를 요구) — 방어적.
+            foreach ($clean as $m) {
+                if ($messages && end($messages)['role'] === $m['role']) { $messages[count($messages) - 1]['content'] .= "\n" . $m['content']; }
+                else { $messages[] = $m; }
+            }
+            if ($messages && end($messages)['role'] === 'user') $messages[] = ['role' => 'assistant', 'content' => '(이전 답변)'];
+        }
+        $messages[] = ['role' => 'user', 'content' => $q];
         $usedData = null; $proposals = [];
-        for ($i = 0; $i < 4; $i++) {
+        // [283차 P1] 도구 반복 한도 4→6 — 읽기도구가 1개(bi_query)에서 6개로 늘어 다중홉 질문
+        //   ("VIP 재구매율과 그 세그먼트의 채널별 순이익 비교")이 4라운드에서 조기 종료되던 것 방지.
+        for ($i = 0; $i < 6; $i++) {
             try { $resp = self::callClaudeTools($system, $messages, $tools, 22, $tenant); }
             catch (\Throwable $e) { return $w(['ok' => false, 'error' => $e->getMessage()]); }
             $content = $resp['content'] ?? [];
@@ -717,9 +914,21 @@ KB;
                 foreach ($content as $blk) {
                     if (($blk['type'] ?? '') !== 'tool_use') continue;
                     $name = (string)($blk['name'] ?? ''); $in = (array)($blk['input'] ?? []); $tid = $blk['id'];
-                    if ($name === 'bi_query') {
-                        $usedData = self::biQueryTool($pdo, $tenant, $in);
-                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $tid, 'content' => json_encode($usedData, JSON_UNESCAPED_UNICODE)];
+                    // [283차 P1] 읽기전용 도구 디스패치 — 전부 집계·테넌트 스코프·LIMIT 내장(액션 없음).
+                    //   usedData 는 마지막 조회 결과가 아니라 도구별로 누적해 프론트가 근거 데이터를 모두 볼 수 있게 한다.
+                    $readTools = [
+                        'bi_query'        => fn() => self::biQueryTool($pdo, $tenant, $in),
+                        'crm_query'       => fn() => self::crmQueryTool($pdo, $tenant, $in),
+                        'pnl_query'       => fn() => self::pnlQueryTool($pdo, $tenant, $in),
+                        'inventory_query' => fn() => self::inventoryQueryTool($pdo, $tenant, $in),
+                        'orders_query'    => fn() => self::ordersQueryTool($pdo, $tenant, $in),
+                        'review_query'    => fn() => self::reviewQueryTool($pdo, $tenant, $in),
+                    ];
+                    if (isset($readTools[$name])) {
+                        $out = ($readTools[$name])();
+                        if (!is_array($usedData)) $usedData = [];
+                        $usedData[$name] = $out;
+                        $results[] = ['type' => 'tool_result', 'tool_use_id' => $tid, 'content' => json_encode($out, JSON_UNESCAPED_UNICODE)];
                     } elseif (str_starts_with($name, 'propose_')) {
                         $action = substr($name, 8); // pause_campaign|budget_change|create_segment
                         $proposals[] = ['action' => $action, 'params' => $in];

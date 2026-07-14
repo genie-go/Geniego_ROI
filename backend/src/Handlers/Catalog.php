@@ -202,8 +202,22 @@ class Catalog
         if ($refresh || $cnt === 0) {
             $synced = self::syncChannelCategories($pdo, $tenant, $channel);
             if ($synced === 0 && $cnt === 0) {
+                // [현 차수 P1] 실패 원인을 구분해 정직하게 안내한다.
+                //   종전엔 원인 불문 "자격증명을 확인하세요"로 답해, 자격증명이 정상인데도(11번가 등)
+                //   사용자가 인증 문제로 오인했다. 실제 원인은 "그 채널의 카테고리 자동조회 미구현"이다.
+                if (!self::supportsCategoryCatalog($channel)) {
+                    return self::jsonRes($res, ['ok' => false, 'error' => 'category_catalog_unsupported',
+                        'manual_entry' => true,   // 프론트: 카테고리 코드 직접 입력 경로를 연다
+                        'hint' => '이 채널은 카테고리 자동 조회를 아직 지원하지 않습니다(자격증명 문제 아님). '
+                                . '채널 판매자센터의 카테고리 코드를 직접 입력하면 등록이 진행됩니다.'], 200);
+                }
+                if (!self::loadChannelCreds($pdo, $tenant, $channel)) {
+                    return self::jsonRes($res, ['ok' => false, 'error' => 'credentials_required',
+                        'hint' => '채널 자격증명이 없습니다. 연동 허브에서 먼저 등록하세요.'], 200);
+                }
                 return self::jsonRes($res, ['ok' => false, 'error' => 'category_fetch_failed',
-                    'hint' => '채널 자격증명을 확인하세요. 카테고리 조회는 채널 인증이 필요합니다.'], 200);
+                    'manual_entry' => true,
+                    'hint' => '채널 카테고리 조회에 실패했습니다(권한/일시 오류). 카테고리 코드를 직접 입력할 수도 있습니다.'], 200);
             }
             $cnt = $synced ?: $cnt;
         }
@@ -300,6 +314,19 @@ class Catalog
     }
 
     /** [277차] 채널에서 카테고리 카탈로그를 받아 캐시에 upsert. 반환=저장 건수(실패 0). */
+    /**
+     * [현 차수] 카테고리 자동조회(카탈로그 수집) 실어댑터를 보유한 채널인가.
+     *   syncChannelCategories 의 분기와 단일 소스로 유지한다 — 미지원 채널을 "자격증명 오류"로
+     *   오안내하던 결함(11번가 등)의 재발 방지. 신규 어댑터 추가 시 두 곳을 함께 갱신.
+     */
+    public static function supportsCategoryCatalog(string $channel): bool
+    {
+        foreach (self::channelAliases($channel) as $a) {
+            if ($a === 'naver' || $a === 'naver_smartstore') return true;
+        }
+        return false;
+    }
+
     private static function syncChannelCategories(\PDO $pdo, string $tenant, string $channel): int
     {
         $creds = self::loadChannelCreds($pdo, $tenant, $channel);
@@ -475,7 +502,10 @@ class Catalog
                 $ws = $pdo->prepare("SELECT COALESCE(SUM(on_hand),0) AS oh, COUNT(*) AS n FROM wms_stock WHERE tenant_id=? AND sku=?");
                 $ws->execute([$tenant, $sku]);
                 $wr = $ws->fetch(\PDO::FETCH_ASSOC) ?: [];
-                if ((int)($wr['n'] ?? 0) > 0) { $body['inventory'] = (int)round((float)($wr['oh'] ?? 0)); }
+                // [283차 GAP-1] 채널 안전버퍼(유보재고) 반영 — 자동 델타 푸시(Wms::enqueueChannelStockSync)와
+                //   **동일한 SSOT 계산식**(Wms::channelAvailable)을 쓴다. 두 경로가 서로 다른 재고를 보내면 채널
+                //   가용재고가 왕복 진동한다. 정책 미설정 시 버퍼 0 → 종전 (int)round(oh) 와 동일(무회귀).
+                if ((int)($wr['n'] ?? 0) > 0) { $body['inventory'] = Wms::channelAvailable($tenant, $channel, (float)($wr['oh'] ?? 0)); }
             } catch (\Throwable $e) { /* wms_stock 미존재 환경 = 제공값 유지(회귀0) */ }
         }
 

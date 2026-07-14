@@ -290,6 +290,13 @@ export default function AutoMarketing() {
     const [freqDays, setFreqDays] = useState(7);
     const [audienceMode, setAudienceMode] = useState("");    // ''|retarget|lookalike|prospect
     const [abMode, setAbMode] = useState(false);             // 디자인 2+ 시 동시집행 A/B
+    // [283차 P0-1] ★광고 랜딩 URL — 이 화면이 유일한 라이브 경로(activate:true)인데 landing_url 을 보내지 않아
+    //   백엔드 어댑터의 벤더 기본값(genieroi.com)이 6개 매체 광고에 그대로 실렸다(구독사 광고비가 우리 사이트로 랜딩).
+    const [landingUrl, setLandingUrl] = useState("");
+    // [283차 P0-2] ★광고 소재(ad_design) — 라이브 경로가 design_ids 를 미전송해 loadDesign 기본값('GenieGo')이
+    //   광고 카피로 게재됐다(채널별 소재매칭·A/B 분기·이미지 업로드가 라이브에서 전부 dead). 소재를 선택해 전송한다.
+    const [designs, setDesigns] = useState([]);
+    const [selDesigns, setSelDesigns] = useState([]);
     const [dayparting, setDayparting] = useState(false);
     const [dayStart, setDayStart] = useState(9);
     const [dayEnd, setDayEnd] = useState(23);
@@ -617,10 +624,36 @@ export default function AutoMarketing() {
         if (tab === 'effectiveness') loadEffectiveness();
     }, [tab, loadEffectiveness]);
 
+    /* ─── [283차 P0-2] 저장 광고 소재(ad_design) 로드 — 라이브 집행에 실을 소재. 기본 전체 선택(채널 매칭은 백엔드가 수행). ─── */
+    const loadDesigns = useCallback(async () => {
+        try {
+            const r = await getJsonAuth('/api/v422/ai/ad-design/list');
+            const list = (r && (r.designs || r.items)) || (Array.isArray(r) ? r : []);
+            const arr = Array.isArray(list) ? list : [];
+            setDesigns(arr);
+            setSelDesigns(prev => (prev.length ? prev.filter(id => arr.some(d => d.id === id)) : arr.map(d => d.id)));
+        } catch (_) { setDesigns([]); }
+    }, []);
+    useEffect(() => { loadDesigns(); }, [loadDesigns]);
+    const toggleDesign = (id) => setSelDesigns(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
 
     /* ─── Campaign 제출 전 Management자 Approval Modal 표시 ─── */
     const handleSubmitApproval = () => {
         if (!strategy) return;
+        // [283차 P0-1] ★랜딩 URL 미입력 집행 차단 — 이 경로는 activate:true(즉시 라이브)다. 목적지 없이 태우면
+        //   실 광고비가 잘못된 페이지로 흐른다(종전엔 벤더 사이트로 랜딩). 백엔드도 fail-closed 이므로 여기서 선차단.
+        const land = (landingUrl || '').trim();
+        if (!land) {
+            addAlert({ type: 'error', msg: t('marketing.needLanding', '광고 랜딩 URL을 입력하세요 — 광고 클릭 시 이동할 내 사이트/상품 페이지 주소입니다. (③ 고급 집행 설정)'), channel: selAds[0] });
+            setTab('setup');
+            return;
+        }
+        // [283차 P0-2] ★소재 미선택 집행 차단 — 소재 없이 라이브로 나가면 광고 카피가 기본값('GenieGo')으로 게재된다.
+        if (!selDesigns.length) {
+            addAlert({ type: 'error', msg: t('marketing.needDesign', '광고 소재를 1개 이상 선택하세요 — 소재 없이 집행하면 기본 카피로 게재됩니다. [① 크리에이티브 스튜디오]에서 소재를 만든 뒤 선택하세요.'), channel: selAds[0] });
+            setTab('setup');
+            return;
+        }
         const name = campaignName || `${PRODUCT_CATEGORIES.find(c => selCats[0] === c.id)?.label || 'Unified'} ${t('marketing.defaultCampSuffix')}`;
         const selectedChs = selAds.map(id => AD_CHANNELS.find(c => c.id === id)).filter(Boolean);
 
@@ -658,11 +691,16 @@ export default function AutoMarketing() {
                             allocations: (strategy.allocations || []).map(a => ({ channel: a.ch?.id, alloc: a.alloc, roas: a.roas })),
                             est_roas: String(strategy.estimatedRoas || ''),
                             activate: true,   // 승인 즉시 집행(배정예산 한도 내 라이브). 게이트 미충족 시 활성화만 보류.
+                            // [283차 P0-1] 광고 클릭 목적지 — 6개 매체 페이로드(finalUrls/link/landing_page_url…)에 실린다.
+                            landing_url: land,
+                            // [283차 P0-2] 선택 소재 — 백엔드가 채널별 매칭(designChannelToMedia)·A/B 분기·이미지 업로드에 사용.
+                            //   미전송 시 loadDesign 기본값('GenieGo')이 그대로 광고 카피로 게재되던 라이브 결함을 해소.
+                            design_ids: selDesigns,
                             // [254차 ③] 고급 집행 설정 — 백엔드 AutoCampaign $settings 가 그대로 사용(입찰/캡/오디언스/A·B/데이파팅).
                             objective, bid_strategy: bidStrategy,
                             target_cpa: Number(targetCpa) || 0, target_roas: Number(targetRoas) || 0,
                             frequency_cap: Number(freqCap) || 0, frequency_days: Number(freqDays) || 7,
-                            audience_mode: audienceMode, ab_mode: abMode, google_channel_type: googleChannelType,
+                            audience_mode: audienceMode, ab_mode: abMode && selDesigns.length >= 2, google_channel_type: googleChannelType,
                             // [227차 P1] 사용자 가드레일 배선 — 옵티마이저가 실제 사용(min_roas/max_share). + 데이파팅(gr.ad_schedule).
                             guardrails: {
                                 min_roas: Number(minRoas) || 0, max_share: (Number(maxShare) || 60) / 100,
@@ -1224,6 +1262,42 @@ export default function AutoMarketing() {
                                 </select>
                             </div>
                         </div>
+                        {/* [283차 P0-1] ★광고 랜딩 URL(필수) — 광고 클릭 목적지. 미입력 시 집행 차단(백엔드도 fail-closed). */}
+                        <div style={{ marginTop: 14 }}>
+                            {lbl(<span>🔗 {t('marketing.landingLabel', '광고 랜딩 URL')} <span style={{ color: '#dc2626' }}>*</span></span>)}
+                            <input style={{ ...inp, border: `1px solid ${(landingUrl || '').trim() ? '#e2e8f0' : 'rgba(239,68,68,0.45)'}` }} type="url" value={landingUrl}
+                                onChange={e => setLandingUrl(e.target.value)} placeholder={t('marketing.landingPh', 'https://내쇼핑몰.com/products/best')} />
+                            <div style={{ fontSize: 11, color: '#64748b', marginTop: 5, lineHeight: 1.5 }}>
+                                {t('marketing.landingDesc', '광고를 클릭한 고객이 이동할 내 사이트/상품 페이지 주소입니다. 미입력 시 광고가 생성되지 않습니다(잘못된 목적지로 광고비가 나가는 것을 차단).')}
+                            </div>
+                        </div>
+                        {/* [283차 P0-2] ★광고 소재 선택 — 미선택 시 광고 카피가 기본값으로 게재되므로 집행 차단. */}
+                        <div style={{ marginTop: 14 }}>
+                            {lbl(<span>🎨 {t('marketing.designLabel', '광고 소재 선택')} <span style={{ color: '#dc2626' }}>*</span> ({selDesigns.length}/{designs.length})</span>)}
+                            {designs.length === 0 ? (
+                                <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', fontSize: 11.5, color: '#92400e', lineHeight: 1.55 }}>
+                                    ⚠️ {t('marketing.noDesigns', '저장된 광고 소재가 없습니다. [① 크리에이티브 스튜디오]에서 소재를 생성·적용한 뒤 집행하세요. 소재 없이는 광고 카피가 기본값으로 게재됩니다.')}
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    {designs.map(dz => {
+                                        const on = selDesigns.includes(dz.id);
+                                        // ad-design/list 는 spec 을 design 에 담아 반환(AutoCampaignLaunch DesignThumb 와 동일 계약: design.headline·design.channel).
+                                        const spec = dz.design || {};
+                                        const hl = spec.headline || dz.name || `#${dz.id}`;
+                                        const dch = spec.channel || dz.channel || '';
+                                        return (
+                                            <button key={dz.id} type="button" onClick={() => toggleDesign(dz.id)}
+                                                style={{ padding: '7px 12px', borderRadius: 99, cursor: 'pointer', fontSize: 11.5, fontWeight: 700, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                    background: on ? 'rgba(34,197,94,0.12)' : 'rgba(0,0,0,0.04)', color: on ? '#16a34a' : '#64748b',
+                                                    border: `1px solid ${on ? 'rgba(34,197,94,0.45)' : 'rgba(99,140,255,0.15)'}` }}>
+                                                {on ? '✓ ' : ''}{String(hl).slice(0, 24)}{dch ? ` · ${dch}` : ''}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
                                 <input type="checkbox" checked={abMode} onChange={e => setAbMode(e.target.checked)} /> {t('marketing.advAb', 'A/B 동시집행(디자인 2+)')}
@@ -1608,8 +1682,19 @@ export default function AutoMarketing() {
                                     <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
                                         {t("marketing.approvalSub")}
                                     </div>
+                                    {/* [283차 P0-1·P0-2] 승인=즉시 라이브(activate:true) 경로 — 랜딩 URL·소재 미충족이면 집행 차단(사유 안내). */}
+                                    {(!(landingUrl || '').trim() || !selDesigns.length) && (
+                                        <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', fontSize: 11.5, color: '#b91c1c', lineHeight: 1.6 }}>
+                                            🚫 {t('marketing.launchBlocked', '집행 전 필수 항목이 비어 있습니다 — [② 캠페인 설정]에서 채우세요.')}
+                                            <div style={{ marginTop: 4, fontWeight: 700 }}>
+                                                {!(landingUrl || '').trim() && <div>· {t('marketing.needLandingShort', '광고 랜딩 URL(광고 클릭 목적지)')}</div>}
+                                                {!selDesigns.length && <div>· {t('marketing.needDesignShort', '광고 소재 1개 이상(미선택 시 기본 카피로 게재)')}</div>}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div style={{ display: "flex", gap: 10 }}>
-                                        <button onClick={handleSubmitApproval} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#22c55e,#16a34a)", color: '#fff', fontWeight: 900, fontSize: 13, boxShadow: "0 4px 14px rgba(34,197,94,0.3)" }}>
+                                        <button onClick={handleSubmitApproval} disabled={!(landingUrl || '').trim() || !selDesigns.length}
+                                            style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", cursor: (!(landingUrl || '').trim() || !selDesigns.length) ? "not-allowed" : "pointer", background: (!(landingUrl || '').trim() || !selDesigns.length) ? "rgba(34,197,94,0.35)" : "linear-gradient(135deg,#22c55e,#16a34a)", color: '#fff', fontWeight: 900, fontSize: 13, boxShadow: "0 4px 14px rgba(34,197,94,0.3)" }}>
                                             {t("marketing.submitApproval")}
                                         </button>
                                         <button onClick={() => { setTab("setup"); setDraft(null); }} style={{ padding: "12px 20px", borderRadius: 10, border: "1px solid rgba(99,140,255,0.2)", cursor: "pointer", background: "transparent", color: '#64748b', fontSize: 12, fontWeight: 700 }}>

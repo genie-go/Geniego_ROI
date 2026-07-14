@@ -1,0 +1,62 @@
+version: 2
+
+# [283차] Dependabot 신설 — 의존성 취약점 자동 감시/PR.
+#   부재증명: dependabot.yml · renovate.json → 0개(리포지터리 전체).
+#
+# ★배포 무간섭: Dependabot 은 PR 만 생성한다. deploy.yml 은 `push: master` 에서만 배포하므로
+#   Dependabot PR 이 자동 배포를 유발할 수 없다(머지 시점에만 사람 승인 하에 배포).
+#   보안 PR 은 사람이 리뷰·머지한다 — 자동머지 설정을 두지 않는다(프로젝트 배포 사전승인 원칙).
+
+updates:
+  # ── 프론트엔드(npm) — 루트 + frontend/ 두 개의 lockfile 이 실재한다 ─────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security"]
+    commit-message:
+      prefix: "chore(deps)"
+    # 노이즈 억제: 보안 패치 외 major 업그레이드는 사람이 계획적으로 수행(무회귀 원칙).
+    #   ★security advisory PR 은 ignore 와 무관하게 항상 생성된다(GitHub 동작) → 보안 커버리지 손실 없음.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security"]
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── 백엔드(composer) — CodeQL 이 PHP 를 미지원하므로 PHP 측 취약점 커버리지의 핵심 ──
+  - package-ecosystem: "composer"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security", "backend"]
+    commit-message:
+      prefix: "chore(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ── GitHub Actions 자체(써드파티 액션 핀 고정 취약점) ────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "chore(ci)"

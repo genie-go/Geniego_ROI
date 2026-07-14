@@ -901,7 +901,10 @@ final class UserAuth
                 ? 'admin' : strtolower((string)($user['plans'] ?? $user['plan'] ?? 'free'));
             // [현 차수] 신규 '전원 강제 챌린지'는 정책 'all' 에서만 발동(기존 admin/off 정책 동작 무회귀:
             //   등록 사용자만 검증). $planForMfa 는 향후 확장 여지용으로 계산만 유지.
-            $mfaPol   = self::mfaPolicy($pdo);
+            // [283차] 로그인하는 사용자의 **소속 테넌트 정책**을 우선 적용(미설정이면 전역 폴백=무회귀).
+            //   이것이 enterprise 고객이 자기 조직에 MFA 를 강제할 수 있게 되는 실제 발효 지점이다.
+            $mfaTenant = trim((string)($user['tenant_id'] ?? ''));
+            $mfaPol   = self::mfaPolicy($pdo, $mfaTenant !== '' ? $mfaTenant : null);
             // [276차 보안] 정책 'admin' 이 실제로 관리자에게 MFA 를 강제하도록 활성화(기존엔 'all' 에서만
             //   발동해 기본정책 'admin' 은 무동작이었다 — 미등록 관리자 사실상 MFA 없음). 관리자 계정만 대상.
             //   ★락아웃 방지: 아래 910행 분기가 발송채널 전무 시 통과+감사(high) 유지 → 무채널 환경 무회귀.
@@ -987,7 +990,10 @@ final class UserAuth
             //   [P3 보안거버넌스] 조직 MFA 정책(off|admin|all)으로 강제 범위 결정(기존 admin-only 동작은 기본값 보존).
             //   세션은 발급(setup/enable API 호출에 세션 필요)하되, FE가 enrollment 게이트로 앱 차단.
             //   break-glass(isMasterAuth) 비상 접근은 제외.
-            $mfaEnrollRequired = (!$isMasterAuth && empty($user['mfa_enabled']) && self::mfaRequiredFor($effectivePlan));
+            //   [283차] enrollment 게이트도 테넌트 정책을 따른다(위 로그인 챌린지 판정과 동일 스코프 — 두 곳이
+            //   어긋나면 '강제인데 등록 안내가 안 뜨는' 불일치가 생긴다).
+            $mfaEnrollRequired = (!$isMasterAuth && empty($user['mfa_enabled'])
+                && self::mfaRequiredFor($effectivePlan, $pdo, ($mfaTenant ?? '') !== '' ? $mfaTenant : null));
 
             return self::json($res, [
                 'ok'    => true,
@@ -3438,14 +3444,79 @@ final class UserAuth
         }
         // 이메일 인증 가용 여부(UI 게이트용): Mailer 설정 시 true
         $emailAvail = false; try { $emailAvail = \Genie\Mailer::isConfigured($pdo); } catch (\Throwable $e) {}
+        // [283차] 상태 조회도 소속 테넌트 정책 기준으로 응답해야 로그인 게이트와 일치한다(불일치 시 UI 오안내).
+        $stTenant = trim((string)($user['tenant_id'] ?? ''));
+        $stTenant = $stTenant !== '' ? $stTenant : null;
         return self::json($res, ['ok' => true, 'enabled' => $enabled === 1, 'method' => $method, 'recovery_remaining' => $remaining,
-            'policy' => self::mfaPolicy($pdo), 'enforced' => self::mfaRequiredFor((string)($user['plan'] ?? $user['plans'] ?? ''), $pdo),
+            'policy' => self::mfaPolicy($pdo, $stTenant), 'enforced' => self::mfaRequiredFor((string)($user['plan'] ?? $user['plans'] ?? ''), $pdo, $stTenant),
             'methods_available' => ['email' => $emailAvail, 'totp' => true, 'sms' => false, 'kakao' => false]]);
     }
 
-    /** [P3 보안거버넌스] 조직 MFA 강제 정책(app_setting mfa_policy): off|admin|all. 기본 admin(기존 동작 보존). */
-    public static function mfaPolicy(\PDO $pdo): string
+    /* ─── [283차] 테넌트별 보안정책(tenant_security_policy) ────────────────────────────
+     *  배경: MFA 정책(app_setting mfa_policy)·SIEM 설정(app_setting siem_config)·감사 익스포트가
+     *    **전부 플랫폼 전역 단일설정 + 최고관리자(plan=admin) 전용**이었다. 고객의 최대 plan 은
+     *    enterprise(rank 2) < admin(rank 3) 이므로 교차유출은 없었으나(=보안결함 아님), 그 결과
+     *    **enterprise 고객이 자기 조직의 MFA 강제도, 자기 SIEM 스트리밍도 설정할 수 없는** 기능 갭이었다.
+     *  해법: 이미 테넌트 스코프로 검증된 sso_config 패턴을 그대로 따른다(tenant_id PK).
+     *  ★무회귀 원칙: 테넌트 정책이 **없으면 전역 설정으로 폴백**한다. 기존 전역 경로는 한 줄도 바뀌지 않는다.
+     */
+    public static function ensureTenantPolicyTable(\PDO $pdo): void
     {
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tenant_security_policy (
+                    tenant_id VARCHAR(100) PRIMARY KEY,
+                    mfa_policy VARCHAR(20) DEFAULT NULL,
+                    siem_config MEDIUMTEXT DEFAULT NULL,
+                    updated_at VARCHAR(32)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS tenant_security_policy (
+                    tenant_id TEXT PRIMARY KEY, mfa_policy TEXT, siem_config TEXT, updated_at TEXT)");
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    /** 테넌트 보안정책 1행(없으면 빈 배열). */
+    public static function tenantPolicy(\PDO $pdo, string $tenant): array
+    {
+        if ($tenant === '') return [];
+        try {
+            self::ensureTenantPolicyTable($pdo);
+            $st = $pdo->prepare("SELECT * FROM tenant_security_policy WHERE tenant_id=? LIMIT 1");
+            $st->execute([$tenant]);
+            return $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** 테넌트 보안정책 upsert(단일 컬럼). $val=null 이면 해당 정책 해제(=전역 폴백으로 복귀). */
+    public static function setTenantPolicy(\PDO $pdo, string $tenant, string $col, ?string $val): bool
+    {
+        if ($tenant === '' || !in_array($col, ['mfa_policy', 'siem_config'], true)) return false;
+        try {
+            self::ensureTenantPolicyTable($pdo);
+            $now = gmdate('c');
+            $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+            $sql = $isMy
+                ? "INSERT INTO tenant_security_policy(tenant_id,{$col},updated_at) VALUES(?,?,?) ON DUPLICATE KEY UPDATE {$col}=VALUES({$col}),updated_at=VALUES(updated_at)"
+                : "INSERT INTO tenant_security_policy(tenant_id,{$col},updated_at) VALUES(?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET {$col}=excluded.{$col},updated_at=excluded.updated_at";
+            $pdo->prepare($sql)->execute([$tenant, $val, $now]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * [P3 보안거버넌스] 조직 MFA 강제 정책: off|admin|all. 기본 admin(기존 동작 보존).
+     * [283차] $tenant 지정 시 **테넌트 정책 우선**, 미설정이면 전역(app_setting mfa_policy)으로 폴백.
+     *   → $tenant=null 호출(기존 전 호출부)의 동작은 완전히 동일하다(무회귀).
+     */
+    public static function mfaPolicy(\PDO $pdo, ?string $tenant = null): string
+    {
+        if ($tenant !== null && $tenant !== '') {
+            $tp = self::tenantPolicy($pdo, $tenant);
+            $tv = (string)($tp['mfa_policy'] ?? '');
+            if (in_array($tv, ['off', 'admin', 'all'], true)) return $tv;
+        }
         try {
             $st = $pdo->prepare("SELECT svalue FROM app_setting WHERE skey='mfa_policy' LIMIT 1");
             $st->execute(); $v = (string)$st->fetchColumn();
@@ -3454,36 +3525,70 @@ final class UserAuth
         return 'admin';
     }
 
-    /** 정책×역할 → MFA 강제 여부. off=없음·admin=관리자만·all=전원. */
-    public static function mfaRequiredFor(string $plan, ?\PDO $pdo = null): bool
+    /** 정책×역할 → MFA 강제 여부. off=없음·admin=관리자만·all=전원. [283차] $tenant 스코프 지원. */
+    public static function mfaRequiredFor(string $plan, ?\PDO $pdo = null, ?string $tenant = null): bool
     {
-        $pol = self::mfaPolicy($pdo ?: Db::pdo());
+        $pol = self::mfaPolicy($pdo ?: Db::pdo(), $tenant);
         if ($pol === 'off') return false;
         if ($pol === 'all') return true;
         return $plan === 'admin';
     }
 
-    /** GET/PUT /auth/mfa/policy — 조직 MFA 강제 정책 조회/설정(PUT=관리자). 강제 시 로그인이 MFA 미설정 사용자에 enrollment 게이트. */
+    /**
+     * GET/PUT /auth/mfa/policy — 조직 MFA 강제 정책 조회/설정.
+     *
+     * [283차] 테넌트 스코프 확장.
+     *   - plan=admin(최고관리자) → 종전과 동일하게 **플랫폼 전역 기본값**(app_setting) 설정. 무회귀.
+     *   - plan=enterprise(고객)  → **자기 테넌트 정책**(tenant_security_policy) 설정. 신규 기능.
+     *     종전엔 admin 전용이라 enterprise 고객이 자기 조직에 MFA 를 강제할 방법이 아예 없었다.
+     *   - 그 미만(pro 이하)      → 조회만(설정 불가).
+     *   ★교차유출 불가: 테넌트는 서버가 세션에서 도출(authedTenant)하며 요청 바디로 지정할 수 없다.
+     */
     public static function mfaPolicyConfig(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {
         $pdo = Db::pdo();
+        $user = self::authedUser($req);
+        $plan = strtolower(trim((string)($user['plan'] ?? '')));
+        $tenant = trim((string)($user['tenant_id'] ?? ''));
+
         if (strtoupper($req->getMethod()) === 'PUT') {
-            if ($err = self::requirePlan($req, $res, 'admin')) return $err;
+            // enterprise 이상(=enterprise 또는 admin)만 설정 가능.
+            if ($err = self::requirePlan($req, $res, 'enterprise')) return $err;
             $b = (array)($req->getParsedBody() ?? []);
             if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
             $pol = in_array(($b['policy'] ?? ''), ['off', 'admin', 'all'], true) ? (string)$b['policy'] : 'admin';
-            try {
-                $now = gmdate('c'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
-                $sql = $isMy
-                    ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
-                    : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
-                $pdo->prepare($sql)->execute([$pol, $now]);
-            } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
-            try { self::logAudit($req, 'mfa_policy_update', 'policy=' . $pol, 'high'); } catch (\Throwable $e) {}
-            return self::json($res, ['ok' => true, 'policy' => $pol]);
+
+            if ($plan === 'admin') {
+                // 전역 기본값 — 기존 코드 경로 그대로.
+                try {
+                    $now = gmdate('c'); $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+                    $sql = $isMy
+                        ? "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON DUPLICATE KEY UPDATE svalue=VALUES(svalue),updated_at=VALUES(updated_at)"
+                        : "INSERT INTO app_setting(skey,svalue,updated_at) VALUES('mfa_policy',?,?) ON CONFLICT(skey) DO UPDATE SET svalue=excluded.svalue,updated_at=excluded.updated_at";
+                    $pdo->prepare($sql)->execute([$pol, $now]);
+                } catch (\Throwable $e) { return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500); }
+                try { self::logAudit($req, 'mfa_policy_update', 'scope=global policy=' . $pol, 'high'); } catch (\Throwable $e) {}
+                return self::json($res, ['ok' => true, 'scope' => 'global', 'policy' => $pol]);
+            }
+
+            // enterprise 고객 → 자기 테넌트 정책.
+            if ($tenant === '') return self::json($res, ['ok' => false, 'error' => 'tenant_unresolved'], 409);
+            if (!self::setTenantPolicy($pdo, $tenant, 'mfa_policy', $pol)) {
+                return self::json($res, ['ok' => false, 'error' => 'save_failed'], 500);
+            }
+            try { self::logAudit($req, 'mfa_policy_update', 'scope=tenant policy=' . $pol, 'high'); } catch (\Throwable $e) {}
+            return self::json($res, ['ok' => true, 'scope' => 'tenant', 'policy' => $pol]);
         }
+
         if ($err = self::requirePro($req, $res)) return $err;
-        return self::json($res, ['ok' => true, 'policy' => self::mfaPolicy($pdo),
+        $tScoped = $tenant !== '' ? $tenant : null;
+        $tp = $tScoped ? self::tenantPolicy($pdo, $tenant) : [];
+        $hasTenantPolicy = in_array((string)($tp['mfa_policy'] ?? ''), ['off', 'admin', 'all'], true);
+        return self::json($res, ['ok' => true,
+            'policy' => self::mfaPolicy($pdo, $tScoped),
+            // 이 정책이 내 테넌트 것인지 플랫폼 전역 기본값인지 UI 가 구분할 수 있어야 한다.
+            'scope' => $hasTenantPolicy ? 'tenant' : 'global',
+            'can_edit' => in_array($plan, ['enterprise', 'admin'], true),
             'options' => ['off', 'admin', 'all'],
             'labels' => ['off' => 'MFA 강제 안 함', 'admin' => '관리자만 강제', 'all' => '전 사용자 강제']]);
     }
