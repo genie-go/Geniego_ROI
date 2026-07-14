@@ -116,6 +116,7 @@ final class ChannelSync
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 8,   // [284차] 느린/불통 외부 API 가 php-fpm 워커를 오래 점유하지 않도록 연결 상한(502 풀고갈 방어).
             CURLOPT_HTTPHEADER     => $hdrs,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_USERAGENT      => 'GeniegoROI/v423',
@@ -148,6 +149,7 @@ final class ChannelSync
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 8,   // [284차] 워커 점유 상한(502 풀고갈 방어).
             CURLOPT_HTTPHEADER     => $hdrs,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_USERAGENT      => 'GeniegoROI/v423',
@@ -1892,6 +1894,7 @@ final class ChannelSync
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 8,   // [284차] 워커 점유 상한(502 풀고갈 방어).
             CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
             CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI/v427',
         ]);
@@ -2011,6 +2014,7 @@ final class ChannelSync
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 8,   // [284차] 워커 점유 상한(3MB 11번가 카테고리 fetch 등 외부 API 불통 시 502 풀고갈 방어).
             CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers)),
             // [277차 보안] ★TLS 서버 인증서 검증 활성화 — 형제 헬퍼 7종은 전부 true 인데 이 함수만 false 였다.
             //   호출자 specFetch(:1874)는 admin 이 등록한 제네릭 REST 채널에 `Authorization: Bearer <secret>` 를
@@ -2221,6 +2225,7 @@ final class ChannelSync
         $ch = curl_init($url);
         $hdrs = array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers));
         $opt = [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_TIMEOUT => 20,
+                CURLOPT_CONNECTTIMEOUT => 8,   // [284차] 워커 점유 상한(11번가 등 채널 쓰기 API 불통 시 502 풀고갈 방어).
                 CURLOPT_HTTPHEADER => $hdrs, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_USERAGENT => 'GeniegoROI/v427'];
         if ($body !== null) $opt[CURLOPT_POSTFIELDS] = $body;
         curl_setopt_array($ch, $opt);

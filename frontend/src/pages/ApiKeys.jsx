@@ -175,7 +175,8 @@ const CHANNEL_FIELDS = {
   walmart:   [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }],
   shopee:    [{ k: 'partner_id', label: 'Partner ID' }, { k: 'partner_key', label: 'Partner Key', secret: true }, { k: 'shop_id', label: 'Shop ID' }, { k: 'access_token', label: 'OAuth 액세스 토큰 (파트너 인증 후)', secret: true }],
   lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: 'OAuth 액세스 토큰 (인증 후)', secret: true }, { k: 'region', label: '리전 (sg/my/th/id/ph/vn)' }],
-  rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: 'Shop URL' }],
+  // [284차 P2] shop_url 은 어댑터(rakutenFetch/rakutenWrite)가 읽지 않는 참고용 필드 — ESA 인증은 service_secret·license_key 만 사용. 필수 강제 해제.
+  rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: '점포 URL (참고용·선택)', opt: true }],
   qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
   // [227차] tiktok_shop — 실 어댑터(ChannelSync tiktokFetch v202309 HMAC+shop_cipher)가 요구하는 자격증명.
   //   기존엔 CHANNEL_FIELDS 누락으로 일반 api_key 폴백만 입력돼 등록이 불완전(app_key/app_secret/access_token 미입력)했음.
@@ -241,8 +242,9 @@ const CHANNEL_FIELDS = {
   x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
   amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }],
   // [251차] taboola/outbrain — 기존엔 필드가 레지스트리에서만 와서 로드 실패 시 단일 api_key 로 degrade(연동불가). 하드코딩 보강.
-  taboola: [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'account_id', label: '계정 ID' }, { k: 'currency', label: '통화(선택)' }],
-  outbrain: [{ k: 'ob_token', label: 'OB-TOKEN', secret: true }, { k: 'marketer_id', label: 'Marketer ID' }, { k: 'currency', label: '통화(선택)' }],
+  // [284차 P2] currency 는 라벨 정규식('선택')에만 의존해 선택 처리되던 취약 상태 → 명시 opt:true 로 견고화(라벨 변경/번역에도 필수 승격 방지).
+  taboola: [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'account_id', label: '계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  outbrain: [{ k: 'ob_token', label: 'OB-TOKEN', secret: true }, { k: 'marketer_id', label: 'Marketer ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   // 분석/기타
   ga4: [{ k: 'property_id', label: 'GA4 속성 ID' }, { k: 'service_account_json', label: '서비스 계정 JSON', secret: true }, { k: 'currency', label: '보고 통화(예: KRW·USD, 선택)', opt: true }],
   slack:     [{ k: 'webhook_url', label: 'Webhook URL', secret: true }],
