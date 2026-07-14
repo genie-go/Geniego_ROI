@@ -2030,23 +2030,53 @@ final class ChannelSync
     }
 
     // ── 11번가(11st) Open API — XML ─────────────────────────────────────────
+
+    /**
+     * [285차] 11번가 주문 "목록" 조회 API 경로. 공식 스펙 확정 시 이 한 줄만 채우면 아래 로직이 그대로 산다.
+     *
+     * ★284차까지 코드는 `http://api.11st.co.kr/rest/ordervice/orderList/202` 를 호출했으나 이 URL 은 11번가에
+     *   존재하지 않는다(서비스명 `ordervice` 는 오타이며, `orderList` 메서드도 없다). 운영 실키·등록 IP(1.201.177.46)
+     *   에서 실측한 결과:
+     *     GET /rest/ordservices/complete/{ordNo}                          → 200 (주문번호별 상태조회 · 공식 확정 · 단건)
+     *     GET /rest/ordservices/{orderList|orderlist|order|orders|newOrder|orderSearch|complete}  → 전부 -997
+     *     POST /rest/prodservices/product                                  → 인증 통과(JAXB 파싱 단계 도달)
+     *     GET  /rest/prodservices/product/{prdNo}                          → -997
+     *   즉 11번가는 (경로 + HTTP 메서드) 조합으로 API 를 등록하며, -997 "등록된 API 정보가 존재하지 않습니다" 는
+     *   인증 실패가 아니라 **해당 (경로,메서드) 가 미등록**이라는 뜻이다. 키·IP·API 이용신청은 정상 확인됨.
+     *   → 추측 경로 호출은 무의미하므로 확정 전까지 비워둔다. 절대 다시 지어내지 말 것.
+     */
+    private const ST11_ORDER_LIST_PATH = '';
+
     private static function elevenStFetch(array $creds, string $tenant = 'demo'): array
     {
         if ($tenant === 'demo') {
             return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('st11','11번가'), 'orders'=>self::buildDemoChannelOrders('st11','11번가'), 'note'=>'demo preview'];
         }
-        // [현 차수] 11번가 셀러 Open API 실연동(graceful) — openapikey 헤더. 신규주문 목록(XML).
-        //   라이브 검증은 실 셀러 오픈API 키 필요(타 어댑터와 동일 드롭인).
+        // [285차] 11번가 셀러 Open API 실연동 — openapikey 헤더. 신규주문 목록(XML).
         $apiKey = trim((string)($creds['api_key'] ?? $creds['openapikey'] ?? $creds['key_value'] ?? ''));
         if ($apiKey === '') {
             return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'11번가: 오픈API 키(api_key) 입력 필요'];
         }
+        // [285차] 경로 미확정 — 가짜 성공(ok=true, orders=[]) 대신 정직하게 미지원을 보고한다.
+        if (self::ST11_ORDER_LIST_PATH === '') {
+            return ['ok'=>false, 'products'=>[], 'orders'=>[],
+                    'error'=>'11번가 주문목록 조회 API 경로 미확정 — 셀러 API 스펙(주문 > 주문목록조회)의 URL 확정 필요',
+                    'note'=>'키·IP·이용신청은 정상(주문번호별 상태조회 200 확인). 목록조회 경로만 미확정.'];
+        }
         $from = gmdate('Ymd', time() - 7 * 86400) . '0000';
         $to   = gmdate('YmdHis');
-        $url  = "http://api.11st.co.kr/rest/ordervice/orderList/202?dateFrom={$from}&dateTo={$to}";
+        $url  = 'https://api.11st.co.kr' . self::ST11_ORDER_LIST_PATH . "?dateFrom={$from}&dateTo={$to}";
         [$code, $raw, $err] = self::httpGetRaw($url, ['openapikey' => $apiKey, 'Accept' => 'application/xml']);
         if ($err || $code >= 400 || $raw === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"11번가 주문조회 실패(code={$code}) — 오픈API 키/권한 확인"];
+            // [285차] 가짜 성공 제거 — 실패는 실패로 보고한다(종전엔 ok=true 라 동기화가 조용히 0건 성공 처리됐다).
+            $why = self::elevenStFault($raw);
+            return ['ok'=>false, 'products'=>[], 'orders'=>[],
+                    'error'=>"11번가 주문조회 실패(HTTP {$code})" . ($why !== '' ? " — {$why}" : ($err !== '' ? " — {$err}" : ''))];
+        }
+        // [285차] 11번가는 HTTP 200 바디에 오류코드를 실어 보내는 경우가 있다 — 성공으로 오인하지 않는다.
+        $why = self::elevenStFault($raw);
+        if ($why !== '') {
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"11번가 주문조회 거부 — {$why}"];
         }
         $orders = [];
         $xml = @simplexml_load_string($raw);
@@ -2074,6 +2104,37 @@ final class ChannelSync
             }
         }
         return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' 11번가 주문 동기화 (11st OpenAPI)'];
+    }
+
+    /**
+     * [285차] 11번가 응답에서 오류를 추출한다(성공이면 빈 문자열).
+     *   11번가는 정상 응답에도 `<ns2:result_code>0</ns2:result_code>` 를 싣고, 오류는 HTTP 500 + `<AuthMessage>`
+     *   또는 2xx 바디 안의 음수 resultCode 로 온다. 종전엔 HTTP 코드만 봐서 거부를 성공으로 오인했다.
+     *   ★-997 은 인증 실패가 아니라 (경로,HTTP메서드) 미등록이다 — 284차가 이걸 "API 이용신청 미승인" 으로 오독했다.
+     */
+    private static function elevenStFault(?string $raw): string
+    {
+        $raw = (string)$raw;
+        if ($raw === '') return '';
+        $utf = @iconv('EUC-KR', 'UTF-8//IGNORE', $raw);
+        if ($utf === false || $utf === '') $utf = $raw;
+        if (!preg_match('~<(?:[A-Za-z0-9]+:)?result_?[Cc]ode>\s*(-?\d+)\s*<~', $utf, $m)) {
+            // 코드가 없는 서버 예외 본문(JAXBException 등)도 실패로 본다.
+            if (stripos($utf, 'Exception') !== false) {
+                return mb_substr(trim(preg_replace('/\s+/', ' ', $utf)), 0, 160);
+            }
+            return '';
+        }
+        $code = (int)$m[1];
+        if ($code === 0) return '';
+        $msg = '';
+        if (preg_match('~<(?:[A-Za-z0-9]+:)?result_?(?:Message|message|Text|text)>(.*?)<~s', $utf, $mm)) {
+            $msg = trim($mm[1]);
+        }
+        $hint = ($code === -997)
+            ? ' [해당 (경로,HTTP메서드) 가 11번가에 미등록 — 키/IP/이용신청 문제 아님]'
+            : '';
+        return "resultCode={$code}" . ($msg !== '' ? " {$msg}" : '') . $hint;
     }
 
     // ── ESM (G마켓/옥션) — eBay Korea ESM 2.0 ───────────────────────────────
@@ -3769,7 +3830,7 @@ final class ChannelSync
         $hdr = ['openapikey' => $apiKey, 'Content-Type' => 'text/xml; charset=euc-kr'];
         if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
             if ($cpid === null) return ['ok' => false, 'error' => '11번가 미등록 상품 — 내릴 대상 없음'];
-            [$c] = self::httpReq('PUT', "http://api.11st.co.kr/rest/prodservices/product/sellingStop/" . rawurlencode($cpid), $hdr, '');
+            [$c] = self::httpReq('PUT', "https://api.11st.co.kr/rest/prodservices/product/sellingStop/" . rawurlencode($cpid), $hdr, '');
             return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid] : ['ok' => false, 'error' => "11번가 판매중지 HTTP {$c}"];
         }
         $cat = (string)($p['category_code'] ?? '');
@@ -3796,15 +3857,26 @@ final class ChannelSync
              . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
              . $imgXml
              . '<dispCtgrStatCd>1</dispCtgrStatCd></Product>';
+        // [285차] ★XML 선언과 Content-Type 은 EUC-KR 인데 바디는 UTF-8 로 나가고 있었다(변환 누락).
+        //   11번가 파서가 한글 상품명을 깨진 바이트로 받는다 → 반드시 EUC-KR 로 변환해서 전송한다.
+        //   EUC-KR 로 표현 불가한 문자(이모지 등)는 '?' 로 치환된다(11번가가 어차피 받지 못하는 문자).
+        $xmlOut = @mb_convert_encoding($xml, 'EUC-KR', 'UTF-8');
+        if ($xmlOut === false || $xmlOut === '') $xmlOut = $xml;
         $method = $cpid !== null ? 'PUT' : 'POST';
-        $url = $cpid !== null ? "http://api.11st.co.kr/rest/prodservices/product/" . rawurlencode($cpid) : 'http://api.11st.co.kr/rest/prodservices/product';
-        [$c, $ignore, $err, $raw] = self::httpReq($method, $url, $hdr, $xml);
-        if ($c >= 200 && $c < 300) {
+        $url = $cpid !== null ? "https://api.11st.co.kr/rest/prodservices/product/" . rawurlencode($cpid) : 'https://api.11st.co.kr/rest/prodservices/product';
+        [$c, $ignore, $err, $raw] = self::httpReq($method, $url, $hdr, $xmlOut);
+        // [285차] 가짜 성공 제거 — 11번가는 2xx 바디에도 거부코드를 실어 보낸다. HTTP 코드만 믿지 않는다.
+        $fault = self::elevenStFault((string)$raw);
+        if ($c >= 200 && $c < 300 && $fault === '') {
             $pid = $cpid; $rx = @simplexml_load_string((string)$raw);
             if ($rx !== false) { $pno = (string)($rx->prdNo ?? $rx->ProductNo ?? ''); if ($pno !== '') $pid = $pno; }
             return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
         }
-        return ['ok' => false, 'error' => "11번가 HTTP {$c}", 'detail' => mb_substr((string)$raw, 0, 200)];
+        $detail = @iconv('EUC-KR', 'UTF-8//IGNORE', (string)$raw);
+        if ($detail === false || $detail === '') $detail = (string)$raw;
+        return ['ok' => false,
+                'error'  => $fault !== '' ? "11번가 거부 — {$fault}" : "11번가 HTTP {$c}" . ($err !== '' ? " — {$err}" : ''),
+                'detail' => mb_substr(trim(preg_replace('/\s+/', ' ', $detail)), 0, 200)];
     }
 
     /** [228차] ESM 2.0(G마켓/옥션) 상품 등록/수정 — Bearer+siteGubun(esmFetch 동일 인증). ★카테고리코드(category_code) 필수. */

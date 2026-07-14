@@ -1668,6 +1668,47 @@ class Catalog
         return $top[0] ?? null;
     }
 
+    /** [285차] 요청당 리프 카테고리 풀 메모(키: 읽기스코프|채널별칭). 루프 중 중복 조회·중복 수집 차단. */
+    private static array $leafPoolMemo = [];
+
+    /**
+     * [285차] 채널 리프 카테고리 풀을 **요청당 1회만** 읽는다. (502 근본치료)
+     *
+     * ★종전 버그: rankChannelCategories 가 `tenant_id = <실테넌트>` 로 카탈로그를 읽었는데, 11번가 카탈로그는
+     *   공용 채널이라 `__shared__` 스코프에 적재된다(syncChannelCategories: $writeTenant = SHARED_TENANT).
+     *   → COUNT 가 항상 0 → 매 호출마다 syncChannelCategories() → **11번가 3MB XML 재수집 + 15,295행 upsert**
+     *   → 재조회도 여전히 잘못된 스코프라 0건 → 추천은 늘 빈값.
+     *   이게 pendingCategories(상품 100건 루프) 와 writeback(상품마다 autoMatch) 에서 반복되어
+     *   `upstream timed out` · php-fpm 워커 고갈 · **HTTP 502** 의 근본원인이었다(284차는 max_children 을
+     *   5→12 로 올려 증상만 완화했다).
+     *
+     * @return array<int,array{code:string,name:string,whole_name:string}>
+     */
+    private static function leafCategoryPool(\PDO $pdo, string $tenant, string $channel): array
+    {
+        $aliases = self::channelAliases($channel);
+        // ★읽기 스코프 = 쓰기 스코프와 동일해야 한다(공용 채널은 __shared__).
+        $scope   = self::isSharedCatalogChannel($channel) ? self::SHARED_TENANT : $tenant;
+        $memoKey = $scope . '|' . implode(',', $aliases);
+        if (isset(self::$leafPoolMemo[$memoKey])) return self::$leafPoolMemo[$memoKey];
+
+        $ph  = implode(',', array_fill(0, count($aliases), '?'));
+        $sql = "SELECT code, name, whole_name FROM channel_category_catalog
+                 WHERE tenant_id=? AND channel IN ($ph) AND is_leaf=1";
+        $st  = $pdo->prepare($sql);
+        $st->execute(array_merge([$scope], $aliases));
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (!$rows) {
+            // 카탈로그가 실제로 비었을 때만 1회 수집(루프 중 반복 수집 금지 — 메모가 빈 결과도 기억한다).
+            if (self::syncChannelCategories($pdo, $tenant, $channel) > 0) {
+                $st->execute(array_merge([$scope], $aliases));
+                $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+            }
+        }
+        return self::$leafPoolMemo[$memoKey] = ($rows ?: []);
+    }
+
     /**
      * [277차] 상품 텍스트로 채널 리프 카테고리 후보를 점수순 반환(자동적용/후보제시 공용).
      *   @return array<int,array{code:string,label:string,score:float}>
@@ -1678,16 +1719,7 @@ class Catalog
         if ($text === '') return [];
 
         try {
-            $aliases = self::channelAliases($channel);
-            $ph = implode(',', array_fill(0, count($aliases), '?'));
-            $cnt = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel IN ($ph) AND is_leaf=1");
-            $cnt->execute(array_merge([$tenant], $aliases));
-            if ((int)$cnt->fetchColumn() === 0) {
-                if (self::syncChannelCategories($pdo, $tenant, $channel) === 0) return [];   // 미지원 채널
-            }
-            $st = $pdo->prepare("SELECT code, name, whole_name FROM channel_category_catalog WHERE tenant_id=? AND channel IN ($ph) AND is_leaf=1");
-            $st->execute(array_merge([$tenant], $aliases));
-            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+            $rows = self::leafCategoryPool($pdo, $tenant, $channel);
         } catch (\Throwable $e) { return []; }
         if (!$rows) return [];
 
