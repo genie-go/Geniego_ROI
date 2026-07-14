@@ -128,8 +128,11 @@ const CHANNELS = [
   { key: 'ga4',              name: 'Google Analytics 4',icon: '📊', color: '#E37400', group: 'own_etc' },
   { key: 'slack',            name: 'Slack Webhook',     icon: '💬', color: '#4A154B', group: 'own_etc' },
   // [229차] 메시징 채널(알림/메시지) — 신규
-  { key: 'kakao_alimtalk',   name: '카카오 알림톡',      icon: '💛', color: '#FEE500', group: 'own_etc' },
-  { key: 'line',             name: 'LINE',              icon: '💬', color: '#06C755', group: 'own_etc' },
+  // [현 차수 P0] ★managedPage 추가 — 종전엔 일반 ConnectModal 로 channel_credential 에 저장했으나,
+  //   실발송(KakaoChannel::sendCampaign·Line::sendCampaign)은 kakao_settings/line_settings 를 읽어
+  //   등록해도 영원히 발송되지 않았다(mock 유지). 전용 페이지(실 settings 테이블에 저장)로 라우팅해 정합화.
+  { key: 'kakao_alimtalk',   name: '카카오 알림톡',      icon: '💛', color: '#FEE500', group: 'own_etc', managedPage: '/kakao-channel' },
+  { key: 'line',             name: 'LINE',              icon: '💬', color: '#06C755', group: 'own_etc', managedPage: '/line-channel' },
   // [255차 갭4] Email/WhatsApp 메시징 — 발급허브 discoverability. 등록은 전용 페이지(actual settings 테이블에 저장)로
   //   라우팅(managedPage) → 일반 ConnectModal 의 channel_credential 저장과 분리(실발송 경로 정합·중복 등록 방지).
   { key: 'email',            name: '이메일 발송(SMTP/SES)', icon: '✉️', color: '#0EA5E9', group: 'own_etc', managedPage: '/email-marketing' },

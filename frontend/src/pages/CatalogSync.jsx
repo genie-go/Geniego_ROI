@@ -2811,12 +2811,48 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                 </tr>
                             </thead>
                             <tbody>
+                                {/* [현 차수] ★기본(공통) 표시카테고리 — 상품에 카테고리가 없어도 전 상품 공통 채널 카테고리를 지정.
+                                    11번가 등은 상품 category 없이도 이 기본값으로 표시카테고리(dispCtgrNo)가 채워진다. */}
+                                {(() => {
+                                    const DEF = '(기본)';
+                                    const dm = mapOf(DEF);
+                                    return (
+                                        <tr style={{ background: "rgba(79,142,247,0.06)" }}>
+                                            <td style={{ ...cell, fontWeight: 800, color: "#2563eb" }}>
+                                                ⭐ {t('catalogSync.cmDefault', '기본 표시카테고리')}
+                                                <div style={{ fontWeight: 400, color: "#94a3b8", fontSize: 10 }}>{t('catalogSync.cmDefaultHint', '매핑 없는 전 상품 공통')}</div>
+                                            </td>
+                                            <td style={cell}>
+                                                {dm ? (
+                                                    <div>
+                                                        <div style={{ color: "#0f172a" }}>{dm.channel_label || '(라벨 없음)'}</div>
+                                                        <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{dm.channel_code}</div>
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: "#f59e0b" }}>{t('catalogSync.cmDefaultUnset', '미설정 — 지정하면 전 상품에 적용')}</span>
+                                                )}
+                                            </td>
+                                            <td style={{ ...cell, textAlign: "right" }}>
+                                                <button onClick={() => openPicker(DEF)}
+                                                    style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #4f8ef7", background: "#4f8ef7", color: "#fff", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                                                    🔍 {dm ? t('catalogSync.cmChange', '변경') : t('catalogSync.cmPick', '선택')}
+                                                </button>
+                                                {dm && (
+                                                    <button onClick={() => removeMapping(dm.id)}
+                                                        style={{ marginLeft: 6, padding: "4px 8px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 10, cursor: "pointer" }}>
+                                                        {t('catalogSync.cmDelete', '삭제')}
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })()}
                                 {allSrc.length === 0 && (
                                     <tr><td colSpan={3} style={{ ...cell, color: "#94a3b8" }}>
-                                        {t('catalogSync.cmNoCategory', '상품에 카테고리가 없습니다 — 상품등록에서 카테고리를 지정하세요')}
+                                        {t('catalogSync.cmNoCategory', '상품별 카테고리 매핑은 상품등록에서 카테고리를 지정하면 여기 나타납니다 (위 기본값만으로도 전송 가능)')}
                                     </td></tr>
                                 )}
-                                {allSrc.map(src => {
+                                {allSrc.filter(src => src !== '(기본)').map(src => {
                                     const m = mapOf(src);
                                     return (
                                         <tr key={src}>

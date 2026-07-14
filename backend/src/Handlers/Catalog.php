@@ -1608,6 +1608,13 @@ class Catalog
                 $code = $st->fetchColumn();
                 if ($code !== false && (string)$code !== '') return (string)$code;
             }
+            // [현 차수] ★기본(공통) 표시카테고리 — 사용자가 카테고리 매핑에서 지정한 '(기본)' 매핑을 명시코드·정확매칭이
+            //   없을 때 적용한다. 상품에 category 가 없어도(대다수 11번가 케이스) 전 상품 공통 코드를 쓸 수 있게 한다.
+            //   매핑 건수와 무관하게 '(기본)'이 있으면 우선(명시 의도이므로 아래 단일매핑 폴백보다 앞선다).
+            $def = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND src_category IN ('(기본)','__default__') AND channel_code<>'' LIMIT 1");
+            $def->execute(array_merge([$tenant], $aliases));
+            $dcode = $def->fetchColumn();
+            if ($dcode !== false && (string)$dcode !== '') return (string)$dcode;
             // [현 차수] ★폴백 — 상품 category 가 비었거나(매핑 조회 불가) 텍스트가 달라 매칭 실패했는데, 이 채널에
             //   저장된 매핑이 **정확히 1건**이면 그 코드를 사용한다. 에러 hint("카테고리 매핑에서 지정하세요")대로
             //   11번가 표시카테고리를 저장했는데 상품 category 텍스트 불일치로 적용되지 않던 문제를 해소한다.

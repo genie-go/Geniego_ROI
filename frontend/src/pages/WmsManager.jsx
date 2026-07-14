@@ -802,25 +802,39 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
     // 207차 후속: CSV import 가 성공 토스트만 띄우던 무동작 셸 → 실제 재고 반영(adjustStock 단일소스 +
     //   운영은 wmsApi.createMovement 감사 영속). SKU/수량/창고 컬럼은 다양한 헤더명을 관용 매핑.
     const executeImport = () => {
-        let applied = 0;
+        // [현 차수 P0] ★유령창고 'W001' 폴백 제거 + 서버 반영 실패 집계 + 서버결과 기반 성공표기(executeBulkImport 패턴 정합).
+        //   종전엔 CSV에 창고 컬럼이 없으면 존재하지 않는 'W001'에 적재→allocationPlan 후보 제외→채널 판매 미차감(초과판매),
+        //   그리고 createMovement 실패를 await 없이 삼켜(비동기 reject 미포착) 재고가 30초 폴링에 원복되는데도 "성공"으로 표기했다.
+        if (!IS_DEMO && !(whs && whs.length)) { alert(t('wms.ioNoWarehouse', '등록된 창고가 없습니다. 먼저 창고를 등록하세요.')); return; }
+        const validWh = new Set((whs || []).map(w => String(w.id)));
+        const defWh = (whs && whs[0]) ? String(whs[0].id) : 'W001'; // 운영=실제 창고 whs[0](유령 아님), 데모=W001 로컬 샌드박스
+        let applied = 0, srvFail = 0;
+        const pending = [];
         (csvData || []).forEach(r => {
             const sku = String(r.SKU || r.sku || r.Sku || r['상품코드'] || '').trim();
             const qtyRaw = r.qty ?? r.Qty ?? r.quantity ?? r.Quantity ?? r['수량'] ?? r.available ?? r.stock ?? r.Stock ?? '';
             const qty = parseInt(String(qtyRaw).replace(/[^0-9-]/g, ''), 10);
-            const wh = String(r.warehouse || r.wh || r.whId || r.WH || r['창고'] || 'W001').trim() || 'W001';
-            if (sku && !isNaN(qty)) {
-                // [272차 H-P1] 운영은 CSV 수량=절대 목표재고 → 백엔드가 인식하는 StockAdj(델타)로 영속(doAdj 패턴).
-                //   기존 type:'csv_import' 는 applyMovementToStock 분기에 없어 no-op → 감사행만 남고 wms_stock 미반영,
-                //   30초 폴링(listStock)에 원복돼 CSV 재고등록이 운영에서 전량 소실되던 결함.
+            const rawWh = String(r.warehouse || r.wh || r.whId || r.WH || r['창고'] || '').trim();
+            const wh = validWh.has(rawWh) ? rawWh : defWh; // 미지정/미등록 창고는 실제 기본창고로(유령 W001 금지)
+            if (sku && !isNaN(qty) && wh) {
+                // CSV 수량=절대 목표재고 → 백엔드가 인식하는 StockAdj(델타)로 영속(doAdj 패턴).
                 const cur = (inventory.find(p => p.sku === sku)?.stock?.[wh]) || 0;
                 adjustStock(sku, wh, qty); // 로컬 낙관 반영(절대값)
                 applied++;
-                if (!IS_DEMO) { const delta = qty - cur; if (delta !== 0) { try { wmsApi.createMovement({ sku, name: r.name || r.product || r['상품명'] || '', qty: delta, wh_id: wh, type: 'StockAdj', reason: 'CSV 재고 등록' }); } catch {} } }
+                if (!IS_DEMO) {
+                    const delta = qty - cur;
+                    if (delta !== 0) pending.push(
+                        wmsApi.createMovement({ sku, name: r.name || r.product || r['상품명'] || '', qty: delta, wh_id: wh, type: 'StockAdj', reason: 'CSV 재고 등록' })
+                            .then(rr => { if (rr && rr.ok === false) srvFail++; }).catch(() => { srvFail++; })
+                    );
+                }
             }
         });
-        setImportStatus({ count: applied, success: applied > 0 });
-        setCsvData([]);
-        setTimeout(() => setShowImport(false), 2500);
+        Promise.allSettled(pending).then(() => {
+            setImportStatus({ count: Math.max(0, applied - srvFail), success: srvFail === 0 && applied > 0, srvFail });
+            setCsvData([]);
+            setTimeout(() => setShowImport(false), 2800);
+        });
     };
 
     /* ── Export Functions ── */
@@ -951,9 +965,15 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
                         </div>
                     )}
                     {importStatus && (
-                        <div style={{ marginTop: 10, padding: '8px 14px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', fontSize: 12, color: '#22c55e', fontWeight: 700 }}>
-                            ✅ {importStatus.count} {t('wms.csvImportDone')}
-                        </div>
+                        importStatus.srvFail > 0 ? (
+                            <div style={{ marginTop: 10, padding: '8px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', fontSize: 12, color: '#ef4444', fontWeight: 700 }}>
+                                ⚠️ {importStatus.count} {t('wms.csvImportDone')} · {importStatus.srvFail}{t('wms.csvImportSrvFail', '건 서버 반영 실패(원복될 수 있음)')}
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10, padding: '8px 14px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', fontSize: 12, color: '#22c55e', fontWeight: 700 }}>
+                                ✅ {importStatus.count} {t('wms.csvImportDone')}
+                            </div>
+                        )
                     )}
                 </div>
             )}
@@ -2010,18 +2030,37 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
     const handleBulkAdjust = () => {
         const diffs = auditItems.filter(i => i.diff !== null && i.diff !== 0);
         if (!diffs.length) return;
+        // [현 차수 P0] ★다창고 재고 파괴 + 유령창고 + 무음실패 3중 수정.
+        //   종전엔 다창고 SKU 의 '전 창고 합계' 실사수량을 '첫 창고'에 절대SET → 총재고가 부풀었다
+        //   (W-A30+W-B20=50, 실사45 입력 → adjustStock(W-A,45) → W-A45+W-B20=65). 델타(diff)를 한 창고에
+        //   적용해 총재고 변화=diff 로 정합화한다. 창고 미상 항목은 건너뛴다(유령 'W001' 적재 금지).
+        //   서버 반영 실패는 await 후 집계해 표면화(종전 try/catch 무음 + 무조건 "완료" alert).
+        let srvFail = 0, adjusted = 0, skipped = 0;
+        const pending = [];
         diffs.forEach(i => {
-            const wh = i.wh || 'W001';
-            const counted = Number(i.countedQty) || 0;
-            adjustStock(i.sku, wh, counted);
+            const prod = (inventory || initInventory).find(p => p.sku === i.sku);
+            const whKeys = prod ? Object.keys(prod.stock || {}) : [];
+            const wh = (i.wh && whKeys.includes(String(i.wh))) ? i.wh : (whKeys[0] || '');
+            if (!wh) { skipped++; return; } // 창고를 특정할 수 없는 항목은 조정하지 않는다(유령창고 금지)
+            const curWh = Number((prod?.stock?.[wh]) || 0);
+            adjustStock(i.sku, wh, Math.max(0, curWh + i.diff)); // ★델타 적용(절대 총량 SET 아님)
+            adjusted++;
             if (!IS_DEMO) {
-                // [272차 H-P1] audit_in/audit_out 은 applyMovementToStock 분기에 없어 no-op(감사행만·wms_stock 미반영,
-                //   폴링에 원복)였다. 부호있는 델타(diff=counted-book)를 StockAdj 로 보내 권위재고 반영(doAdj 동일 SSOT).
-                try { wmsApi.createMovement({ sku: i.sku, name: i.name, qty: i.diff, wh_id: wh, type: 'StockAdj', reason: '재고실사 조정' }); } catch {}
+                // 부호있는 델타(diff=counted-book)를 StockAdj 로 보내 권위재고 반영(doAdj 동일 SSOT).
+                pending.push(
+                    wmsApi.createMovement({ sku: i.sku, name: i.name, qty: i.diff, wh_id: wh, type: 'StockAdj', reason: '재고실사 조정' })
+                        .then(rr => { if (rr && rr.ok === false) srvFail++; }).catch(() => { srvFail++; })
+                );
             }
         });
-        setStatus('adjusted');
-        alert(t('wms.auditAdjDone', diffs.length + '건 재고 조정 완료'));
+        Promise.allSettled(pending).then(() => {
+            setStatus('adjusted');
+            if (srvFail > 0) {
+                alert('재고실사 조정: ' + adjusted + '건 시도, ' + srvFail + '건 서버 반영 실패 — 실패분은 잠시 후 원복될 수 있습니다.');
+            } else {
+                alert(adjusted + '건 재고 조정 완료' + (skipped > 0 ? ' (' + skipped + '건은 창고 미상으로 건너뜀)' : ''));
+            }
+        });
     };
 
     const filtered = auditItems.filter(i => !search || i.sku.toLowerCase().includes(search.toLowerCase()) || i.name.includes(search));
