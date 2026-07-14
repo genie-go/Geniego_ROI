@@ -2045,6 +2045,15 @@ final class ChannelSync
      */
     private const ST11_ORDER_WINDOW_DAYS = 7;
 
+    /**
+     * [285차] 11번가 판매중지 URL. 공식 스펙 확정 시 `{cpid}` 플레이스홀더를 포함한 전체 URL 을 넣으면 된다.
+     *   ★종전 `PUT https://api.11st.co.kr/rest/prodservices/product/sellingStop/{cpid}` 는 **허구 경로**다
+     *     (운영 실측 -997 = 미등록). 같은 실측에서 상품등록 POST /rest/prodservices/product 와
+     *     상품수정 PUT /rest/prodservices/product/{prdNo} 는 정상 확인 → 인증이 아니라 이 경로만 틀렸다.
+     *   확정 전까지 공백 — 절대 다시 지어내지 말 것(가짜 성공 금지).
+     */
+    private const ST11_SELLING_STOP_PATH = '';
+
     private static function elevenStFetch(array $creds, string $tenant = 'demo'): array
     {
         if ($tenant === 'demo') {
@@ -2129,9 +2138,14 @@ final class ChannelSync
         }
         $code = (int)$m[1];
         if ($code === 0) return '';
+        // [285차] 11번가는 오류 문구를 응답 형태별로 다른 태그에 싣는다:
+        //   AuthMessage → <resultMessage>, ClientMessage(상품등록 검증실패) → <message>, 주문 → <result_text>.
         $msg = '';
-        if (preg_match('~<(?:[A-Za-z0-9]+:)?result_?(?:Message|message|Text|text)>(.*?)<~s', $utf, $mm)) {
-            $msg = trim($mm[1]);
+        foreach ([
+            '~<(?:[A-Za-z0-9]+:)?result_?(?:Message|message|Text|text)>(.*?)<~s',
+            '~<(?:[A-Za-z0-9]+:)?message>(.*?)<~s',
+        ] as $rx) {
+            if (preg_match($rx, $utf, $mm) && trim($mm[1]) !== '') { $msg = trim($mm[1]); break; }
         }
         $hint = ($code === -997)
             ? ' [해당 (경로,HTTP메서드) 가 11번가에 미등록 — 키/IP/이용신청 문제 아님]'
@@ -3832,8 +3846,21 @@ final class ChannelSync
         $hdr = ['openapikey' => $apiKey, 'Content-Type' => 'text/xml; charset=euc-kr'];
         if ($op === 'unregister' || ($p['action'] ?? '') === 'unregister') {
             if ($cpid === null) return ['ok' => false, 'error' => '11번가 미등록 상품 — 내릴 대상 없음'];
-            [$c] = self::httpReq('PUT', "https://api.11st.co.kr/rest/prodservices/product/sellingStop/" . rawurlencode($cpid), $hdr, '');
-            return ($c >= 200 && $c < 300) ? ['ok' => true, 'channel_product_id' => $cpid] : ['ok' => false, 'error' => "11번가 판매중지 HTTP {$c}"];
+            // [285차] ★판매중지 경로 미확정 — 종전 `PUT /rest/prodservices/product/sellingStop/{cpid}` 는
+            //   11번가에 **존재하지 않는 URL** 이다(운영 실측: -997 = (경로,HTTP메서드) 미등록).
+            //   같은 실측에서 상품등록 `POST /rest/prodservices/product` 와 상품수정 `PUT .../product/{prdNo}` 는
+            //   정상 확인됐다 → 인증 문제가 아니라 이 경로만 허구다. 공식 스펙(개발가이드 Seller > 상품)에서
+            //   판매중지/판매상태변경 URL 을 확정할 때까지 **가짜 성공을 만들지 않는다**.
+            $url = self::ST11_SELLING_STOP_PATH;
+            if ($url === '') {
+                return ['ok' => false,
+                        'error' => '11번가 판매중지 API 경로 미확정 — 셀러 API 스펙(상품 > 판매중지)의 URL 확정 필요',
+                        'detail' => '상품 등록/수정은 정상 동작(경로 확인됨). 판매중지 경로만 미배선.'];
+            }
+            [$c, $ig, $er, $rawStop] = self::httpReq('PUT', str_replace('{cpid}', rawurlencode($cpid), $url), $hdr, '');
+            $fault = self::elevenStFault((string)$rawStop);
+            if ($c >= 200 && $c < 300 && $fault === '') return ['ok' => true, 'channel_product_id' => $cpid];
+            return ['ok' => false, 'error' => $fault !== '' ? "11번가 판매중지 거부 — {$fault}" : "11번가 판매중지 HTTP {$c}"];
         }
         $cat = (string)($p['category_code'] ?? '');
         if ($cat === '') return ['ok' => false, 'error' => '11번가 상품등록은 표시카테고리(dispCtgrNo)가 필요합니다 — 채널 카테고리 매핑에서 11번가 카테고리번호를 지정하세요'];
@@ -3852,9 +3879,13 @@ final class ChannelSync
             $imgXml .= '<prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>'
                      . htmlspecialchars($u, ENT_XML1) . '</prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>';
         }
+        // [285차] ★11번가 필수 필드 — 판매방식코드(selMthdCd). 누락 시 11번가가 등록을 거부한다:
+        //   "상품등록실패 : 판매방식코드(selMthdCd)는 필수입니다." (ClientMessage resultCode=500, 운영 실측)
+        //   값 = '0' (사용자 확정, 11번가 개발가이드 기준).
         $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
              . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
              . $baseXml
+             . '<selMthdCd>0</selMthdCd>'
              . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
              . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
              . $imgXml
