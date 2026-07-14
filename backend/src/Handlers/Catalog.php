@@ -21,6 +21,12 @@ use Genie\Db;
  */
 class Catalog
 {
+    /** [현 차수] 전 테넌트 공용 채널 카테고리 카탈로그의 소유 테넌트.
+     *  11번가처럼 카테고리 조회 API 가 없는 채널은 공식 카테고리 파일을 적재해야 하는데, 그 트리는
+     *  모든 판매자에게 동일하다 → 플랫폼 운영자가 여기에 한 번 시딩하면 전 테넌트가 즉시 사용한다.
+     *  ★읽기 전용 폴백이다. HTTP 임포트는 언제나 요청 테넌트 범위로만 쓴다(공용 카탈로그 오염 차단). */
+    private const SHARED_TENANT = '__shared__';
+
     private static function db(): \PDO { return Db::pdo(); }
     private static function isMysql(\PDO $pdo): bool { return $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql'; }
     private static function now(): string { return gmdate('Y-m-d H:i:s'); }
@@ -199,25 +205,47 @@ class Catalog
             $cnt = (int)$st->fetchColumn();
         } catch (\Throwable $e) { /* 최초 호출 */ }
 
+        // [현 차수] 공용 카탈로그 읽기 폴백.
+        //   11번가 카테고리 트리는 모든 판매자에게 동일하다 → 테넌트마다 같은 파일을 올리게 하는 건 낭비다.
+        //   플랫폼 운영자가 시딩한 공용 카탈로그(tenant_id=self::SHARED_TENANT)가 있으면 그것을 읽는다.
+        //   ★쓰기는 테넌트 범위로만 허용한다(공용 스코프에 HTTP 쓰기 경로를 두지 않는다) —
+        //     한 테넌트가 공용 카테고리를 오염시켜 다른 고객사 상품이 엉뚱한 카테고리로 등록되는 사고 방지.
+        $readTenant = $tenant;
+        if ($cnt === 0 && !$refresh) {
+            try {
+                $st = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel=?");
+                $st->execute([self::SHARED_TENANT, $channel]);
+                $shared = (int)$st->fetchColumn();
+                if ($shared > 0) { $readTenant = self::SHARED_TENANT; $cnt = $shared; }
+            } catch (\Throwable $e) { /* 공용 카탈로그 없음 */ }
+        }
+
         if ($refresh || $cnt === 0) {
             $synced = self::syncChannelCategories($pdo, $tenant, $channel);
+            // 공용 채널(11번가)은 SHARED 스코프에 적재됐으므로 읽기 대상도 SHARED 로 맞춘다.
+            if ($synced > 0 && self::isSharedCatalogChannel($channel)) $readTenant = self::SHARED_TENANT;
             if ($synced === 0 && $cnt === 0) {
                 // [현 차수 P1] 실패 원인을 구분해 정직하게 안내한다.
                 //   종전엔 원인 불문 "자격증명을 확인하세요"로 답해, 자격증명이 정상인데도(11번가 등)
                 //   사용자가 인증 문제로 오인했다. 실제 원인은 "그 채널의 카테고리 자동조회 미구현"이다.
                 if (!self::supportsCategoryCatalog($channel)) {
+                    // [현 차수] 11번가처럼 카테고리 조회 API 가 아예 없는 채널 — 이제 "막다른 길"이 아니다.
+                    //   채널이 제공하는 공식 카테고리 파일을 올리면(import) 전체 목록을 검색·선택할 수 있다.
                     return self::jsonRes($res, ['ok' => false, 'error' => 'category_catalog_unsupported',
-                        'manual_entry' => true,   // 프론트: 카테고리 코드 직접 입력 경로를 연다
-                        'hint' => '이 채널은 카테고리 자동 조회를 아직 지원하지 않습니다(자격증명 문제 아님). '
-                                . '채널 판매자센터의 카테고리 코드를 직접 입력하면 등록이 진행됩니다.'], 200);
+                        'manual_entry' => true,    // 프론트: 카테고리 코드 직접 입력 경로를 연다
+                        'import_supported' => true, // 프론트: 카테고리 파일 업로드 경로를 연다
+                        'hint' => '이 채널은 카테고리 자동 조회 API 를 제공하지 않습니다(자격증명 문제 아님). '
+                                . '채널이 제공하는 카테고리 파일을 올리면 전체 목록에서 코드를 확인·선택할 수 있고, '
+                                . '판매자센터의 카테고리 코드를 직접 입력해도 등록이 진행됩니다.'], 200);
                 }
-                if (!self::loadChannelCreds($pdo, $tenant, $channel)) {
+                // 공용 채널(11번가)은 자격증명이 필요 없다 → 조회 실패는 일시오류. 파일 업로드/직접입력으로 폴백.
+                if (!self::isSharedCatalogChannel($channel) && !self::loadChannelCreds($pdo, $tenant, $channel)) {
                     return self::jsonRes($res, ['ok' => false, 'error' => 'credentials_required',
                         'hint' => '채널 자격증명이 없습니다. 연동 허브에서 먼저 등록하세요.'], 200);
                 }
                 return self::jsonRes($res, ['ok' => false, 'error' => 'category_fetch_failed',
-                    'manual_entry' => true,
-                    'hint' => '채널 카테고리 조회에 실패했습니다(권한/일시 오류). 카테고리 코드를 직접 입력할 수도 있습니다.'], 200);
+                    'manual_entry' => true, 'import_supported' => self::isSharedCatalogChannel($channel),
+                    'hint' => '채널 카테고리 조회에 일시 실패했습니다. 잠시 후 다시 시도하거나, 카테고리 코드를 직접 입력할 수도 있습니다.'], 200);
             }
             $cnt = $synced ?: $cnt;
         }
@@ -225,7 +253,7 @@ class Catalog
         // 리프(등록 가능)만 노출 — 상위 카테고리는 상품등록에 사용할 수 없다.
         $sql = "SELECT code, name, whole_name FROM channel_category_catalog
                 WHERE tenant_id=? AND channel=? AND is_leaf=1";
-        $bind = [$tenant, $channel];
+        $bind = [$readTenant, $channel];
         if ($term !== '') { $sql .= " AND (whole_name LIKE ? OR name LIKE ? OR code=?)"; $bind[] = "%{$term}%"; $bind[] = "%{$term}%"; $bind[] = $term; }
         $sql .= " ORDER BY whole_name LIMIT 50";
         $st = $pdo->prepare($sql);
@@ -323,19 +351,41 @@ class Catalog
     {
         foreach (self::channelAliases($channel) as $a) {
             if ($a === 'naver' || $a === 'naver_smartstore') return true;
+            if ($a === '11st' || $a === 'st11') return true; // [현 차수] 11번가 공통 API(인증키 불필요) 자동조회
+        }
+        return false;
+    }
+
+    /** [현 차수] 카탈로그가 전 테넌트 공용(인증키 불필요·모든 판매자 동일 트리)인 채널인가.
+     *  11번가는 공통 API 라 계정별로 다르지 않다 → 공용 스코프에 1회 적재해 전 테넌트가 공유한다. */
+    public static function isSharedCatalogChannel(string $channel): bool
+    {
+        foreach (self::channelAliases($channel) as $a) {
+            if ($a === '11st' || $a === 'st11') return true;
         }
         return false;
     }
 
     private static function syncChannelCategories(\PDO $pdo, string $tenant, string $channel): int
     {
-        $creds = self::loadChannelCreds($pdo, $tenant, $channel);
-        if (!$creds) return 0;
         $rows = [];
+        $shared = self::isSharedCatalogChannel($channel);
         foreach (self::channelAliases($channel) as $a) {
-            if ($a === 'naver' || $a === 'naver_smartstore') { $rows = ChannelSync::naverCategoryCatalog($creds); break; }
+            if ($a === 'naver' || $a === 'naver_smartstore') {
+                // 네이버는 계정별 카테고리(스마트스토어) → 자격증명 필요·테넌트 스코프 유지.
+                $creds = self::loadChannelCreds($pdo, $tenant, $channel);
+                if (!$creds) return 0;
+                $rows = ChannelSync::naverCategoryCatalog($creds); break;
+            }
+            if ($a === '11st' || $a === 'st11') {
+                // 11번가 공통 API — 인증키 불필요. 공용 트리라 자격증명 없이 조회 가능.
+                $rows = ChannelSync::elevenStCategoryCatalog(); break;
+            }
         }
         if (!$rows) return 0;   // 미지원 채널은 정직하게 0(가짜 카테고리 생성 금지)
+        // 공용 채널(11번가)은 SHARED 스코프에 적재해 전 테넌트가 공유한다.
+        $writeTenant = $shared ? self::SHARED_TENANT : $tenant;
+        $tenant = $writeTenant;
         $now = self::now();
         $sql = self::isMysql($pdo)
             ? "INSERT INTO channel_category_catalog(tenant_id,channel,code,name,whole_name,is_leaf,synced_at) VALUES(?,?,?,?,?,?,?)
@@ -1549,13 +1599,23 @@ class Catalog
         try {
             // [228차] 별칭 정합 — 카테고리맵이 registry키(amazon_spapi)로 저장돼도 job채널(amazon)에서 찾도록.
             $aliases = self::channelAliases($channel);
+            $ph = implode(',', array_fill(0, count($aliases), '?'));
             if ($cat !== '') {
-                $ph = implode(',', array_fill(0, count($aliases), '?'));
-                $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND src_category=? LIMIT 1");
+                // [현 차수] ★TRIM/대소문자 정규화 비교 — 저장 시 표기(공백·대소문자) 차이로 매핑이 매칭 안 되던 것 완화.
+                //   종전엔 src_category=? 등호라 '니트' vs '니트 ' vs 'Knit' 처럼 미세 차이로도 코드가 상품에 도달 못 했다.
+                $st = $pdo->prepare("SELECT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND LOWER(TRIM(src_category))=LOWER(TRIM(?)) AND channel_code<>'' LIMIT 1");
                 $st->execute(array_merge([$tenant], $aliases, [$cat]));
                 $code = $st->fetchColumn();
                 if ($code !== false && (string)$code !== '') return (string)$code;
             }
+            // [현 차수] ★폴백 — 상품 category 가 비었거나(매핑 조회 불가) 텍스트가 달라 매칭 실패했는데, 이 채널에
+            //   저장된 매핑이 **정확히 1건**이면 그 코드를 사용한다. 에러 hint("카테고리 매핑에서 지정하세요")대로
+            //   11번가 표시카테고리를 저장했는데 상품 category 텍스트 불일치로 적용되지 않던 문제를 해소한다.
+            //   (매핑이 2건 이상이면 어느 것인지 알 수 없어 폴백하지 않는다 — 오지정 방지.)
+            $ms = $pdo->prepare("SELECT DISTINCT channel_code FROM channel_category_map WHERE tenant_id=? AND channel IN ($ph) AND channel_code<>'' LIMIT 2");
+            $ms->execute(array_merge([$tenant], $aliases));
+            $codes = array_values(array_filter(array_map('strval', $ms->fetchAll(\PDO::FETCH_COLUMN) ?: [])));
+            if (count($codes) === 1) return $codes[0];
         } catch (\Throwable $e) { /* 아래 자동매칭 */ }
 
         // ③ 자동 매칭 — ★고확신일 때만 자동 적용한다. 애매한 매칭을 강행하면 엉뚱한 카테고리로 등록돼
@@ -1682,6 +1742,77 @@ class Catalog
         $pdo = self::db(); $tenant = self::tenant($req); $id = (int)($args['id'] ?? 0);
         try { $pdo->prepare("DELETE FROM channel_category_map WHERE id=? AND tenant_id=?")->execute([$id, $tenant]); } catch (\Throwable $e) {}
         return self::jsonRes($res, ['ok' => true]);
+    }
+
+    /**
+     * [현 차수] POST /catalog/channel-categories/import
+     *   body: { channel, rows:[{code,name,whole?,leaf?}], replace?:bool }
+     *
+     *   ★11번가처럼 "카테고리 목록 조회 API 자체가 없는" 채널을 위한 정본 적재 경로.
+     *   11번가 셀러 API 에는 카테고리 조회 엔드포인트가 없고(공식 개발가이드 확인), API 서버는
+     *   IP 화이트리스트로 외부 호출도 막는다 → 자동 수집이 원천 불가하다. 그렇다고 카테고리 코드를
+     *   임의 생성하면 엉뚱한 카테고리로 상품이 등록되므로 절대 금지.
+     *   → 채널(11번가)이 제공하는 공식 카테고리 파일을 그대로 적재해 진짜 코드만 보유한다.
+     *   적재 후에는 기존 channelCategories() 가 캐시를 그대로 서빙하므로 조회·검색·선택 경로는
+     *   네이버와 완전히 동일하게 동작한다(신규 조회 API 없음).
+     */
+    public static function importCategories(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $channel = strtolower(trim((string)($b['channel'] ?? '')));
+        $rows = $b['rows'] ?? null;
+        if ($channel === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel required'], 400);
+        if (!is_array($rows) || !$rows) return self::jsonRes($res, ['ok' => false, 'error' => 'rows required'], 400);
+        if (count($rows) > 100000) return self::jsonRes($res, ['ok' => false, 'error' => 'too many rows (max 100000)'], 400);
+        // ★공용 카탈로그는 HTTP 로 절대 쓰지 않는다. X-Tenant-Id 를 '__shared__' 로 위조해 전 테넌트의
+        //   카테고리를 오염시키는 경로를 차단한다(공용 시딩은 서버 CLI 로만).
+        if ($tenant === self::SHARED_TENANT) return self::jsonRes($res, ['ok' => false, 'error' => 'forbidden tenant scope'], 403);
+
+        $now = self::now();
+        $sql = self::isMysql($pdo)
+            ? "INSERT INTO channel_category_catalog(tenant_id,channel,code,name,whole_name,is_leaf,synced_at) VALUES(?,?,?,?,?,?,?)
+               ON DUPLICATE KEY UPDATE name=VALUES(name),whole_name=VALUES(whole_name),is_leaf=VALUES(is_leaf),synced_at=VALUES(synced_at)"
+            : "INSERT INTO channel_category_catalog(tenant_id,channel,code,name,whole_name,is_leaf,synced_at) VALUES(?,?,?,?,?,?,?)
+               ON CONFLICT(tenant_id,channel,code) DO UPDATE SET name=excluded.name,whole_name=excluded.whole_name,is_leaf=excluded.is_leaf,synced_at=excluded.synced_at";
+
+        $n = 0; $skipped = 0;
+        $pdo->beginTransaction();
+        try {
+            if (!empty($b['replace'])) {
+                $pdo->prepare("DELETE FROM channel_category_catalog WHERE tenant_id=? AND channel=?")->execute([$tenant, $channel]);
+            }
+            $st = $pdo->prepare($sql);
+            foreach ($rows as $r) {
+                if (!is_array($r)) { $skipped++; continue; }
+                $code  = trim((string)($r['code'] ?? ''));
+                $name  = trim((string)($r['name'] ?? ''));
+                $whole = trim((string)($r['whole'] ?? $r['whole_name'] ?? ''));
+                if ($code === '' || $name === '') { $skipped++; continue; }  // 코드·이름 없는 행은 버린다(가짜 생성 금지)
+                if ($whole === '') $whole = $name;
+                // leaf 미지정이면 등록 가능한 말단으로 간주한다(상품등록은 리프만 노출되므로,
+                // 파일에 계층정보가 없는 경우 전부 선택 가능해야 사용자가 코드를 고를 수 있다).
+                $leaf = array_key_exists('leaf', $r) ? (int)!!$r['leaf'] : 1;
+                $st->execute([$tenant, $channel, $code, mb_substr($name, 0, 255), mb_substr($whole, 0, 500), $leaf, $now]);
+                $n++;
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            return self::jsonRes($res, ['ok' => false, 'error' => 'db_error'], 500);
+        }
+
+        $total = 0;
+        try {
+            $c = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel=?");
+            $c->execute([$tenant, $channel]);
+            $total = (int)$c->fetchColumn();
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        return self::jsonRes($res, ['ok' => true, 'channel' => $channel, 'imported' => $n, 'skipped' => $skipped, 'total_cached' => $total]);
     }
 
     /* POST /catalog/writeback/policy — body:{channel,product} 정책 검증 */

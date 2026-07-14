@@ -167,6 +167,13 @@ class AutoCampaign
 
             if ($budget <= 0) return self::json($res, ['ok' => false, 'error' => '예산을 입력하세요.'], 422);
             if (empty($channels)) return self::json($res, ['ok' => false, 'error' => '채널을 1개 이상 선택하세요.'], 422);
+            // [현 차수 P0] ★채널 배정합이 배정예산을 초과하면 거부 — 사용자 설정 예산보다 큰 금액이 매체에 전달돼
+            //   과집행되는 경로를 원천 차단(사용자 절대 요구: 설정 예산 초과 지출 금지). 초과분 정규화가 아니라 명시 거부.
+            $allocSum = 0;
+            if (is_array($allocations)) foreach ($allocations as $a) { $allocSum += max(0, (int)($a['alloc'] ?? 0)); }
+            if ($allocSum > $budget) {
+                return self::json($res, ['ok' => false, 'error' => "채널 배정 합계(" . number_format($allocSum) . "원)가 배정예산(" . number_format($budget) . "원)을 초과합니다. 배정을 예산 이내로 조정하세요."], 422);
+            }
 
             $pdo = Db::pdo();
             self::migrate($pdo);
@@ -637,7 +644,7 @@ class AutoCampaign
                         SELECT LOWER(ar.attributed_channel) ch, ar.order_id, MAX(co.total_price) rev
                         FROM attribution_result ar
                         JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
-                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at >= ? AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')
+                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at >= ? AND NOT (" . OrderHub::observedExclusionInline('co') . ")
                         GROUP BY ar.order_id, LOWER(ar.attributed_channel)
                     ) t GROUP BY ch";
             $st = $pdo->prepare($sql);
@@ -773,15 +780,105 @@ class AutoCampaign
     /** [현 차수] 당월(1일~오늘) 누적 지출 — 캠페인의 external_id 들 기준(테넌트 스코프). 월 예산 페이싱·cap 용. */
     private static function monthlySpentToDate(PDO $pdo, string $tenant, array $extIdMap): float
     {
+        return self::periodSpentToDate($pdo, $tenant, $extIdMap, 'monthly', '');
+    }
+
+    /** 기간별 예산 기간의 시작일(YYYY-MM-DD). monthly=당월1일(월 반복예산), 그 외=캠페인 생성일 기준 기간(총예산). */
+    private static function periodWindowStart(string $period, string $createdAt): string
+    {
+        if ($period === 'monthly' || $period === '') return gmdate('Y-m-01');
+        $days = ['quarter' => 90, 'halfyear' => 180, 'annual' => 365][$period] ?? 30;
+        $created = $createdAt !== '' ? strtotime($createdAt) : 0;
+        if ($created > 0) {
+            // 캠페인이 여러 기간을 넘겼다면 현재 진행 중인 기간의 시작으로 롤포워드(기간마다 예산 리셋).
+            $now = time();
+            $elapsedPeriods = (int)floor(($now - $created) / ($days * 86400));
+            $start = $created + $elapsedPeriods * $days * 86400;
+            return gmdate('Y-m-d', $start);
+        }
+        return gmdate('Y-m-d', time() - $days * 86400);
+    }
+
+    /** [현 차수] 배정예산 기간의 누적 지출 — external_id 들 기준(테넌트 스코프). ★monthly 뿐 아니라 전 기간(분기/반기/연간)
+     *  에서 배정예산을 하드 상한으로 강제하기 위한 정본. 비-monthly 는 캠페인 생성일 기준 현재 기간의 누적을 본다. */
+    private static function periodSpentToDate(PDO $pdo, string $tenant, array $extIdMap, string $period, string $createdAt): float
+    {
         $extIds = array_values(array_filter(array_map('strval', $extIdMap)));
         if (empty($extIds)) return 0.0; // 아직 매체 집행 전 → 소진 0
-        $monthStart = gmdate('Y-m-01');
+        $winStart = self::periodWindowStart($period, $createdAt);
         try {
             $in = implode(',', array_fill(0, count($extIds), '?'));
             $st = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND date >= ? AND campaign_ext_id IN ($in)");
-            $st->execute(array_merge([$tenant, $monthStart], $extIds));
+            $st->execute(array_merge([$tenant, $winStart], $extIds));
             return (float)$st->fetchColumn();
         } catch (\Throwable $e) { return 0.0; }
+    }
+
+    /**
+     * [현 차수 P0] ★배정예산 = 하드 지출 상한 강제 스윕. cron 매 틱마다 전 active 캠페인을 검사해
+     *   기간 누적 지출이 배정예산에 도달하면 **즉시 전 채널 매체 정지**한다.
+     *   기존 상한(optimizeCampaign 내부 budgetCapHit)의 3대 구멍을 메운다:
+     *     ① 적응형 cadence(최대 48h)로 due 아닌 캠페인은 상한 검사 자체를 안 받던 것 → cadence 무관 매 틱 전수 검사.
+     *     ② monthly 기간에만 상한이 있던 것 → periodSpentToDate 로 분기/반기/연간도 강제.
+     *     ③ 결제수단 미등록 시 pause push 까지 스킵되던 것 → pause 는 안전 방향이라 카드 게이트와 무관하게 실행.
+     *   리포팅 지연(performance_metrics 수집 지연)을 감안해 안전마진(기본 3%)을 두어 실집행이 예산을 넘기 전에 정지한다.
+     *   @return int 정지시킨 캠페인 수
+     */
+    public static function enforceBudgetCaps(PDO $pdo, bool $allowActuate = true): int
+    {
+        $margin = 1.0 - (float)(getenv('AD_BUDGET_CAP_MARGIN') ?: 0.03); // 기본 97% 도달 시 정지(리포팅 지연 버퍼)
+        if ($margin <= 0 || $margin > 1) $margin = 0.97;
+        $paused = 0;
+        try {
+            $rows = $pdo->query("SELECT * FROM auto_campaign WHERE status='active'")->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { return 0; }
+        foreach ($rows as $camp) {
+            $budget = (int)($camp['budget'] ?? 0);
+            if ($budget <= 0) continue;
+            $tenant = (string)($camp['tenant_id'] ?? '');
+            $period = (string)($camp['period'] ?? 'monthly');
+            $allocs = json_decode((string)($camp['allocations'] ?? '[]'), true) ?: [];
+            $extIdMap = [];
+            foreach ($allocs as $a) {
+                $ck = strtolower((string)($a['channel'] ?? ''));
+                if ($ck !== '' && !empty($a['external_id'])) $extIdMap[$ck] = (string)$a['external_id'];
+            }
+            if (empty($extIdMap)) continue; // 매체 집행 전(external_id 없음) → 지출 0, 검사 불필요
+            $spent = self::periodSpentToDate($pdo, $tenant, $extIdMap, $period, (string)($camp['created_at'] ?? ''));
+            if ($spent < $budget * $margin) continue; // 아직 상한 미도달
+
+            // ★상한 도달 — 전 채널 즉시 매체 정지(카드 게이트와 무관: pause 는 지출을 줄이는 안전 방향).
+            //   ★DB status 는 'active' 로 유지한다 — 다음 기간(월/분기 등)에 지출이 리셋되면 옵티마이저가 자동 재개하도록
+            //   (status='paused' 로 바꾸면 옵티마이저 루프에서 빠져 영구 정지 = 기존 "기간 내 지속 자동화" 회귀).
+            if ($allowActuate) {
+                foreach ($extIdMap as $ck => $extId) {
+                    if ($extId === '') continue;
+                    try { AdAdapters::pause($pdo, $tenant, self::connectorKey($ck), $extId); } catch (\Throwable $e) {}
+                }
+            }
+            // 알림·로그 중복 방지 — 현재 기간에 이미 상한정지 기록이 있으면 매체 pause(멱등)만 반복하고 알림은 생략.
+            $winStart = self::periodWindowStart($period, (string)($camp['created_at'] ?? ''));
+            $already = false;
+            try {
+                $c = $pdo->prepare("SELECT 1 FROM optimization_log WHERE tenant_id=? AND campaign_id=? AND action='budget_cap_pause' AND created_at >= ? LIMIT 1");
+                $c->execute([$tenant, (int)$camp['id'], $winStart . 'T00:00:00Z']);
+                $already = (bool)$c->fetchColumn();
+            } catch (\Throwable $e) {}
+            if (!$already) {
+                $reason = "배정예산 소진(" . number_format($spent) . "/" . number_format($budget) . ") → 전 채널 자동 정지(초과지출 차단)";
+                try {
+                    $pdo->prepare("INSERT INTO optimization_log(tenant_id,campaign_id,channel,action,old_alloc,new_alloc,roas,ctr,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$tenant, (int)$camp['id'], '—', 'budget_cap_pause', 0, 0, '', '', $reason, gmdate('c')]);
+                } catch (\Throwable $e) {}
+                try {
+                    $cname = (string)($camp['name'] ?? ('#' . (int)$camp['id']));
+                    Alerting::pushEvent($tenant, 'high', '배정예산 소진 — 캠페인 자동 정지',
+                        "캠페인 '{$cname}' 이(가) 배정예산(" . number_format($budget) . "원)에 도달해 초과 지출 방지를 위해 자동 정지되었습니다.", []);
+                } catch (\Throwable $e) {}
+                $paused++;
+            }
+        }
+        return $paused;
     }
 
     private const DRIFT_WINDOW_DAYS = 21;  // 드리프트 기준 기간(일)
@@ -1015,11 +1112,20 @@ class AutoCampaign
         // ── [현 차수] 1개월 예산 페이싱 + 전역 소진 cap (사용자 요구: 1개월 예산 내 지속 자동화) ──
         //   누적 지출(당월)을 추적해 ① 잔여 예산을 잔여일수로 페이싱(과/저지출 방지) ② 월 예산 소진 시
         //   전 채널 자동 정지(과지출 차단). monthly 외 기간은 비적용(0).
+        // [현 차수] ★배정예산 상한·페이싱을 전 기간(monthly/quarter/halfyear/annual)에 적용.
+        //   종전엔 monthly 에만 상한이 있어 분기·반기·연간 캠페인은 무한 집행 가능했다(사용자 절대 요구 위반).
         $daysInMonth = (int)gmdate('t'); $dayOfMonth = (int)gmdate('j');
-        $daysLeft = max(1, $daysInMonth - $dayOfMonth + 1);
-        $spentMTD = ($period === 'monthly') ? self::monthlySpentToDate($pdo, $tenant, $extIdMap) : 0.0;
+        if ($period === 'monthly') {
+            $daysLeft = max(1, $daysInMonth - $dayOfMonth + 1);
+        } else {
+            $periodDays = ['quarter' => 90, 'halfyear' => 180, 'annual' => 365][$period] ?? 30;
+            $winStart = strtotime(self::periodWindowStart($period, (string)($camp['created_at'] ?? '')));
+            $elapsed = $winStart > 0 ? max(0, (int)floor((time() - $winStart) / 86400)) : 0;
+            $daysLeft = max(1, $periodDays - $elapsed);
+        }
+        $spentMTD = self::periodSpentToDate($pdo, $tenant, $extIdMap, $period, (string)($camp['created_at'] ?? ''));
         $remaining = max(0, $budget - (int)round($spentMTD));
-        $budgetCapHit = ($period === 'monthly' && $budget > 0 && $spentMTD >= $budget);
+        $budgetCapHit = ($budget > 0 && $spentMTD >= $budget);
 
         // ROAS 기반 가중치 + 이상감지(zero-conv 낭비/손실 채널 자동 회수). 데이터 없으면 중립.
         // [279차 초고도화] 종합 점수 정규화용 캠페인 평균(CVR/CPA/CTR) 선산출 — 상대평가 기준.
@@ -1137,8 +1243,8 @@ class AutoCampaign
                 $rr = AdAdapters::pause($pdo, $tenant, $connKey, $extId);
             } else {
                 $daily = max(1000, (int)round(((int)($d['new'] ?? 0)) / max(1, $pdays) / 100) * 100);
-                // [현 차수] 월 예산 페이싱: 잔여 예산을 잔여일수로 균등 소진(과지출 방지).
-                if ($period === 'monthly' && $remaining > 0) {
+                // [현 차수] 예산 페이싱: 잔여 예산을 잔여일수로 균등 소진(과지출 방지). 전 기간 적용(monthly 한정 아님).
+                if ($remaining > 0) {
                     $pacedDaily = (int)round($remaining / $daysLeft / 100) * 100;
                     if ($pacedDaily > 0) $daily = min($daily, max(1000, $pacedDaily));
                 }
@@ -1407,6 +1513,9 @@ class AutoCampaign
         if ($pdo === null) $pdo = Db::pdo();
         self::migrate($pdo);
         $n = 0;
+        // [현 차수 P0] ★배정예산 하드 상한 강제 — cadence·기간·카드상태와 무관하게 매 cron 틱마다 전 active 캠페인을
+        //   전수 검사해 예산 소진분을 즉시 매체 정지한다(사용자 절대 요구: 설정 예산 초과 지출 금지). 옵티마이저보다 먼저.
+        try { self::enforceBudgetCaps($pdo, $allowActuate); } catch (\Throwable $e) {}
         // [현 차수] 적응형 입찰주기 게이트 — next_optimize_at 이 도래한(또는 미설정=최초) 캠페인만 최적화.
         //   cron(매시)은 자주 호출되더라도 각 캠페인은 자기 가변주기에 맞춰서만 재배분 → 안정 캠페인 churn 방지·
         //   급변 캠페인 최속 반응. ISO8601 UTC 문자열은 사전식 비교가 시간순과 일치(드라이버 무관).

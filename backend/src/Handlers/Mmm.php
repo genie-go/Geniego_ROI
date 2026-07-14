@@ -280,10 +280,19 @@ final class Mmm
         $cost = PriceOpt::costMap($tenant); // sku→cost_price (미등록=빈)
         $byCh = [];
         try {
-            $st = $pdo->prepare("SELECT ar.attributed_channel AS ch, co.sku AS sku, co.qty AS qty, co.total_price AS rev
-                FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
-                WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at>=? AND COALESCE(co.event_type,'order') NOT IN ('cancel','return')");
-            $st->execute([$tenant, $since]);
+            // [현 차수] ★취소/반품 제외 SSOT(OrderHub::observedExclusion, event_type+status 2축) + JOIN 팬아웃 dedup.
+            //   종전 인라인 `event_type NOT IN` 은 status 토큰 취소(국내몰 '취소완료')를 놓쳐 매출 과대계상, 그리고
+            //   attribution_result 에 UNIQUE 키가 없어(중복행 append 가능) JOIN 이 같은 주문 매출을 2배 합산했다.
+            //   → 형제 SSOT(AutoCampaign realRevMap:643)와 동일하게 GROUP BY (order, channel) MAX 로 주문당 1행 dedup.
+            [$exSql, $exTok] = OrderHub::observedExclusion('co');
+            $sql = "SELECT ch, sku, qty, rev FROM (
+                        SELECT LOWER(ar.attributed_channel) AS ch, MAX(co.sku) AS sku, MAX(co.qty) AS qty, MAX(co.total_price) AS rev
+                        FROM attribution_result ar JOIN channel_orders co ON co.tenant_id=ar.tenant_id AND co.channel_order_id=ar.order_id
+                        WHERE ar.tenant_id=? AND ar.model='order-match' AND co.ordered_at>=? AND NOT ($exSql)
+                        GROUP BY ar.order_id, LOWER(ar.attributed_channel)
+                    ) t";
+            $st = $pdo->prepare($sql);
+            $st->execute(array_merge([$tenant, $since], $exTok));
             while ($r = $st->fetch(\PDO::FETCH_ASSOC)) {
                 $ch = strtolower((string)($r['ch'] ?? '')); if ($ch === '') continue;
                 $rev = (float)($r['rev'] ?? 0); $qty = (float)($r['qty'] ?? 0); $sku = (string)($r['sku'] ?? '');
@@ -295,8 +304,10 @@ final class Mmm
         // 전사 마진(폴백) — 전 주문 SKU 원가.
         $ov = ['cogs' => 0.0, 'covRev' => 0.0];
         try {
-            $st = $pdo->prepare("SELECT sku, qty, total_price rev FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND COALESCE(event_type,'order') NOT IN ('cancel','return')");
-            $st->execute([$tenant, $since]);
+            // [현 차수] 취소/반품 제외 SSOT 통일(status 토큰 취소 누락 해소).
+            [$exSql2, $exTok2] = OrderHub::observedExclusion();
+            $st = $pdo->prepare("SELECT sku, qty, total_price rev FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND NOT ($exSql2)");
+            $st->execute(array_merge([$tenant, $since], $exTok2));
             while ($r = $st->fetch(\PDO::FETCH_ASSOC)) {
                 $rev = (float)($r['rev'] ?? 0); $qty = (float)($r['qty'] ?? 0); $sku = (string)($r['sku'] ?? '');
                 if (isset($cost[$sku]) && $cost[$sku] > 0) { $ov['cogs'] += $cost[$sku] * $qty; $ov['covRev'] += $rev; }

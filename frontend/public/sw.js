@@ -6,8 +6,14 @@
  *
  * 사용자 접속 1 회 시:
  *  1) install: skipWaiting 으로 즉시 activate
- *  2) activate: 모든 caches 삭제 + SW 자가 unregister + 모든 open client 강제 reload
+ *  2) activate: 모든 caches 삭제 + SW 자가 unregister
  *  3) 다음 페이지 load 부터는 SW 없이 nginx 직접 fetch — chunk hash 100% 정합
+ *
+ * [현 차수] ★activate 의 `c.navigate(c.url)` (= 열려 있는 모든 창 강제 reload) 제거.
+ *   구형 캐싱 SW 가 클라이언트를 제어(clients.claim)하던 브라우저에서 이 SW 가 activate 되면
+ *   작업 중이던 탭이 예고 없이 통째로 새로고침돼 입력값이 소실됐다.
+ *   캐시 삭제 + unregister 만으로 목적(옛 청크 캐시 제거)은 달성되고, 정합된 번들은
+ *   다음 자연스러운 이동/새로고침에서 받는다. 강제 reload 는 이득 없이 데이터만 날린다.
  *
  * 향후 SW 가 다시 필요하면 본 파일을 정상 SW 로 교체 + index.html 의 register 활성화.
  */
@@ -24,11 +30,7 @@ self.addEventListener('activate', (event) => {
     try {
       await self.registration.unregister();
     } catch (_) { /* ignore */ }
-    try {
-      const clients = await self.clients.matchAll({ type: 'window' });
-      for (const c of clients) {
-        try { c.navigate(c.url); } catch (_) { /* ignore */ }
-      }
-    } catch (_) { /* ignore */ }
+    // [현 차수] 여기서 열려 있던 창들을 c.navigate(c.url) 로 강제 reload 하던 코드를 제거했다.
+    //   작업 중인 탭을 예고 없이 새로고침해 입력값을 날리는 경로였다. 위 unregister + 캐시삭제로 충분.
   })());
 });

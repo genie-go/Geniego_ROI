@@ -869,6 +869,69 @@ final class ChannelSync
     }
 
     /**
+     * [현 차수] 11번가 전체 카테고리 카탈로그 — 공통(Seller) Open API. **인증키 불필요**.
+     *   GET http://api.11st.co.kr/rest/cateservice/category (EUC-KR XML, ~3MB, 약 15,000건).
+     *   응답 필드: dispNo(=상품등록 dispCtgrNo), dispNm(이름), parentDispNo(상위·0=최상위), depth(1대/2중/3소/4세), leafYn(Y=리프).
+     *   네이버 어댑터(naverCategoryCatalog)와 동일한 반환 포맷 [{code,name,whole,leaf}] 을 지켜,
+     *   Catalog 의 조회·검색·선택 파이프라인을 그대로 재사용한다(신규 소비 경로 없음).
+     *
+     *   whole(전체경로) 은 XML 에 없으므로 parentDispNo 체인을 걸어 "대 > 중 > 소 > 세" 로 직접 구성한다.
+     *   메모리: XMLReader 스트리밍으로 노드를 하나씩 읽어 3MB DOM 을 통째로 올리지 않는다(SimpleXML 전량 로드는 OOM).
+     */
+    public static function elevenStCategoryCatalog(): array
+    {
+        [$code, $raw] = self::httpGetRaw('http://api.11st.co.kr/rest/cateservice/category', [], 40);
+        if ($code !== 200 || $raw === '') return [];
+
+        // EUC-KR → UTF-8 (불량 바이트는 무시). XML 선언의 encoding 도 UTF-8 로 교체해야 파서가 재해석하지 않는다.
+        $utf = @iconv('EUC-KR', 'UTF-8//IGNORE', $raw);
+        if ($utf === false) $utf = @mb_convert_encoding($raw, 'UTF-8', 'EUC-KR,CP949');
+        if (!is_string($utf) || $utf === '') return [];
+        $utf = preg_replace('/(<\?xml[^>]*encoding=["\'])[^"\']+(["\'])/i', '${1}UTF-8${2}', $utf, 1);
+
+        // 1패스: dispNo → [name, parent, leaf] 맵 구성(스트리밍).
+        $meta = [];
+        $reader = new \XMLReader();
+        if (!@$reader->XML($utf, 'UTF-8', LIBXML_NOERROR | LIBXML_NOWARNING)) return [];
+        try {
+            while (@$reader->read()) {
+                if ($reader->nodeType !== \XMLReader::ELEMENT || $reader->localName !== 'category') continue;
+                $node = @$reader->readOuterXML();
+                if (!$node) continue;
+                $one = @simplexml_load_string($node);
+                if ($one === false) continue;
+                $dispNo = trim((string)$one->dispNo);
+                if ($dispNo === '') continue;
+                $meta[$dispNo] = [
+                    'name'   => trim((string)$one->dispNm),
+                    'parent' => trim((string)$one->parentDispNo),
+                    'leaf'   => (strtoupper(trim((string)$one->leafYn)) === 'Y'),
+                ];
+            }
+        } finally { $reader->close(); }
+        if (!$meta) return [];
+
+        // 2패스: parent 체인으로 전체경로(whole) 구성. 순환/과도한 깊이 방어(최대 10단).
+        $out = [];
+        foreach ($meta as $dispNo => $m) {
+            $parts = [$m['name']];
+            $p = $m['parent']; $guard = 0;
+            while ($p !== '' && $p !== '0' && isset($meta[$p]) && $guard < 10) {
+                array_unshift($parts, $meta[$p]['name']);
+                $p = $meta[$p]['parent'];
+                $guard++;
+            }
+            $out[] = [
+                'code'  => $dispNo,
+                'name'  => $m['name'],
+                'whole' => implode(' > ', array_filter($parts, fn($x) => $x !== '')),
+                'leaf'  => $m['leaf'],
+            ];
+        }
+        return $out;
+    }
+
+    /**
      * [277차] 네이버 이미지 업로드 — originProduct.images 는 **공개 URL** 만 받는다.
      *   그런데 상품등록(PriceOpt)은 이미지를 base64 dataURL 로 보관하므로 그대로 push 하면 400 이다.
      *   dataURL 만 네이버 이미지 서버에 업로드해 URL 로 치환하고, 이미 http(s) URL 인 항목은 그대로 통과시킨다.

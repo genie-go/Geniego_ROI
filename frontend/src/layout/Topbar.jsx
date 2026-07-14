@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
+import { allowNavigation } from "../services/unsavedGuard.js"; // [현 차수] 앱 주도 이탈 시 미저장 경고 통과
 import { useI18n } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useGlobalData } from "../context/GlobalDataContext.jsx";
@@ -335,6 +336,7 @@ export default function Topbar() {
                 bizno: pr.business_number || '', phone: pr.phone || '',
               });
               // 운영 도메인 회원가입으로 이동(별도 DB) — 운영 신규 INSERT라 데모 가상데이터는 구조적으로 유입 불가.
+              allowNavigation();
               window.location.href = 'https://www.genieroi.com/login?' + q.toString();
             }}
             title={t('topbar.convertTitle', '데모 가입정보로 운영(유료) 회원 전환 — 체험용 가상데이터는 이관되지 않습니다')}
@@ -989,7 +991,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
     try {
       const r = await fetch(`/api/v425/oauth/${provider}/authorize`, { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json().catch(() => ({}));
-      if (d.ok && d.authorize_url) window.location.href = d.authorize_url;
+      if (d.ok && d.authorize_url) { allowNavigation(); window.location.href = d.authorize_url; }
       else showMsg(d.error || t('profile.oauthNotConfigured', '먼저 Client ID/Secret을 등록하세요.'), 'err');
     } catch { showMsg(t('profile.serverError', 'Server error. Try again.'), 'err'); }
   };

@@ -30,6 +30,7 @@ import { initPerformanceMonitor } from "./utils/performanceMonitor.js";
 import CommandPalette from "./components/CommandPalette.jsx";
 import { initAuditTrail } from "./utils/auditTrail.js";
 import { startVersionWatch, onNewVersion } from "./services/versionWatch.js"; // 196차 #1-B 배포 감지 자동 업데이트
+import { safeReload, forceReload, isDirty } from "./services/unsavedGuard.js"; // [현 차수] 자동 새로고침으로 인한 입력 소실 차단
 
 // Initialize enterprise monitoring
 if (typeof window !== 'undefined') {
@@ -176,15 +177,19 @@ class ErrorBoundary extends Component {
 
     // 196차: 배포 중 stale 청크/모듈 로드 실패는 "보안 위협"이 아니라 배포 산출물 → 보안 알림에
     //   기록하지 않고(거짓 위협경보 방지) 자동 새로고침으로 최신 번들 복구.
-    // 196차++: stale 번들 ↔ React 코어 불일치는 "Invalid hook call"(Minified React error #321,
-    //   동족 #300/#310)로도 샌다 — 배포 중 옛 React 코어 청크 + 새 페이지 청크 혼재 시 발생.
-    //   이 또한 배포 산출물 불일치이므로 1회 자동 새로고침으로 일관된 최신 번들 복구(거짓 위협경보 X).
+    // [현 차수] ★판정 범위 축소 + 미저장 가드.
+    //   기존 정규식은 `is not defined` / `ReferenceError` / `Invalid hook call` 까지 청크 오류로 간주해,
+    //   실은 무관한 일반 런타임 오류(서드파티 스크립트 포함) 하나만 나도 페이지를 통째로 새로고침했다.
+    //   → 입력 중이던 폼이 소실되는 주요 경로였다. 진짜 "청크/모듈 로드 실패"만 자동복구 대상으로 남긴다.
+    //   미저장 입력이 있으면 새로고침하지 않고 아래 복구 UI 를 보여준다(사용자가 저장 후 직접 적용).
     const isChunkError = err?.name === 'ChunkLoadError'
-      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|Minified React error #(?:300|310|321)|Invalid hook call/i.test(String(err?.message || err));
+      || /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|Loading chunk \d+ failed|Unable to preload CSS/i.test(String(err?.message || err));
     if (isChunkError) {
       if (!sessionStorage.getItem('chunk_reloaded')) {
         sessionStorage.setItem('chunk_reloaded', '1');
-        window.location.reload();
+        if (safeReload('ErrorBoundary: chunk load failure')) return;
+        // 미저장 입력이 있어 보류됨 — 새로고침 대신 복구 UI 를 띄운다(입력값 보존, 보안알림 기록 안 함).
+        sessionStorage.removeItem('chunk_reloaded');
       } else {
         console.error('ChunkLoadError reload loop prevented.');
         sessionStorage.removeItem('chunk_reloaded');
@@ -604,51 +609,55 @@ function TenantScopedProviders({ children }) {
   );
 }
 
-/* 196차 #1-B — 배포 감지 자동 업데이트 배너.
- * 새 배포 감지 시: 다음 라우트 전환 때 자동 reload(작업 중단 최소화) + 즉시 새로고침 버튼.
- * 사용자가 수동 새로고침 없이도 최신 변경(기능/수정)을 받게 한다. */
+/* 196차 #1-B — 배포 감지 업데이트 배너.
+ * [현 차수] ★자동 새로고침 폐지. 새 배포를 감지해 "알리는" 역할만 하고,
+ *   실제 새로고침 시점은 사용자가 "지금 적용" 을 눌러 결정한다.
+ *
+ *   폐지 이유(실제 데이터 유실 사고): 기존 구현은 새 버전 감지 시 ①6초 뒤 무조건 reload
+ *   ②라우트 전환 시 가드 없이 즉시 reload 했다. 유일한 보호막인 "입력 중이면 4초 미룸"은
+ *   document.activeElement 가 INPUT/TEXTAREA/SELECT 일 때만 동작해서, 사용자가 타이핑을
+ *   잠시 멈추거나·버튼을 누르거나·이미지 업로드/모달을 여는 순간 포커스가 body/button 으로
+ *   빠지며 그대로 reload → 상품등록처럼 긴 폼의 입력값이 통째로 소실됐다.
+ *   (배포는 하루에도 여러 번 나가므로 세션 중 감지가 드물지 않다.)
+ *
+ *   기능 후퇴는 없다: 새 버전 감지·안내는 그대로이고, 적용은 클릭 1회로 즉시 된다.
+ *   미저장 입력이 있으면 배너 문구가 "저장 후 적용하세요"로 바뀌어 소실 위험을 먼저 알린다. */
 function VersionUpdateBanner() {
   const t = useT();
-  const location = useLocation();
   const [show, setShow] = React.useState(false);
-  const pending = React.useRef(false);
-  const lastPath = React.useRef(location.pathname);
-  const timerRef = React.useRef(null);
-  // 196차: 사용자가 수동 새로고침하지 않아도 최신 변경이 자동 반영되도록 — 새 버전 감지 시
-  //   ①다음 화면 이동에 즉시 reload ②이동이 없어도 약간의 유예(6초) 후 자동 reload.
-  //   입력(input/textarea/select) 포커스 중이면 작업 보호를 위해 잠시 미루고 재시도.
-  const doReload = React.useCallback(() => {
-    const el = document.activeElement;
-    const typing = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
-    if (typing) { timerRef.current = setTimeout(doReload, 4000); return; } // 입력 중이면 4초 뒤 재시도
-    window.location.reload();
-  }, []);
+  const [dirty, setDirty] = React.useState(false);
   React.useEffect(() => {
     startVersionWatch();
-    const off = onNewVersion(() => {
-      pending.current = true; setShow(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(doReload, 6000); // 자동 적용(새로고침 불요)
-    });
-    return () => { off && off(); if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [doReload]);
+    const off = onNewVersion(() => { setShow(true); setDirty(isDirty()); });
+    return () => { off && off(); };
+  }, []);
+  // 배너가 떠 있는 동안 미저장 상태를 추적해 안내 문구를 정확히 유지.
   React.useEffect(() => {
-    if (pending.current && location.pathname !== lastPath.current) {
-      window.location.reload(); // 화면 이동 시 즉시 최신 반영
-    }
-    lastPath.current = location.pathname;
-  }, [location.pathname]);
+    if (!show) return;
+    const id = setInterval(() => setDirty(isDirty()), 1000);
+    return () => clearInterval(id);
+  }, [show]);
   if (!show) return null;
   return (
     <div style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", bottom: 22, zIndex: 99999,
       display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderRadius: 14,
       background: "rgba(15,23,42,0.94)", color: "#fff", boxShadow: "0 16px 48px rgba(15,23,42,0.4)",
       border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", fontSize: 13, fontWeight: 600 }}>
-      <span>✨ {t('common.versionUpdating', '최신 버전으로 자동 업데이트 중…')}</span>
-      <button onClick={() => window.location.reload()}
+      <span>
+        ✨ {t('common.versionReady', '새 버전이 준비됐습니다')}
+        {dirty && <span style={{ color: "#fbbf24", fontWeight: 700, marginLeft: 6 }}>
+          · {t('common.versionSaveFirst', '작성 중인 내용을 저장한 뒤 적용하세요')}
+        </span>}
+      </span>
+      <button onClick={() => forceReload()}
         style={{ padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
           background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
         {t('common.versionApplyNow', '지금 적용')}
+      </button>
+      <button onClick={() => setShow(false)} aria-label="dismiss"
+        style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", cursor: "pointer",
+          background: "transparent", color: "#cbd5e1", fontWeight: 700, fontSize: 12.5 }}>
+        {t('common.later', '나중에')}
       </button>
     </div>
   );

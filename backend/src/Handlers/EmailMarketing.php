@@ -820,7 +820,7 @@ class EmailMarketing
         try {
             $cs = $pdo->prepare("SELECT s.variant AS variant, COUNT(DISTINCT LOWER(s.email)) AS cnt, COALESCE(SUM(o.total_price),0) AS rev
                 FROM email_sends s JOIN channel_orders o ON o.tenant_id=s.tenant_id AND LOWER(o.buyer_email)=LOWER(s.email)
-                    AND (s.sent_at IS NULL OR o.ordered_at >= s.sent_at) AND COALESCE(o.event_type,'order') NOT IN ('cancel','return')
+                    AND (s.sent_at IS NULL OR o.ordered_at >= s.sent_at) AND NOT (" . \Genie\Handlers\OrderHub::observedExclusionInline('o') . ")
                 WHERE s.tenant_id=:t AND s.campaign_id=:c AND s.variant IN ('A','B') AND s.email IS NOT NULL AND s.email<>'' GROUP BY s.variant");
             $cs->execute([':t'=>$tenant, ':c'=>$cid]);
             foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $v=(string)$r['variant']; if (isset($V[$v])) { $V[$v]['converted']=min((int)$r['cnt'], $V[$v]['sent']); $V[$v]['revenue']=round((float)$r['rev'],2); } }

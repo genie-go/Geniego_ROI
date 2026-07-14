@@ -127,6 +127,22 @@ final class OrderHub
     }
 
     /**
+     * [현 차수] 파라미터 없는 인라인 취소/반품 제외절 — named/positional 파라미터 방식과 무관하게 어느 쿼리에도 삽입 가능.
+     *   CANCEL/RETURN_TOKENS 는 사용자 입력이 아닌 **고정 클래스 상수(단일따옴표 미포함)** 라 인라인 리터럴이 주입 안전하다.
+     *   반환값은 "행이 취소(2축) 또는 반품임" 을 뜻하는 참식 → 제외하려면 호출측에서 `AND NOT (...)` 로 감싼다.
+     *   named 파라미터(:t) 쿼리에서 positional(?) 토큰과의 혼용 불가 문제를 우회하기 위한 SSOT 정합 변형.
+     */
+    public static function observedExclusionInline(string $alias = ''): string
+    {
+        $p = $alias === '' ? '' : $alias . '.';
+        $lit = static function (array $toks): string {
+            return implode(',', array_map(static fn($x) => "'" . $x . "'", $toks));
+        };
+        $cancel = "(COALESCE({$p}event_type,'order') = 'cancel' OR COALESCE({$p}status,'') IN (" . $lit(self::CANCEL_TOKENS) . "))";
+        return "($cancel OR COALESCE({$p}event_type,'order') = 'return')";
+    }
+
+    /**
      * [P&L SSOT] 서버측 COGS 집계 — ordersStats·Pnl 공용 단일소스(중복 divergence 방지).
      *   원가 소싱 우선순위(주문 단위):
      *     ① FEFO lot-layer 실원가 — wms_lot_consumptions(ref='CHS-{channel}-{channel_order_id}',

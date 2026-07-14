@@ -159,17 +159,71 @@ export default function CampaignManager(){
     //   실 백엔드 캠페인(정수 id)이면 매체 실제 pause/activate, 로컬전용 id 는 422→로컬 상태만(무해). 데모=로컬.
     const changeCampaignStatus=useCallback(async(camp,status)=>{
         if(!camp)return;
-        updateCampaignStatus(camp.id,status); // 낙관적 로컬 UI
-        setDetailId(null);
-        // [현 차수 P1] ★킬스위치 배선 — 백엔드 정수 id(backendId) 우선 전송. 기존엔 로컬 문자열 id(camp.id)만
-        //   보내 (int)"AM-…"=0→422 삼켜져 매체 집행이 계속 지출됐다. backendId 없는 로컬/데모는 종전대로.
-        if(!IS_DEMO){ const bid = (camp.backendId!=null && camp.backendId!=='') ? camp.backendId : camp.id; try{ await postJson('/api/v423/auto-campaign/status',{id:bid,status}); }catch(_){/* best-effort */} }
+        const bid = (camp.backendId!=null && camp.backendId!=='') ? camp.backendId : null;
+        // 데모 또는 로컬 전용(실 매체 캠페인 아님) → 로컬 상태만. 매체가 없으니 검증할 것도 없다.
+        if(IS_DEMO || bid==null){ updateCampaignStatus(camp.id,status); setDetailId(null); return; }
+        // [현 차수] ★킬스위치 정직화 — 실 매체 캠페인은 백엔드 결과를 확인한 뒤에만 로컬 상태를 바꾼다.
+        //   종전엔 낙관적으로 먼저 PAUSED 표시 후 응답을 무시(catch 삼킴)해서, 매체가 거부(execution_disabled 등)해도
+        //   UI 는 정지로 보이지만 광고비는 계속 지출됐다("정지한 줄 알고 퇴근"). 실패 시 상태를 바꾸지 않고 경고한다.
+        try{
+            const d = await postJson('/api/v423/auto-campaign/status',{id:bid,status});
+            if(!d || !d.ok){
+                const em = d?.error==='billing_required' ? '광고비 결제수단(카드)을 먼저 등록하세요. [재무·정산 > 결제수단]'
+                         : d?.error==='execution_disabled' ? '집행이 비활성화되어 있습니다(관리자에게 문의).'
+                         : (d?.message || d?.error || '상태 변경에 실패했습니다.');
+                alert(`⚠ 매체에 반영되지 않았습니다 — ${em}\n광고가 계속 집행 중일 수 있습니다.`);
+                return; // 로컬 상태 변경 안 함 — 실제 매체 상태와 UI 를 일치시킨다
+            }
+            updateCampaignStatus(camp.id,status);
+            setDetailId(null);
+        }catch(_){
+            alert(`⚠ 매체에 반영되지 않았습니다(네트워크 오류) — 광고가 계속 집행 중일 수 있습니다.`);
+        }
     },[updateCampaignStatus]);
     const stsLabel=s=>({active:tr(T.statusActive),paused:tr(T.statusPaused),draft:tr(T.statusDraft),ended:tr(T.statusEnded),pending:tr(T.statusPending)}[s]||s);
 
     const openEdit=(c)=>{setEditId(c.id);setEditForm({name:c.name||'',budget:c.budget||0,status:c.status||'draft'});};
-    const handleSaveEdit=()=>{if(editId&&updateCampaign){updateCampaign(editId,{name:editForm.name,budget:Number(editForm.budget),status:editForm.status});setEditId(null);}};
-    const handleDelete=(id)=>{if(deleteCampaign){deleteCampaign(id);setDeleteConfirmId(null);setDetailId(null);}};
+    const handleSaveEdit=async()=>{
+        if(!editId||!updateCampaign)return;
+        const camp=(sharedCampaigns||[]).find(c=>c.id===editId);
+        const bid=(camp && camp.backendId!=null && camp.backendId!=='') ? camp.backendId : null;
+        // [현 차수] 실 매체 캠페인의 상태 변경은 백엔드로 반영(가짜 정지 방지). 이름은 로컬 메타.
+        if(!IS_DEMO && bid!=null && camp && editForm.status!==camp.status){
+            await changeCampaignStatus(camp, editForm.status); // 검증·경고 포함
+        }
+        // 예산: 사용자 캠페인 예산을 매체에 반영하는 백엔드 엔드포인트가 없다 → 실 매체 캠페인에 예산을 바꾸면
+        //   UI 만 줄고 실지출은 그대로인 "지출 은폐"가 된다. 로컬 예산 수정은 로컬 캠페인에만 허용하고, 실 매체
+        //   캠페인은 예산 변경을 무시하고 안내한다(옵티마이저/매체 콘솔이 예산 정본).
+        if(!IS_DEMO && bid!=null && Number(editForm.budget)!==Number(camp?.budget)){
+            alert('ℹ 실 매체 캠페인의 예산은 여기서 변경할 수 없습니다. 자동 최적화 또는 매체 콘솔에서 관리됩니다.');
+            updateCampaign(editId,{name:editForm.name}); // 이름만 반영
+        }else{
+            updateCampaign(editId,{name:editForm.name,budget:Number(editForm.budget),status:editForm.status});
+        }
+        setEditId(null);
+    };
+    const handleDelete=async(id)=>{
+        if(!deleteCampaign)return;
+        const camp=(sharedCampaigns||[]).find(c=>c.id===id);
+        const bid=(camp && camp.backendId!=null && camp.backendId!=='') ? camp.backendId : null;
+        // [현 차수] ★목록에서 지우기 전에 실 매체 캠페인은 먼저 일시정지(지출 중단)한다. 종전엔 로컬 목록만 지워
+        //   매체에는 캠페인이 살아 광고비가 계속 나가고, UI 에서 사라져 정지·수정조차 불가능했다.
+        if(!IS_DEMO && bid!=null){
+            try{
+                const d=await postJson('/api/v423/auto-campaign/status',{id:bid,status:'paused'});
+                if(!d || !d.ok){
+                    alert(`⚠ 매체 게재를 먼저 중단하지 못해 목록에서 제거하지 않았습니다 — ${d?.message||d?.error||''}\n광고가 계속 집행 중일 수 있습니다.`);
+                    setDeleteConfirmId(null);
+                    return; // 지출이 멈춘 게 확인되지 않으면 제거하지 않는다
+                }
+            }catch(_){
+                alert('⚠ 매체 게재를 먼저 중단하지 못해 목록에서 제거하지 않았습니다(네트워크 오류)');
+                setDeleteConfirmId(null);
+                return;
+            }
+        }
+        deleteCampaign(id);setDeleteConfirmId(null);setDetailId(null);
+    };
     const handleDuplicate=(id)=>{if(duplicateCampaign){duplicateCampaign(id);setDetailId(null);}};
     const handleCreateAbTest=()=>{
         if(!abForm.name||!abForm.baselineId||!abForm.variantId)return;

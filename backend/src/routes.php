@@ -98,6 +98,7 @@ return function (App $app): void {
         'POST /catalog/writeback/process'                 => 'Genie\\Handlers\\Catalog::processQueue', // [227차] 큐 소비(채널 push)
         'POST /catalog/writeback/approve'                 => 'Genie\\Handlers\\Catalog::approveQueue',  // [239차] pending_approval→queued 승인(human-in-loop)
         'GET /catalog/channel-categories'                 => 'Genie\\Handlers\\Catalog::channelCategories', // [277차] 채널 카테고리 코드 조회/검색(네이버 leafCategoryId 등)
+        'POST /catalog/channel-categories/import'         => 'Genie\\Handlers\\Catalog::importCategories',  // [현 차수] 카테고리 조회 API 가 없는 채널(11번가) — 공식 카테고리 파일 적재
         'GET /catalog/pending-categories'                 => 'Genie\\Handlers\\Catalog::pendingCategories', // [277차] 카테고리 미확정 리스팅 + 추천 후보
         'POST /catalog/assign-category'                   => 'Genie\\Handlers\\Catalog::assignCategory',    // [277차] 카테고리 확정(+즉시 전송)
         'GET /catalog/category-map'                       => 'Genie\\Handlers\\Catalog::categoryMapList',   // [227차] 채널 카테고리 매핑
@@ -505,11 +506,11 @@ return function (App $app): void {
         'GET /gdpr/stats'                         => 'Genie\\Handlers\\GdprConsent::stats',
 
         // ── ML 모델 모니터 (드리프트 감지 + 자동 재학습) ─────────────────
-        'GET /api/models'                         => 'Genie\\Handlers\\ModelMonitor::listModels',
-        'GET /api/models/{id}/metrics'            => 'Genie\\Handlers\\ModelMonitor::modelMetrics',
-        'POST /api/models/{id}/retrain'           => 'Genie\\Handlers\\ModelMonitor::retrain',
-        'GET /api/models/drift-report'            => 'Genie\\Handlers\\ModelMonitor::driftReport',
-        'POST /api/models/drift-check'            => 'Genie\\Handlers\\ModelMonitor::driftCheck',
+        'GET /models'                             => 'Genie\\Handlers\\ModelMonitor::listModels',
+        'GET /models/{id}/metrics'                => 'Genie\\Handlers\\ModelMonitor::modelMetrics',
+        'POST /models/{id}/retrain'               => 'Genie\\Handlers\\ModelMonitor::retrain',
+        'GET /models/drift-report'                => 'Genie\\Handlers\\ModelMonitor::driftReport',
+        'POST /models/drift-check'                => 'Genie\\Handlers\\ModelMonitor::driftCheck',
 
         // ── Instagram / Facebook DM (Meta Messaging API) ──────────────────
         // 191차 부활: /api strip 정합 위해 /instagram 등록(세션 self-auth, webhook 만 무인증).
@@ -537,11 +538,11 @@ return function (App $app): void {
         'POST /line/webhooks'                     => 'Genie\\Handlers\\Line::webhook',
 
         // ── AI Content Generator (Claude API) ────────────────────────────
-        'GET /api/ai/settings'                    => 'Genie\\Handlers\\AiGenerate::getSettings',
-        'POST /api/ai/settings'                   => 'Genie\\Handlers\\AiGenerate::saveSettings',
-        'POST /api/ai/generate/email'             => 'Genie\\Handlers\\AiGenerate::generateEmail',
-        'POST /api/ai/generate/segment'           => 'Genie\\Handlers\\AiGenerate::generateSegment',
-        'POST /api/ai/generate/ad-copy'           => 'Genie\\Handlers\\AiGenerate::generateAdCopy',
+        'GET /ai/settings'                        => 'Genie\\Handlers\\AiGenerate::getSettings',
+        'POST /ai/settings'                       => 'Genie\\Handlers\\AiGenerate::saveSettings',
+        'POST /ai/generate/email'                 => 'Genie\\Handlers\\AiGenerate::generateEmail',
+        'POST /ai/generate/segment'               => 'Genie\\Handlers\\AiGenerate::generateSegment',
+        'POST /ai/generate/ad-copy'               => 'Genie\\Handlers\\AiGenerate::generateAdCopy',
 
         // ── 채널 실연동 동기화 (인증키 → 상품/주문/재고 자동 수집) ──────────
         'GET /api/channel-sync/status'                    => 'Genie\\Handlers\\ChannelSync::status',
@@ -2947,6 +2948,7 @@ return function (App $app): void {
     $register('POST',   '/catalog/writeback/process'); // [227차] 큐 소비(채널 push)
     $register('POST',   '/catalog/writeback/approve'); // [239차] pending_approval→queued 승인(human-in-loop)
     $register('GET',    '/catalog/channel-categories'); // [277차] 채널 카테고리 코드 조회/검색
+    $register('POST',   '/catalog/channel-categories/import'); // [현 차수] 11번가 등 — 공식 카테고리 파일 적재
     $register('GET',    '/catalog/pending-categories'); // [277차] 카테고리 미확정 리스팅
     $register('POST',   '/catalog/assign-category');    // [277차] 카테고리 확정(+즉시 전송)
     $register('GET',    '/catalog/category-map');       // [227차] 채널 카테고리 매핑
@@ -3241,11 +3243,11 @@ return function (App $app): void {
     $register('DELETE', '/gdpr/consent');
     $register('GET',    '/gdpr/stats');
     // ML Model Monitor
-    $register('GET',    '/api/models');
-    $register('GET',    '/api/models/{id}/metrics');
-    $register('POST',   '/api/models/{id}/retrain');
-    $register('GET',    '/api/models/drift-report');
-    $register('POST',   '/api/models/drift-check');
+    $register('GET',    '/models');
+    $register('GET',    '/models/{id}/metrics');
+    $register('POST',   '/models/{id}/retrain');
+    $register('GET',    '/models/drift-report');
+    $register('POST',   '/models/drift-check');
     // Instagram DM
     $register('GET',    '/instagram/settings');
     $register('POST',   '/instagram/settings');
@@ -3269,11 +3271,11 @@ return function (App $app): void {
     $register('GET',    '/line/stats');
     $register('POST',   '/line/webhooks');
     // AI Generate
-    $register('GET',    '/api/ai/settings');
-    $register('POST',   '/api/ai/settings');
-    $register('POST',   '/api/ai/generate/email');
-    $register('POST',   '/api/ai/generate/segment');
-    $register('POST',   '/api/ai/generate/ad-copy');
+    $register('GET',    '/ai/settings');
+    $register('POST',   '/ai/settings');
+    $register('POST',   '/ai/generate/email');
+    $register('POST',   '/ai/generate/segment');
+    $register('POST',   '/ai/generate/ad-copy');
     // Channel Sync
     $register('GET',    '/api/channel-sync/status');
     $register('POST',   '/api/channel-sync/credentials');

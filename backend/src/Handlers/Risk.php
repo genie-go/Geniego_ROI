@@ -141,6 +141,7 @@ final class Risk {
     }
 
     public static function seed(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 write — admin 전용
         $pdo = Db::pdo();
         $now = gmdate('c');
 
@@ -169,6 +170,7 @@ final class Risk {
     }
 
     public static function adminModels(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 조회 — admin 전용
         $pdo = Db::pdo();
         $rows = $pdo->query("SELECT * FROM risk_model_registry ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
@@ -186,6 +188,7 @@ final class Risk {
     }
 
     public static function adminPredictions(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 조회 — admin 전용
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
         $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
@@ -211,6 +214,7 @@ final class Risk {
     }
 
     public static function adminConnectorHealth(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 조회 — admin 전용
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
         $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
@@ -231,6 +235,7 @@ final class Risk {
     }
 
     public static function adminIngestionRuns(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 조회 — admin 전용
         $pdo = Db::pdo();
         $qp = $request->getQueryParams();
         $tenantId = self::tenantId($request); // [P0] query tenant_id 신뢰 제거 — auth_tenant 강제
@@ -257,6 +262,7 @@ final class Risk {
     }
 
     public static function adminBilling(Request $request, Response $response, array $args): Response {
+        if ($e = UserAuth::requirePlan($request, $response, 'admin')) return $e; // [현 차수] 플랫폼 전역 조회 — admin 전용
         $pdo = Db::pdo();
         // [P0 보안] tenant_subscription 전 테넌트 덤프 차단 — 호출 테넌트 구독만 노출.
         //   (플랫폼 admin 의 전 테넌트 뷰는 세션 기반 admin 게이트 /v423~426/admin/* 가 담당.)

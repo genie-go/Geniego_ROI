@@ -9,6 +9,7 @@ import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
 import { initWebVitals } from "./utils/webVitals.js";
 import { initNative } from "./native/capacitorInit.js";
+import { safeReload } from "./services/unsavedGuard.js"; // [현 차수] 미저장 입력이 있으면 자동 새로고침 보류
 import "./styles.css";
 import "./native/native.css";
 
@@ -29,12 +30,13 @@ class RootErrorBoundary extends Component {
   }
   componentDidCatch(err, info) {
     console.error('[RootErrorBoundary] Critical crash:', err, info);
-    // ChunkLoadError → 자동 새로고침 (1회만)
+    // ChunkLoadError → 자동 새로고침 (1회만). [현 차수] 미저장 입력이 있으면 보류하고 복구 UI 를 띄운다.
     const isChunkError = err?.name === 'ChunkLoadError' || String(err).includes('Failed to fetch dynamically imported module');
     if (isChunkError && !sessionStorage.getItem('root_chunk_reloaded')) {
-      sessionStorage.setItem('root_chunk_reloaded', '1');
-      window.location.reload();
-      return;
+      if (safeReload('RootErrorBoundary: chunk load failure')) {
+        sessionStorage.setItem('root_chunk_reloaded', '1');
+        return;
+      }
     }
     sessionStorage.removeItem('root_chunk_reloaded');
   }
@@ -82,21 +84,30 @@ class RootErrorBoundary extends Component {
 
 /* 196차 — 배포 중 stale 청크(삭제된 lazy 모듈) 로드 실패 자동복구.
  * SPA 세션 중 새 배포가 나오면 옛 번들이 사라진 청크를 import 시도 → 실패가 error/
- * unhandledrejection 으로 샘(ErrorBoundary 미도달) → 흰 화면·깨진 렌더·"t is not defined".
- * 모든 경로에서 청크/모듈 로드 실패를 감지해 1회 자동 새로고침(no-cache index.html→최신 번들). */
+ * unhandledrejection 으로 샘(ErrorBoundary 미도달) → 흰 화면·깨진 렌더.
+ * 모든 경로에서 청크/모듈 로드 실패를 감지해 1회 자동 새로고침(no-cache index.html→최신 번들).
+ *
+ * [현 차수] ★자동 새로고침 오발 2건 수정 — "입력 중이던 자료가 사라진다" 의 직접 원인이었다.
+ *   ① 판정 범위: STALE_RE 가 `is not defined` / `ReferenceError` / `Invalid hook call` 까지 잡아,
+ *      청크와 무관한 일반 런타임 오류(서드파티 스크립트 포함) 하나만 나도 전체 페이지를 새로고침했다.
+ *      → 진짜 청크/모듈 로드 실패 패턴만 남긴다(CHUNK_RE 와 동일 소스로 통일).
+ *   ② 재발 가드: 로드 8초 뒤 플래그를 지워 "세션당 1회"가 무효(매번 리로드)였다. 반대로 아예 안 지우면
+ *      탭 수명당 1회뿐이라 2차 배포 때 청크404를 복구 못 한다. → **60초 시간창**: 마지막 자동복구 후
+ *      60초 이내 재발이면 무한루프로 보고 억제, 60초 지난 재발(새 배포)이면 1회 더 복구 허용.
+ *   ③ 미저장 입력이 있으면 자동 새로고침을 보류한다(safeReload). */
 const CHUNK_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS/i;
-// stale 번들 불일치는 2차로 미니파이 변수 미스매치(ReferenceError "x is not defined")로도 샌다.
-// → 이런 증상도 1회 자동복구·거짓경보 정리 대상에 포함(현재 빌드는 clean 검증됨).
-const STALE_RE = /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed|Unable to preload CSS|is not defined|ReferenceError|Minified React error #(?:300|310|321)|Invalid hook call/i;
+const STALE_RE = CHUNK_RE;
+const STALE_RELOAD_WINDOW_MS = 60000;
 function recoverFromStaleChunk(msg) {
   if (!STALE_RE.test(String(msg || ''))) return false;
-  if (sessionStorage.getItem('stale_chunk_reloaded')) return false; // 무한루프 방지(1회)
-  sessionStorage.setItem('stale_chunk_reloaded', '1');
-  try { window.location.reload(); } catch (e) { window.location.href = window.location.href; }
+  try {
+    const last = parseInt(sessionStorage.getItem('stale_chunk_reloaded') || '0', 10) || 0;
+    if (last && (Date.now() - last) < STALE_RELOAD_WINDOW_MS) return false; // 60초 내 재발 = 무한루프 억제
+  } catch (e) { /* sessionStorage 불가 시 아래 진행 */ }
+  if (!safeReload('main: stale chunk load failure')) return false;  // 미저장 입력 있으면 보류(플래그도 남기지 않음)
+  try { sessionStorage.setItem('stale_chunk_reloaded', String(Date.now())); } catch (e) {}
   return true;
 }
-// 정상 부팅이 일정 시간 유지되면 플래그 해제(다음 배포 때 다시 1회 복구 가능)
-window.addEventListener('load', () => { setTimeout(() => { try { sessionStorage.removeItem('stale_chunk_reloaded'); } catch (e) {} }, 8000); });
 
 // 196차: 거짓 "위협 감지" 경보 정리 — ①stale 번들 에러(청크/모듈/ReferenceError) ②DevTools 열림
 //   모니터링(정상 디버깅을 위협으로 오인하던 알림). 실제 보안 이벤트는 보존.

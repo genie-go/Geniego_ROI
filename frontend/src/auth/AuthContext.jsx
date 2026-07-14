@@ -1,5 +1,6 @@
 import React, { useEffect, createContext, useCallback, useContext, useRef, useState, useMemo } from "react";
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
+import { allowNavigation } from '../services/unsavedGuard.js'; // [현 차수] 앱 주도 이탈 시 미저장 경고 통과
 import { planRank, setPlanLabels } from "./plans.js";
 import { menuAllowedByTier, isAdminOnlyMenu } from "./planMenuPolicy.js"; // 181차 플랜별 메뉴접근 초고도화
 import { normalizeTeamRole, canWrite as canTeamRoleWrite, isReadOnlyRole } from "./teamRolePolicy.js"; // 183차 Phase3 팀역할 RBAC
@@ -169,6 +170,7 @@ export function AuthProvider({ children }) {
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
             try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+            allowNavigation(); // 유휴 자동 로그아웃 — 미저장 경고 없이 통과(토큰은 이미 폐기됨)
             try { window.location.href = "/login?reason=idle"; } catch {}
         };
         // 영속 활동시각과 메모리 ref 중 최신(=가장 최근 활동)을 기준으로 경과 계산.
@@ -528,6 +530,7 @@ export function AuthProvider({ children }) {
 
     /* ── 로그아웃 ── */
     const logout = useCallback(() => {
+        allowNavigation(); // 사용자 주도 로그아웃 — 미저장 경고 통과(초안은 아래에서 스윕)
         if (token) {
             fetch(`${API}/auth/logout`, {
                 method: "POST",
@@ -540,6 +543,13 @@ export function AuthProvider({ children }) {
         localStorage.removeItem(REMEMBER_KEY);            // 189차 자동 로그인 플래그 정리
         localStorage.removeItem(LAST_ACTIVITY_KEY);       // 262차: 유휴 활동시각 영속본 정리
         try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+        // [현 차수] ★상품등록 초안 prefix 스윕 — tenantId 를 이미 지웠으므로 정확한 키가 아니라 prefix 로 제거해야 한다.
+        //   테넌트 스코프 키(genie_product_draft_v1::t=<tenant>)가 남아 다음 로그인 회원에게 원가 등 영업기밀이 새는 것을 차단.
+        try {
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('genie_product_draft_v1')) localStorage.removeItem(k);
+            });
+        } catch { /* ignore */ }
         localStorage.removeItem('tenantId'); // 180차: 회원 전환 시 이전 계정 격리 식별자 제거(누출 차단)
         // 180차: 회원 sessionStorage(같은 탭 순차 로그인 누출 방지) 정리 — aihub_* 등 비즈니스 캐시
         try {

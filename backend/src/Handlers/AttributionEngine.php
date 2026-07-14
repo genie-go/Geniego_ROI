@@ -1197,7 +1197,7 @@ final class AttributionEngine
             try {
                 $rs = $pdo->prepare('SELECT channel_order_id, MAX(COALESCE(total_price,0)) rev FROM channel_orders '
                     . 'WHERE tenant_id = ? AND channel_order_id IN (' . $ph . ') '
-                    . "AND COALESCE(event_type,'order') NOT IN ('cancel','return') GROUP BY channel_order_id");
+                    . 'AND NOT (' . OrderHub::observedExclusionInline() . ') GROUP BY channel_order_id'); // [현 차수] 취소제외 2축 SSOT
                 $rs->execute(array_merge([$tenant], $chunk));
                 foreach ($rs->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) $revMap[(string)$r['channel_order_id']] = (float)$r['rev'];
             } catch (\Throwable $e) { /* 스키마 변형 폴백 — extra_json 사용 */ }

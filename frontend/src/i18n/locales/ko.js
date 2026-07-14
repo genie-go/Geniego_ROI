@@ -6060,6 +6060,10 @@ export default {
   "dir": "ltr",
 
   common: {"loading": "불러오는 중…",
+    "versionReady": "새 버전이 준비됐습니다",
+    "versionApplyNow": "지금 적용",
+    "versionSaveFirst": "작성 중인 내용을 저장한 뒤 적용하세요",
+    "later": "나중에",
     pipeline: "파이프라인",
     errorLog: "오류 로그",
     settlement: "정산",

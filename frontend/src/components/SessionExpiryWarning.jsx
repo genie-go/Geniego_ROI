@@ -6,6 +6,7 @@
  * - 카운트다운 타이머
  */
 import React, { useState, useEffect, useRef } from 'react';
+import { allowNavigation } from '../services/unsavedGuard.js'; // [현 차수] 세션만료 이탈 시 미저장 경고 통과
 
 const WARN_BEFORE   = 5 * 60 * 1000;     // 5 min before
 
@@ -62,6 +63,7 @@ export default function SessionExpiryWarning() {
         setShow(false);
         ['genie_token', 'demo_genie_token', 'genie_last_activity', 'demo_genie_last_activity'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
         try { sessionStorage.removeItem('genie_sess_active'); sessionStorage.removeItem('demo_genie_sess_active'); } catch (e) {}
+        allowNavigation();
         window.location.href = '/login?reason=expired';
       } else if (left <= WARN_BEFORE) {
         setRemaining(Math.ceil(left / 1000));

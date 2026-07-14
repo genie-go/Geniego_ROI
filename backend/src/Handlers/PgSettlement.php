@@ -224,7 +224,8 @@ final class PgSettlement
         } catch (\Throwable $e) {}
         $orders = [];
         try {
-            $st = $pdo->prepare("SELECT id, channel, channel_order_id, order_no, total_price, ordered_at, status FROM channel_orders WHERE tenant_id=? AND COALESCE(event_type,'order') NOT IN ('cancel','return') AND total_price > 0 ORDER BY ordered_at DESC, id DESC LIMIT 5000");
+            // [현 차수] 취소/반품 제외 2축 SSOT — status 토큰 취소('취소완료' 등)를 정산 매칭 후보에서 제외.
+            $st = $pdo->prepare("SELECT id, channel, channel_order_id, order_no, total_price, ordered_at, status FROM channel_orders WHERE tenant_id=? AND NOT (" . \Genie\Handlers\OrderHub::observedExclusionInline() . ") AND total_price > 0 ORDER BY ordered_at DESC, id DESC LIMIT 5000");
             $st->execute([$tenant]); $orders = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) {}
         // 인덱스: order_ref(채널주문ID/주문번호) 및 금액버킷(round).

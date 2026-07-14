@@ -64,6 +64,9 @@ class PriceOpt
             'minor_purchase TEXT', 'mfg_date TEXT', 'expiry_date TEXT',
             'return_ship_fee INTEGER', 'exchange_ship_fee INTEGER',
             'ship_use_default INTEGER DEFAULT 1', 'release_addr TEXT', 'return_addr TEXT', 'return_courier TEXT',
+            // [현 차수] 판매채널 카테고리 코드(11번가 dispCtgrNo 등). 상품등록 폼에서 "카테고리 확인" 팝업으로
+            //   고른 채널 정본 코드를 상품에 보관 → 채널 전송 시 그대로 사용(매번 다시 고를 필요 없음).
+            'category_code TEXT',
         ] as $col) {
             try { $pdo->exec("ALTER TABLE po_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
@@ -340,13 +343,15 @@ class PriceOpt
              brand, manufacturer, origin, model_name, barcode, tax_type, ship_method, ship_fee_type, ship_fee,
              as_phone, as_guide, warranty, detail_html, images_json, options_json, option_stocks_json,
              notice_category, notice_json, kc_type, kc_cert_no, minor_purchase, mfg_date, expiry_date,
-             return_ship_fee, exchange_ship_fee, ship_use_default, release_addr, return_addr, return_courier)
+             return_ship_fee, exchange_ship_fee, ship_use_default, release_addr, return_addr, return_courier,
+             category_code)
             VALUES (:t, :sku, :pn, :cp, :tm, :bp, :unit, :ts,
              :cat, :spec, :io, :stor, :work, :ship, :pc, :qpb, :bpp, :ist, :sb, :sp, :img,
              :brand, :mfr, :origin, :model, :barcode, :tax, :shipm, :shipft, :shipf,
              :asp, :asg, :warr, :detail, :imgs, :opts, :ostk,
              :ncat, :njson, :kct, :kcno, :minor, :mfgd, :expd,
-             :rfee, :efee, :shipdef, :reladdr, :retaddr, :retcour)");
+             :rfee, :efee, :shipdef, :reladdr, :retaddr, :retcour,
+             :catcode)");
         $stmt->execute([
             ':t'    => $t,
             ':sku'  => $sku,
@@ -399,6 +404,8 @@ class PriceOpt
             ':reladdr'=> $strOrNull('release_addr'),
             ':retaddr'=> $strOrNull('return_addr'),
             ':retcour'=> $strOrNull('return_courier'),
+            // [현 차수] 판매채널 카테고리 코드(11번가 dispCtgrNo 등)
+            ':catcode'=> $strOrNull('category_code'),
         ]);
         // [현 차수] 옵션재고 → WMS 재고 반영(옵션 조합별 SKU 재고 upsert + 입고 이동 기록). best-effort.
         self::reflectStockToWms($t, $sku, $body['product_name'] ?? $sku, $body, $intOrNull('initial_stock') ?? 0);
@@ -553,7 +560,11 @@ class PriceOpt
             'io_fee','storage_fee','work_fee','shipping_fee','purchase_cost','qty_per_box','boxes_per_pallet',
             'initial_stock','stock_boxes','stock_pallets','product_image',
             'brand','manufacturer','origin','model_name','barcode','tax_type','ship_method','ship_fee_type','ship_fee',
-            'as_phone','as_guide','warranty','detail_html'];
+            'as_phone','as_guide','warranty','detail_html',
+            // [현 차수] ★category_code(11번가 dispCtgrNo 등) + 고시/배송 필드 — 화이트리스트 누락으로 상품 수정 시
+            //   조용히 유실되던 잠복 버그. 이제 수정으로도 표시카테고리 코드가 영속된다.
+            'category_code','notice_category','notice_json','kc_type','kc_cert_no','minor_purchase','mfg_date','expiry_date',
+            'return_ship_fee','exchange_ship_fee','return_courier'];
         foreach ($scalarFields as $f) {
             if (array_key_exists($f, $body)) { $sets[] = "$f = :$f"; $params[":$f"] = $body[$f]; }
         }
@@ -1292,10 +1303,11 @@ class PriceOpt
             }
             // 판매속도: 최근 days 일 판매수량(channel_orders, 취소 제외).
             $since = gmdate('Y-m-d', time() - $days * 86400);
-            // [259차] 취소/반품 제외를 event_type SSOT 로 통일(과거 영문 status 4토큰만 → 국내채널 한국어 status '취소완료' 등 미제외로 velocity 과대·품절오판). 형제 harvestElasticity/deadStock 와 동일.
+            // [현 차수] 취소/반품 제외를 OrderHub 2축 SSOT(event_type+status)로 통일 — 종전 인라인은 event_type 축만 봐서
+            //   국내채널 status 토큰 취소('취소완료' 등)를 놓쳐 velocity 과대·품절오판. 이제 형제 harvestElasticity(:266)와 진짜 동일.
             $v = $main->prepare("SELECT sku, SUM(qty) q FROM channel_orders
                                  WHERE tenant_id=? AND sku<>'' AND COALESCE(ordered_at,synced_at)>=?
-                                   AND COALESCE(event_type,'order') NOT IN ('cancel','return')
+                                   AND NOT (" . \Genie\Handlers\OrderHub::observedExclusionInline() . ")
                                  GROUP BY sku");
             $v->execute([$t, $since]);
             foreach ($v->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {

@@ -80,7 +80,7 @@ final class AttributionMetrics
                 // [현 차수 감사 P2] 취소/반품 주문 매출 제외 — 대시보드(OrderHub::cancelExclusion)와 정합. LEFT JOIN ON 에
                 //   넣어 취소주문은 매칭 0(revenue=0 COALESCE)·터치행 자체는 보존(LEFT 유지·회귀 0).
                 . 'LEFT JOIN channel_orders o ON o.tenant_id = t.tenant_id AND o.channel_order_id = t.order_id '
-                . "AND COALESCE(o.event_type,'order') NOT IN ('cancel','return') "
+                . 'AND NOT (' . \Genie\Handlers\OrderHub::observedExclusionInline('o') . ') ' // [현 차수] 취소제외 2축 SSOT(status 토큰 포함)
                 . 'WHERE t.tenant_id = :t AND t.channel IS NOT NULL AND t.session_id IS NOT NULL '
                 . 'GROUP BY t.session_id '
                 . 'ORDER BY last_touch DESC LIMIT 500';

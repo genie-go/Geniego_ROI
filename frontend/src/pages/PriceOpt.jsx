@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { markDirty, clearDirty } from '../services/unsavedGuard.js'; // [현 차수] 작성 중 자동 새로고침 차단
+import { tChannelName, tScopedKey } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { useAuth } from "../auth/AuthContext.jsx";
 import ProductSelectBar from '../components/dashboards/ProductSelectBar.jsx';
 import ProductMarketingPanel from '../components/dashboards/ProductMarketingPanel.jsx';
@@ -254,6 +255,34 @@ function SummaryTab({ token }) {
     );
 }
 
+// [현 차수] 상품등록 폼 초기값 — 초안 "버리고 새로 작성" 시 전 필드 완전 리셋에 재사용(부분 리셋로 dirty 잔존 방지).
+const INITIAL_FORM = {
+    sku: "", product_name: "", category: "", spec: "", unit: "unitEach",
+    // 판매채널 카테고리 코드(11번가 dispCtgrNo 등). "카테고리 확인" 팝업에서 채널 정본 코드를 고른다.
+    category_code: "",
+    cost_price: "", io_fee: "", storage_fee: "", work_fee: "", shipping_fee: "",
+    target_margin: "0.30", base_price: "",
+    qty_per_box: "", boxes_per_pallet: "", initial_stock: "",
+    stock_input_type: "each",
+    product_image: null, image_preview: null,
+    brand: "", manufacturer: "", origin: "대한민국", model_name: "", barcode: "",
+    tax_type: "taxable", ship_method: "courier", ship_fee_type: "free", ship_fee: "",
+    as_phone: "", as_guide: "", warranty: "",
+    detail_html: "",
+    notice_category: "etc",
+    kc_type: "none",
+    kc_cert_no: "",
+    minor_purchase: "yes",
+    mfg_date: "",
+    expiry_date: "",
+    return_ship_fee: "",
+    exchange_ship_fee: "",
+    ship_use_default: true,
+    release_addr: "",
+    return_addr: "",
+    return_courier: "",
+};
+
 const CAT_KEYS = ['catElecAudio','catElecInput','catElecAccessory','catElecCamera','catElecCharging','catFashionClothing','catFashionShoes','catBeautySkin','catBeautyMakeup','catFoodHealth','catHomeKitchen','catSportsGear','catBooksStationery','catToysHobbies'];
 const UNIT_KEYS = ['unitEach','unitDevice','unitBottle','unitSet','unitBox','unitPallet'];
 
@@ -263,33 +292,7 @@ function ProductsTab({ token }) {
     const { t } = useI18n();
     const { inventory } = useGlobalData();
     const [products, setProducts] = useState([]);
-    const [form, setForm] = useState({
-        sku: "", product_name: "", category: "", spec: "", unit: "unitEach",
-        cost_price: "", io_fee: "", storage_fee: "", work_fee: "", shipping_fee: "",
-        target_margin: "0.30", base_price: "",
-        // ── Enterprise: Box/Pallet/Image/Stock ──
-        qty_per_box: "", boxes_per_pallet: "", initial_stock: "",
-        stock_input_type: "each", // each | box | pallet
-        product_image: null, image_preview: null,
-        // ── [현 차수] 국내 쇼핑몰 필수/권장 항목 + 상세HTML ──
-        brand: "", manufacturer: "", origin: "대한민국", model_name: "", barcode: "",
-        tax_type: "taxable", ship_method: "courier", ship_fee_type: "free", ship_fee: "",
-        as_phone: "", as_guide: "", warranty: "",
-        detail_html: "",
-        // ── [276차] 상품정보제공고시(법정) + 플랫폼 필수 보강 ──
-        notice_category: "etc",   // 품목 key (productNoticeTemplates)
-        kc_type: "none",          // none | target(인증대상) | supplier(공급자적합성확인) | exempt(해당없음)
-        kc_cert_no: "",           // KC 인증번호
-        minor_purchase: "yes",    // yes | no (미성년자 구매 가능 여부)
-        mfg_date: "",             // 제조연월일
-        expiry_date: "",          // 유효일자(유통/사용기한)
-        return_ship_fee: "",      // 반품 배송비
-        exchange_ship_fee: "",    // 교환 배송비
-        ship_use_default: true,   // 배송/반품지: 계정 공통 기본값 사용
-        release_addr: "",         // (예외 시) 출고지
-        return_addr: "",          // (예외 시) 반품지
-        return_courier: "",       // (예외 시) 택배사
-    });
+    const [form, setForm] = useState(() => ({ ...INITIAL_FORM }));
     // [276차] 상품정보제공고시 항목값 { 항목라벨: 값 }
     const [noticeItems, setNoticeItems] = useState({});
     // [276차] 계정 공통 배송/반품 설정(출고지·반품지·택배사·기본배송비)
@@ -309,13 +312,100 @@ function ProductsTab({ token }) {
     const [pubMsg, setPubMsg] = useState({});              // { [sku]: {text, ok} }
     // [277차] 채널 카테고리 선택 — 네이버 등은 신규등록에 leafCategoryId 가 필수인데 앱에 조회수단이 없어
     //   모든 등록이 거부됐다. 서버가 카테고리 필요를 알리면 이 모달로 검색·선택해 즉시 재전송한다.
-    const [catModal, setCatModal] = useState(null);        // {product, channel}
+    //   [현 차수] formMode:true 면 "카테고리 확인" 버튼으로 연 브라우저 — 고른 코드를 폼에 채우기만 하고 전송하지 않는다.
+    const [catModal, setCatModal] = useState(null);        // {product, channel} | {formMode:true, channel}
     const [catQuery, setCatQuery] = useState("");
     const [catList, setCatList] = useState([]);
     const [catLoading, setCatLoading] = useState(false);
     const [catErr, setCatErr] = useState("");
+    // [현 차수] 카테고리 조회 API 가 없는 채널(11번가)용 — 채널 공식 카테고리 파일 적재 상태.
+    const [catImportable, setCatImportable] = useState(false); // 서버가 import_supported 를 알린 채널인가
+    const [catImporting, setCatImporting] = useState(false);
+    const [catImportPreview, setCatImportPreview] = useState(null); // {rows, sample, fileName}
+    const [catManual, setCatManual] = useState("");            // 코드 직접 입력
     const [dragOver, setDragOver] = useState(false);
     const [searchQuery, setSearchQuery] = useState(""); // 206차 #6: 등록 제품 검색
+
+    /* ═══ [현 차수] 상품등록 초안 자동저장 — 입력 자료 유실 방지의 최후 방어선 ═══
+     * 상품등록 폼(기본정보·필수정보·고시·옵션·이미지·상세HTML)은 전부 메모리 state 였다.
+     * 그래서 어떤 이유로든 페이지가 다시 뜨면(자동 새로고침·크래시 복구·실수로 새로고침·탭 닫기)
+     * 채우던 내용이 통째로 사라졌다. 자동 새로고침 경로들은 별도로 제거했지만(unsavedGuard),
+     * "다시 떠도 잃지 않는다"는 보장이 있어야 진짜 안전하다.
+     *   · 입력이 있으면 unsavedGuard 에 dirty 등록 → 앱의 자동 새로고침이 보류되고 탭 닫기 시 경고.
+     *   · 500ms 디바운스로 localStorage 에 초안 저장 → 재진입 시 그대로 복구.
+     *   · 저장 성공 시에만 초안 삭제. */
+    // [현 차수] ★테넌트 스코프 필수 — 공용 PC 에서 A 로그아웃→B 로그인 시 A 의 상품초안(원가 등 영업기밀)이
+    //   B 폼에 복구되는 계정 간 누출을 막는다(180차 tScopedKey 정본). logout 은 prefix 스윕으로 제거.
+    const DRAFT_KEY = tScopedKey('genie_product_draft_v1');
+    const draftLoaded = useRef(false);
+    const [draftRestored, setDraftRestored] = useState(false);
+    const [draftImagesDropped, setDraftImagesDropped] = useState(0);
+
+    // 사용자가 실제로 무언가 입력했는가(빈 폼은 초안으로 취급하지 않는다).
+    const hasInput = useMemo(() => {
+        const meaningful = ['sku', 'product_name', 'category', 'spec', 'cost_price', 'base_price',
+            'brand', 'manufacturer', 'model_name', 'barcode', 'as_phone', 'as_guide', 'warranty',
+            'kc_cert_no', 'mfg_date', 'expiry_date', 'detail_html'];
+        if (meaningful.some(k => String(form[k] || '').trim() !== '')) return true;
+        if (images.length || optGroups.length || combos.length) return true;
+        if (Object.values(noticeItems).some(v => String(v || '').trim() !== '')) return true;
+        return false;
+    }, [form, images, optGroups, combos, noticeItems]);
+
+    // 최초 마운트 1회 — 저장된 초안 복구.
+    useEffect(() => {
+        if (draftLoaded.current) return;
+        draftLoaded.current = true;
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            if (!d || typeof d !== 'object') return;
+            if (d.form) setForm(prev => ({ ...prev, ...d.form }));
+            if (d.noticeItems) setNoticeItems(d.noticeItems);
+            if (Array.isArray(d.images)) setImages(d.images);
+            if (Array.isArray(d.optGroups)) setOptGroups(d.optGroups);
+            if (Array.isArray(d.combos)) setCombos(d.combos);
+            setDraftRestored(true);
+            setDraftImagesDropped(Number(d.imagesDropped) || 0);
+        } catch (e) { /* 손상된 초안은 무시 */ }
+    }, []);
+
+    // 입력 변화 → dirty 등록 + 디바운스 저장.
+    useEffect(() => {
+        if (!draftLoaded.current) return;
+        if (!hasInput) { clearDirty('priceopt:product-form'); return; }
+        markDirty('priceopt:product-form');
+        const timer = setTimeout(() => {
+            // [현 차수] 이미지 dataURL(장당 1~5MB)은 초안에서 제외한다 — 8장이면 20~50MB 문자열이라
+            //   ①타이핑마다 stringify 로 메인스레드 프리즈 ②localStorage 5MB 상한 초과. 텍스트 입력 보존이 목적이므로
+            //   이미지는 개수만 기록하고, 복구 배너에서 "이미지는 다시 첨부하세요"로 정직하게 안내한다.
+            const imgEst = images.reduce((s, u) => s + (typeof u === 'string' ? u.length : 0), 0);
+            const keepImages = imgEst > 0 && imgEst <= 1_200_000; // 소형(URL 등)만 보존
+            const payload = { form, noticeItems, optGroups, combos, at: Date.now(),
+                images: keepImages ? images : [],
+                imagesDropped: keepImages ? 0 : images.length };
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+            } catch (e) {
+                try {
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...payload, images: [], imagesDropped: images.length }));
+                } catch (e2) { /* 그래도 실패하면 포기(메모리 state 는 유지됨) */ }
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [form, noticeItems, images, optGroups, combos, hasInput]);
+
+    // 저장 성공·초안 삭제 시 호출.
+    const discardDraft = useCallback(() => {
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        clearDirty('priceopt:product-form');
+        setDraftRestored(false);
+        setDraftImagesDropped(0);
+    }, [DRAFT_KEY]);
+
+    // 페이지를 떠날 때 dirty 해제(초안 자체는 localStorage 에 남겨 재진입 시 복구).
+    useEffect(() => () => clearDirty('priceopt:product-form'), []);
 
     // ★ inventory → PriceOpt products 변환 (데모 폴백)
     const inventoryProducts = useMemo(() => {
@@ -458,7 +548,9 @@ function ProductsTab({ token }) {
                 detail_html: p.detail_html || '',
                 image_url: p.product_image || imgs[0] || '',
                 images: imgs,
-                ...(categoryCode ? { category_code: categoryCode } : {}),
+                // [현 차수] 이번 호출에 명시된 코드 > 상품에 저장된 채널 카테고리 코드(등록 폼의 "카테고리 확인"에서 선택).
+                //   상품에 코드가 있으면 11번가처럼 카테고리가 필수인 채널도 재선택 없이 바로 전송된다.
+                ...((categoryCode || p.category_code) ? { category_code: categoryCode || p.category_code } : {}),
                 // [277차] 채널 필수 메타 — 네이버는 상품정보제공고시·배송/반품·AS·원산지·미성년자 없이 등록을 거부한다.
                 //   276차 상품등록 폼이 이미 수집해 po_products 에 보관 중인 값을 그대로 전달.
                 notice_category: p.notice_category || '',
@@ -509,18 +601,97 @@ function ProductsTab({ token }) {
         }
     };
 
-    /** [277차] 채널 카테고리 검색 — 최초 호출 시 서버가 채널에서 전체 카탈로그(네이버 5,827건)를 수집·캐시한다. */
+    /** [277차] 채널 카테고리 검색 — 최초 호출 시 서버가 채널에서 전체 카탈로그(네이버 5,827건)를 수집·캐시한다.
+     *  [현 차수] 11번가처럼 카테고리 조회 API 가 없는 채널은 서버가 import_supported 를 알린다 →
+     *  팝업이 "채널 공식 카테고리 파일 올리기" 경로를 연다. 한 번 올리면 이후엔 네이버와 동일하게 검색·선택된다. */
     const searchCategories = useCallback(async (channel, term) => {
         setCatLoading(true); setCatErr("");
         try {
             const qs = new URLSearchParams({ channel, ...(term ? { q: term } : {}) }).toString();
             const d = await getJsonAuth(`/api/catalog/channel-categories?${qs}`);
-            if (!d.ok) { setCatErr(d.hint || d.error || t('priceOpt.catFail', '카테고리를 불러오지 못했습니다')); setCatList([]); }
-            else setCatList(d.categories || []);
+            if (!d.ok) {
+                setCatErr(d.hint || d.error || t('priceOpt.catFail', '카테고리를 불러오지 못했습니다'));
+                setCatList([]);
+                setCatImportable(!!d.import_supported);
+            } else {
+                setCatList(d.categories || []);
+                setCatImportable(false);
+            }
         } catch (e) {
             setCatErr(e.message); setCatList([]);
         } finally { setCatLoading(false); }
     }, [t]);
+
+    /* ═══ [현 차수] 채널 공식 카테고리 파일 → 카탈로그 적재 ═══
+     * 11번가는 카테고리 목록 조회 API 를 제공하지 않는다(공식 개발가이드 확인). 그렇다고 코드를
+     * 임의 생성하면 엉뚱한 카테고리로 상품이 등록된다 → 채널이 제공하는 공식 파일만 정본으로 받는다.
+     * 파일의 컬럼 구성은 채널·시점마다 다르므로, 헤더를 추정한 뒤 반드시 미리보기로 사용자 확인을 받는다. */
+    const parseCategoryFile = async (file) => {
+        setCatErr(""); setCatImportPreview(null);
+        try {
+            const XLSX = (await import('xlsx')).default || await import('xlsx');
+            const wb = XLSX.read(await file.arrayBuffer());
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false });
+            if (!aoa.length) throw new Error(t('priceOpt.catFileEmpty', '파일이 비어 있습니다'));
+
+            const header = (aoa[0] || []).map(h => String(h ?? '').trim());
+            const body = aoa.slice(1).filter(r => Array.isArray(r) && r.some(c => String(c ?? '').trim() !== ''));
+            if (!body.length) throw new Error(t('priceOpt.catFileEmpty', '파일이 비어 있습니다'));
+
+            // 코드 열 추정: 헤더에 코드/code/ctgr/no 가 있고, 값이 대체로 숫자인 열.
+            const isCodeHeader = h => /코드|code|ctgr|번호|no\.?$/i.test(h);
+            const numericRatio = i => {
+                const vals = body.slice(0, 50).map(r => String(r[i] ?? '').trim()).filter(Boolean);
+                if (!vals.length) return 0;
+                return vals.filter(v => /^\d{3,}$/.test(v)).length / vals.length;
+            };
+            let codeIdx = header.findIndex((h, i) => isCodeHeader(h) && numericRatio(i) >= 0.6);
+            if (codeIdx < 0) {
+                // 헤더가 없거나 이름이 다른 파일 — 숫자 비율이 가장 높은 열을 코드로 본다.
+                let best = -1, bestR = 0;
+                header.forEach((_, i) => { const r = numericRatio(i); if (r > bestR) { bestR = r; best = i; } });
+                if (bestR >= 0.6) codeIdx = best;
+            }
+            if (codeIdx < 0) throw new Error(t('priceOpt.catFileNoCode', '카테고리 코드 열을 찾지 못했습니다. 코드와 카테고리명이 있는 파일인지 확인하세요.'));
+
+            // 이름 열: 코드 열을 뺀 나머지 텍스트 열 전부 → 대/중/소/세분류를 " > " 로 이어 전체경로를 만든다.
+            const nameIdxs = header.map((_, i) => i).filter(i => i !== codeIdx);
+            const rows = [];
+            for (const r of body) {
+                const code = String(r[codeIdx] ?? '').trim();
+                if (!/^\d{2,}$/.test(code)) continue;                       // 코드 아닌 행(설명·머리글 등) 제외
+                const parts = nameIdxs.map(i => String(r[i] ?? '').trim()).filter(Boolean);
+                if (!parts.length) continue;
+                rows.push({ code, name: parts[parts.length - 1], whole: parts.join(' > '), leaf: 1 });
+            }
+            if (!rows.length) throw new Error(t('priceOpt.catFileNoRow', '인식된 카테고리가 없습니다. 파일 형식을 확인하세요.'));
+
+            // 같은 코드가 여러 번 나오면 마지막 것만(가장 구체적인 경로) 남긴다.
+            const dedup = new Map();
+            rows.forEach(r => dedup.set(r.code, r));
+            const finalRows = Array.from(dedup.values());
+            setCatImportPreview({ rows: finalRows, sample: finalRows.slice(0, 3), fileName: file.name });
+        } catch (e) {
+            setCatErr(e.message || String(e));
+        }
+    };
+
+    const confirmCategoryImport = async (channel) => {
+        if (!catImportPreview) return;
+        setCatImporting(true); setCatErr("");
+        try {
+            const d = await postJsonAuth('/api/catalog/channel-categories/import', {
+                channel, rows: catImportPreview.rows, replace: true,
+            });
+            if (!d.ok) throw new Error(d.error || t('priceOpt.catImportFail', '카테고리 적재에 실패했습니다'));
+            setCatImportPreview(null);
+            setCatImportable(false);
+            await searchCategories(channel, catQuery);
+        } catch (e) {
+            setCatErr(e.message || String(e));
+        } finally { setCatImporting(false); }
+    };
 
     // 모달이 열리면 초기 검색 1회.
     useEffect(() => {
@@ -543,6 +714,8 @@ function ProductsTab({ token }) {
                 sku: form.sku,
                 product_name: form.product_name,
                 category: form.category,
+                // [현 차수] "카테고리 확인" 팝업에서 고른 채널 정본 코드(11번가 dispCtgrNo 등)를 상품에 보관.
+                category_code: form.category_code,
                 spec: form.spec,
                 unit: form.unit,
                 cost_price: productCost != null ? productCost : (parseFloat(form.cost_price) || 0),
@@ -594,7 +767,8 @@ function ProductsTab({ token }) {
         }
         setMsg(d.ok ? `\u2705 ${t('priceOpt.excelUploadSuccess')}: ${form.sku}` : `\u274c ${d.error || JSON.stringify(d)}`);
         load();
-        if (d.ok) broadcastProductUpdate();
+        // [\ud604 \ucc28\uc218] \uc11c\ubc84 \uc800\uc7a5\uc774 \ud655\uc815\ub41c \uacbd\uc6b0\uc5d0\ub9cc \ucd08\uc548\uc744 \ubc84\ub9b0\ub2e4. \uc2e4\ud328 \uc2dc \ucd08\uc548\uc744 \ub0a8\uaca8 \uc785\ub825\uac12\uc744 \ubcf4\uc874.
+        if (d.ok) { broadcastProductUpdate(); discardDraft(); }
     };
 
     /* ═══ Image handling ═══ */
@@ -866,6 +1040,29 @@ function ProductsTab({ token }) {
                             <input id="prod-img-input" type="file" accept="image/*" multiple onChange={handleImageSelect} style={{ display: 'none' }} />
                         </div>
 
+                        {/* [현 차수] 초안 복구 안내 — 페이지가 다시 떠도 작성 중이던 내용이 사라지지 않는다. */}
+                        {draftRestored && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                                background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.35)',
+                                borderRadius: 8, padding: '8px 10px' }}>
+                                <span style={{ fontSize: 11, color: '#b45309', fontWeight: 700 }}>
+                                    💾 {t('priceOpt.draftRestored', '작성 중이던 내용을 복구했습니다')}
+                                    {draftImagesDropped > 0 && <span style={{ fontWeight: 500, marginLeft: 4 }}>
+                                        · {t('priceOpt.draftImagesDropped', '이미지는 다시 첨부해 주세요')}
+                                    </span>}
+                                </span>
+                                <button type="button" onClick={() => {
+                                    // [현 차수] 전 필드 완전 리셋 — 부분 리셋 시 cost_price 등이 남아 hasInput=true→초안 자동 재저장→dirty 잔존 버그.
+                                    setForm({ ...INITIAL_FORM });
+                                    setNoticeItems({}); setImages([]); setOptGroups([]); setCombos([]);
+                                    discardDraft();
+                                }} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, cursor: 'pointer',
+                                    border: '1px solid rgba(245,158,11,0.4)', background: 'transparent', color: '#b45309', fontWeight: 700 }}>
+                                    {t('priceOpt.draftDiscard', '초안 버리고 새로 작성')}
+                                </button>
+                            </div>
+                        )}
+
                         {/* SKU / Product Name */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                             <div>{lbl("SKU *")}<input style={inpStyle} value={form.sku} onChange={e => set("sku", e.target.value)} placeholder="SKU-001" /></div>
@@ -875,6 +1072,31 @@ function ProductsTab({ token }) {
                             <option value="">{t('priceOpt.categorySelect')}</option>
                             {CAT_KEYS.map(k => <option key={k} value={k}>{t('priceOpt.'+k)}</option>)}
                         </select></div>
+
+                        {/* ── [현 차수] 판매채널 카테고리 코드 ──
+                            11번가는 카테고리 자동 조회 API 가 없어(공식 개발가이드 확인) 코드를 알 방법이 앱 안에 없었다.
+                            → "카테고리 확인" 버튼으로 채널 전체 카테고리 목록 팝업을 열어 코드를 확인·선택한다.
+                            선택한 코드는 상품에 저장되어 채널 전송 시 그대로 쓰인다(매번 다시 고를 필요 없음). */}
+                        <div>
+                            {lbl(t('priceOpt.channelCatCode', '판매채널 카테고리 코드'))}
+                            <div style={{ display: 'flex', gap: 6 }}>
+                                <input style={{ ...inpStyle, flex: 1 }} value={form.category_code}
+                                    onChange={e => set('category_code', e.target.value)}
+                                    placeholder={t('priceOpt.channelCatCodePh', '예: 1001763 (11번가 dispCtgrNo)')} />
+                                <button type="button" onClick={() => {
+                                    setCatErr(""); setCatQuery(""); setCatList([]); setCatManual("");
+                                    setCatImportPreview(null); setCatImportable(false);
+                                    setCatModal({ formMode: true, channel: '11st' });
+                                }} style={{ whiteSpace: 'nowrap', padding: '0 12px', borderRadius: 6, cursor: 'pointer',
+                                    border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.08)',
+                                    color: '#2563eb', fontSize: 11, fontWeight: 800 }}>
+                                    🔎 {t('priceOpt.catCheck', '카테고리 확인')}
+                                </button>
+                            </div>
+                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                                {t('priceOpt.channelCatCodeHint', '11번가는 카테고리 자동 조회를 제공하지 않습니다. 버튼을 눌러 전체 목록에서 코드를 확인·선택하세요.')}
+                            </div>
+                        </div>
                         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>
                             <div>{lbl(t('priceOpt.spec'))}<input style={inpStyle} value={form.spec} onChange={e => set("spec", e.target.value)} placeholder="100x200x50mm, 1kg" /></div>
                             <div>{lbl(t('priceOpt.unit'))}<select style={inpStyle} value={form.unit} onChange={e => set("unit", e.target.value)}>
@@ -1202,7 +1424,12 @@ function ProductsTab({ token }) {
                     ))}
                     {filteredProducts.length === 0 && <div style={{ color: "#64748b", fontSize: 11, padding: 12 }}>{q ? `"${searchQuery}" ${t('priceOpt.noSearchResult', '검색 결과가 없습니다')}` : t("priceOpt.noProducts")}</div>}
 
-                    {/* [277차] 채널 카테고리 선택 모달 — 네이버 leafCategoryId 등 신규등록 필수 코드. 선택 즉시 재전송. */}
+                    {/* [277차] 채널 카테고리 선택 모달 — 네이버 leafCategoryId 등 신규등록 필수 코드. 선택 즉시 재전송.
+                        [현 차수] ★두 가지 진입점을 함께 지원한다.
+                          ① 전송 실패(카테고리 필요) → 선택 즉시 재전송 (기존 동작 유지)
+                          ② 상품등록 폼의 "카테고리 확인" 버튼(formMode) → 고른 코드를 폼에 채우기만 (전송 안 함)
+                        또한 11번가처럼 카테고리 조회 API 가 없는 채널을 위해 ③채널 공식 카테고리 파일 적재
+                        ④코드 직접 입력 경로를 팝업 안에 함께 둔다 — 팝업이 막다른 길이 되지 않게. */}
                     {catModal && (
                         <div onClick={() => setCatModal(null)}
                             style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
@@ -1213,9 +1440,28 @@ function ProductsTab({ token }) {
                                         📂 {t('priceOpt.catTitle', '채널 카테고리 선택')}
                                     </div>
                                     <div style={{ fontSize: 11, color: "#7c8fa8", marginTop: 3 }}>
-                                        {catModal.product.sku} · {pubChannels.find(c => c.id === catModal.channel)?.label || catModal.channel} — {t('priceOpt.catHint', '채널이 요구하는 카테고리를 선택해야 상품이 등록됩니다')}
+                                        {catModal.formMode
+                                            ? t('priceOpt.catHintForm', '코드를 고르면 상품등록 폼의 카테고리 코드 칸에 채워집니다 (전송은 하지 않습니다)')
+                                            : `${catModal.product?.sku} · ${pubChannels.find(c => c.id === catModal.channel)?.label || catModal.channel} — ${t('priceOpt.catHint', '채널이 요구하는 카테고리를 선택해야 상품이 등록됩니다')}`}
                                     </div>
                                 </div>
+                                {/* formMode 에서는 어느 채널의 카테고리를 볼지 고를 수 있다(11번가 기본). */}
+                                {catModal.formMode && (
+                                    <div style={{ padding: "10px 16px 0", display: "flex", alignItems: "center", gap: 8 }}>
+                                        <span style={{ fontSize: 11, color: "#64748b", fontWeight: 700 }}>{t('priceOpt.catChannel', '채널')}</span>
+                                        <select value={catModal.channel}
+                                            onChange={e => {
+                                                const ch = e.target.value;
+                                                setCatList([]); setCatErr(""); setCatImportPreview(null); setCatImportable(false);
+                                                setCatModal({ formMode: true, channel: ch });
+                                            }}
+                                            style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: "6px 8px", fontSize: 12 }}>
+                                            <option value="11st">11번가</option>
+                                            {pubChannels.filter(c => c.id !== '11st' && c.id !== 'st11')
+                                                .map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div style={{ padding: "10px 16px", display: "flex", gap: 8 }}>
                                     <input value={catQuery} onChange={e => setCatQuery(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') searchCategories(catModal.channel, catQuery); }}
@@ -1233,7 +1479,12 @@ function ProductsTab({ token }) {
                                         <div style={{ fontSize: 11, color: "#94a3b8", padding: 8 }}>{t('priceOpt.catNoResult', '검색 결과가 없습니다')}</div>
                                     )}
                                     {catList.map(c => (
-                                        <div key={c.code} onClick={() => { setCatModal(null); publishToChannel(catModal.product, catModal.channel, c.code); }}
+                                        <div key={c.code} onClick={() => {
+                                            // [현 차수] formMode 면 폼의 카테고리 코드 칸에 채우기만 한다(전송 안 함).
+                                            if (catModal.formMode) { set('category_code', c.code); setCatModal(null); return; }
+                                            setCatModal(null);
+                                            publishToChannel(catModal.product, catModal.channel, c.code);
+                                        }}
                                             style={{ padding: "9px 10px", borderRadius: 6, cursor: "pointer", fontSize: 11, borderBottom: "1px solid #f1f5f9" }}
                                             onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                                             onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
@@ -1241,6 +1492,79 @@ function ProductsTab({ token }) {
                                             <div style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>{c.code}</div>
                                         </div>
                                     ))}
+
+                                    {/* [현 차수] 카테고리 조회 API 가 없는 채널(11번가) — 채널 공식 카테고리 파일을 올려 전체 목록을 확보한다.
+                                        코드를 임의로 만들어 보여주면 엉뚱한 카테고리로 등록되므로, 정본 파일만 받는다. */}
+                                    {catImportable && !catImportPreview && (
+                                        <div style={{ marginTop: 6, padding: 12, borderRadius: 8, background: "rgba(79,142,247,0.05)", border: "1px dashed rgba(79,142,247,0.4)" }}>
+                                            <div style={{ fontSize: 11.5, fontWeight: 800, color: "#2563eb", marginBottom: 4 }}>
+                                                📄 {t('priceOpt.catImportTitle', '채널 카테고리 파일 올리기')}
+                                            </div>
+                                            <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.6, marginBottom: 8 }}>
+                                                {t('priceOpt.catImportDesc', '11번가 셀러오피스에서 제공하는 카테고리 코드 파일(엑셀·CSV)을 올리면, 전체 카테고리 목록을 검색해 코드를 선택할 수 있습니다. 한 번만 올리면 됩니다.')}
+                                            </div>
+                                            <label style={{ display: "inline-block", padding: "6px 12px", borderRadius: 6, cursor: "pointer",
+                                                background: "#4f8ef7", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                                                {t('priceOpt.catImportPick', '파일 선택 (.xlsx · .xls · .csv)')}
+                                                <input type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }}
+                                                    onChange={e => { const f = e.target.files?.[0]; if (f) parseCategoryFile(f); e.target.value = ''; }} />
+                                            </label>
+                                        </div>
+                                    )}
+
+                                    {/* 파일 인식 결과 미리보기 — 컬럼을 잘못 읽은 채로 적재되는 사고를 막는다(사용자 확인 필수). */}
+                                    {catImportPreview && (
+                                        <div style={{ marginTop: 6, padding: 12, borderRadius: 8, background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.3)" }}>
+                                            <div style={{ fontSize: 11.5, fontWeight: 800, color: "#16a34a", marginBottom: 6 }}>
+                                                ✅ {catImportPreview.fileName} — {catImportPreview.rows.length.toLocaleString()} {t('priceOpt.catImportFound', '건 인식')}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: "#475569", marginBottom: 8 }}>
+                                                {t('priceOpt.catImportCheck', '아래 예시가 올바른지 확인하세요. 코드·카테고리명이 뒤바뀌었다면 적재하지 마세요.')}
+                                            </div>
+                                            {catImportPreview.sample.map(s => (
+                                                <div key={s.code} style={{ fontSize: 10.5, color: "#0f172a", padding: "3px 0" }}>
+                                                    <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#2563eb" }}>{s.code}</span>
+                                                    <span style={{ color: "#94a3b8" }}> — </span>{s.whole}
+                                                </div>
+                                            ))}
+                                            <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                                                <button onClick={() => confirmCategoryImport(catModal.channel)} disabled={catImporting}
+                                                    style={{ padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer",
+                                                        background: "#16a34a", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                                                    {catImporting ? t('priceOpt.catImporting', '적재 중…') : t('priceOpt.catImportConfirm', '이대로 적재')}
+                                                </button>
+                                                <button onClick={() => setCatImportPreview(null)} disabled={catImporting}
+                                                    style={{ padding: "6px 12px", borderRadius: 6, cursor: "pointer",
+                                                        border: "1px solid #e2e8f0", background: "#fff", fontSize: 11 }}>
+                                                    {t('priceOpt.catCancel', '취소')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 코드 직접 입력 — 파일이 없어도 판매자센터에서 확인한 코드를 바로 쓸 수 있게. */}
+                                    {(catImportable || catErr) && (
+                                        <div style={{ marginTop: 6, padding: 12, borderRadius: 8, background: "rgba(15,23,42,0.03)", border: "1px solid #e2e8f0" }}>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+                                                ⌨️ {t('priceOpt.catManualTitle', '카테고리 코드 직접 입력')}
+                                            </div>
+                                            <div style={{ display: "flex", gap: 6 }}>
+                                                <input value={catManual} onChange={e => setCatManual(e.target.value)}
+                                                    placeholder={t('priceOpt.catManualPh', '판매자센터에서 확인한 코드 (예: 1001763)')}
+                                                    style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 6, padding: "7px 9px", fontSize: 12 }} />
+                                                <button disabled={!catManual.trim()} onClick={() => {
+                                                    const code = catManual.trim();
+                                                    if (catModal.formMode) { set('category_code', code); setCatModal(null); return; }
+                                                    setCatModal(null);
+                                                    publishToChannel(catModal.product, catModal.channel, code);
+                                                }} style={{ padding: "7px 12px", borderRadius: 6, border: "none",
+                                                    background: catManual.trim() ? "#4f8ef7" : "#cbd5e1", color: "#fff",
+                                                    fontSize: 11, fontWeight: 700, cursor: catManual.trim() ? "pointer" : "not-allowed" }}>
+                                                    {t('priceOpt.catManualApply', '적용')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", textAlign: "right" }}>
                                     <button onClick={() => setCatModal(null)}

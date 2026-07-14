@@ -110,9 +110,17 @@ export default function InstagramDM() {
         const sentText = replyText;
         setReplyText('');
         if (!isDemo) {
-            await postJsonAuth('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: sentText, platform: selectedConv.platform }).catch(() => {});
-            // [현차수] 발송 직후 통계 동기화(발송 KPI stale 해소)
-            getJsonAuth('/api/instagram/settings').then(d => d.ok && setSettings(d)).catch(() => {});
+            // [현 차수] ★발송 결과 확인 — 종전엔 응답을 무시(.catch 삼킴)해서, 24h 윈도우 만료·토큰 오류·IG 거부 시에도
+            //   내 말풍선이 그대로 남아 CS 담당자가 "응대 완료"로 오인(고객은 답장을 영영 못 받음). 실패 시 말풍선 회수 + 경고.
+            const d = await postJsonAuth('/api/instagram/send', { recipient_id: selectedConv.sender_id, message: sentText, platform: selectedConv.platform }).catch(() => null);
+            if (!d || !d.ok) {
+                setMessages(prev => prev.filter(m => m.id !== newMsg.id)); // 실패한 말풍선 회수
+                setReplyText(sentText); // 입력 복원
+                alert(`⚠ 답장을 보내지 못했습니다 — ${d?.error || '발송 실패(24시간 응답 윈도우 만료 또는 연동 오류)'}. 고객에게 전달되지 않았습니다.`);
+                return;
+            }
+            // 발송 직후 통계 동기화(발송 KPI stale 해소)
+            getJsonAuth('/api/instagram/settings').then(d2 => d2.ok && setSettings(d2)).catch(() => {});
         }
     };
 

@@ -5,8 +5,16 @@
     <script>
       (function() {
         var v = "v6.2.0"; // Cache bust — 모바일 폰트/박스 균형 종합(버튼·표헤더·배지·min-width·funnel) 234차
-        var stored = localStorage.getItem("roi_help_ver");
+        // [현 차수] 무한 새로고침 회로차단기 — localStorage 쓰기가 차단된 환경(사파리 프라이빗·쿠키차단·
+        //   스토리지 정리 확장)에서는 아래 stored !== v 가 영구 참이 되어 매 로드마다 reload 가 반복됐다.
+        //   부팅당 최대 3회로 제한하고, 초과하면 캐시버스트를 건너뛴다(앱은 정상 기동).
+        var boots = 0;
+        try { boots = parseInt(sessionStorage.getItem("roi_cachebust_reloads") || "0", 10) || 0; } catch (e) {}
+        var stored = null;
+        try { stored = localStorage.getItem("roi_help_ver"); } catch (e) { stored = v; /* 스토리지 불가 → 캐시버스트 건너뜀 */ }
+        if (stored !== v && boots >= 3) { stored = v; }
         if (stored !== v) {
+          try { sessionStorage.setItem("roi_cachebust_reloads", String(boots + 1)); } catch (e) {}
           // Phase 1: Unregister SW + clear caches
           localStorage.setItem("roi_help_ver", v);
           localStorage.setItem("roi_cache_phase", "1");
@@ -21,12 +29,12 @@
               return Promise.all(names.map(function(n) { return caches.delete(n); }));
             }));
           }
-          Promise.all(tasks).then(function() {
-            window.location.reload(true);
-          }).catch(function() {
-            window.location.reload(true);
-          });
-          setTimeout(function() { window.location.reload(true); }, 2000);
+          // [현 차수] 정리 완료 시 폴백 타이머를 취소한다 — 취소되지 않던 2초 타이머가
+          //   첫 reload 와 겹쳐 중복 새로고침을 일으켰다.
+          var fallback = setTimeout(function() { window.location.reload(true); }, 2000);
+          var done = false;
+          var go = function() { if (done) return; done = true; clearTimeout(fallback); window.location.reload(true); };
+          Promise.all(tasks).then(go).catch(go);
           return; // Stop execution
         } else if (localStorage.getItem("roi_cache_phase") === "1") {
           // Phase 2: SW is now unregistered, do one more reload to ensure fresh assets
@@ -34,7 +42,9 @@
           window.location.reload(true);
           return;
         }
-        
+        // 정상 부팅 — 캐시버스트 회로차단기 카운터 해제.
+        try { sessionStorage.removeItem("roi_cachebust_reloads"); } catch (e) {}
+
         // --- CRASH LOGGER ---
         window.addEventListener('error', function(e) {
             localStorage.setItem("LATEST_CRASH_ERR", String(e.error ? e.error.stack : e.message));
