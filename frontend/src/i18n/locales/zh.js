@@ -9703,7 +9703,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "demoIsolation": "演示环境 — 与生产数据隔离",
     "liveSyncMsg": "实时跨标签同步已启用 — 所有菜单的数据实时反映。",
     },
-  "catalogSync": {"syncRun": "同步","onboardAddHint": "在此注册要销售的商品/服务",
+  "catalogSync": {"brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此注册要销售的商品/服务",
     "serviceMode": "服务·套餐登记模式",
     "serviceModeDesc": "没有实物商品的服务·订阅·数字业务，请通过下方的[登记]添加用于投放广告的服务/套餐（报价）（商品名＝服务名，价格＝套餐价）。登记后依次进行渠道对接 → 支付 → 营销自动化。",
     "serviceToMarketing": "前往营销自动化",

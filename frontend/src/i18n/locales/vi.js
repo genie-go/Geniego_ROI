@@ -12896,8 +12896,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       "segEmpty": "Belum ada",
       "btnSaving": "Tersimpan",
       "rfmListTit": "Daftar RFM",
-      "catalogSync": {
-        "heroDesc": "Đăng ký và quản lý API Key.",
+      "catalogSync": {"heroDesc": "Đăng ký và quản lý API Key.",
         "heroDescFull": "Thu thập và quản lý tích hợp thời gian thực dữ liệu đơn hàng · khiếu nại · trả hàng · giao hàng · đối soát từ các kênh.",
         "kpiAllProducts": "Tất cả sản phẩm",
         "kpiSyncDone": "Đã đồng bộ",
@@ -15165,7 +15164,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "guideReadyTitle": "Bây giờ bạn đã sẵn sàng quản lý ngân sách",
     "guideReadyDesc": "Hãy kiểm tra tình trạng chi tiêu ngân sách hiện tại tại tab Tổng quan. Nếu chưa có chiến dịch, hãy tạo trong Trình quản lý chiến dịch trước rồi bắt đầu theo dõi ngân sách.",
     },
-  catalogSync: {"syncRun": "Đồng bộ","onboardAddHint": "Đăng ký sản phẩm/dịch vụ bạn muốn bán tại đây",
+  catalogSync: {"brand": {"title": "Quản lý thương hiệu"}, "syncRun": "Đồng bộ","onboardAddHint": "Đăng ký sản phẩm/dịch vụ bạn muốn bán tại đây",
     "serviceMode": "Chế độ đăng ký dịch vụ·gói",
     "serviceModeDesc": "Doanh nghiệp dịch vụ·đăng ký·kỹ thuật số không có sản phẩm vật lý: thêm dịch vụ/gói (ưu đãi) cần quảng cáo qua [Đăng ký] bên dưới (tên sản phẩm = tên dịch vụ, giá = giá gói). Sau khi đăng ký, tiếp tục với kết nối kênh → thanh toán → tự động hóa tiếp thị.",
     "serviceToMarketing": "Đến Tự động hóa tiếp thị",

@@ -9579,7 +9579,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
     "demoIsolation": "Ambiente demo — isolado dos dados de produção",
     "liveSyncMsg": "Sincronização entre abas em tempo real ativa — os dados de todos os menus são atualizados em tempo real.",
     },
-  catalogSync: {"syncRun": "Sincronizar","onboardAddHint": "Registre aqui os produtos/serviços que deseja vender",
+  catalogSync: {"brand": {"title": "Gestão de marcas"}, "syncRun": "Sincronizar","onboardAddHint": "Registre aqui os produtos/serviços que deseja vender",
     "serviceMode": "Modo de registro de serviço/plano",
     "serviceModeDesc": "Negócios de serviços/assinatura/digitais sem produtos físicos: adicione o serviço/plano (oferta) que vai anunciar via [Registrar] abaixo (nome do item = nome do serviço, preço = preço do plano). Após o registro, prossiga com conexão de canais → pagamento → automação de marketing.",
     "serviceToMarketing": "Ir para Automação de marketing",
@@ -12413,8 +12413,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       "tplEdit": "Editar modelo",
       "tplNew": "✨ Novo modelo",
       "users": "명",
-      "catalogSync": {
-        "heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
+      "catalogSync": {"heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
         "kpiAllProducts": "전체 상품",
         "kpiSyncDone": "동기화 완료",
         "kpiChangeDetected": "변경 감지",

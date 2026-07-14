@@ -9579,7 +9579,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
     "demoIsolation": "بيئة تجريبية — معزولة عن بيانات الإنتاج",
     "liveSyncMsg": "مزامنة فورية عبر علامات التبويب نشطة — تتحدّث بيانات كل القوائم فوريًا.",
     },
-  catalogSync: {"syncRun": "مزامنة","onboardAddHint": "سجّل المنتجات/الخدمات التي تريد بيعها هنا",
+  catalogSync: {"brand": {"title": "إدارة العلامات التجارية"}, "syncRun": "مزامنة","onboardAddHint": "سجّل المنتجات/الخدمات التي تريد بيعها هنا",
     "serviceMode": "وضع تسجيل الخدمة·الباقة",
     "serviceModeDesc": "أصحاب أعمال الخدمات·الاشتراكات·الرقمية بدون منتجات مادية: أضف الخدمة/الباقة (العرض) التي ستعلن عنها عبر [تسجيل] أدناه (اسم المنتج = اسم الخدمة، السعر = سعر الباقة). بعد التسجيل، تابع مع ربط القنوات → الدفع → أتمتة التسويق.",
     "serviceToMarketing": "الانتقال إلى أتمتة التسويق",
@@ -12413,8 +12413,7 @@ export default {"paymentSuccess": {"invalidInfo":"معلومات الدفع غي
       "tplEdit": "تعديل القالب",
       "tplNew": "✨ قالب جديد",
       "users": "명",
-      "catalogSync": {
-        "heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
+      "catalogSync": {"heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
         "kpiAllProducts": "전체 상품",
         "kpiSyncDone": "동기화 완료",
         "kpiChangeDetected": "변경 감지",

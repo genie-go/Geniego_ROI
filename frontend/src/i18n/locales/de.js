@@ -8892,7 +8892,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "demoIsolation": "Demoumgebung — von Produktionsdaten isoliert",
     "liveSyncMsg": "Echtzeit-Cross-Tab-Sync aktiv — Daten in allen Menüs werden in Echtzeit aktualisiert.",
     },
-  catalogSync: {"syncRun": "Synchronisieren","onboardAddHint": "Registrieren Sie hier die Produkte/Dienstleistungen, die Sie verkaufen möchten",
+  catalogSync: {"brand": {"title": "Markenverwaltung"}, "syncRun": "Synchronisieren","onboardAddHint": "Registrieren Sie hier die Produkte/Dienstleistungen, die Sie verkaufen möchten",
     "serviceMode": "Service-/Tarif-Registrierungsmodus",
     "serviceModeDesc": "Service-, Abo- und Digitalanbieter ohne physische Produkte: Fügen Sie den zu bewerbenden Service/Tarif (Angebot) unten über [Registrieren] hinzu (Artikelname = Servicename, Preis = Tarifpreis). Nach der Registrierung geht es weiter mit Kanalanbindung → Zahlung → Marketing-Automatisierung.",
     "serviceToMarketing": "Zur Marketing-Automatisierung",
@@ -12229,8 +12229,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       "tabManSeg": "🏷 手動",
       "tabRfm": "📊 RFM 분석",
       "titDetail": "顧客詳細",
-      "catalogSync": {
-        "heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
+      "catalogSync": {"heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
         "kpiAllProducts": "전체 상품",
         "kpiSyncDone": "동기화 완료",
         "kpiChangeDetected": "변경 감지",

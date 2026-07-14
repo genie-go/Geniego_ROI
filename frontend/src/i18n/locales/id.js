@@ -10824,8 +10824,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       "tabManSeg": "🏷 手動",
       "tabRfm": "📊 RFM 분석",
       "titDetail": "顧客詳細",
-      "catalogSync": {
-        "heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
+      "catalogSync": {"heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
         "kpiAllProducts": "전체 상품",
         "kpiSyncDone": "동기화 완료",
         "kpiChangeDetected": "변경 감지",
@@ -12886,7 +12885,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "guideReadyTitle": "Kini Anda siap mulai mengelola anggaran",
     "guideReadyDesc": "Periksa status pelaksanaan anggaran Anda saat ini di tab Ikhtisar. Jika belum ada kampanye, buat dulu di Manajer Kampanye untuk mulai melacak anggaran.",
     },
-  catalogSync: {"syncRun": "Sinkronkan","onboardAddHint": "Daftarkan produk/layanan yang ingin Anda jual di sini",
+  catalogSync: {"brand": {"title": "Manajemen Merek"}, "syncRun": "Sinkronkan","onboardAddHint": "Daftarkan produk/layanan yang ingin Anda jual di sini",
     "serviceMode": "Mode pendaftaran layanan·paket",
     "serviceModeDesc": "Bisnis layanan·langganan·digital tanpa produk fisik: tambahkan layanan/paket (penawaran) yang akan diiklankan melalui [Daftar] di bawah (nama item = nama layanan, harga = harga paket). Setelah mendaftar, lanjutkan dengan koneksi kanal → pembayaran → otomatisasi pemasaran.",
     "serviceToMarketing": "Ke Otomatisasi Pemasaran",

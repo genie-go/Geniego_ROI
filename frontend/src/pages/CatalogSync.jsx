@@ -1133,21 +1133,21 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
                         {it.needs_brand !== undefined && (
                             <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px dashed #fde68a", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 10, fontWeight: 800, color: it.needs_brand ? "#b45309" : "#16a34a" }}>
-                                    🏷️ {t('catalogSync.pcBrand', '브랜드')}{it.needs_brand ? ' *' : ''}
+                                    🏷️ {t('catalogSync.brand.fName', '브랜드')}{it.needs_brand ? ' *' : ''}
                                 </span>
                                 <select value={it.brand || ''} disabled={busy === key}
                                     onChange={e => assignBrand(it, e.target.value)}
                                     style={{ border: `1px solid ${it.needs_brand ? "#f59e0b" : "#cbd5e1"}`, borderRadius: 6, padding: "4px 8px", fontSize: 11, minWidth: 150, background: "#fff" }}>
-                                    <option value="">{t('catalogSync.pcBrandPick', '브랜드 선택…')}</option>
+                                    <option value="">{t('catalogSync.brand.fPickPh', '브랜드 선택…')}</option>
                                     {brands.map(b => <option key={b} value={b}>{b}</option>)}
                                 </select>
                                 <input value={newBrand} onChange={e => setNewBrand(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') addBrandAndAssign(it, newBrand); }}
-                                    placeholder={t('catalogSync.pcBrandNewPh', '새 브랜드 입력')}
+                                    placeholder={t('catalogSync.brand.fNewPh', '새 브랜드 입력')}
                                     style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 8px", fontSize: 11, width: 130 }} />
                                 <button onClick={() => addBrandAndAssign(it, newBrand)} disabled={!newBrand.trim() || busy === key}
                                     style={{ padding: "4px 9px", borderRadius: 6, border: "1px solid #16a34a", background: "#fff", color: "#16a34a", fontSize: 10, fontWeight: 700, cursor: newBrand.trim() ? "pointer" : "not-allowed" }}>
-                                    ＋ {t('catalogSync.pcBrandAdd', '추가·지정')}
+                                    ＋ {t('catalogSync.brand.assignBtn', '추가·지정')}
                                 </button>
                             </div>
                         )}
@@ -1277,6 +1277,39 @@ const CatalogTab = memo(function CatalogTab() {
     const isMobile = useIsMobile();
     const PAGE = 8;
 
+    // [285차] 브랜드 — 카탈로그 목록에서 바로 지정한다(11번가 상품등록 필수).
+    //   상품 마스터(po_products)와 채널 리스팅(catalog_listing) 양쪽을 함께 갱신해야 전송 시 실제로 실린다.
+    const [brandOptions, setBrandOptions] = useState([]);
+    const [brandBusy, setBrandBusy] = useState('');
+    const loadBrands = useCallback(() => {
+        getJsonAuth('/api/catalog/brands')
+            .then(d => setBrandOptions((d?.items || []).map(b => b.name).filter(Boolean)))
+            .catch(() => setBrandOptions([]));
+    }, []);
+    useEffect(() => { loadBrands(); }, [loadBrands]);
+
+    const setProductBrand = useCallback(async (skus, brand) => {
+        const list = (Array.isArray(skus) ? skus : [skus]).filter(Boolean);
+        if (!list.length || !brand) return;
+        setBrandBusy(list.join(','));
+        try {
+            // 목록에 없는 브랜드면 먼저 등록(정본 목록 유지).
+            if (!brandOptions.includes(brand)) {
+                await postJson('/api/catalog/brands', { name: brand });
+                setBrandOptions(prev => prev.includes(brand) ? prev : [...prev, brand].sort());
+            }
+            // ①상품 마스터 ②전 채널 리스팅
+            await Promise.all(list.map(sku => requestJsonAuth(`/v420/price/products/${encodeURIComponent(sku)}`, 'PUT', { brand })));
+            await postJson('/api/catalog/assign-brand', { skus: list, brand });   // channel 생략 = 전 채널
+            setProducts(prev => prev.map(p => list.includes(p.sku) ? { ...p, brand } : p));
+            setToast(t('catalogSync.brand.statAssigned', '브랜드를 지정했습니다') + ` — ${brand} (${list.length})`);
+            setTimeout(() => setToast(null), 2500);
+        } catch (e) {
+            setToast(`❌ ${e.message}`);
+            setTimeout(() => setToast(null), 3500);
+        } finally { setBrandBusy(''); }
+    }, [brandOptions, t]);
+
     /**
      * [277차] 수동 등록 상품(po_products)을 이 페이지에 노출 — 종전엔 inventory 시드만 읽어
      *   "상품등록에서 등록한 상품이 카탈로그 동기화에 안 보이고, 여기서 채널로 보낼 수도 없다".
@@ -1344,6 +1377,7 @@ const CatalogTab = memo(function CatalogTab() {
                 purchaseCost: Number(p.purchase_cost) || Number(p.cost_price) || 0,
                 productCost: Number(p.cost_price) || 0,
                 spec: p.spec || '',
+                brand: p.brand || '',   // [285차] 11번가 상품등록 필수 — 목록에서 직접 지정한다.
                 unitType: p.unit || 'ea',
                 eaPerBox: String(p.qty_per_box || ''),
                 boxPerPl: String(p.boxes_per_pallet || ''),
@@ -1775,11 +1809,30 @@ const CatalogTab = memo(function CatalogTab() {
                 <button onClick={navigateToPriceOptProducts} data-onboard-cta="catalog-product" data-onboard-hint={t('catalogSync.onboardAddHint','여기서 판매할 상품/서비스를 등록하세요')} style={{ padding: "7px 16px", borderRadius: 8, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", border: "none", color: '#ffffff', fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>📦 {t('catalogSync.addProduct')} →</button>
             </div>
 
+            {/* [285차] 브랜드 자동완성 소스 — 목록 인라인 입력과 공유(정본 목록에서 고르거나 새로 입력). */}
+            <datalist id="genie-catalog-brands">
+                {brandOptions.map(b => <option key={b} value={b} />)}
+            </datalist>
+
             {/* 일괄 Action 바 — Select 시 나타남 */}
             {selected.size > 0 && (
                 <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "10px 16px", borderRadius: 12, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.25)" }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#4f8ef7" }}>{t('catalogSync.selectedProducts').replace('{{n}}', selected.size)}</span>
                     <div style={{ flex: 1 }} />
+                    {/* [285차] 선택 상품 브랜드 일괄 지정 — 11번가 상품등록 필수값을 한 번에 채운다. */}
+                    <select value="" disabled={!!brandBusy}
+                        onChange={e => {
+                            const v = e.target.value;
+                            if (!v) return;
+                            const skus = products.filter(p => selected.has(p.id) && !p._fallback).map(p => p.sku);
+                            setProductBrand(skus, v);
+                            e.target.value = '';
+                        }}
+                        title={t('catalogSync.brand.bulkHint', '선택한 상품에 브랜드를 한 번에 지정합니다')}
+                        style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", fontSize: 12, fontWeight: 700, color: "#334155", cursor: "pointer" }}>
+                        <option value="">🏷️ {t('catalogSync.brand.bulkAssignBtn', '브랜드 일괄지정')}</option>
+                        {brandOptions.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
                     <button onClick={() => setShowBulkRegister(true)} style={{ padding: "7px 16px", borderRadius: 8, background: "linear-gradient(135deg,#22c55e,#4f8ef7)", border: "none", color: '#ffffff', fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
                         {t('catalogSync.bulkRegisterBtn')}
                     </button>
@@ -1866,6 +1919,7 @@ const CatalogTab = memo(function CatalogTab() {
                                 <th style={{ cursor: "pointer" }} onClick={() => toggleSort("id")}>ID<SortIco k="id" /></th>
                                 <th style={{ cursor: "pointer" }} onClick={() => toggleSort("name")}>{t('catalogSync.colProductName')}<SortIco k="name" /></th>
                                 <th>{t('catalogSync.colCategory')}</th>
+                                <th>{t('catalogSync.colBrand', '브랜드')}</th>
                                 <th>{t('catalogSync.colSpec')}</th>
                                 <th>{t('catalogSync.colUnit')}</th>
                                 <th style={{ cursor: "pointer" }} onClick={() => toggleSort("price")}>{t('catalogSync.colSalePrice')}<SortIco k="price" /></th>
@@ -1906,6 +1960,25 @@ const CatalogTab = memo(function CatalogTab() {
                                             )}
                                         </td>
                                         <td style={{ fontSize: 11, color: "#374151" }}>{r.category}</td>
+                                        {/* [285차] 브랜드 인라인 지정 — 11번가 상품등록 필수. 비어 있으면 눈에 띄게 경고한다. */}
+                                        <td onClick={e => e.stopPropagation()} style={{ minWidth: 130 }}>
+                                            <input list="genie-catalog-brands" value={r.brand || ''}
+                                                disabled={!!brandBusy || r._fallback}
+                                                onChange={e => setProducts(prev => prev.map(p => p.sku === r.sku ? { ...p, brand: e.target.value } : p))}
+                                                onFocus={e => { e.currentTarget.dataset.orig = e.currentTarget.value; }}
+                                                onBlur={e => {
+                                                    const v = e.currentTarget.value.trim();
+                                                    if (v && v !== (e.currentTarget.dataset.orig || '')) setProductBrand(r.sku, v);
+                                                }}
+                                                onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                                                placeholder={t('catalogSync.brand.fAssignPh', '브랜드 지정')}
+                                                title={t('catalogSync.brand.assignHint', '11번가 상품등록에 필수입니다. 입력 후 Enter 또는 다른 곳을 클릭하면 저장됩니다.')}
+                                                style={{
+                                                    width: 120, fontSize: 11, padding: "3px 6px", borderRadius: 6,
+                                                    border: `1px solid ${(r.brand || '') ? "#e2e8f0" : "#f59e0b"}`,
+                                                    background: (r.brand || '') ? "#fff" : "rgba(245,158,11,0.08)",
+                                                }} />
+                                        </td>
                                         <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
                                         <td style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
                                             <span style={{ fontWeight: 700, padding: "2px 7px", borderRadius: 20, fontSize: 9, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === "box" ? "rgba(79,142,247,0.3)" : r.unitType === "pl" ? "rgba(245,158,11,0.3)" : "rgba(34,197,94,0.2)"}` }}>{r.unit || 'ea'}</span>
@@ -3073,7 +3146,7 @@ const BrandTab = memo(function BrandTab() {
         setMsg(null);
         try {
             const d = await postJson('/api/catalog/brands', { name: nm, code: code.trim(), ...(editId ? { id: editId } : {}) });
-            if (d.ok) { setName(''); setCode(''); setEditId(0); load(); setMsg({ ok: true, text: t('catalogSync.brSaved', '저장했습니다') }); }
+            if (d.ok) { setName(''); setCode(''); setEditId(0); load(); setMsg({ ok: true, text: t('catalogSync.brand.statSaved', '저장했습니다') }); }
             else setMsg({ ok: false, text: d.error || 'failed' });
         } catch (e) { setMsg({ ok: false, text: e.message }); }
     };
@@ -3082,7 +3155,7 @@ const BrandTab = memo(function BrandTab() {
         setMsg(null);
         try {
             const d = await requestJsonAuth(`/api/catalog/brands/${r.id}`, 'DELETE');
-            if (d.ok) { load(); setMsg({ ok: true, text: t('catalogSync.brDeleted', '삭제했습니다') }); }
+            if (d.ok) { load(); setMsg({ ok: true, text: t('catalogSync.brand.statDeleted', '삭제했습니다') }); }
             else setMsg({ ok: false, text: d.error || 'failed' });
         } catch (e) { setMsg({ ok: false, text: e.message }); }
     };
@@ -3090,28 +3163,28 @@ const BrandTab = memo(function BrandTab() {
     return (
         <div style={{ background: "#fff", borderRadius: 14, padding: 18, border: "1px solid #e5e7eb" }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>
-                🏷️ {t('catalogSync.brTitle', '브랜드 관리')}
+                🏷️ {t('catalogSync.brand.title', '브랜드 관리')}
             </div>
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, marginBottom: 14 }}>
-                {t('catalogSync.brDesc', '11번가 상품등록은 브랜드가 필수입니다. 여기에 등록한 브랜드를 상품정보에서 선택해 쓰세요.')}
+                {t('catalogSync.brand.subtitle', '11번가 상품등록은 브랜드가 필수입니다. 여기에 등록한 브랜드를 상품정보에서 선택해 쓰세요.')}
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
                 <input value={name} onChange={e => setName(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') save(); }}
-                    placeholder={t('catalogSync.brNamePh', '브랜드명 (예: 청정원)')}
+                    placeholder={t('catalogSync.brand.fNamePh', '브랜드명 (예: 청정원)')}
                     style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", fontSize: 12, minWidth: 200 }} />
                 <input value={code} onChange={e => setCode(e.target.value)}
-                    placeholder={t('catalogSync.brCodePh', '채널 브랜드코드 (선택)')}
+                    placeholder={t('catalogSync.brand.fCodePh', '채널 브랜드코드 (선택)')}
                     style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", fontSize: 12, minWidth: 180 }} />
                 <button onClick={save} disabled={!name.trim()}
                     style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: name.trim() ? "#2563eb" : "#cbd5e1", color: "#fff", fontSize: 12, fontWeight: 700, cursor: name.trim() ? "pointer" : "not-allowed" }}>
-                    {editId ? t('catalogSync.brUpdate', '수정') : t('catalogSync.brAdd', '＋ 추가')}
+                    {editId ? t('catalogSync.brand.updateBtn', '수정') : t('catalogSync.brand.addBtn', '＋ 추가')}
                 </button>
                 {editId > 0 && (
                     <button onClick={() => { setEditId(0); setName(''); setCode(''); }}
                         style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>
-                        {t('catalogSync.brCancel', '취소')}
+                        {t('catalogSync.brand.cancelBtn', '취소')}
                     </button>
                 )}
                 {msg && (
@@ -3125,17 +3198,17 @@ const BrandTab = memo(function BrandTab() {
                 <div style={{ fontSize: 12, color: "#94a3b8" }}>…</div>
             ) : rows.length === 0 ? (
                 <div style={{ fontSize: 12, color: "#94a3b8", padding: "20px 0", textAlign: "center" }}>
-                    {t('catalogSync.brEmpty', '등록된 브랜드가 없습니다 — 위에서 추가하세요')}
+                    {t('catalogSync.brand.statEmpty', '등록된 브랜드가 없습니다 — 위에서 추가하세요')}
                 </div>
             ) : (
                 <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                         <thead>
                             <tr style={{ background: "#f8fafc", color: "#64748b", fontSize: 11 }}>
-                                <th style={{ textAlign: "left", padding: "8px 10px" }}>{t('catalogSync.brColName', '브랜드명')}</th>
-                                <th style={{ textAlign: "left", padding: "8px 10px" }}>{t('catalogSync.brColCode', '채널 브랜드코드')}</th>
-                                <th style={{ textAlign: "right", padding: "8px 10px" }}>{t('catalogSync.brColUsed', '사용 상품')}</th>
-                                <th style={{ textAlign: "right", padding: "8px 10px" }}>{t('catalogSync.brColAction', '관리')}</th>
+                                <th style={{ textAlign: "left", padding: "8px 10px" }}>{t('catalogSync.brand.fName', '브랜드명')}</th>
+                                <th style={{ textAlign: "left", padding: "8px 10px" }}>{t('catalogSync.brand.fCode', '채널 브랜드코드')}</th>
+                                <th style={{ textAlign: "right", padding: "8px 10px" }}>{t('catalogSync.brand.colUsed', '사용 상품')}</th>
+                                <th style={{ textAlign: "right", padding: "8px 10px" }}>{t('catalogSync.brand.colAction', '관리')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -3147,12 +3220,12 @@ const BrandTab = memo(function BrandTab() {
                                     <td style={{ padding: "8px 10px", textAlign: "right", whiteSpace: "nowrap" }}>
                                         <button onClick={() => { setEditId(r.id); setName(r.name); setCode(r.code || ''); }}
                                             style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #cbd5e1", background: "#fff", fontSize: 10, cursor: "pointer", marginRight: 6 }}>
-                                            {t('catalogSync.brEdit', '수정')}
+                                            {t('catalogSync.brand.editBtn', '수정')}
                                         </button>
                                         <button onClick={() => remove(r)}
-                                            title={r.used > 0 ? t('catalogSync.brInUse', '사용 중인 브랜드는 삭제할 수 없습니다') : ''}
+                                            title={r.used > 0 ? t('catalogSync.brand.errInUse', '사용 중인 브랜드는 삭제할 수 없습니다') : ''}
                                             style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #fecaca", background: "#fff", color: "#dc2626", fontSize: 10, cursor: "pointer" }}>
-                                            {t('catalogSync.brDelete', '삭제')}
+                                            {t('catalogSync.brand.deleteBtn', '삭제')}
                                         </button>
                                     </td>
                                 </tr>
@@ -3285,7 +3358,7 @@ export default function CatalogSync() {
         { id: "catalog", label: `📚 ${t('catalogSync.tabCatalog')}` },
         { id: "sync", label: `🔄 ${t('catalogSync.tabSyncRun')}` },
         { id: "catmap", label: `🗂️ ${t('catalogSync.tabCategoryMapping')}` },
-        { id: "brand", label: `🏷️ ${t('catalogSync.tabBrand', '브랜드 관리')}` },
+        { id: "brand", label: `🏷️ ${t('catalogSync.brand.tabLabel', '브랜드 관리')}` },
         { id: "price", label: `💰 ${t('catalogSync.tabPriceRules')}` },
         { id: "inventory", label: `📦 ${t('catalogSync.tabStockPolicy')}` },
         { id: "history", label: `📋 ${t('catalogSync.tabHistory')}` },

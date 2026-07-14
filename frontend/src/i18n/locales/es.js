@@ -9330,7 +9330,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
     "demoIsolation": "Entorno demo — aislado de los datos de producción",
     "liveSyncMsg": "Sincronización entre pestañas en tiempo real activa — los datos de todos los menús se actualizan en tiempo real.",
     },
-  catalogSync: {"syncRun": "Sincronizar","onboardAddHint": "Registra aquí los productos/servicios que quieres vender",
+  catalogSync: {"brand": {"title": "Gestión de marcas"}, "syncRun": "Sincronizar","onboardAddHint": "Registra aquí los productos/servicios que quieres vender",
     "serviceMode": "Modo de registro de servicio/plan",
     "serviceModeDesc": "Negocios de servicios/suscripción/digitales sin productos físicos: agregue el servicio/plan (oferta) que va a anunciar mediante [Registrar] abajo (nombre del artículo = nombre del servicio, precio = precio del plan). Tras registrar, continúe con conexión de canales → pago → automatización de marketing.",
     "serviceToMarketing": "Ir a Automatización de marketing",
@@ -12274,8 +12274,7 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
       "segEmpty": "No se han creado segmentos.",
       "btnSaving": "¡Guardado!",
       "rfmListTit": "Lista de análisis RFM",
-      "catalogSync": {
-        "heroDesc": "Registre claves API y gestione el estado de conexión de los canales de ventas, publicidad y analítica.",
+      "catalogSync": {"heroDesc": "Registre claves API y gestione el estado de conexión de los canales de ventas, publicidad y analítica.",
         "heroDescFull": "Recopile y gestione de forma integral y en tiempo real los datos de pedidos · reclamaciones · devoluciones · envíos · liquidaciones de los canales.",
         "kpiAllProducts": "Total de productos",
         "kpiSyncDone": "Sincronización completada",

@@ -9331,7 +9331,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "demoIsolation": "Environnement démo — isolé des données de production",
     "liveSyncMsg": "Synchronisation multi-onglets en temps réel active — les données de tous les menus se mettent à jour en temps réel.",
     },
-  catalogSync: {"syncRun": "Synchroniser","onboardAddHint": "Enregistrez ici les produits/services que vous souhaitez vendre",
+  catalogSync: {"brand": {"title": "Gestion des marques"}, "syncRun": "Synchroniser","onboardAddHint": "Enregistrez ici les produits/services que vous souhaitez vendre",
     "serviceMode": "Mode d'enregistrement service/forfait",
     "serviceModeDesc": "Entreprises de services/abonnement/numériques sans produit physique : ajoutez le service/forfait (offre) à promouvoir via [Enregistrer] ci-dessous (nom de l'article = nom du service, prix = prix du forfait). Après l'enregistrement, poursuivez avec connexion des canaux → paiement → automatisation marketing.",
     "serviceToMarketing": "Aller à l'automatisation marketing",
@@ -12275,8 +12275,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       "segEmpty": "Aucun segment créé.",
       "btnSaving": "Enregistré !",
       "rfmListTit": "Liste d'analyse RFM",
-      "catalogSync": {
-        "heroDesc": "Enregistrez les clés API et gérez l'état de connexion des canaux de vente, de publicité et d'analyse.",
+      "catalogSync": {"heroDesc": "Enregistrez les clés API et gérez l'état de connexion des canaux de vente, de publicité et d'analyse.",
         "heroDescFull": "Collectez et gérez en temps réel les données de commande · réclamation · retour · livraison · règlement à partir des canaux.",
         "kpiAllProducts": "Tous les produits",
         "kpiSyncDone": "Synchronisation terminée",

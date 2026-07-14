@@ -542,8 +542,10 @@ class Catalog
         } elseif (trim((string)($b['sku'] ?? '')) !== '') {
             $skus[] = trim((string)$b['sku']);
         }
-        if ($channel === '' || $brand === '' || !$skus) {
-            return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku(s)/brand required'], 400);
+        // [285차] channel 생략 = 그 SKU 의 **전 채널 리스팅**에 적용(카탈로그 목록에서 상품 단위로 지정하는 경로).
+        //   확정 패널은 채널별 리스팅을 다루므로 channel 을 명시한다.
+        if ($brand === '' || !$skus) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'sku(s)/brand required'], 400);
         }
         // ★정본 목록 검증 — 등록되지 않은 브랜드는 거부(자유입력 우회 차단).
         try {
@@ -558,12 +560,18 @@ class Catalog
         $now = self::now();
         $updated = 0;
         try {
-            $up = $pdo->prepare("UPDATE catalog_listing SET brand=?, updated_at=? WHERE tenant_id=? AND channel=? AND sku=?");
-            foreach ($skus as $sku) { $up->execute([$brand, $now, $tenant, $channel, $sku]); $updated += $up->rowCount(); }
+            if ($channel !== '') {
+                $up = $pdo->prepare("UPDATE catalog_listing SET brand=?, updated_at=? WHERE tenant_id=? AND channel=? AND sku=?");
+                foreach ($skus as $sku) { $up->execute([$brand, $now, $tenant, $channel, $sku]); $updated += $up->rowCount(); }
+            } else {
+                $up = $pdo->prepare("UPDATE catalog_listing SET brand=?, updated_at=? WHERE tenant_id=? AND sku=?");
+                foreach ($skus as $sku) { $up->execute([$brand, $now, $tenant, $sku]); $updated += $up->rowCount(); }
+            }
         } catch (\Throwable $e) {
             return self::jsonRes($res, ['ok' => false, 'error' => 'listing update failed'], 500);
         }
-        if (empty($b['publish'])) {
+        // 채널 미지정(상품 단위 지정)은 전송하지 않는다 — 전송은 채널이 특정된 경로에서만.
+        if (empty($b['publish']) || $channel === '') {
             return self::jsonRes($res, ['ok' => true, 'brand' => $brand, 'updated' => $updated]);
         }
         // 즉시 전송 — assignCategory 와 동일(logJob 이 기존 미완료 잡을 superseded 로 마감).

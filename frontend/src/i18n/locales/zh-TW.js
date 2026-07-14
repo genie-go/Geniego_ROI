@@ -10258,8 +10258,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       "tabManSeg": "🏷 手動",
       "tabRfm": "📊 RFM 분석",
       "titDetail": "顧客詳細",
-      "catalogSync": {
-        "heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
+      "catalogSync": {"heroDescFull": "주문 · 클레임 · 반품 · 배송 · 정산 데이터를 채널에서 실시간 수집·통합 관리합니다.",
         "kpiAllProducts": "전체 상품",
         "kpiSyncDone": "동기화 완료",
         "kpiChangeDetected": "변경 감지",
@@ -12320,7 +12319,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "guideReadyTitle": "現在您已準備好開始管理預算",
     "guideReadyDesc": "請在綜合概況分頁查看目前預算執行情況。若尚未有廣告活動，請先在廣告活動管理中建立，再開始預算追蹤。",
     },
-  catalogSync: {"syncRun": "同步","onboardAddHint": "在此註冊要銷售的商品/服務",
+  catalogSync: {"brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此註冊要銷售的商品/服務",
     "serviceMode": "服務·方案登錄模式",
     "serviceModeDesc": "沒有實體商品的服務·訂閱·數位業者，請透過下方的[登錄]新增要透過廣告推廣的服務/方案（報價）（商品名＝服務名，價格＝方案價）。登錄後依序進行通路串接 → 付款 → 行銷自動化。",
     "serviceToMarketing": "前往行銷自動化",
