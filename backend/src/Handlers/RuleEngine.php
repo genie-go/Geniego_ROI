@@ -90,7 +90,7 @@ final class RuleEngine
 
     public static function listRules(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'rules' => []], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("SELECT * FROM rule_engine WHERE tenant_id=? ORDER BY id DESC");
@@ -110,7 +110,7 @@ final class RuleEngine
 
     public static function saveRule(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증 필요'], 401);
         $b = (array)($req->getParsedBody() ?? []);
         $name = trim((string)($b['name'] ?? ''));
@@ -136,7 +136,7 @@ final class RuleEngine
 
     public static function toggleRule(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo); $id = (int)($args['id'] ?? 0);
         $pdo->prepare("UPDATE rule_engine SET enabled=1-enabled, updated_at=? WHERE id=? AND tenant_id=?")->execute([gmdate('c'), $id, $t]);
@@ -145,7 +145,7 @@ final class RuleEngine
 
     public static function deleteRule(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("DELETE FROM rule_engine WHERE id=? AND tenant_id=?"); $st->execute([(int)($args['id'] ?? 0), $t]);
@@ -154,7 +154,7 @@ final class RuleEngine
 
     public static function logs(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'logs' => []], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("SELECT * FROM rule_engine_log WHERE tenant_id=? ORDER BY id DESC LIMIT 100");
@@ -165,7 +165,7 @@ final class RuleEngine
     /** POST /v424/rules/run — 수동 평가(cron 도 동일 호출). */
     public static function runEndpoint(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         $r = self::evaluateTenant($t);
         return self::json($res, ['ok' => true] + $r);
@@ -493,7 +493,7 @@ final class RuleEngine
 
     public static function daypartList(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'schedules' => []], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("SELECT * FROM daypart_schedule WHERE tenant_id=? ORDER BY id DESC"); $st->execute([$t]);
@@ -506,7 +506,7 @@ final class RuleEngine
 
     public static function daypartSave(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증 필요'], 401);
         $b = (array)($req->getParsedBody() ?? []);
         $name = trim((string)($b['name'] ?? ''));
@@ -530,7 +530,7 @@ final class RuleEngine
 
     public static function daypartDelete(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("DELETE FROM daypart_schedule WHERE id=? AND tenant_id=?"); $st->execute([(int)($args['id'] ?? 0), $t]);
@@ -540,7 +540,7 @@ final class RuleEngine
     /** POST /v424/rules/dayparts/run — 데이파팅 즉시 액추에이션(cron 도 evaluateTenant 로 동일 수행). */
     public static function daypartRun(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         return self::json($res, ['ok' => true] + self::runDayparting($t));
     }
@@ -552,7 +552,7 @@ final class RuleEngine
     //   recordFrequencyTouch/isUserCapped/freqTouch/freqCheck 는 수동 조회/기록용 유틸로만 유지(라이브 enforcement 아님).
     public static function freqList(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'windows' => []], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("SELECT * FROM frequency_window WHERE tenant_id=? ORDER BY id DESC"); $st->execute([$t]);
@@ -562,7 +562,7 @@ final class RuleEngine
 
     public static function freqSave(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증 필요'], 401);
         $b = (array)($req->getParsedBody() ?? []);
         $name = trim((string)($b['name'] ?? ''));
@@ -584,7 +584,7 @@ final class RuleEngine
 
     public static function freqDelete(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $t = self::tenant($req); if ($t === null) return self::json($res, ['ok' => false], 401);
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("DELETE FROM frequency_window WHERE id=? AND tenant_id=?"); $st->execute([(int)($args['id'] ?? 0), $t]);

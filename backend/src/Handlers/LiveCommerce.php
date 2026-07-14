@@ -20,7 +20,7 @@ use Genie\Crypto;
  *
  * 라우팅: /v425/live/* (세션 self-auth, index.php bypass + no-/api 변형 등록).
  *   ★ basePath '/api' strip 트랩(205차 WMS 정본): routes.php 에 '/api' 없이 등록해야 매칭.
- * 인증: UserAuth::requirePro(pro+). 테넌트=authedTenant(위조 X-Tenant-Id 무시).
+ * 인증: UserAuth::requirePlan(pro) — 라이브커머스는 Pro 전용(서버 강제). 테넌트=authedTenant(위조 X-Tenant-Id 무시).
  * 실시간: GET /v425/live/stream (SSE long-poll, live_chat.id 커서 + 주기적 stats emit).
  *   EventSource 는 커스텀 헤더 불가 → ?token=<genie_token> 로 인증(UserAuth::extractToken 지원).
  * 연동 비밀값(api_key/secret)은 AES-256-GCM 저장(Crypto, 평문 passthrough 복호화).
@@ -183,7 +183,7 @@ class LiveCommerce
 
     public static function listSessions(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $st = self::db()->prepare("SELECT * FROM live_sessions WHERE tenant_id=:t ORDER BY (status='live') DESC, id DESC LIMIT 200");
@@ -204,7 +204,7 @@ class LiveCommerce
 
     public static function saveSession(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $title = trim((string)($b['title'] ?? ''));
@@ -231,7 +231,7 @@ class LiveCommerce
 
     public static function deleteSession(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id']; $pdo = self::db();
         foreach (['live_products', 'live_orders', 'live_chat', 'live_presence', 'live_destinations'] as $tbl) {
@@ -245,7 +245,7 @@ class LiveCommerce
     /** POST /v425/live/sessions/{id}/go-live — 방송 시작 */
     public static function goLive(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id']; $now = self::now(); $pdo = self::db();
         // 동일 테넌트 다른 라이브는 종료(동시 1방송 정책 — 멀티송출은 한 세션 내 다채널)
@@ -261,7 +261,7 @@ class LiveCommerce
     /** POST /v425/live/sessions/{id}/end — 방송 종료 */
     public static function endSession(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id']; $now = self::now(); $pdo = self::db();
         $st = $pdo->prepare("UPDATE live_sessions SET status='ended', ended_at=:e, updated_at=:u WHERE id=:id AND tenant_id=:t");
@@ -275,7 +275,7 @@ class LiveCommerce
 
     public static function listProducts(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM live_products WHERE tenant_id=:t AND session_id=:s ORDER BY display_order ASC, id ASC");
         $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
@@ -286,7 +286,7 @@ class LiveCommerce
 
     public static function saveProduct(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $sessionId = (int)($args['id'] ?? $b['session_id'] ?? 0);
@@ -314,7 +314,7 @@ class LiveCommerce
 
     public static function deleteProduct(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM live_products WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -324,7 +324,7 @@ class LiveCommerce
     /** POST /v425/live/products/{id}/feature — 현재 노출 상품 핀(세션 내 단일) */
     public static function featureProduct(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pid = (int)$args['id']; $pdo = self::db();
         $row = $pdo->prepare("SELECT session_id, name FROM live_products WHERE id=:id AND tenant_id=:t");
@@ -342,7 +342,7 @@ class LiveCommerce
 
     public static function listOrders(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM live_orders WHERE tenant_id=:t AND session_id=:s ORDER BY id DESC LIMIT 500");
         $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
@@ -355,7 +355,7 @@ class LiveCommerce
      */
     public static function placeOrder(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $sid = (int)($args['id'] ?? $b['session_id'] ?? 0);
@@ -434,7 +434,7 @@ class LiveCommerce
 
     public static function listChat(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $since = (int)($req->getQueryParams()['since'] ?? 0);
         $st = self::db()->prepare("SELECT * FROM live_chat WHERE tenant_id=:t AND session_id=:s AND id>:since ORDER BY id ASC LIMIT 200");
@@ -446,7 +446,7 @@ class LiveCommerce
 
     public static function postChat(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $sid = (int)($args['id'] ?? $b['session_id'] ?? 0);
@@ -477,7 +477,7 @@ class LiveCommerce
 
     public static function listPolls(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $sid = (int)($args['id'] ?? 0); $pdo = self::db();
         $st = $pdo->prepare("SELECT * FROM live_polls WHERE tenant_id=:t AND session_id=:s ORDER BY id DESC LIMIT 20");
@@ -498,7 +498,7 @@ class LiveCommerce
 
     public static function createPoll(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $sid = (int)($args['id'] ?? 0);
         $q = trim((string)($b['question'] ?? ''));
@@ -515,7 +515,7 @@ class LiveCommerce
 
     public static function votePoll(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $pid = (int)($args['id'] ?? 0);
         $vk = trim((string)($b['viewer_key'] ?? '')); $opt = (int)($b['option_idx'] ?? -1);
@@ -540,7 +540,7 @@ class LiveCommerce
 
     public static function closePoll(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pid = (int)($args['id'] ?? 0);
         self::db()->prepare("UPDATE live_polls SET status='closed', closed_at=:ca WHERE id=:p AND tenant_id=:t")->execute([':ca' => self::now(), ':p' => $pid, ':t' => $t]);
@@ -549,7 +549,7 @@ class LiveCommerce
 
     public static function postReaction(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $sid = (int)($args['id'] ?? 0);
         $emoji = (string)($b['emoji'] ?? '❤️'); $vk = (string)($b['viewer_key'] ?? '');
@@ -563,7 +563,7 @@ class LiveCommerce
 
     public static function reactionSummary(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $sid = (int)($args['id'] ?? 0);
         $since = (int)($req->getQueryParams()['since'] ?? 0);
@@ -581,7 +581,7 @@ class LiveCommerce
 
     public static function listGuests(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT id,session_id,name,role,status,stream_key,invited_at,joined_at,left_at FROM live_guests WHERE tenant_id=:t AND session_id=:s ORDER BY id ASC");
         $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
@@ -590,7 +590,7 @@ class LiveCommerce
 
     public static function inviteGuest(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $sid = (int)($args['id'] ?? 0);
@@ -640,7 +640,7 @@ class LiveCommerce
 
     public static function updateGuest(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $gid = (int)($args['id'] ?? 0);
         $cur = self::db()->prepare("SELECT * FROM live_guests WHERE id=:id AND tenant_id=:t"); $cur->execute([':id' => $gid, ':t' => $t]);
@@ -658,7 +658,7 @@ class LiveCommerce
 
     public static function removeGuest(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $gid = (int)($args['id'] ?? 0);
         $st = self::db()->prepare("DELETE FROM live_guests WHERE id=:id AND tenant_id=:t");
@@ -738,7 +738,7 @@ class LiveCommerce
     /** GET /v425/live/media-config — 현재 등록 설정(turn_cred 마스킹) + 출처. */
     public static function getMediaConfig(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $row = null;
@@ -764,7 +764,7 @@ class LiveCommerce
     /** PUT /v425/live/media-config — 미디어서버 설정 등록/수정. 등록 즉시 다음 요청부터 자동 활성. */
     public static function saveMediaConfig(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $provider = in_array(($b['provider'] ?? ''), ['srs', 'mediamtx', 'cloudflare', 'custom'], true) ? (string)$b['provider'] : 'srs'; // [245차 P3-7]
@@ -803,7 +803,7 @@ class LiveCommerce
      */
     public static function testMediaConfig(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $cfg = self::mediaConfig($t);
@@ -876,7 +876,7 @@ class LiveCommerce
     /** GET /v425/live/sessions/{id}/media — 호스트 송출(WHIP)·시청 재생(WHEP) URL + ICE 서버. */
     public static function mediaInfo(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $sid = (int)($args['id'] ?? 0);
         if (!self::exists('live_sessions', $sid, $t)) return self::json($res, ['ok' => false, 'error' => '세션을 찾을 수 없습니다.'], 404);
@@ -898,7 +898,7 @@ class LiveCommerce
     /** POST /v425/live/sessions/{id}/heartbeat — 시청자 presence 갱신(+좋아요 옵션) */
     public static function heartbeat(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $sid = (int)$args['id']; $now = self::now(); $pdo = self::db();
         $vk = substr(trim((string)($b['viewer_key'] ?? $b['viewerKey'] ?? 'anon')), 0, 80) ?: 'anon';
@@ -929,7 +929,7 @@ class LiveCommerce
 
     public static function stats(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         return self::json($res, ['ok' => true, 'stats' => self::computeStats(self::tenant($req), (int)$args['id'])]);
     }
@@ -983,7 +983,7 @@ class LiveCommerce
     /** GET /v425/live/overview — 전 대시보드(홈/성과/커머스) 라이브 KPI 롤업 */
     public static function overview(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pdo = self::db();
         $sess = $pdo->prepare("SELECT COUNT(*) total, SUM(status='live') liveNow FROM live_sessions WHERE tenant_id=:t");
@@ -1018,7 +1018,7 @@ class LiveCommerce
 
     public static function listIntegrations(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT id,tenant_id,channel,category,status,config,connected_at,updated_at,secret FROM live_integrations WHERE tenant_id=:t");
         $st->execute([':t' => self::tenant($req)]);
@@ -1037,7 +1037,7 @@ class LiveCommerce
 
     public static function saveIntegration(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $channel = trim((string)($b['channel'] ?? ''));
@@ -1064,7 +1064,7 @@ class LiveCommerce
 
     public static function deleteIntegration(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM live_integrations WHERE channel=:c AND tenant_id=:t");
         $st->execute([':c' => (string)$args['channel'], ':t' => self::tenant($req)]);
@@ -1078,7 +1078,7 @@ class LiveCommerce
 
     public static function listDestinations(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT id,session_id,channel,label,rtmp_url,stream_key,enabled,status,last_status_at,updated_at FROM live_destinations WHERE tenant_id=:t AND session_id=:s ORDER BY id ASC");
         $st->execute([':t' => self::tenant($req), ':s' => (int)$args['id']]);
@@ -1094,7 +1094,7 @@ class LiveCommerce
 
     public static function saveDestination(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $sid = (int)($args['id'] ?? $b['session_id'] ?? 0);
@@ -1125,7 +1125,7 @@ class LiveCommerce
 
     public static function deleteDestination(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM live_destinations WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -1134,7 +1134,7 @@ class LiveCommerce
 
     public static function toggleDestination(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id']; $pdo = self::db();
         $row = $pdo->prepare("SELECT enabled FROM live_destinations WHERE id=:id AND tenant_id=:t");
@@ -1150,7 +1150,7 @@ class LiveCommerce
     /** POST /v425/live/sessions/{id}/multicast/{action} — start|stop. 활성 대상 status 전환 + relayPlan 반환. */
     public static function multicast(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $sid = (int)$args['id']; $action = (string)($args['action'] ?? 'start'); $now = self::now(); $pdo = self::db();
         $start = $action !== 'stop';
@@ -1182,7 +1182,7 @@ class LiveCommerce
      */
     public static function stream(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $q = $req->getQueryParams();

@@ -180,7 +180,7 @@ class SupplyChain
 
     public static function createLine(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1: 익명/무권한 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1: 익명/무권한 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $lid = $b['line_id'] ?? ('SUP-' . strtoupper(substr(uniqid('', true), -10))); // [현 차수] rand 충돌 → 시간기반 고유 ID
         // [현 차수 #6] MySQL 은 `INSERT OR REPLACE`(SQLite 전용) 미지원 → `REPLACE INTO`. UNIQUE(tenant_id,line_id) upsert.
@@ -203,7 +203,7 @@ class SupplyChain
 
     public static function updateLine(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         $sets = []; $params = [':id'=>$id, ':t'=>$t];
         foreach (['supplier','sku','name','leadTime','risk','delayRate','totalCost'] as $f) {
@@ -215,7 +215,7 @@ class SupplyChain
 
     public static function deleteLine(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $id = (int)($args['id']??0);
         $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
@@ -226,7 +226,7 @@ class SupplyChain
 
     public static function updateStage(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         $line = $db->prepare("SELECT line_id FROM sc_lines WHERE id=? AND tenant_id=?"); $line->execute([$id, $t]);
         $r = $line->fetch(\PDO::FETCH_ASSOC);
@@ -303,7 +303,7 @@ class SupplyChain
 
     public static function createSupplier(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $sid = $b['sup_id'] ?? ('SUPL-'.strtoupper(substr(uniqid('', true), -10)));
         // 마스터 wms_suppliers 생성 → 거래처(TeamMembers)에도 등록(이중등록 해소). 실패 시 sc-only.
@@ -318,7 +318,7 @@ class SupplyChain
 
     public static function updateSupplier(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request); $id = (int)($args['id']??0);
         // 마스터 name/contact 동기화(wms). best-effort.
         $w = self::wmsPdo();
@@ -340,7 +340,7 @@ class SupplyChain
 
     public static function deleteSupplier(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $t = self::tenant($request); $id = (int)($args['id']??0);
         // [257차 감사 수정] id 공간 충돌 제거 — sc_suppliers.id(supplychain.sqlite)와 wms_suppliers.id(main DB)는
         //   독립 자동증가라 값이 겹친다. 기존 `OR id=?`가 wms id 를 sc.id 에 매칭해 동일테넌트 무관 오버레이를 오삭제.
@@ -368,7 +368,7 @@ class SupplyChain
 
     public static function createRiskRule(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $db = self::db(); $t = self::tenant($request); $b = self::body($request);
         $db->prepare("INSERT INTO sc_risk_rules (tenant_id,rule,action,active,created_at) VALUES (?,?,?,1,?)")
             ->execute([$t,$b['rule']??'',$b['action']??'',gmdate('c')]);
@@ -377,7 +377,7 @@ class SupplyChain
 
     public static function toggleRiskRule(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [현 차수] 감사 P1
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [현 차수] 감사 P1
         $t = self::tenant($request); $id = (int)($args['id']??0);
         self::db()->prepare("UPDATE sc_risk_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true]);

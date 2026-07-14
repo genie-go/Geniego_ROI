@@ -238,7 +238,7 @@ class DemandForecast
     /* ─── GET /api/demand/forecast ─── */
     public static function forecastEndpoint(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $tenant = self::tenant($req);
         $q = $req->getQueryParams();
         $horizon = max(1, min(90, (int)($q['horizon'] ?? 14)));
@@ -302,7 +302,7 @@ class DemandForecast
        멱등(open 발주 있으면 skip). 데모/운영 GENIE_ENV DB 격리. cron 또는 프론트 버튼으로 호출. */
     public static function autoReplenish(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $tenant = self::tenant($req);
         if ($tenant === 'demo' || $tenant === '') return self::json($res, ['ok' => true, 'created' => 0, 'note' => 'demo/anon skip']);
         $b = (array)($req->getParsedBody() ?? []);
@@ -380,7 +380,7 @@ class DemandForecast
     /* ─── GET /api/demand/summary ─── */
     public static function summary(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $tenant = self::tenant($req);
         $all = self::loadSeries($tenant, 90, 200);
 
@@ -407,7 +407,7 @@ class DemandForecast
     /* ─── GET /api/demand/seasonality ─── 요일 계절 지수 ─── */
     public static function seasonality(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $tenant = self::tenant($req);
         $all = self::loadSeries($tenant, 90, 200);
 
@@ -439,7 +439,7 @@ class DemandForecast
        파라미터: ?dead_days=90&slow_days=30&top=200. */
     public static function deadStock(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $tenant = self::tenant($req);
         $pdo    = self::db();
         $q        = $req->getQueryParams();

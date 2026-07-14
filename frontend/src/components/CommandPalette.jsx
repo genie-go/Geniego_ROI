@@ -5,6 +5,8 @@
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { pathToMenuKey } from '../auth/planMenuPolicy.js';
 
 const COMMANDS = [
   { id: 'dashboard', label: '📊 Dashboard', path: '/dashboard', keywords: 'home main overview' },
@@ -43,14 +45,23 @@ export default function CommandPalette() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { hasMenuAccess } = useAuth();
+
+  // [현 차수 P1] ★플랜/권한 필터 — 종전엔 admin 전용 '사용자 관리(/user-management)'를 포함해 전 명령을
+  //   플랜 무관 노출했다. 사이드바(hasMenuAccess)와 동일 게이트로 접근 가능한 명령만 보인다(admin 메뉴 누출·
+  //   미구매 Pro 기능 노출 차단). menuKey 가 없는(비게이트) 경로는 그대로 노출.
+  const accessible = useMemo(() => COMMANDS.filter(c => {
+    const mk = pathToMenuKey(c.path);
+    return !mk || (typeof hasMenuAccess === 'function' ? hasMenuAccess(mk) : true);
+  }), [hasMenuAccess]);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return COMMANDS.slice(0, 12);
+    if (!query.trim()) return accessible.slice(0, 12);
     const q = query.toLowerCase();
-    return COMMANDS.filter(c =>
+    return accessible.filter(c =>
       c.label.toLowerCase().includes(q) || c.keywords.includes(q) || c.path.includes(q)
     ).slice(0, 10);
-  }, [query]);
+  }, [query, accessible]);
 
   useEffect(() => {
     const handler = (e) => {

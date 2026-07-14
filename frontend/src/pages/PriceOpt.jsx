@@ -1068,17 +1068,16 @@ function ProductsTab({ token }) {
                             <div>{lbl("SKU *")}<input style={inpStyle} value={form.sku} onChange={e => set("sku", e.target.value)} placeholder="SKU-001" /></div>
                             <div>{lbl(t('priceOpt.productName'))}<input style={inpStyle} value={form.product_name} onChange={e => set("product_name", e.target.value)} placeholder={t('priceOpt.productName')} /></div>
                         </div>
-                        <div>{lbl(t('priceOpt.category'))}<select style={inpStyle} value={form.category} onChange={e => set("category", e.target.value)}>
+                        {/* [현 차수] ★매핑카테고리(내 카테고리) — 상품을 내 기준으로 분류하는 카테고리. 상품마다 1개 지정. */}
+                        <div>{lbl(t('priceOpt.mappingCategory', '매핑카테고리 (내 카테고리)'))}<select style={inpStyle} value={form.category} onChange={e => set("category", e.target.value)}>
                             <option value="">{t('priceOpt.categorySelect')}</option>
                             {CAT_KEYS.map(k => <option key={k} value={k}>{t('priceOpt.'+k)}</option>)}
                         </select></div>
 
-                        {/* ── [현 차수] 판매채널 카테고리 코드 ──
-                            11번가는 카테고리 자동 조회 API 가 없어(공식 개발가이드 확인) 코드를 알 방법이 앱 안에 없었다.
-                            → "카테고리 확인" 버튼으로 채널 전체 카테고리 목록 팝업을 열어 코드를 확인·선택한다.
-                            선택한 코드는 상품에 저장되어 채널 전송 시 그대로 쓰인다(매번 다시 고를 필요 없음). */}
+                        {/* ── [현 차수] ★표시카테고리(11번가 dispCtgrNo) — 채널에 노출되는 카테고리. 상품마다 1개, 매핑카테고리와 별도로 지정.
+                            "카테고리 확인" 버튼으로 11번가 전체 카테고리(자동조회)에서 코드를 확인·선택한다. */}
                         <div>
-                            {lbl(t('priceOpt.channelCatCode', '판매채널 카테고리 코드'))}
+                            {lbl(t('priceOpt.channelCatCode', '표시카테고리 (11번가 dispCtgrNo)'))}
                             <div style={{ display: 'flex', gap: 6 }}>
                                 <input style={{ ...inpStyle, flex: 1 }} value={form.category_code}
                                     onChange={e => set('category_code', e.target.value)}
@@ -1094,7 +1093,7 @@ function ProductsTab({ token }) {
                                 </button>
                             </div>
                             <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
-                                {t('priceOpt.channelCatCodeHint', '11번가는 카테고리 자동 조회를 제공하지 않습니다. 버튼을 눌러 전체 목록에서 코드를 확인·선택하세요.')}
+                                {t('priceOpt.channelCatCodeHint2', '상품마다 표시카테고리를 개별 지정하세요. 버튼을 누르면 11번가 전체 카테고리에서 코드를 확인·선택할 수 있습니다.')}
                             </div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>

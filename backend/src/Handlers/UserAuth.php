@@ -326,7 +326,11 @@ final class UserAuth
      */
     public static function requirePro(ServerRequestInterface $req, ResponseInterface $res): ?ResponseInterface
     {
-        return self::requirePlan($req, $res, 'pro');
+        // [현 차수] ★'유료(starter+)' 게이트로 유지 — 기존 351개 호출부의 실효 동작(무료/데모 차단·유료 통과)을 보존한다.
+        //   종전엔 rank 맵이 starter=growth=pro=1 로 붕괴돼 requirePro 가 사실상 'starter+' 였다. rank 맵을 정상
+        //   5단계로 고치면서 requirePro 의미를 'starter' 로 명시해 무회귀. 진짜 Pro 전용 기능은 각 핸들러가
+        //   requirePlan(...,'pro') 로 별도 강제한다(WMS·라이브커머스·공급망·수요예측·룰엔진 등).
+        return self::requirePlan($req, $res, 'starter');
     }
 
     /**
@@ -345,13 +349,13 @@ final class UserAuth
             return self::json($res, ['ok' => false, 'error' => '세션이 만료되었습니다.', 'code' => 'SESSION_EXPIRED'], 401);
         }
 
-        // 플랜 계층: free/demo=0, starter/growth/pro=1, enterprise=2, admin=3
-        // [225차 P1-3] starter/growth/free 누락 → rank 0 폴백으로 유료 Starter/Growth 가입자가
-        //   requirePro 전체(WMS·LiveCommerce 등) 403 받던 게이트 붕괴. Paddle resolveAppPlan 은
-        //   'starter'/'growth' 를 정식 유료로 반환하므로 pro 동급(rank 1)으로 인정.
-        $rank = ['free' => 0, 'demo' => 0, 'starter' => 1, 'growth' => 1, 'pro' => 1, 'enterprise' => 2, 'admin' => 3];
+        // [현 차수] ★플랜 계층을 프론트 PLAN_TIER_RANK 정합 5단계로 통일(PlanPolicy::RANK 단일소스).
+        //   종전엔 starter=growth=pro=1 로 붕괴돼 Starter 가 Pro 전용 기능을 서버에서 그대로 통과했다(수익 누수).
+        //   free/demo=0 < starter=1 < growth=2 < pro=3 < enterprise=4 < admin=5. requirePro 는 'starter' 로 재정의돼
+        //   기존 동작 보존, 진짜 Pro 게이트는 requirePlan(...,'pro') 가 담당.
+        $rank = \Genie\PlanPolicy::RANK;
         $userRank = $rank[strtolower(trim((string)($user['plan'] ?? '')))] ?? 0;
-        $minRank  = $rank[strtolower(trim($minPlan))] ?? 1;
+        $minRank  = $rank[strtolower(trim($minPlan))] ?? \Genie\PlanPolicy::rank('pro');
 
         if ($userRank < $minRank) {
             return self::json($res, [

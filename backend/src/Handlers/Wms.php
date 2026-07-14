@@ -251,7 +251,7 @@ class Wms
 
     public static function listWarehouses(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_warehouses WHERE tenant_id=:t ORDER BY id DESC");
         $st->execute([':t' => self::tenant($req)]);
@@ -262,7 +262,7 @@ class Wms
 
     public static function saveWarehouse(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $name = trim((string)($b['name'] ?? ''));
@@ -304,7 +304,7 @@ class Wms
 
     public static function deleteWarehouse(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_warehouses WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -315,7 +315,7 @@ class Wms
      *   채널 판매 자동 차감이 실제로 선택하는 창고를 사전 확인·시뮬레이션(분할출고 회피·후보 점수 투명 노출). */
     public static function allocate(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $sku = trim((string)($b['sku'] ?? ''));
@@ -332,7 +332,7 @@ class Wms
 
     public static function listCarriers(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_carriers WHERE tenant_id=:t ORDER BY id DESC");
         $st->execute([':t' => self::tenant($req)]);
@@ -350,7 +350,7 @@ class Wms
 
     public static function saveCarrier(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $name = trim((string)($b['name'] ?? ''));
@@ -392,7 +392,7 @@ class Wms
 
     public static function deleteCarrier(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_carriers WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -402,7 +402,7 @@ class Wms
     /* ════════════════ 매입처(Suppliers) — 212차 #3 ════════════════ */
     public static function listSuppliers(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_suppliers WHERE tenant_id=:t ORDER BY id DESC");
         $st->execute([':t' => self::tenant($req)]);
@@ -413,7 +413,7 @@ class Wms
 
     public static function saveSupplier(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $name = trim((string)($b['name'] ?? ''));
@@ -447,7 +447,7 @@ class Wms
 
     public static function deleteSupplier(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_suppliers WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -458,7 +458,7 @@ class Wms
 
     public static function listPermissions(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_permissions WHERE tenant_id=:t ORDER BY id DESC");
         $st->execute([':t' => self::tenant($req)]);
@@ -469,7 +469,7 @@ class Wms
 
     public static function savePermission(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now();
         $user = trim((string)($b['user'] ?? $b['user_email'] ?? ''));
@@ -483,7 +483,7 @@ class Wms
 
     public static function deletePermission(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_permissions WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -494,7 +494,7 @@ class Wms
 
     public static function listMovements(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $limit = max(1, min(1000, (int)($req->getQueryParams()['limit'] ?? 300)));
         $st = self::db()->prepare("SELECT * FROM wms_movements WHERE tenant_id=:t ORDER BY id DESC LIMIT {$limit}");
@@ -556,7 +556,7 @@ class Wms
 
     public static function createMovement(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
@@ -1174,7 +1174,7 @@ class Wms
     /** GET /wms/stock — 물리 창고 재고(입출고 파생). by_sku=1 이면 SKU별 합산. */
     public static function listStock(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
         // [현 차수 P2-1] ABAC 강제 — warehouse 데이터범위 사용자는 허용 창고 재고만 조회(무제한=무필터·무회귀).
@@ -1193,7 +1193,7 @@ class Wms
 
     public static function listPicking(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_picking WHERE tenant_id=:t ORDER BY id DESC LIMIT 500");
         $st->execute([':t' => self::tenant($req)]);
@@ -1202,7 +1202,7 @@ class Wms
 
     public static function savePicking(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
@@ -1275,7 +1275,7 @@ class Wms
 
     public static function listSupplyOrders(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_supply_orders WHERE tenant_id=:t ORDER BY id DESC LIMIT 500");
         $st->execute([':t' => self::tenant($req)]);
@@ -1284,7 +1284,7 @@ class Wms
 
     public static function saveSupplyOrder(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $id = (int)($args['id'] ?? $b['id'] ?? 0);
@@ -1331,7 +1331,7 @@ class Wms
 
     public static function listLots(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         // FEFO: 유통기한 임박순 정렬
         $st = self::db()->prepare("SELECT * FROM wms_lots WHERE tenant_id=:t ORDER BY (expiry_date IS NULL), expiry_date ASC, id DESC LIMIT 1000");
@@ -1341,7 +1341,7 @@ class Wms
 
     public static function createLot(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $pdo = self::db();
         // [현 차수] FEFO 원가 기반 — lot 등록 시 cost(단위원가)·landed_cost(도착원가) 수집(출고 시 COGS 소싱).
@@ -1359,7 +1359,7 @@ class Wms
 
     public static function deleteLot(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_lots WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -1450,7 +1450,7 @@ class Wms
 
     public static function listBins(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
         $sql = "SELECT * FROM wms_bins WHERE tenant_id=:t"; $p = [':t' => $t];
@@ -1468,7 +1468,7 @@ class Wms
 
     public static function saveBin(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
@@ -1509,7 +1509,7 @@ class Wms
 
     public static function deleteBin(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_bins WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -1519,7 +1519,7 @@ class Wms
     /** GET /wms/bin-stock — 빈별 재고(로케이션 조인). wh_id/sku 필터. */
     public static function listBinStock(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
         // 상품이 '어느 창고 / 몇 번 랙 / 몇 단 / 몇 번'에 있는지 한 행으로 읽히도록 로케이션 전 마디를 조인한다.
@@ -1543,7 +1543,7 @@ class Wms
 
     public static function listBarcodes(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
         $sql = "SELECT * FROM wms_barcodes WHERE tenant_id=:t"; $p = [':t' => $t];
@@ -1556,7 +1556,7 @@ class Wms
     /** POST /wms/barcodes — 바코드/시리얼 → SKU 매핑 upsert(멱등, (tenant,code) 유니크). kind=barcode|serial. */
     public static function saveBarcode(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $code = trim((string)($b['code'] ?? $b['barcode'] ?? $b['serial'] ?? ''));
@@ -1577,7 +1577,7 @@ class Wms
 
     public static function deleteBarcode(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("DELETE FROM wms_barcodes WHERE id=:id AND tenant_id=:t");
         $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
@@ -1589,7 +1589,7 @@ class Wms
     /** POST /wms/scan-in — 바코드/시리얼/SKU 스캔 입고. recordMovement(Inbound) + 빈 put-away(선택). serial 은 멱등(qty=1). */
     public static function scanIn(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $code = trim((string)($b['barcode'] ?? $b['serial'] ?? $b['code'] ?? ''));
@@ -1618,7 +1618,7 @@ class Wms
     /** POST /wms/scan-out — 바코드/시리얼/SKU 스캔 출고. recordMovement(Outbound·strict) + 빈 차감. 재고부족=422. */
     public static function scanOut(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $code = trim((string)($b['barcode'] ?? $b['serial'] ?? $b['code'] ?? ''));
@@ -1651,7 +1651,7 @@ class Wms
     /** POST /wms/putaway — 창고 내 재고를 특정 빈으로 배치/이동(빈 원장만; 창고단위 on_hand 불변 = 무회귀). */
     public static function putAway(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $sku = trim((string)($b['sku'] ?? ''));
@@ -1690,7 +1690,7 @@ class Wms
     /** GET /wms/waves — 웨이브 목록 + 항목(pick-path 순). */
     public static function listWaves(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pdo = self::db();
         $st = $pdo->prepare("SELECT * FROM wms_waves WHERE tenant_id=:t ORDER BY id DESC LIMIT 200");
@@ -1707,7 +1707,7 @@ class Wms
      */
     public static function createWave(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $now = self::now(); $pdo = self::db();
         $whId = (string)($b['whId'] ?? $b['wh_id'] ?? '');
@@ -1757,7 +1757,7 @@ class Wms
      */
     public static function confirmWave(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pdo = self::db(); $now = self::now();
         $waveId = (int)($args['id'] ?? 0);
@@ -1807,7 +1807,7 @@ class Wms
 
     public static function deleteWave(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $pdo = self::db(); $id = (int)$args['id'];
         // 미확정 웨이브 삭제 시 원 피킹을 pending 으로 복원(재웨이브 가능). 확정분(shipped)은 불변.
@@ -2075,7 +2075,7 @@ class Wms
     /** GET /wms/stock-policy — 채널별 안전버퍼·자동푸시 설정. 미설정 채널은 기본(buffer 0·enabled). */
     public static function listStockPolicy(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $st = self::db()->prepare("SELECT channel, safety_buffer, enabled, updated_at FROM wms_channel_stock_policy WHERE tenant_id=? ORDER BY channel");
@@ -2091,7 +2091,7 @@ class Wms
     /** POST /wms/stock-policy — {channel, safetyBuffer, enabled} upsert(멱등). buffer 0 = 무유보(기본). */
     public static function saveStockPolicy(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req); $pdo = self::db(); $now = self::now();
         $ch = strtolower(trim((string)($b['channel'] ?? '')));
@@ -2123,7 +2123,7 @@ class Wms
     /** GET /wms/oversell — 초과판매 경고 원장(신규순). 종전엔 error_log 뿐이라 집계 불가였다. */
     public static function listOversell(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
         $sql = "SELECT * FROM wms_oversell_alert WHERE tenant_id=:t";
@@ -2142,7 +2142,7 @@ class Wms
     /** GET /wms/shipments — 채널 발송처리 큐(전송 결과·honest pending 사유 포함). */
     public static function listShipmentJobs(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $jobs = ChannelSync::listShipmentJobs(self::db(), $t, (int)($req->getQueryParams()['limit'] ?? 200));
@@ -2158,7 +2158,7 @@ class Wms
      */
     public static function createShipment(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $tracking = trim((string)($b['trackingNo'] ?? $b['tracking_no'] ?? ''));
@@ -2185,7 +2185,7 @@ class Wms
     /** POST /wms/shipments/process — 발송처리 큐 수동 플러시(cron 과 동일 코어). */
     public static function processShipments(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $ch = trim((string)($b['channel'] ?? ''));
