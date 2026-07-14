@@ -3870,6 +3870,18 @@ final class ChannelSync
         //     이 한 줄만 교체하면 된다(예: <selCtgrNo>). 값 없는 상품은 종전과 동일하게 dispCtgrNo 만 전송.
         $baseCat = trim((string)($p['base_category_code'] ?? ''));
         $baseXml = ($baseCat !== '') ? '<ctgrNo>' . htmlspecialchars($baseCat, ENT_XML1) . '</ctgrNo>' : '';
+        // [285차] ★11번가 필수 — 브랜드. 실측 오류:
+        //   "상품등록실패 : 브랜드코드가 없습니다. <apiPrdAttrBrandCd>가 없는 경우, <brand> 명 필수 입력되어야합니다."
+        //   브랜드코드(apiPrdAttrBrandCd)는 11번가 속성DB 코드라 우리에게 없다 → 브랜드**명**(<brand>)으로 보낸다.
+        //   출처 = 상품 폼의 채널 메타 brand(없으면 manufacturer). ★없는 값을 지어내지 않는다 —
+        //   실제 판매 리스팅에 허위 브랜드가 박히면 안 되므로, 비어 있으면 정직하게 거부하고 입력을 요구한다.
+        $brand = trim((string)($p['brand'] ?? $p['manufacturer'] ?? ''));
+        if ($brand === '') {
+            return ['ok' => false,
+                    'error' => '11번가 상품등록은 브랜드명이 필요합니다 — 상품의 브랜드(또는 제조사)를 입력하세요',
+                    'detail' => '11번가: <apiPrdAttrBrandCd> 미보유 시 <brand> 명 필수.'];
+        }
+        $brandXml = '<brand>' . htmlspecialchars($brand, ENT_XML1) . '</brand>';
         $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1); $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
         $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
         // [현 차수] 이미지 — 11번가는 prdImage01~prdImage10 에 **공개 URL** 을 받는다(01=대표).
@@ -3879,13 +3891,16 @@ final class ChannelSync
             $imgXml .= '<prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>'
                      . htmlspecialchars($u, ENT_XML1) . '</prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>';
         }
-        // [285차] ★11번가 필수 필드 — 판매방식코드(selMthdCd). 누락 시 11번가가 등록을 거부한다:
+        // [285차] ★11번가 필수 필드 — 판매방식코드(selMthdCd). 누락 시 등록 거부:
         //   "상품등록실패 : 판매방식코드(selMthdCd)는 필수입니다." (ClientMessage resultCode=500, 운영 실측)
-        //   값 = '0' (사용자 확정, 11번가 개발가이드 기준).
+        //   공식 코드표(개발가이드): 01=고정가판매 · 02/03=사용안함 · 04=예약판매 · 05=중고판매.
+        //   **API 서비스는 고정가판매/예약판매/중고판매만 제공**한다 → 일반 판매 = '01'.
+        //   (값 '0' 은 목록에 없어 "API로 이용할 수 없는 판매 방식" 으로 거부됐다 — 실측 확인.)
         $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
              . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
              . $baseXml
-             . '<selMthdCd>0</selMthdCd>'
+             . '<selMthdCd>01</selMthdCd>'
+             . $brandXml
              . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
              . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
              . $imgXml
