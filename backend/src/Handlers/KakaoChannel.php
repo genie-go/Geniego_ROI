@@ -256,13 +256,18 @@ class KakaoChannel
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;
         self::ensureTables();
-        $pdo = self::db();
-        $tenant = self::tenant($req);
-        $cid = (int)$args['id'];
+        $r = self::sendCampaignCore(self::db(), self::tenant($req), self::plan($req), (int)$args['id']);
+        $http = (int)($r['_http'] ?? 200); unset($r['_http']);
+        return self::jsonRes($res, $r, $http);
+    }
+
+    /** [286차] 카카오 캠페인 실발송 코어 — HTTP/cron 공용(request 비의존). 종전 sendCampaign 본체를 그대로 이식($res→배열 반환·self::plan($req)→$plan 인자화). 예약 큐 워커(runScheduledQueue)와 발송 로직 단일소스. */
+    private static function sendCampaignCore(\PDO $pdo, string $tenant, string $plan, int $cid): array
+    {
         $camp = $pdo->prepare("SELECT * FROM kakao_campaigns WHERE id=:id AND tenant_id=:t");
         $camp->execute([':id'=>$cid, ':t'=>$tenant]);
         $campaign = $camp->fetch(\PDO::FETCH_ASSOC);
-        if (!$campaign) return self::jsonRes($res, ['ok'=>false,'error'=>'캠페인 없음'], 404);
+        if (!$campaign) return ['_http'=>404,'ok'=>false,'error'=>'캠페인 없음'];
 
         $template = null;
         if (!empty($campaign['template_code'])) {
@@ -278,12 +283,12 @@ class KakaoChannel
 
         // [현 차수] M1: 비-데모(유료) 플랜에서 자격증명 미설정(mode!=live) 시 mock_sent 를 운영 DB 에 적재하지
         //   않고 명시적 차단(WhatsApp/SMS 와 동일 정책). 데모 플랜만 mock 시뮬레이션 허용(체험용).
-        if (self::plan($req) !== 'demo' && $mode !== 'live') {
-            return self::jsonRes($res, [
+        if ($plan !== 'demo' && $mode !== 'live') {
+            return ['_http'=>422,
                 'ok' => false, 'error' => 'kakao_not_configured',
                 'message' => '카카오 알림톡 발신 설정(발신키)이 없습니다. 채널 설정에서 발신키를 등록하고 live 모드로 전환하세요.',
                 'total' => 0, 'success' => 0, 'failed' => 0,
-            ], 422);
+            ];
         }
 
         // 대상 고객 (★테넌트 스코프)
@@ -340,7 +345,54 @@ class KakaoChannel
         $pdo->prepare("UPDATE kakao_campaigns SET status='sent', sent_at=:sa, total=:t, success=:s, failed=:f WHERE id=:id AND tenant_id=:tn")->execute([
             ':sa'=>$now, ':t'=>$total, ':s'=>$success, ':f'=>$failed, ':id'=>$cid, ':tn'=>$tenant,
         ]);
-        return self::jsonRes($res, ['ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'topic'=>($campaign['topic'] ?? null)]);
+        return ['_http'=>200,'ok'=>true,'mode'=>$mode,'total'=>$total,'success'=>$success,'failed'=>$failed,'frequency_capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'topic'=>($campaign['topic'] ?? null)];
+    }
+
+    /** [286차] 카카오 캠페인 발송 테넌트 소유자 플랜 해석(cron 워커용 — $req 없음). 데모는 'demo', 그 외 소유자 플랜(없으면 'pro'). */
+    private static function planForTenant(\PDO $pdo, string $tenant): string
+    {
+        if ($tenant === 'demo' || strpos($tenant, 'demo') !== false) return 'demo';
+        try {
+            $st = $pdo->prepare("SELECT plan FROM app_user WHERE tenant_id=? ORDER BY COALESCE(parent_user_id,0) ASC, id ASC LIMIT 1");
+            $st->execute([$tenant]);
+            $p = strtolower(trim((string)($st->fetchColumn() ?: '')));
+            return $p !== '' ? $p : 'pro';
+        } catch (\Throwable $e) { return 'pro'; }
+    }
+
+    /** [286차] ★카카오 예약 발송 큐 워커(cron 드레인) — 종전 부재로 예약 카카오 캠페인이 시각 도래해도 영구 미발송
+     *  (무음 유실)이던 잠재 결함을 종결(SMS runScheduledQueue 와 동일 패턴·이메일/옴니와 대칭).
+     *  status='scheduled' 이고 scheduled_at <= now(UTC) 인 캠페인을 sendCampaignCore 로 실발송(요청 경로와 동일 로직).
+     *  발송 성공 시 코어가 status='sent' 로 전이 → 재드레인 없음. 발신설정/대상 부재 등 종료성 실패는 status='failed'
+     *  로 표기해 무한 재시도·무음 반복을 막는다(정직·UI 가시화). @return array 집계. */
+    public static function runScheduledQueue(?string $onlyTenant = null): array
+    {
+        self::ensureTables();
+        $pdo = self::db();
+        $now = self::now();
+        $params = [$now];
+        $sql = "SELECT id,tenant_id FROM kakao_campaigns WHERE status='scheduled' AND scheduled_at IS NOT NULL AND scheduled_at<>'' AND scheduled_at<=?";
+        if ($onlyTenant !== null && $onlyTenant !== '') { $sql .= " AND tenant_id=?"; $params[] = $onlyTenant; }
+        $sql .= " ORDER BY id ASC LIMIT 500";
+        $st = $pdo->prepare($sql); $st->execute($params);
+        $due = $st->fetchAll(\PDO::FETCH_ASSOC);
+        $dispatched = 0; $sentTotal = 0; $failedCampaigns = 0; $planCache = [];
+        foreach ($due as $row) {
+            $tn = (string)$row['tenant_id']; $cid = (int)$row['id'];
+            if (!isset($planCache[$tn])) $planCache[$tn] = self::planForTenant($pdo, $tn);
+            try {
+                $r = self::sendCampaignCore($pdo, $tn, $planCache[$tn], $cid);
+            } catch (\Throwable $e) {
+                try { $pdo->prepare("UPDATE kakao_campaigns SET status='failed' WHERE id=? AND tenant_id=?")->execute([$cid, $tn]); } catch (\Throwable $e2) {}
+                $failedCampaigns++; continue;
+            }
+            if (!empty($r['ok'])) { $dispatched++; $sentTotal += (int)($r['success'] ?? 0); }
+            else {
+                try { $pdo->prepare("UPDATE kakao_campaigns SET status='failed' WHERE id=? AND tenant_id=? AND status='scheduled'")->execute([$cid, $tn]); } catch (\Throwable $e) {}
+                $failedCampaigns++;
+            }
+        }
+        return ['due'=>count($due), 'dispatched'=>$dispatched, 'sent'=>$sentTotal, 'failed_campaigns'=>$failedCampaigns];
     }
 
     /* ─── 성과 조회 ────────────────────────────────────────────────── */

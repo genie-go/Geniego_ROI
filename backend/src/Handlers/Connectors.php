@@ -3925,6 +3925,8 @@ final class Connectors
     {
         $source = strtolower(trim($source));
         if (!self::isAnalyticsSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        // [286차] ★거짓 '정상 동기화' 차단 — 전용 웹분석 어댑터(ga4/adobe_analytics)만 실행. 레지스트리 추가 채널은 정직 skip.
+        if (!in_array($source, self::ANALYTICS_SOURCES, true)) return ['skipped' => true, 'reason' => 'no_adapter'];
         try {
             $end = date('Y-m-d'); $start = date('Y-m-d', strtotime('-28 days'));
             return self::runSync($tenant, $start, $end, [$source]);
@@ -3953,7 +3955,7 @@ final class Connectors
      *   YouTube/Instagram/Facebook/Twitch = 라이브 커머스 멀티송출 채널. 등록한 키로 채널 통계(구독자/조회수/
      *   팔로워/영상수)를 수집해 sns_channel_stats 적재 → "동기화됨" 표기(송출 대상이자 채널 도달 분석 소스).
      *   각 채널 graceful(키 부재/오류 시 honest). Twitch 팔로워는 브로드캐스터 OAuth 스코프 필요 → honest pending. */
-    public const SNS_LIVE_SOURCES = ['youtube', 'instagram', 'facebook', 'twitch'];
+    public const SNS_LIVE_SOURCES = ['youtube', 'instagram', 'facebook', 'twitch', 'grip'];
 
     public static function isSnsLiveChannel(string $channelKey): bool
     {
@@ -4075,6 +4077,29 @@ final class Connectors
         try { $pdo->prepare($sql)->execute([$tenant, $channel, (string)($r['ext_id'] ?? ''), (string)($r['title'] ?? ''), (int)($r['followers'] ?? 0), (int)($r['views'] ?? 0), (int)($r['items'] ?? 0), (int)($r['live_now'] ?? 0), $now]); } catch (\Throwable $e) {}
     }
 
+    /**
+     * [286차] 그립(Grip) 라이브커머스 파트너 채널 어댑터 — 등록한 파트너 API 키(+셀러ID)로 방송/상품/주문 도달지표 수집.
+     *   종전 grip 은 프론트에만 노출되고 백엔드 소비처가 전무해 "연결됨" 녹색이면서 실동작 0 인 dead-end 였다.
+     *   이 어댑터가 자격증명을 실제로 읽어(=dead-end 해소) sns_channel_stats 에 적재한다.
+     *   ★그립 파트너 API 의 실 base URL·인증헤더·엔드포인트 규약이 확정돼야 실 HTTP 호출을 채운다
+     *     (지어내기 금지 — 11번가 -997 교훈: 미확정 경로를 지어내면 또 다른 가짜가 된다).
+     *     규약 확정 전에는 **가짜 live 표기 대신 정직 pending** 을 반환한다(자격증명 저장·소비는 이미 배선됨).
+     *   @return array ['live'=>true,...] 실집계 시 / ['hasCreds'=>false] 키부재 / ['pending'=>true,...] 규약대기
+     */
+    private static function fetchGripStats(string $tenant): array
+    {
+        $apiKey = trim(self::loadCred($tenant, 'grip', 'api_key'));
+        if ($apiKey === '') return ['hasCreds' => false];
+        $sellerId = trim(self::loadCred($tenant, 'grip', 'seller_id'));
+        // TODO(그립 파트너 API 규약 확정 시): 실 호출로 교체.
+        //   예상 형태: [$code,$body,$err] = self::httpGet("{base}/v1/seller/{$sellerId}/broadcasts",
+        //              ['Authorization' => 'Bearer ' . $apiKey]);
+        //   성공 시 return ['live'=>true,'ext_id'=>$sellerId,'title'=>...,'followers'=>...,'views'=>...,'items'=>...];
+        //   현재는 실 엔드포인트 미확정 → 정직 pending(가짜 성공/연결 금지).
+        return ['pending' => true, 'reason' => 'grip_api_spec_required',
+                'note' => '그립 파트너 API 연동 대기 — 파트너 API 스펙(base URL·인증방식·엔드포인트) 확정 후 실시간 방송/상품/주문 지표를 수집합니다. 자격증명은 정상 저장되었습니다.'];
+    }
+
     /** 자격증명 등록 즉시 SNS 라이브 채널 통계 동기화(ad/commerce/pg/물류/리뷰와 대칭). */
     public static function syncSnsLiveOnSave(string $tenant, string $channel): array
     {
@@ -4086,6 +4111,7 @@ final class Connectors
                 'instagram' => self::fetchInstagramStats($tenant),
                 'facebook'  => self::fetchFacebookStats($tenant),
                 'twitch'    => self::fetchTwitchStats($tenant),
+                'grip'      => self::fetchGripStats($tenant),
                 default     => ['skipped' => true],
             };
             if (!empty($r['live'])) {
@@ -4413,10 +4439,17 @@ final class Connectors
     }
 
     /** 자격증명 저장 직후 CS 1회 동기화(데모/익명 skip). */
+    /** CS 전용 실어댑터 보유 소스(runCsSync fetcher 맵과 단일소스). 레지스트리 추가 채널은 여기 없으면 정직 skip. */
+    private const CS_BUILTIN = ['zendesk', 'intercom', 'freshdesk', 'gorgias'];
+
     public static function syncCsOnSave(string $tenant, string $source): array
     {
         $source = strtolower(trim($source));
         if (!self::isCsSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        // [286차] ★거짓 '정상 동기화' 차단 — isCsSource 는 레지스트리 추가 채널까지 수락하나 runCsSync 는 전용 어댑터
+        //   4종만 실행하고 나머지는 조용히 드롭(빈 결과 → syncResultOk=true → 거짓 stamp). 어댑터 없으면 정직 skip
+        //   → 연결상태가 '미동기화'로 정직 표시된다(광고 syncAdChannelOnSave 의 AD_SHORT 게이트와 동일 정책).
+        if (!in_array($source, self::CS_BUILTIN, true)) return ['skipped' => true, 'reason' => 'no_adapter'];
         try { return self::runCsSync($tenant, date('Y-m-d', strtotime('-28 days')), date('Y-m-d'), [$source]); }
         catch (\Throwable $e) { return ['error' => substr($e->getMessage(), 0, 120)]; }
     }
@@ -4667,6 +4700,8 @@ final class Connectors
     {
         $source = strtolower(trim($source));
         if (!self::isEspSource($source) || $tenant === '' || $tenant === 'demo') return ['skipped' => true];
+        // [286차] ★거짓 '정상 동기화' 차단 — 전용 ESP 어댑터 3종만 실행. 레지스트리 추가 채널은 정직 skip.
+        if (!in_array($source, ['mailchimp', 'klaviyo', 'sendgrid'], true)) return ['skipped' => true, 'reason' => 'no_adapter'];
         try { return self::runEspSync($tenant, date('Y-m-d', strtotime('-28 days')), date('Y-m-d'), [$source]); }
         catch (\Throwable $e) { return ['error' => substr($e->getMessage(), 0, 120)]; }
     }

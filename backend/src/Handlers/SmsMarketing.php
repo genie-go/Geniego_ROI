@@ -199,11 +199,21 @@ final class SmsMarketing
         return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>$map[$act]]);
     }
 
-    /** 260차: 캠페인 실제 발송 — 세그먼트 멤버 전화번호 해석 → sendSms → sms_messages 적재 → status='sent'+sent_count.
-     *  발신설정 미존재(운영)면 가짜 발송 금지·422. 데모는 시뮬레이션. broadcast 로직 재사용. */
+    /** 260차: 캠페인 실제 발송(HTTP 요청 경로) — 코어에 위임하고 결과 배열을 Response 로 포장.
+     *  [286차] request 의존은 plan 해석뿐이므로 코어(dispatchCampaignCore)를 request 비의존으로 분리해
+     *  예약 큐 워커(runScheduledQueue)와 발송 로직을 단일소스로 공유(무후퇴·값 이원화 방지). */
     private static function dispatchCampaign(Request $req, Response $res, \PDO $pdo, string $tenant, int $id): Response
     {
-        $plan = self::plan($req);
+        $r = self::dispatchCampaignCore($pdo, $tenant, self::plan($req), $id);
+        $http = (int)($r['_http'] ?? 200); unset($r['_http']);
+        return TemplateResponder::respond($http !== 200 ? $res->withStatus($http) : $res, $r);
+    }
+
+    /** [286차] 캠페인 실발송 코어 — HTTP/cron 공용(request 비의존). 세그먼트 전화번호 해석 → sendSms →
+     *  sms_messages 적재 → status='sent'+sent_count. 발신설정 미존재(운영)면 가짜 발송 금지·422(배열). 데모는 시뮬레이션.
+     *  반환: 결과 배열(선두 '_http' = HTTP 상태). 로직은 종전 dispatchCampaign 본체를 그대로 이식($res→배열 반환). */
+    private static function dispatchCampaignCore(\PDO $pdo, string $tenant, string $plan, int $id): array
+    {
         // [현 차수 P1] template_id 도 조회 — 템플릿 기반 캠페인은 message 가 비어 무음 미발송(422)이었다.
         try {
             // [283차 P0] topic 도 조회 — 선호센터 토픽 옵트아웃 강제용. (구 스키마 폴백은 catch 에서 처리)
@@ -215,9 +225,9 @@ final class SmsMarketing
             $c->execute([$id, $tenant]);
             $camp = $c->fetch(PDO::FETCH_ASSOC);
         }
-        if (!$camp) return TemplateResponder::respond($res->withStatus(404), ['ok'=>false,'error'=>'not found']);
+        if (!$camp) return ['_http'=>404,'ok'=>false,'error'=>'not found'];
         if (($camp['status'] ?? '') === 'sent') {
-            return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','already'=>true,'sent'=>0]);
+            return ['_http'=>200,'ok'=>true,'id'=>$id,'status'=>'sent','already'=>true,'sent'=>0];
         }
         $message = trim((string)($camp['message'] ?? ''));
         // 메시지가 비고 template_id 가 있으면 sms_templates 본문 로드(템플릿 캠페인 발송 정상화).
@@ -228,7 +238,7 @@ final class SmsMarketing
                 $message = trim((string)($tq->fetchColumn() ?: ''));
             } catch (\Throwable $e) { /* 컬럼/테이블 변형 — 아래 422 폴백 */ }
         }
-        if ($message === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'캠페인 메시지 또는 템플릿 본문이 비어 있습니다.']);
+        if ($message === '') return ['_http'=>422,'ok'=>false,'error'=>'캠페인 메시지 또는 템플릿 본문이 비어 있습니다.'];
         $type = strlen($message) > 90 ? 'LMS' : 'SMS';
         $now  = gmdate('c');
 
@@ -252,9 +262,9 @@ final class SmsMarketing
             $s->execute([$tenant]);
             $cfg = $s->fetch(PDO::FETCH_ASSOC);
             if ($cfg && !empty($cfg['secret_key'])) $cfg['secret_key'] = \Genie\Crypto::decrypt((string)$cfg['secret_key']);
-            if (!$cfg) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'SMS 발신 설정이 없습니다. 설정에서 발신번호·인증키를 먼저 등록하세요.','sent'=>0]);
+            if (!$cfg) return ['_http'=>422,'ok'=>false,'error'=>'SMS 발신 설정이 없습니다. 설정에서 발신번호·인증키를 먼저 등록하세요.','sent'=>0];
         }
-        if (!$numbers) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'발송 대상(세그먼트 고객 전화번호)이 없습니다.','sent'=>0]);
+        if (!$numbers) return ['_http'=>422,'ok'=>false,'error'=>'발송 대상(세그먼트 고객 전화번호)이 없습니다.','sent'=>0];
 
         $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
         // [283차 P0] 캠페인 토픽 → 통합 게이트 입력(선호센터 토픽 옵트아웃 실강제). 미지정=빈배열=무회귀.
@@ -294,7 +304,58 @@ final class SmsMarketing
         }
         $pdo->prepare("UPDATE sms_campaigns SET status='sent', sent_count=?, updated_at=? WHERE id=? AND tenant_id=?")
             ->execute([$sent, $now, $id, $tenant]);
-        return TemplateResponder::respond($res, ['ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'total'=>$sent+$failed,'topic'=>($camp['topic'] ?? null)]);
+        return ['_http'=>200,'ok'=>true,'id'=>$id,'status'=>'sent','sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'quiet_deferred'=>$quiet,'opted_out'=>$optout,'total'=>$sent+$failed,'topic'=>($camp['topic'] ?? null)];
+    }
+
+    /** [286차] 테넌트 소유자(owner) 플랜 해석 — cron 워커에는 $req 가 없어 self::plan($req) 불가.
+     *  데모 테넌트는 'demo'(시뮬레이션), 그 외는 소유자 플랜(없으면 'pro'로 가정 — 실발송은 sms_settings 게이트가 재차 차단). */
+    private static function planForTenant(\PDO $pdo, string $tenant): string
+    {
+        if ($tenant === 'demo' || strpos($tenant, 'demo') !== false) return 'demo';
+        try {
+            $st = $pdo->prepare("SELECT plan FROM app_user WHERE tenant_id=? ORDER BY COALESCE(parent_user_id,0) ASC, id ASC LIMIT 1");
+            $st->execute([$tenant]);
+            $p = strtolower(trim((string)($st->fetchColumn() ?: '')));
+            return $p !== '' ? $p : 'pro';
+        } catch (\Throwable $e) { return 'pro'; }
+    }
+
+    /** [286차] ★SMS 예약 발송 큐 워커(cron 드레인) — 종전 부재로 예약 SMS 가 시각 도래해도 영구 미발송(무음 유실)이던
+     *  근본결함을 종결. status='scheduled' 이고 scheduled_at <= now(UTC) 인 캠페인을 dispatchCampaignCore 로 실발송한다
+     *  (요청 경로와 완전 동일한 발송·게이트·집계 로직 = 단일소스). 발송 성공 시 코어가 status='sent' 로 전이하므로 재드레인 없음.
+     *  발신설정/대상 부재 등 종료성 실패는 status='failed' 로 표기해 무한 재시도·무음 반복을 막는다(정직·UI 가시화).
+     *  @param ?string $onlyTenant 특정 테넌트만(선택). @return array 집계. */
+    public static function runScheduledQueue(?string $onlyTenant = null): array
+    {
+        self::ensureTables();
+        $pdo = Db::pdo();
+        $now = gmdate('c'); // saveCampaign 이 scheduled_at 을 gmdate('c')(ISO8601 UTC)로 저장 → 문자열 비교 정합.
+        $params = [$now];
+        $sql = "SELECT id,tenant_id FROM sms_campaigns WHERE status='scheduled' AND scheduled_at IS NOT NULL AND scheduled_at<>'' AND scheduled_at<=?";
+        if ($onlyTenant !== null && $onlyTenant !== '') { $sql .= " AND tenant_id=?"; $params[] = $onlyTenant; }
+        $sql .= " ORDER BY id ASC LIMIT 500";
+        $st = $pdo->prepare($sql); $st->execute($params);
+        $due = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        $dispatched = 0; $sentTotal = 0; $failedCampaigns = 0; $planCache = [];
+        foreach ($due as $row) {
+            $tn = (string)$row['tenant_id']; $cid = (int)$row['id'];
+            if (!isset($planCache[$tn])) $planCache[$tn] = self::planForTenant($pdo, $tn);
+            try {
+                $r = self::dispatchCampaignCore($pdo, $tn, $planCache[$tn], $cid);
+            } catch (\Throwable $e) {
+                // 예외 = 종료성 실패로 간주하고 failed 표기(무한 재시도 방지).
+                try { $pdo->prepare("UPDATE sms_campaigns SET status='failed', updated_at=? WHERE id=? AND tenant_id=?")->execute([gmdate('c'), $cid, $tn]); } catch (\Throwable $e2) {}
+                $failedCampaigns++; continue;
+            }
+            if (!empty($r['ok'])) { $dispatched++; $sentTotal += (int)($r['sent'] ?? 0); }
+            else {
+                // 발신설정 없음/대상 없음/메시지 없음 등 → 재시도해도 동일 → failed 표기(무음 미발송 종결·UI 노출).
+                try { $pdo->prepare("UPDATE sms_campaigns SET status='failed', updated_at=? WHERE id=? AND tenant_id=? AND status='scheduled'")->execute([gmdate('c'), $cid, $tn]); } catch (\Throwable $e) {}
+                $failedCampaigns++;
+            }
+        }
+        return ['due'=>count($due), 'dispatched'=>$dispatched, 'sent'=>$sentTotal, 'failed_campaigns'=>$failedCampaigns];
     }
 
     // POST /api/sms/settings

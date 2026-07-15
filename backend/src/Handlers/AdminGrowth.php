@@ -434,6 +434,7 @@ final class AdminGrowth
     public static function channelAnalysis(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $q = (array)$req->getQueryParams();
         $period = (string)($q['period'] ?? 'monthly');
@@ -576,6 +577,7 @@ final class AdminGrowth
     public static function abReport(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $q = (array)$req->getQueryParams();
         $camp = trim((string)($q['campaign'] ?? ''));
@@ -623,6 +625,7 @@ final class AdminGrowth
     public static function dashboard(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
 
         $funnel = self::computeFunnel($pdo);
@@ -672,6 +675,7 @@ final class AdminGrowth
     public static function funnel(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         return self::json($res, self::computeFunnel($pdo), '퍼널');
     }
@@ -762,6 +766,7 @@ final class AdminGrowth
     public static function segments(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $rows = $pdo->query("SELECT * FROM admin_growth_segment ORDER BY sort ASC, id ASC")->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         foreach ($rows as &$r) { $r['channels'] = json_decode((string)($r['channels_json'] ?? '[]'), true) ?: []; }
@@ -771,6 +776,7 @@ final class AdminGrowth
     public static function segmentSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = self::body($req);
         $now = gmdate('c');
@@ -803,6 +809,7 @@ final class AdminGrowth
     public static function segmentDelete(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $id = (int)($args['id'] ?? 0);
         $pdo->prepare("DELETE FROM admin_growth_segment WHERE id=?")->execute([$id]);
@@ -814,6 +821,7 @@ final class AdminGrowth
     public static function segmentSeed(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $existing = (int)$pdo->query("SELECT COUNT(*) FROM admin_growth_segment")->fetchColumn();
         if ($existing > 0) {
@@ -872,6 +880,7 @@ final class AdminGrowth
     public static function leads(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $q = $req->getQueryParams();
         $where = []; $args = [];
@@ -889,6 +898,7 @@ final class AdminGrowth
     public static function leadSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = self::body($req);
         $email = trim((string)($b['email'] ?? ''));
@@ -911,6 +921,7 @@ final class AdminGrowth
     public static function leadEvent(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $leadId = (int)($args['id'] ?? 0);
         $b = self::body($req);
@@ -930,6 +941,7 @@ final class AdminGrowth
     public static function campaigns(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $rows = $pdo->query("SELECT * FROM admin_growth_campaign ORDER BY id DESC LIMIT 200")->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         foreach ($rows as &$r) {
@@ -944,6 +956,7 @@ final class AdminGrowth
     public static function campaignSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = self::body($req);
         $now = gmdate('c');
@@ -972,6 +985,7 @@ final class AdminGrowth
     public static function designs(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo();
         try { \Genie\Handlers\ClaudeAI::migrateAdDesign($pdo); } catch (\Throwable $e) {}
         $rows = [];
@@ -993,6 +1007,7 @@ final class AdminGrowth
     public static function designSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo();
         try { \Genie\Handlers\ClaudeAI::migrateAdDesign($pdo); } catch (\Throwable $e) {}
         $b = self::body($req);
@@ -1028,6 +1043,7 @@ final class AdminGrowth
     public static function campaignGenerate(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $id = (int)($args['id'] ?? 0);
         $camp = $pdo->prepare("SELECT * FROM admin_growth_campaign WHERE id=?"); $camp->execute([$id]);
@@ -1116,6 +1132,7 @@ final class AdminGrowth
     public static function campaignLaunch(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $id = (int)($args['id'] ?? 0);
         $cs = $pdo->prepare("SELECT * FROM admin_growth_campaign WHERE id=?"); $cs->execute([$id]);
@@ -1282,6 +1299,7 @@ final class AdminGrowth
     public static function approvals(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $q = $req->getQueryParams();
         $status = (string)($q['status'] ?? 'pending');
@@ -1295,6 +1313,7 @@ final class AdminGrowth
     public static function approvalDecide(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $id = (int)($args['id'] ?? 0);
         $b = self::body($req);
@@ -1329,6 +1348,7 @@ final class AdminGrowth
     public static function settings(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         return self::json($res, [
             'mode'              => self::mode($pdo),
@@ -1345,6 +1365,7 @@ final class AdminGrowth
     public static function settingsSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = self::body($req);
         $actor = self::actor($req);
@@ -1377,6 +1398,7 @@ final class AdminGrowth
     public static function audit_log(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $st = $pdo->prepare("SELECT id, actor, action, details_json, created_at FROM audit_log WHERE action LIKE 'growth.%' ORDER BY id DESC LIMIT 300");
         $st->execute();
@@ -1389,6 +1411,7 @@ final class AdminGrowth
     public static function securityAudit(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/growth')) return $sm; // [286차] 하위관리자는 '/admin/growth' 부여자만 성장센터 접근
         $pdo  = Db::pdo();
         // [현 차수 보강1] 회원 유형 필터(all|demo|subscriber). recentByType 가 화이트리스트 강제.
         $q  = $req->getQueryParams();

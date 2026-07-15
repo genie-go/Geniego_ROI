@@ -648,11 +648,11 @@
    "paths": [
     "/marketing",
     "/menu-access-manager",
-    "/operations",
     "/sms-marketing",
     "/email-marketing",
     "/kakao-channel",
     "/auto-marketing",
+    "/operations",
     "/dashboard"
    ],
    "actions": [
@@ -1207,58 +1207,6 @@
     "wa"
    ]
   },
-  "priceOpt": {
-   "ns": "priceOpt",
-   "title": "가격 최적화 엔진",
-   "subtitle": "",
-   "paths": [
-    "/price-opt"
-   ],
-   "actions": [
-    "새로고침",
-    "일괄 업로드",
-    "상품 다운로드",
-    "취소",
-    "적용",
-    "Run Repricer",
-    "실시간 동기화"
-   ],
-   "fields": [
-    "대표",
-    "규격",
-    "원가",
-    "마진",
-    "기준가",
-    "배송 조건"
-   ],
-   "notes": [
-    "채널이 요구하는 카테고리를 선택해야 상품이 등록됩니다",
-    "11번가 셀러오피스에서 제공하는 카테고리 코드 파일(엑셀·CSV)을 올리면, 전체 카테고리 목록을 검색해 코드를 선택할 수 있습니다. 한 번만 올리면 됩니다.",
-    "무료배송은 배송비가 실효원가에 가산되어 마진 보존 최적가로 상향됩니다. 자동 선택 시 채널 관행(Amazon·Shopify·쿠팡 등=무료배송, eBay·Etsy·Shopee 등=소비자 부담)이 적용됩니다.",
-    "해외 판매: 유류할증료는 배송비에 포함해 입력하세요. 관세·부가세는 통상 구매자(수입자) 부담(DDU)이며, DDP(판매자 관세부담) 조건일 때만 배송비 항목에 합산하세요.",
-    "경쟁사 가격 반응(언더컷)을 시뮬레이션해 내시 균형가 산출 — 순진한 이익최대가의 반응 함정 회피",
-    "경쟁가 자동수집",
-    "경쟁사 최저가 대비 언더컷 비율(%)",
-    "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)"
-   ],
-   "states": [
-    "파일이 비어 있습니다",
-    "예정",
-    "초안"
-   ],
-   "names": [
-    "가격 최적화 엔진"
-   ],
-   "match": [
-    "DDU",
-    "DDP",
-    "일괄 업로드",
-    "상품 다운로드",
-    "Run Repricer",
-    "배송 조건",
-    "priceOpt"
-   ]
-  },
   "wms": {
    "ns": "wms",
    "title": "WMS 재고관리",
@@ -1601,6 +1549,74 @@
     "wave"
    ]
   },
+  "dataAssets": {
+   "ns": "dataAssets",
+   "title": "데이터 자산",
+   "subtitle": "내 계정의 데이터를 구독 직접등록 원천과 외부 채널 수집 원천으로 구분해 관리합니다. 이 자산이 통합 분석·마케팅 자동화의 정확한 근거가 됩니다.",
+   "paths": [
+    "/data-assets"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [
+    "연동된 외부 채널이 없습니다. 연동허브에서 채널 자격증명을 등록하면 자동으로 여기에 나타납니다.",
+    "등록된 직접등록 원천이 없습니다."
+   ],
+   "names": [
+    "데이터 자산"
+   ],
+   "match": [
+    "dataAssets"
+   ]
+  },
+  "dataAssets.f": {
+   "ns": "dataAssets.f",
+   "title": "데이터 자산",
+   "subtitle": "",
+   "paths": [
+    "/data-assets"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "데이터 자산",
+    "Data Assets",
+    "データ資産",
+    "数据资产",
+    "資料資產",
+    "Datenbestände",
+    "สินทรัพย์ข้อมูล",
+    "Tài sản dữ liệu",
+    "Aset Data",
+    "أصول البيانات",
+    "Activos de datos",
+    "Actifs de données",
+    "डेटा एसेट",
+    "Ativos de dados",
+    "Активы данных"
+   ],
+   "match": [
+    "데이터 자산",
+    "Data Assets",
+    "データ資産",
+    "数据资产",
+    "資料資產",
+    "Datenbestände",
+    "สินทรัพย์ข้อมูล",
+    "Tài sản dữ liệu",
+    "Aset Data",
+    "أصول البيانات",
+    "Activos de datos",
+    "Actifs de données",
+    "डेटा एसेट",
+    "Ativos de dados",
+    "Активы данных",
+    "f"
+   ]
+  },
   "devHub": {
    "ns": "devHub",
    "title": "개발자 포털",
@@ -1719,6 +1735,7 @@
    "paths": [
     "/my-coupons",
     "/integration-hub",
+    "/catalog-sync",
     "/marketing-mix",
     "/crm",
     "/channel-kpi",
@@ -1728,6 +1745,7 @@
     "/system-monitor"
    ],
    "actions": [
+    "취소",
     "닫기",
     "새로고침"
    ],
@@ -1750,6 +1768,20 @@
     "एकीकरण हब",
     "Hub integração",
     "Хаб интеграции",
+    "카탈로그 동기화",
+    "Catalog Sync",
+    "カタログ同期",
+    "目录同步",
+    "目錄同步",
+    "Katalogsync",
+    "ซิงค์แคตตาล็อก",
+    "Đồng bộ danh mục",
+    "Sinkronisasi Katalog",
+    "مزامنة الكتالوج",
+    "Sync catálogo",
+    "Sync catalogue",
+    "कैटलॉग सिंक",
+    "Синхр. каталога",
     "마케팅 믹스",
     "Marketing Mix",
     "マーケティングミックス",
@@ -1864,6 +1896,20 @@
     "एकीकरण हब",
     "Hub integração",
     "Хаб интеграции",
+    "카탈로그 동기화",
+    "Catalog Sync",
+    "カタログ同期",
+    "目录同步",
+    "目錄同步",
+    "Katalogsync",
+    "ซิงค์แคตตาล็อก",
+    "Đồng bộ danh mục",
+    "Sinkronisasi Katalog",
+    "مزامنة الكتالوج",
+    "Sync catálogo",
+    "Sync catalogue",
+    "कैटलॉग सिंक",
+    "Синхр. каталога",
     "마케팅 믹스",
     "Marketing Mix",
     "マーケティングミックス",
@@ -1874,21 +1920,7 @@
     "مزيج التسويق",
     "Mix marketing",
     "मार्केटिंग मिक्स",
-    "Mix de Marketing",
-    "Маркетинг-микс",
-    "CRM 대시보드",
-    "CRM Dashboard",
-    "CRMダッシュボード",
-    "CRM仪表盘",
-    "CRM儀表板",
-    "CRM-Dashboard",
-    "แดชบอร์ด CRM",
-    "Bảng điều khiển CRM",
-    "Dasbor CRM",
-    "لوحة CRM",
-    "Panel CRM",
-    "Tableau CRM",
-    "CRM डैशबोर्ड"
+    "Mix de Marketing"
    ]
   },
   "krChannel": {
@@ -2403,85 +2435,6 @@
     "webPopup"
    ]
   },
-  "catalogSync.brand": {
-   "ns": "catalogSync.brand",
-   "title": "브랜드 관리",
-   "subtitle": "11번가 상품등록은 브랜드가 필수입니다. 여기에 등록한 브랜드를 상품 목록·상품정보에서 선택해 쓰세요. 브랜드코드를 몰라도 브랜드명만으로 전송됩니다.",
-   "paths": [
-    "/catalog-sync"
-   ],
-   "actions": [
-    "추가·지정",
-    "브랜드 일괄지정",
-    "수정",
-    "＋ 추가",
-    "취소",
-    "삭제"
-   ],
-   "fields": [
-    "브랜드명",
-    "브랜드 선택…",
-    "새 브랜드 입력",
-    "브랜드 지정",
-    "브랜드명 (예: 청정원)",
-    "채널 브랜드코드 (선택)",
-    "채널 브랜드코드",
-    "브랜드 관리"
-   ],
-   "notes": [
-    "선택한 상품에 브랜드를 한 번에 지정합니다",
-    "11번가 상품등록에 필수입니다. 입력 후 Enter 를 누르거나 다른 곳을 클릭하면 저장됩니다."
-   ],
-   "states": [
-    "브랜드를 지정했습니다",
-    "저장했습니다",
-    "삭제했습니다",
-    "등록된 브랜드가 없습니다 — 위에서 추가하세요"
-   ],
-   "names": [
-    "브랜드 관리",
-    "Brand Management",
-    "ブランド管理",
-    "品牌管理",
-    "Markenverwaltung",
-    "การจัดการแบรนด์",
-    "Quản lý thương hiệu",
-    "Manajemen Merek",
-    "إدارة العلامات التجارية",
-    "Gestión de marcas",
-    "Gestion des marques",
-    "ब्रांड प्रबंधन",
-    "Gestão de marcas",
-    "Управление брендами"
-   ],
-   "match": [
-    "브랜드 관리",
-    "Brand Management",
-    "ブランド管理",
-    "品牌管理",
-    "Markenverwaltung",
-    "การจัดการแบรนด์",
-    "Quản lý thương hiệu",
-    "Manajemen Merek",
-    "إدارة العلامات التجارية",
-    "Gestión de marcas",
-    "Gestion des marques",
-    "ब्रांड प्रबंधन",
-    "Gestão de marcas",
-    "Управление брендами",
-    "추가·지정",
-    "브랜드 일괄지정",
-    "＋ 추가",
-    "브랜드명",
-    "브랜드 선택…",
-    "새 브랜드 입력",
-    "브랜드 지정",
-    "브랜드명 (예: 청정원)",
-    "채널 브랜드코드 (선택)",
-    "채널 브랜드코드",
-    "brand"
-   ]
-  },
   "graphScore": {
    "ns": "graphScore",
    "title": "그래프 스코어링",
@@ -2846,6 +2799,58 @@
     "DB एडमिन",
     "Админ БД",
     "kpi"
+   ]
+  },
+  "priceOpt": {
+   "ns": "priceOpt",
+   "title": "가격 최적화 엔진",
+   "subtitle": "",
+   "paths": [
+    "/price-opt"
+   ],
+   "actions": [
+    "새로고침",
+    "일괄 업로드",
+    "상품 다운로드",
+    "취소",
+    "적용",
+    "Run Repricer",
+    "실시간 동기화"
+   ],
+   "fields": [
+    "대표",
+    "규격",
+    "원가",
+    "마진",
+    "기준가",
+    "배송 조건"
+   ],
+   "notes": [
+    "채널이 요구하는 카테고리를 선택해야 상품이 등록됩니다",
+    "11번가 셀러오피스에서 제공하는 카테고리 코드 파일(엑셀·CSV)을 올리면, 전체 카테고리 목록을 검색해 코드를 선택할 수 있습니다. 한 번만 올리면 됩니다.",
+    "무료배송은 배송비가 실효원가에 가산되어 마진 보존 최적가로 상향됩니다. 자동 선택 시 채널 관행(Amazon·Shopify·쿠팡 등=무료배송, eBay·Etsy·Shopee 등=소비자 부담)이 적용됩니다.",
+    "해외 판매: 유류할증료는 배송비에 포함해 입력하세요. 관세·부가세는 통상 구매자(수입자) 부담(DDU)이며, DDP(판매자 관세부담) 조건일 때만 배송비 항목에 합산하세요.",
+    "경쟁사 가격 반응(언더컷)을 시뮬레이션해 내시 균형가 산출 — 순진한 이익최대가의 반응 함정 회피",
+    "경쟁가 자동수집",
+    "경쟁사 최저가 대비 언더컷 비율(%)",
+    "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)"
+   ],
+   "states": [
+    "파일이 비어 있습니다",
+    "예정",
+    "초안"
+   ],
+   "names": [
+    "가격 최적화 엔진"
+   ],
+   "match": [
+    "DDU",
+    "DDP",
+    "일괄 업로드",
+    "상품 다운로드",
+    "Run Repricer",
+    "배송 조건",
+    "priceOpt"
    ]
   },
   "ak": {
@@ -3602,70 +3607,6 @@
     "approvalsPage"
    ]
   },
-  "operations": {
-   "ns": "operations",
-   "title": "운영 실행 목록",
-   "subtitle": "",
-   "paths": [
-    "/operations"
-   ],
-   "actions": [
-    "✏️ 편집",
-    "취소",
-    "💾 저장",
-    "편집"
-   ],
-   "fields": [],
-   "notes": [
-    "프로모션과 AI 디자인을 함께 사용하면 효과가 더 좋습니다. 쿠폰 생성 후 AI 로 홍보 이미지를 생성하세요.",
-    "쿠폰 생성·캠페인 관리",
-    "AI 광고 디자인·이미지 생성·업로드",
-    "한 화면에서 쿠폰/프로모션과 AI 광고 마케팅 디자인을 관리합니다."
-   ],
-   "states": [
-    "판매 중",
-    "일시중지됨",
-    "품절",
-    "재고 부족"
-   ],
-   "names": [
-    "운영 실행 목록",
-    "Operations",
-    "運営実行",
-    "运营执行",
-    "營運執行",
-    "Betrieb",
-    "การดำเนินงาน",
-    "Vận hành",
-    "Operasi",
-    "العمليات",
-    "Operaciones",
-    "Opérations",
-    "संचालन",
-    "Operações",
-    "Операции"
-   ],
-   "match": [
-    "운영 실행 목록",
-    "Operations",
-    "運営実行",
-    "运营执行",
-    "營運執行",
-    "Betrieb",
-    "การดำเนินงาน",
-    "Vận hành",
-    "Operasi",
-    "العمليات",
-    "Operaciones",
-    "Opérations",
-    "संचालन",
-    "Operações",
-    "Операции",
-    "✏️ 편집",
-    "💾 저장",
-    "operations"
-   ]
-  },
   "audit": {
    "ns": "audit",
    "title": "감사 로그",
@@ -3725,6 +3666,80 @@
     "SIEM 설정 저장",
     "📥 CSV 내보내기",
     "audit"
+   ]
+  },
+  "writebackPage": {
+   "ns": "writebackPage",
+   "title": "데이터 라이트백",
+   "subtitle": "",
+   "paths": [
+    "/writeback"
+   ],
+   "actions": [
+    "매핑 추가",
+    "드라이 런 모드",
+    "다른 탭에서 라이트백이 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기"
+   ],
+   "fields": [
+    "코드 설명(선택)"
+   ],
+   "notes": [
+    "의심스러운 활동이 감지되었습니다.",
+    "상품 JSON을 입력하고 미리보기로 실행 전 검증하세요.",
+    "마켓플레이스(쿠팡·네이버 등) 상품등록은 채널별 카테고리코드가 필수입니다. 내 상품 카테고리를 채널 코드에 한 번 매핑하면, 상품 송출 시 자동으로 해당 코드가 적용됩니다.",
+    "리프라이서 승인 대기 가격을 채널 반영 승인합니다",
+    "자격증명이 등록된 채널의 대기 작업을 지금 채널로 push합니다",
+    "라이트백 작업을 실행하면 여기에 작업 이력이 표시됩니다.",
+    "실패한 라이트백 작업을 자동으로 재시도",
+    "실제 채널 API 호출 없이 라이트백 시뮬레이션"
+   ],
+   "states": [
+    "이 채널의 매핑이 없습니다. 위에서 추가하세요."
+   ],
+   "names": [
+    "데이터 라이트백",
+    "Writeback",
+    "ライトバック",
+    "数据回写",
+    "資料回寫",
+    "Rückschreibung",
+    "เขียนกลับ",
+    "Ghi lại",
+    "Tulis Balik",
+    "إعادة الكتابة",
+    "Reescritura",
+    "Réécriture",
+    "राइटबैक",
+    "Reescrita",
+    "Обратная запись"
+   ],
+   "match": [
+    "데이터 라이트백",
+    "Writeback",
+    "ライトバック",
+    "数据回写",
+    "資料回寫",
+    "Rückschreibung",
+    "เขียนกลับ",
+    "Ghi lại",
+    "Tulis Balik",
+    "إعادة الكتابة",
+    "Reescritura",
+    "Réécriture",
+    "राइटबैक",
+    "Reescrita",
+    "Обратная запись",
+    "ERP",
+    "DEMO",
+    "매핑 추가",
+    "드라이 런 모드",
+    "다른 탭에서 라이트백이 동기화됨",
+    "💎 Pro 업그레이드",
+    "내보내기",
+    "코드 설명(선택)",
+    "writebackPage"
    ]
   },
   "admin.tabs": {
@@ -4093,78 +4108,107 @@
     "dataProduct"
    ]
   },
-  "writebackPage": {
-   "ns": "writebackPage",
-   "title": "데이터 라이트백",
-   "subtitle": "",
+  "catalogSync.brand": {
+   "ns": "catalogSync.brand",
+   "title": "브랜드 관리",
+   "subtitle": "11번가 상품등록은 브랜드가 필수입니다. 여기에 등록한 브랜드를 상품 목록·상품정보에서 선택해 쓰세요. 브랜드코드를 몰라도 브랜드명만으로 전송됩니다.",
    "paths": [
-    "/writeback"
+    "/catalog-sync"
    ],
    "actions": [
-    "매핑 추가",
-    "드라이 런 모드",
-    "다른 탭에서 라이트백이 동기화됨",
-    "💎 Pro 업그레이드",
-    "내보내기"
+    "추가·지정",
+    "브랜드 일괄지정",
+    "수정",
+    "＋ 추가",
+    "취소",
+    "삭제"
    ],
    "fields": [
-    "코드 설명(선택)"
+    "브랜드명",
+    "브랜드 선택…",
+    "새 브랜드 입력",
+    "브랜드 지정",
+    "브랜드명 (예: 청정원)",
+    "채널 브랜드코드 (선택)",
+    "채널 브랜드코드",
+    "브랜드 관리"
    ],
    "notes": [
-    "의심스러운 활동이 감지되었습니다.",
-    "상품 JSON을 입력하고 미리보기로 실행 전 검증하세요.",
-    "마켓플레이스(쿠팡·네이버 등) 상품등록은 채널별 카테고리코드가 필수입니다. 내 상품 카테고리를 채널 코드에 한 번 매핑하면, 상품 송출 시 자동으로 해당 코드가 적용됩니다.",
-    "리프라이서 승인 대기 가격을 채널 반영 승인합니다",
-    "자격증명이 등록된 채널의 대기 작업을 지금 채널로 push합니다",
-    "라이트백 작업을 실행하면 여기에 작업 이력이 표시됩니다.",
-    "실패한 라이트백 작업을 자동으로 재시도",
-    "실제 채널 API 호출 없이 라이트백 시뮬레이션"
+    "선택한 상품에 브랜드를 한 번에 지정합니다"
    ],
    "states": [
-    "이 채널의 매핑이 없습니다. 위에서 추가하세요."
+    "상품 마스터에 편입됨",
+    "브랜드를 지정했습니다",
+    "저장했습니다",
+    "삭제했습니다",
+    "등록된 브랜드가 없습니다 — 위에서 추가하세요"
    ],
    "names": [
-    "데이터 라이트백",
-    "Writeback",
-    "ライトバック",
-    "数据回写",
-    "資料回寫",
-    "Rückschreibung",
-    "เขียนกลับ",
-    "Ghi lại",
-    "Tulis Balik",
-    "إعادة الكتابة",
-    "Reescritura",
-    "Réécriture",
-    "राइटबैक",
-    "Reescrita",
-    "Обратная запись"
+    "브랜드 관리",
+    "Brand Management",
+    "ブランド管理",
+    "品牌管理",
+    "Markenverwaltung",
+    "การจัดการแบรนด์",
+    "Quản lý thương hiệu",
+    "Manajemen Merek",
+    "إدارة العلامات التجارية",
+    "Gestión de marcas",
+    "Gestion des marques",
+    "ब्रांड प्रबंधन",
+    "Gestão de marcas",
+    "Управление брендами"
    ],
    "match": [
-    "데이터 라이트백",
-    "Writeback",
-    "ライトバック",
-    "数据回写",
-    "資料回寫",
-    "Rückschreibung",
-    "เขียนกลับ",
-    "Ghi lại",
-    "Tulis Balik",
-    "إعادة الكتابة",
-    "Reescritura",
-    "Réécriture",
-    "राइटबैक",
-    "Reescrita",
-    "Обратная запись",
-    "ERP",
-    "DEMO",
-    "매핑 추가",
-    "드라이 런 모드",
-    "다른 탭에서 라이트백이 동기화됨",
-    "💎 Pro 업그레이드",
-    "내보내기",
-    "코드 설명(선택)",
-    "writebackPage"
+    "브랜드 관리",
+    "Brand Management",
+    "ブランド管理",
+    "品牌管理",
+    "Markenverwaltung",
+    "การจัดการแบรนด์",
+    "Quản lý thương hiệu",
+    "Manajemen Merek",
+    "إدارة العلامات التجارية",
+    "Gestión de marcas",
+    "Gestion des marques",
+    "ब्रांड प्रबंधन",
+    "Gestão de marcas",
+    "Управление брендами",
+    "추가·지정",
+    "브랜드 일괄지정",
+    "＋ 추가",
+    "브랜드명",
+    "브랜드 선택…",
+    "새 브랜드 입력",
+    "브랜드 지정",
+    "브랜드명 (예: 청정원)",
+    "채널 브랜드코드 (선택)",
+    "채널 브랜드코드",
+    "brand"
+   ]
+  },
+  "catalogSync.notice": {
+   "ns": "catalogSync.notice",
+   "title": "상품정보제공고시",
+   "subtitle": "전자상거래법 필수 항목입니다. 유형을 선택하고 값을 입력하세요. 비워두면 법이 허용하는 ",
+   "paths": [
+    "/catalog-sync"
+   ],
+   "actions": [
+    "고시",
+    "고시 저장"
+   ],
+   "fields": [],
+   "notes": [
+    "상품정보제공고시 편집(11번가 상품등록 필수 항목)"
+   ],
+   "states": [],
+   "names": [
+    "상품정보제공고시"
+   ],
+   "match": [
+    "고시 저장",
+    "notice"
    ]
   },
   "adminMenuManager": {
@@ -5723,6 +5767,28 @@
     "legal"
    ]
   },
+  "liveGuest": {
+   "ns": "liveGuest",
+   "title": "라이브 방송 참여",
+   "subtitle": "",
+   "paths": [
+    "/live-guest"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [
+    "실시간 송출 중 — 영상이 방송에 합성됩니다."
+   ],
+   "states": [
+    "미디어서버 송출 연결 중…"
+   ],
+   "names": [
+    "라이브 방송 참여"
+   ],
+   "match": [
+    "liveGuest"
+   ]
+  },
   "acctPerf": {
    "ns": "acctPerf",
    "title": "계정별 성과 분석",
@@ -6117,6 +6183,70 @@
     "journeyBuilder"
    ]
   },
+  "operations": {
+   "ns": "operations",
+   "title": "운영 실행 목록",
+   "subtitle": "",
+   "paths": [
+    "/operations"
+   ],
+   "actions": [
+    "✏️ 편집",
+    "취소",
+    "💾 저장",
+    "편집"
+   ],
+   "fields": [],
+   "notes": [
+    "프로모션과 AI 디자인을 함께 사용하면 효과가 더 좋습니다. 쿠폰 생성 후 AI 로 홍보 이미지를 생성하세요.",
+    "쿠폰 생성·캠페인 관리",
+    "AI 광고 디자인·이미지 생성·업로드",
+    "한 화면에서 쿠폰/프로모션과 AI 광고 마케팅 디자인을 관리합니다."
+   ],
+   "states": [
+    "판매 중",
+    "일시중지됨",
+    "품절",
+    "재고 부족"
+   ],
+   "names": [
+    "운영 실행 목록",
+    "Operations",
+    "運営実行",
+    "运营执行",
+    "營運執行",
+    "Betrieb",
+    "การดำเนินงาน",
+    "Vận hành",
+    "Operasi",
+    "العمليات",
+    "Operaciones",
+    "Opérations",
+    "संचालन",
+    "Operações",
+    "Операции"
+   ],
+   "match": [
+    "운영 실행 목록",
+    "Operations",
+    "運営実行",
+    "运营执行",
+    "營運執行",
+    "Betrieb",
+    "การดำเนินงาน",
+    "Vận hành",
+    "Operasi",
+    "العمليات",
+    "Operaciones",
+    "Opérations",
+    "संचालन",
+    "Operações",
+    "Операции",
+    "✏️ 편집",
+    "💾 저장",
+    "operations"
+   ]
+  },
   "payment": {
    "ns": "payment",
    "title": "payment",
@@ -6345,10 +6475,10 @@
     "/attribution",
     "/marketing",
     "/settlements",
-    "/price-opt",
     "/kr-channel",
-    "/catalog-sync",
+    "/price-opt",
     "/live-commerce",
+    "/catalog-sync",
     "/crm",
     "/report-builder",
     "/channel-kpi",
@@ -6438,6 +6568,16 @@
     "मूल्य अनुकूलन",
     "Otimização preços",
     "Оптимизация цен",
+    "라이브 커머스",
+    "Live Commerce",
+    "ライブコマース",
+    "直播电商",
+    "直播電商",
+    "Live-Commerce",
+    "ไลฟ์คอมเมิร์ซ",
+    "التجارة المباشرة",
+    "लाइव कॉमर्स",
+    "Лайв-коммерс",
     "카탈로그 동기화",
     "Catalog Sync",
     "カタログ同期",
@@ -6452,16 +6592,6 @@
     "Sync catalogue",
     "कैटलॉग सिंक",
     "Синхр. каталога",
-    "라이브 커머스",
-    "Live Commerce",
-    "ライブコマース",
-    "直播电商",
-    "直播電商",
-    "Live-Commerce",
-    "ไลฟ์คอมเมิร์ซ",
-    "التجارة المباشرة",
-    "लाइव कॉमर्स",
-    "Лайв-коммерс",
     "CRM 대시보드",
     "CRM Dashboard",
     "CRMダッシュボード",
@@ -6803,10 +6933,10 @@
     "/attribution",
     "/marketing",
     "/settlements",
-    "/price-opt",
     "/kr-channel",
-    "/catalog-sync",
+    "/price-opt",
     "/live-commerce",
+    "/catalog-sync",
     "/crm",
     "/report-builder",
     "/channel-kpi",

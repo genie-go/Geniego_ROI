@@ -178,18 +178,9 @@ function PaddleSection() {
     // Webhook 시뮬레이션
     const testWebhook = async () => {
         setLoading(true);
-        addLog("info", "웹훅 시뮬레이션 요청...");
-        try {
-            const r = await fetch(`${API}/v423/paddle/webhook-test`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ event_type: "subscription.activated", test: true }),
-            });
-            const d = await r.json();
-            addLog(d.ok ? "ok" : "warn", JSON.stringify(d, null, 2).slice(0, 400));
-        } catch (e) {
-            addLog("err", `웹훅 테스트 오류: ${e.message}`);
-        }
+        // [286차] webhook-test 엔드포인트는 백엔드 미구현(dev 전용 진단 화면) — 404 를 던지던 죽은 호출 제거.
+        //   실제 웹훅 검증은 Paddle 대시보드에서 이벤트를 발송해 /v423/paddle/webhook(정식 수신부)로 확인한다.
+        addLog("warn", "웹훅 시뮬레이션 엔드포인트는 제공되지 않습니다 — 실제 웹훅은 Paddle 대시보드에서 발송하여 /v423/paddle/webhook 수신으로 검증하세요.");
         setLoading(false);
     };
 
@@ -387,19 +378,8 @@ function WebhookSection() {
 
     const fetchWebhookLog = async () => {
         setLoading(true);
-        addLog("info", "웹훅 이벤트 로그 조회...");
-        try {
-            const r = await fetch(`${API}/v423/paddle/webhook-log`);
-            const d = await r.json();
-            if (d.ok && d.events) {
-                setEvents(d.events);
-                addLog("ok", `✅ ${d.events.length}개 웹훅 이벤트 로드`);
-            } else {
-                addLog("warn", JSON.stringify(d).slice(0, 200));
-            }
-        } catch (e) {
-            addLog("err", e.message);
-        }
+        // [286차] webhook-log 엔드포인트는 백엔드 미구현 — 404 던지던 죽은 호출 제거(dev 전용 진단).
+        addLog("warn", "웹훅 이벤트 로그 조회 엔드포인트는 제공되지 않습니다(Paddle 대시보드의 Events 로그를 참고하세요).");
         setLoading(false);
     };
 

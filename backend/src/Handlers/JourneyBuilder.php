@@ -798,7 +798,16 @@ class JourneyBuilder
                 $ws = is_bool($w) ? ($w ? 'true' : 'false') : strtolower((string)$w);
                 if (in_array($ws, $want, true)) return (string)($e['to'] ?? '');
             }
-            // 라벨 없으면 위치 폴백: true/a→첫번째, false/b→두번째
+            // [286차] 라벨 매칭 실패 처리 — 후보 엣지 중 하나라도 분기 라벨을 가졌다면(작성자가 분기를 의도한 그래프)
+            //   요청한 분기가 '미연결'인 것이다. 종전엔 위치 폴백이 false/b 를 유일한 연결 엣지(idx 0)로 보내
+            //   조건 불충족 고객을 엉뚱한 분기(예: YES 보상)로 오발송했다 → 라벨 그래프에서는 여정 종료(오라우팅 방지).
+            $hasLabeled = false;
+            foreach ($cand as $e) {
+                $w = $e['when'] ?? $e['branch'] ?? $e['condition'] ?? $e['label'] ?? null;
+                if ($w !== null && $w !== '') { $hasLabeled = true; break; }
+            }
+            if ($hasLabeled) return '';   // 라벨 그래프에서 이 분기는 미연결 → 잘못된 엣지 대신 종료
+            // 라벨 전무(레거시 무라벨 그래프)만 위치 폴백 유지: true/a→첫번째, false/b→두번째
             $idx = in_array($bl, ['true','a','yes','1'], true) ? 0 : (count($cand) > 1 ? 1 : 0);
             return (string)($cand[$idx]['to'] ?? '');
         }

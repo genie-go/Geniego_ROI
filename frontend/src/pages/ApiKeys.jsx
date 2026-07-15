@@ -1305,7 +1305,10 @@ export default function ApiKeys() {
       </div>
 
       {/* Content */}
-      {activeTab === 0 && !_IS_DEMO_ENV && (
+      {/* [286차 보안] admin 전용 "채널 추가(관리자)" 버튼 — 종전 isAdmin 가드 없이 멤버 페이지(/integration-hub)에
+          노출돼 모든 구독자(free 포함)가 렌더/클릭 가능했다(백엔드 /v426/admin/channels 는 403 이나 UI 노출은 결함).
+          로그인 사용자의 plan 이 admin 인 경우에만 노출. */}
+      {activeTab === 0 && !_IS_DEMO_ENV && user && (String(user.plan || '').toLowerCase() === 'admin' || String(user.plans || '').toLowerCase() === 'admin') && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <button onClick={() => setShowRegAdd(true)} title={t('ak.regAddChannelTitle','관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 카테고리 자동 분류·즉시 등록 UI 반영)')}
             style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>

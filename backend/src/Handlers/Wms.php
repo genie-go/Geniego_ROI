@@ -253,10 +253,23 @@ class Wms
     {
         if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
+        $t = self::tenant($req);
+        self::consolidateOrphanStock($t); // [286차] 'default'/'' 고아 재고를 실 창고로 병합(창고별 재고 표시 정합)
         $st = self::db()->prepare("SELECT * FROM wms_warehouses WHERE tenant_id=:t ORDER BY id DESC");
-        $st->execute([':t' => self::tenant($req)]);
+        $st->execute([':t' => $t]);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        foreach ($rows as &$r) { $r['active'] = (bool)(int)($r['active'] ?? 1); }
+        // [286차] ★창고별 재고합(SUM on_hand) 첨부 — 종전엔 미첨부라 프론트가 ctxInventory 로 재구성하다
+        //   'default' 버킷 재고를 창고 카드에서 0 으로 오표시했다. 서버가 창고 단위 SSOT 합을 직접 준다.
+        $stockMap = [];
+        try {
+            $ss = self::db()->prepare("SELECT wh_id, SUM(on_hand) AS s FROM wms_stock WHERE tenant_id=? GROUP BY wh_id");
+            $ss->execute([$t]);
+            foreach ($ss->fetchAll(\PDO::FETCH_ASSOC) as $r) { $stockMap[(string)$r['wh_id']] = (float)$r['s']; }
+        } catch (\Throwable $e) { /* 표시 보조값 — 실패 시 0 */ }
+        foreach ($rows as &$r) {
+            $r['active'] = (bool)(int)($r['active'] ?? 1);
+            $r['stock']  = $stockMap[(string)$r['id']] ?? 0; // 창고별 실재고 합
+        }
         return self::json($res, ['ok' => true, 'warehouses' => $rows]);
     }
 
@@ -306,9 +319,31 @@ class Wms
     {
         if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
-        $st = self::db()->prepare("DELETE FROM wms_warehouses WHERE id=:id AND tenant_id=:t");
-        $st->execute([':id' => (int)$args['id'], ':t' => self::tenant($req)]);
-        return self::json($res, ['ok' => true, 'deleted' => $st->rowCount()]);
+        $t = self::tenant($req); $id = (int)$args['id'];
+        $pdo = self::db();
+        // [286차] ★재고 보유 창고 삭제 차단 — 하드삭제 시 wms_stock 이 존재하지 않는 wh_id 를 가리켜 재고가 유령화(창고별
+        //   분포·총재고 SSOT 파괴)된다. 재고가 남아 있으면 삭제 거부하고, 이동/소진 또는 '비활성화'를 안내한다.
+        $onHand = null;
+        try {
+            $sc = $pdo->prepare("SELECT COALESCE(SUM(on_hand),0) FROM wms_stock WHERE tenant_id=? AND wh_id=?");
+            $sc->execute([$t, (string)$id]);
+            $onHand = (float)$sc->fetchColumn();
+        } catch (\Throwable $e) { $onHand = null; }
+        if ($onHand === null) {
+            return self::json($res, ['ok' => false, 'error' => '재고 확인에 실패했습니다. 잠시 후 다시 시도하세요.'], 500);
+        }
+        if ($onHand > 0) {
+            return self::json($res, ['ok' => false,
+                'error' => "재고가 남아 있어 창고를 삭제할 수 없습니다(현 재고 " . rtrim(rtrim(number_format($onHand, 2), '0'), '.') . "). 재고를 다른 창고로 이동하거나 소진한 뒤 삭제하세요. (임시 중단은 '비활성화'를 사용하세요.)",
+                'on_hand' => $onHand], 409);
+        }
+        $del = $pdo->prepare("DELETE FROM wms_warehouses WHERE id=:id AND tenant_id=:t");
+        $del->execute([':id' => $id, ':t' => $t]);
+        if ($del->rowCount() > 0) {
+            // 재고 0인 잔여 stock 행(0재고 SKU)도 함께 정리(무해·고아 방지).
+            try { $pdo->prepare("DELETE FROM wms_stock WHERE tenant_id=? AND wh_id=? AND on_hand<=0")->execute([$t, (string)$id]); } catch (\Throwable $e) {}
+        }
+        return self::json($res, ['ok' => (bool)$del->rowCount(), 'deleted' => $del->rowCount()]);
     }
 
     /** POST /wms/allocate — {sku, qty, address} 최적 출고 창고 미리보기(재고 보유 + 배송지 근접). Pro+.
@@ -586,6 +621,40 @@ class Wms
     }
 
     /**
+     * [286차] POST /wms/set-stock — 재고를 절대 목표값으로 설정(카탈로그 목록의 재고 직접 수정 경로).
+     *   ★on_hand 는 입출고 원장(wms_movements)의 running balance 다. 정적 덮어쓰기 금지 원칙(reflectStockToWms 주석)에 따라
+     *   현재 on_hand 와 목표의 **델타를 StockAdj 원장으로 기록**해 반영한다 → wms_stock.on_hand == 목표 == 원장 합계(정합 유지·이력 남음).
+     *   신규 SKU(재고 0)면 delta=목표 → StockAdj 입고로 초기재고가 원장에 남는다. 채널 동기화 상품의 초기재고 설정에 사용.
+     */
+    public static function setSkuStock(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
+        self::ensureTables();
+        $t = self::tenant($req); $b = self::body($req);
+        $sku = trim((string)($b['sku'] ?? ''));
+        if ($sku === '') return self::json($res, ['ok' => false, 'error' => 'sku required'], 400);
+        $target = max(0.0, (float)($b['qty'] ?? 0));
+        $wh = self::resolvePrimaryWarehouse($t);
+        if ($err = self::guardWarehouse($req, $res, $wh)) return $err;
+        $pdo = self::db();
+        $cur = 0.0;
+        try {
+            $st = $pdo->prepare("SELECT COALESCE(SUM(on_hand),0) FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=?");
+            $st->execute([$t, $sku, $wh]);
+            $cur = (float)$st->fetchColumn();
+        } catch (\Throwable $e) { /* 신규 sku — cur=0 */ }
+        $delta = round($target - $cur, 4);
+        if (abs($delta) > 0.00001) {
+            self::recordMovement($t, [
+                'type' => 'StockAdj', 'wh_id' => $wh, 'sku' => $sku,
+                'name' => (string)($b['name'] ?? ''), 'qty' => $delta,
+                'reason' => (string)($b['reason'] ?? '카탈로그 재고 직접 수정'),
+            ]);
+        }
+        return self::json($res, ['ok' => true, 'sku' => $sku, 'wh_id' => $wh, 'on_hand' => $target, 'delta' => $delta]);
+    }
+
+    /**
      * 212차 #3-B: 입출고 기록 단일 경로(본사 createMovement + 파트너 포털 창고/물류 공용).
      *   이력(wms_movements) INSERT + 물리재고(wms_stock) 동기화를 한 곳에서 보장 → 택배출고·반품입고·
      *   입출고 등 모든 행위가 본사 WMS·대시보드와 값 일체화. 반환: movement id.
@@ -784,6 +853,46 @@ class Wms
             if ($id !== false && $id !== null && (string)$id !== '') return (string)$id;
         } catch (\Throwable $e) { /* fallthrough */ }
         return 'default';
+    }
+
+    /**
+     * [286차] ★고아 재고 병합 self-heal — wh_id IN ('', 'default', NULL) 로 적재된 재고를 실 창고(primary)로
+     *   승격/합산한다. 근본원인: 상품/채널 등록 경로(PriceOpt::reflectStockToWms)가 활성창고 부재 시점에
+     *   primaryWarehouse 폴백 'default' 로 적재 → 수동입고(선택 창고 id)와 창고 키가 갈려 (1)창고목록 재고 0
+     *   (2)창고별 분포 은닉 (3)출고할당 누락(유령재고). 실 창고가 하나라도 있으면 'default'/'' 잔여를 그 창고로
+     *   병합해 SSOT 를 창고 단위로 일원화한다. 멱등(고아 0개면 no-op)·비throw(조회 실패 시 표시만 영향).
+     *   @return int 병합 처리한 고아 행 수.
+     */
+    private static function consolidateOrphanStock(string $tenant): int
+    {
+        $primary = self::primaryWarehouse($tenant);
+        if ($primary === 'default' || $primary === '') return 0; // 실 창고 부재 → 병합 대상(목적지)이 없음(보류)
+        try {
+            $pdo = self::db(); $now = self::now();
+            $sel = $pdo->prepare("SELECT id, sku, name, on_hand FROM wms_stock WHERE tenant_id=? AND (wh_id IS NULL OR wh_id='' OR wh_id='default')");
+            $sel->execute([$tenant]);
+            $orphans = $sel->fetchAll(\PDO::FETCH_ASSOC);
+            if (!$orphans) return 0;
+            $moved = 0;
+            foreach ($orphans as $o) {
+                $sku = (string)$o['sku']; if ($sku === '') continue;
+                $qty = (float)$o['on_hand']; $nm = (string)$o['name'];
+                // primary 창고에 동일 sku 행이 있으면 합산 후 고아 삭제, 없으면 고아를 primary 로 승격(UNIQUE(tenant,sku,wh) 보존).
+                $pw = $pdo->prepare("SELECT id FROM wms_stock WHERE tenant_id=? AND sku=? AND wh_id=? LIMIT 1");
+                $pw->execute([$tenant, $sku, $primary]);
+                $pid = $pw->fetchColumn();
+                if ($pid !== false && $pid !== null) {
+                    $pdo->prepare("UPDATE wms_stock SET on_hand=on_hand+?, name=COALESCE(NULLIF(name,''),?), updated_at=? WHERE id=?")
+                        ->execute([$qty, $nm, $now, (int)$pid]);
+                    $pdo->prepare("DELETE FROM wms_stock WHERE id=?")->execute([(int)$o['id']]);
+                } else {
+                    $pdo->prepare("UPDATE wms_stock SET wh_id=?, updated_at=? WHERE id=?")
+                        ->execute([$primary, $now, (int)$o['id']]);
+                }
+                $moved++;
+            }
+            return $moved;
+        } catch (\Throwable $e) { return 0; }
     }
 
     /* ════════════════ [현 차수] 멀티창고 글로벌 지리적 최적할당 ════════════════
@@ -1177,6 +1286,7 @@ class Wms
         if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $q = $req->getQueryParams();
+        self::consolidateOrphanStock($t); // [286차] 'default'/'' 고아 재고를 실 창고로 병합(재고현황 창고별 분포 정합)
         // [현 차수 P2-1] ABAC 강제 — warehouse 데이터범위 사용자는 허용 창고 재고만 조회(무제한=무필터·무회귀).
         [$scW, $scP] = \Genie\Handlers\TeamPermissions::scopeSql($req, 'warehouse', 'wh_id');
         $params = [$t]; foreach ($scP as $p) $params[] = $p;

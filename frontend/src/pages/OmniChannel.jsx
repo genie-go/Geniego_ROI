@@ -15,6 +15,7 @@ import { loadChannelRegistry, registryBySyncKind } from '../services/channelRegi
 //   (denyAnon)이라 비인증 getJson 호출 시 401 → 옴니채널 상품/주문/재고/상태 전부 빈데이터였음.
 import { getJsonAuth as getJson, postJson } from '../services/apiClient.js';
 import { IS_DEMO } from '../utils/demoEnv';
+import { tChannelName } from '../utils/tenantStorage'; // [286차] 크로스탭 채널 테넌트 스코프(대행사/impersonation 타테넌트 탭 격리)
 import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterBar.jsx'; // [현 차수] 기간조회
 
 /* 204차 동기화: 데모는 GlobalDataContext 단일소스(orders/inventory)에서 채널현황을 파생 —
@@ -95,7 +96,7 @@ function useCrossTabSync(onMessage) {
 
     useEffect(() => {
         try {
-            const bc = new BroadcastChannel(BC_NAME);
+            const bc = new BroadcastChannel(tChannelName(BC_NAME));
             bc.onmessage = (e) => cbRef.current?.(e.data);
             bcRef.current = bc;
             return () => bc.close();

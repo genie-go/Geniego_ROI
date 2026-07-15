@@ -1027,7 +1027,8 @@ class CRM
         if ($customerId <= 0 || $cap <= 0) return false;
         $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $windowDays) * 86400);
         try {
-            $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent') AND created_at >= ?");
+            // [286차] push_sent 포함 — 283차가 웹푸시를 countSentSignals(크로스채널)에는 넣었으나 이 상시 기본캡에는 누락 → 웹푸시가 캡을 우회하던 결함.
+            $st = $pdo->prepare("SELECT COUNT(*) FROM crm_activities WHERE tenant_id=? AND customer_id=? AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent','push_sent') AND created_at >= ?");
             $st->execute([$tenant, $customerId, $cutoff]);
             return (int)$st->fetchColumn() >= $cap;
         } catch (\Throwable $e) { return false; }
@@ -1290,7 +1291,7 @@ class CRM
                                    FROM channel_orders
                                   WHERE tenant_id = :t AND buyer_email IS NOT NULL AND buyer_email <> ''
                                     AND sku IS NOT NULL AND sku <> ''
-                                    AND (event_type IS NULL OR event_type = 'order')
+                                    AND NOT (" . \Genie\Handlers\OrderHub::observedExclusionInline() . ")
                                   GROUP BY LOWER(buyer_email), sku");
             $st->execute([':t' => $tenant]);
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {

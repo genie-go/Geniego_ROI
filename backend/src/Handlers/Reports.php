@@ -177,7 +177,7 @@ class Reports
     // ── GET /reports/schedules ──
     public static function listSchedules(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req);
         $st = $pdo->prepare("SELECT * FROM report_schedule WHERE tenant_id=? ORDER BY id DESC");
@@ -188,7 +188,7 @@ class Reports
     // ── POST /reports/schedules ──
     public static function createSchedule(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req); $b = self::body($req);
         $name = trim((string)($b['name'] ?? ''));
@@ -205,7 +205,7 @@ class Reports
     // ── PATCH /reports/schedules/{id} ──
     public static function updateSchedule(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req); $id = (int)($args['id'] ?? 0); $b = self::body($req);
         $cur = $pdo->prepare("SELECT * FROM report_schedule WHERE id=? AND tenant_id=?");
@@ -224,7 +224,7 @@ class Reports
     // ── DELETE /reports/schedules/{id} ──
     public static function deleteSchedule(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req); $id = (int)($args['id'] ?? 0);
         $pdo->prepare("DELETE FROM report_schedule WHERE id=? AND tenant_id=?")->execute([$id, $tenant]);
@@ -234,7 +234,7 @@ class Reports
     // ── GET /reports/preview ── (생성만, 미발송)
     public static function preview(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db();
         $tenant = self::tenant($req);
         $period = max(1, min(365, (int)($req->getQueryParams()['period_days'] ?? 30)));
@@ -272,7 +272,7 @@ class Reports
     /** [255차 심화] GET /reports/metrics?source= — 사용자정의 메트릭 목록. */
     public static function metricDefList(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         self::ensureMetricDefTable(); $pdo = self::db(); $tenant = self::tenant($req);
         $src = (string)(($req->getQueryParams())['source'] ?? '');
         $sql = "SELECT name, label, formula, source FROM report_metric_def WHERE tenant_id=?" . ($src !== '' ? " AND source=?" : "") . " ORDER BY name";
@@ -283,7 +283,7 @@ class Reports
     /** [255차 심화] PUT /reports/metrics — 사용자정의 메트릭 저장(소스별 전체 교체). body: {source, metrics:[{name,label,formula}]}. */
     public static function metricDefSave(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         self::ensureMetricDefTable(); $pdo = self::db(); $tenant = self::tenant($req);
         $b = (array)($req->getParsedBody() ?? []); if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
         $source = in_array((string)($b['source'] ?? 'ads'), ['ads', 'commerce', 'settlement'], true) ? (string)$b['source'] : 'ads';
@@ -314,7 +314,7 @@ class Reports
 
     public static function query(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db();
         $tenant = self::tenant($req);
         $body = (array)($req->getParsedBody() ?? []);
@@ -474,7 +474,7 @@ class Reports
     // ── POST /reports/run/{id} ── (지금 생성 + 발송)
     public static function runNow(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req); $id = (int)($args['id'] ?? 0);
         $st = $pdo->prepare("SELECT * FROM report_schedule WHERE id=? AND tenant_id=?");
@@ -487,7 +487,7 @@ class Reports
     // ── GET /reports/history ──
     public static function history(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         $pdo = self::db(); self::ensureTables();
         $tenant = self::tenant($req);
         $st = $pdo->prepare("SELECT * FROM report_run WHERE tenant_id=? ORDER BY id DESC LIMIT 50");
@@ -568,7 +568,7 @@ class Reports
     /** GET /reports/saved — 저장된 리포트 목록(테넌트 격리). */
     public static function savedList(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         self::ensureSavedReport();
         $st = self::db()->prepare("SELECT id,name,config,viz,created_at FROM saved_report WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
         $st->execute([self::tenant($req)]);
@@ -581,7 +581,7 @@ class Reports
     /** POST /reports/saved — 저장(name, config{metrics,dimension,breakdown,period_days}, viz). */
     public static function savedCreate(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         self::ensureSavedReport();
         $b = self::body($req);
         $name = trim((string)($b['name'] ?? ''));
@@ -602,7 +602,7 @@ class Reports
     /** DELETE /reports/saved/{id} — 삭제(테넌트 격리). */
     public static function savedDelete(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'growth')) return $err; // [286차] report_builder=growth(프론트 정합·starter 저티어 통과 차단)
         self::ensureSavedReport();
         self::db()->prepare("DELETE FROM saved_report WHERE id=? AND tenant_id=?")
             ->execute([(int)($args['id'] ?? 0), self::tenant($req)]);

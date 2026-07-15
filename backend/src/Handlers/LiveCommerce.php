@@ -80,12 +80,15 @@ class LiveCommerce
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_products (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
-                session_id INT NOT NULL, sku VARCHAR(120), name VARCHAR(255), image VARCHAR(40),
+                session_id INT NOT NULL, sku VARCHAR(120), name VARCHAR(255), image TEXT,
                 price DOUBLE DEFAULT 0, special_price DOUBLE DEFAULT 0, stock DOUBLE DEFAULT 0,
                 sold DOUBLE DEFAULT 0, featured TINYINT(1) DEFAULT 0, display_order INT DEFAULT 0,
                 created_at VARCHAR(32), updated_at VARCHAR(32),
                 KEY idx_lc_prod_tenant (tenant_id), KEY idx_lc_prod_sess (tenant_id, session_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            // [286차] image 는 상품 이미지 URL(재고 불러오기 시 카탈로그 URL 복사)이라 40자로는 부족 → 이미 생성된 운영 테이블도 멱등 확장.
+            //   (SQLite 는 TEXT 라 무관 — 데모서만 동작하고 운영 MySQL 에서 "Data too long"/절단되던 겉보기정상·실제사망 결함 해소.)
+            try { $pdo->exec("ALTER TABLE live_products MODIFY COLUMN image TEXT"); } catch (\Throwable $e) {}
             $pdo->exec("CREATE TABLE IF NOT EXISTS live_orders (
                 id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
                 session_id INT NOT NULL, sku VARCHAR(120), name VARCHAR(255), qty DOUBLE DEFAULT 1,

@@ -255,6 +255,17 @@ class Catalog
             $synced = self::syncChannelCategories($pdo, $tenant, $channel);
             // 공용 채널(11번가)은 SHARED 스코프에 적재됐으므로 읽기 대상도 SHARED 로 맞춘다.
             if ($synced > 0 && self::isSharedCatalogChannel($channel)) $readTenant = self::SHARED_TENANT;
+            // [286차] refresh 경로 공용 폴백 보정 — 위 초기 폴백(239-252)은 !$refresh 조건이라 refresh=1 요청에서는 건너뛴다.
+            //   일시적 업스트림 0건(11번가 카테고리 API 순간 타임아웃)일 때 이미 시딩된 공용 카탈로그(15k행)를 무시하고
+            //   'category_fetch_failed' 로 답하던 것 방지 — 공용 채널이면 공용 스코프로 재폴백해 기존 목록으로 degrade.
+            if ($synced === 0 && $cnt === 0 && self::isSharedCatalogChannel($channel)) {
+                try {
+                    $st = $pdo->prepare("SELECT COUNT(*) FROM channel_category_catalog WHERE tenant_id=? AND channel=?");
+                    $st->execute([self::SHARED_TENANT, $channel]);
+                    $shared = (int)$st->fetchColumn();
+                    if ($shared > 0) { $readTenant = self::SHARED_TENANT; $cnt = $shared; }
+                } catch (\Throwable $e) { /* 공용 카탈로그 없음 */ }
+            }
             if ($synced === 0 && $cnt === 0) {
                 // [현 차수 P1] 실패 원인을 구분해 정직하게 안내한다.
                 //   종전엔 원인 불문 "자격증명을 확인하세요"로 답해, 자격증명이 정상인데도(11번가 등)
@@ -587,6 +598,18 @@ class Catalog
         return self::jsonRes($res, ['ok' => $allDone, 'brand' => $brand, 'updated' => $updated, 'results' => $results]);
     }
 
+    /** [286차] GET /catalog/st11-notice-types — 11번가 상품정보제공고시 유형 정본(40종·유형코드+항목). 고시 편집 UI 소비. */
+    public static function st11NoticeTypes(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $f = __DIR__ . '/../../data/st11_notice_types.json';
+        $types = [];
+        try {
+            if (is_file($f)) { $d = json_decode((string)file_get_contents($f), true); if (is_array($d)) $types = $d; }
+        } catch (\Throwable $e) { /* 파일 없음 — 빈 목록 */ }
+        return self::jsonRes($res, ['ok' => true, 'types' => $types]);
+    }
+
     /** [277차] 채널에서 카테고리 카탈로그를 받아 캐시에 upsert. 반환=저장 건수(실패 0). */
     /**
      * [현 차수] 카테고리 자동조회(카탈로그 수집) 실어댑터를 보유한 채널인가.
@@ -857,7 +880,15 @@ class Catalog
                 'summary' => $sum,
             ]);
         }
-        return self::jsonRes($res, ['ok' => true, 'status' => $status, 'channel' => $channel, 'sku' => $sku]);
+        // [286차] ★거짓 성공 차단 — 여기 도달 = (a) sync=false(대량 큐적재·정상) 또는 (b) sync 인데 status!='queued'
+        //   (saved/awaiting_credentials 등 = **채널로 전송 안 됨**). 종전엔 무조건 ok:true 라 미연결 채널 "등록완료"로 표기됐다.
+        if (!$wantSync) {
+            return self::jsonRes($res, ['ok' => true, 'status' => $status, 'channel' => $channel, 'sku' => $sku]); // 대량 큐 적재(의도적 지연 전송)
+        }
+        $hint = in_array($status, ['saved', 'awaiting_credentials'], true)
+            ? '채널 자격증명을 먼저 연결하세요 — 저장만 되고 채널로 전송되지 않았습니다.'
+            : ('전송 대기 상태(' . $status . ') — 채널로 전송되지 않았습니다.');
+        return self::jsonRes($res, ['ok' => false, 'status' => $status, 'channel' => $channel, 'sku' => $sku, 'error' => $hint, 'hint' => $hint]);
     }
 
     /* POST /catalog/bulk-price — body: {items:[{channel,sku,price}]} 일괄 가격 수정 */
@@ -1552,6 +1583,17 @@ class Catalog
             }
             $r['images'] = $imgs;
             unset($r['images_json']);
+            // [286차] ★brand 는 상품 단위(채널 무관)다. 이 채널 행의 brand 가 비어 있으면(다른 채널에서
+            //   먼저 지정했거나 브랜드 지정 시점에 이 채널 리스팅이 아직 없던 경우) 동일 sku 의 타 채널 행에서
+            //   brand 를 복원한다. 없이 큐를 소비하면 11번가가 "브랜드명 필요"로 거부한다(이미 queued 된 잡의 재시도 구제).
+            if (trim((string)($r['brand'] ?? '')) === '') {
+                try {
+                    $bs = $pdo->prepare("SELECT brand FROM catalog_listing WHERE tenant_id=? AND sku=? AND brand IS NOT NULL AND TRIM(brand)<>'' ORDER BY updated_at DESC LIMIT 1");
+                    $bs->execute([$tenant, $sku]);
+                    $b = $bs->fetchColumn();
+                    if ($b !== false && trim((string)$b) !== '') $r['brand'] = (string)$b;
+                } catch (\Throwable $e) { /* 폴백 실패 시 원래대로(elevenStWrite 가 정직하게 거부) */ }
+            }
             return $r;
         } catch (\Throwable $e) { return null; }
     }

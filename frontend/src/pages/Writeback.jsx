@@ -325,12 +325,12 @@ function CategoryMapPanel({ t }) {
   useEffect(() => { load(channel); }, [channel]);
 
   const save = async () => {
-    if (!form.src_category.trim() || !form.channel_code.trim()) { setMsg('내 카테고리와 채널 코드는 필수입니다'); return; }
+    if (!form.src_category.trim() || !form.channel_code.trim()) { setMsg(t('writeback.mapRequired', '내 카테고리와 채널 코드는 필수입니다')); return; }
     setBusy(true); setMsg('');
     try {
       const r = await postJson('/api/catalog/category-map', { channel, src_category: form.src_category.trim(), channel_code: form.channel_code.trim(), channel_label: form.channel_label.trim() });
-      if (r && r.ok) { setForm({ src_category: '', channel_code: '', channel_label: '' }); await load(channel); setMsg('저장됨'); }
-      else setMsg((r && r.error) || '저장 실패');
+      if (r && r.ok) { setForm({ src_category: '', channel_code: '', channel_label: '' }); await load(channel); setMsg(t('writeback.saved', '저장됨')); }
+      else setMsg((r && r.error) || t('writeback.saveFailed', '저장 실패'));
     } catch (e) { setMsg(String(e?.message || e)); }
     setBusy(false);
   };

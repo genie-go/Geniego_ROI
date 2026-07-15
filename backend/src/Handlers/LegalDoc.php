@@ -85,6 +85,7 @@ final class LegalDoc
     public static function adminList(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/legal-docs')) return $sm; // [286차] 하위관리자는 '/admin/legal-docs' 부여자만
         $pdo = Db::pdo();
         self::ensureTables($pdo);
         $rows = $pdo->query("SELECT doc_key, lang, title, subtitle, body, updated_at FROM legal_doc ORDER BY doc_key, lang")->fetchAll(\PDO::FETCH_ASSOC);
@@ -103,6 +104,7 @@ final class LegalDoc
     public static function adminSave(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/legal-docs')) return $sm; // [286차] 하위관리자는 '/admin/legal-docs' 부여자만
         $pdo = Db::pdo();
         self::ensureTables($pdo);
         $key = self::normKey((string)($args['key'] ?? ''));

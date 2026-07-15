@@ -345,7 +345,7 @@ class WmsCctv
     // ── GET /wms/cctv/vendors — 프리셋 + 서버 ffmpeg 가용여부(프론트 폼이 이걸로 적응) ──
     public static function vendors(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         $out = [];
         foreach (self::VENDORS as $k => $v) {
             $out[] = [
@@ -359,7 +359,7 @@ class WmsCctv
     // ── GET /wms/cameras[?wh_id=W001] ───────────────────────────────────────
     public static function listCameras(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t  = self::tenant($req);
         $wh = (string)($req->getQueryParams()['wh_id'] ?? '');
@@ -379,7 +379,7 @@ class WmsCctv
     // ── POST /wms/cameras · PUT /wms/cameras/{id} ────────────────────────────
     public static function saveCamera(Request $req, Response $res, array $args = []): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $b = self::body($req);
@@ -485,7 +485,7 @@ class WmsCctv
     // ── DELETE /wms/cameras/{id} ─────────────────────────────────────────────
     public static function deleteCamera(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $id = (int)$args['id'];
@@ -660,7 +660,7 @@ class WmsCctv
     // ── POST /wms/cameras/{id}/session → 단기 재생 URL(자격증명 미포함) ──────
     public static function session(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         self::reapIdle();
 
@@ -727,7 +727,7 @@ class WmsCctv
      */
     public static function testCamera(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req);
         $id = (int)$args['id'];
@@ -1021,7 +1021,7 @@ class WmsCctv
     // ── GET /wms/cctv/bridges (세션) ─────────────────────────────────────────
     public static function listBridges(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $st = self::db()->prepare("SELECT * FROM wms_cctv_bridges WHERE tenant_id=? ORDER BY id ASC");
         $st->execute([self::tenant($req)]);
@@ -1033,7 +1033,7 @@ class WmsCctv
     // ── POST /wms/cctv/bridges (세션) → 브리지 생성 + 페어코드(API키) 발급 ────
     public static function createBridge(Request $req, Response $res): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $b = self::body($req);
         $name = trim((string)($b['name'] ?? ''));
@@ -1051,7 +1051,7 @@ class WmsCctv
     // ── DELETE /wms/cctv/bridges/{id} (세션) ─────────────────────────────────
     public static function deleteBridge(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id'];
         // 이 브리지에 매인 카메라는 direct 로 되돌리지 않고 그대로 두되(사용자가 재배정), 브리지만 제거.
@@ -1063,7 +1063,7 @@ class WmsCctv
     // ── POST /wms/cctv/bridges/{id}/rotate (세션) → 페어코드 재발급(분실/교체) ─
     public static function rotateBridge(Request $req, Response $res, array $args): Response
     {
-        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        if ($err = UserAuth::requirePlan($req, $res, 'pro')) return $err;
         self::ensureTables();
         $t = self::tenant($req); $id = (int)$args['id'];
         if (!self::bridgeRow($t, $id)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);

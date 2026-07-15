@@ -176,6 +176,26 @@ function PlanPricing() {
   // 187차: 일시적 401(세션은 유효한데 순간 거부)에 재로그인 강요하지 않도록 재시도 가드.
   const authRetryRef = useRef(0);
 
+  // [286차] Paddle 동기화 상태/재동기화 — 백엔드 자동 Product/Price 생성 파이프라인(plans-paddle-sync/status) UI 배선.
+  //   종전엔 priceId 수동입력+외부 대시보드 수기생성 모델이라 백엔드 자동동기화와 미연결이었다.
+  const [paddleStatus, setPaddleStatus] = useState(null); // { configured, env, plans:[{plan_id,paddle_product_id,price_id_monthly,price_id_annual,sync_status,sync_at,...}] }
+  const [paddleSyncing, setPaddleSyncing] = useState(false);
+  const [paddleMsg, setPaddleMsg] = useState('');
+  const fetchPaddleStatus = useCallback(async () => {
+    try { const d = await getJsonAuth('/v424/admin/plans-paddle-status'); setPaddleStatus(d && d.ok !== false ? d : null); }
+    catch (e) { setPaddleStatus(null); }
+  }, []);
+  const runPaddleSync = useCallback(async (planId) => {
+    setPaddleSyncing(true); setPaddleMsg('');
+    try {
+      const d = await requestJsonAuth('/v424/admin/plans-paddle-sync', 'POST', planId ? { plan_id: planId } : {});
+      if (d && d.ok === false && d.reason === 'paddle_not_configured') setPaddleMsg('⚠ ' + (d.message || 'Paddle 자격증명(PADDLE_SECRET_KEY)이 아직 설정되지 않았습니다.'));
+      else setPaddleMsg('✅ Paddle 동기화 완료 — Product/Price ID가 갱신되었습니다.');
+      await fetchPaddleStatus();
+    } catch (e) { setPaddleMsg('❌ 동기화 실패: ' + String(e?.message || e)); }
+    finally { setPaddleSyncing(false); setTimeout(() => setPaddleMsg(''), 6000); }
+  }, [fetchPaddleStatus]);
+
   const fetchPlans = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -426,6 +446,7 @@ function PlanPricing() {
   };
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
+  useEffect(() => { fetchPaddleStatus(); }, [fetchPaddleStatus]); // [286차] Paddle 동기화 상태 로드
   // 172차→179차: 메뉴 접근은 'plan' 탭의 플랜별 "제공 메뉴·기능" 편집기에서도 필요 → 항상 로드
   useEffect(() => { fetchMenuAccess(); }, [fetchMenuAccess]);
   // 'plan' 탭 표시 + 'permissions' 탭의 요금 기반 추천이 최신 1계정 가격을 쓰도록 둘 다 로드
@@ -877,6 +898,12 @@ function PlanPricing() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            {/* [286차] Paddle 재동기화 — 백엔드가 각 플랜의 Product/월·연 Price 를 API 로 자동 생성/갱신. */}
+            <button onClick={() => runPaddleSync(null)} disabled={paddleSyncing} style={{
+              padding: '10px 16px', borderRadius: 9, border: 'none',
+              background: paddleSyncing ? 'rgba(124,58,237,0.4)' : 'linear-gradient(135deg,#7c3aed,#a855f7)',
+              color: '#fff', fontSize: 14, fontWeight: 800, cursor: paddleSyncing ? 'wait' : 'pointer',
+            }}>{paddleSyncing ? t('planPricing.paddleSyncing', '⏳ 동기화 중…') : t('planPricing.paddleResyncBtn', '🔁 Paddle 재동기화')}</button>
             <button onClick={() => window.open('https://vendors.paddle.com/products-v2', '_blank')} style={{
               padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)',
               background: 'rgba(255,255,255,0.04)', color: 'var(--text-2)',
@@ -896,6 +923,74 @@ function PlanPricing() {
             }}>{t('planPricing.refreshBtn', '🔄 새로고침')}</button>
           </div>
         </div>
+      </div>
+
+      {/* [286차] Paddle 동기화 상태 패널 — 환경(sandbox/production)·구성여부·플랜별 Product/Price ID·동기화 상태·시각. */}
+      <div style={{
+        marginBottom: 18, padding: '14px 16px', borderRadius: 12,
+        background: 'rgba(124,58,237,0.05)', border: '1px solid rgba(124,58,237,0.20)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: paddleStatus && paddleStatus.plans && paddleStatus.plans.length ? 10 : 0 }}>
+          <span style={{ fontSize: 14, fontWeight: 800 }}>💳 {t('planPricing.paddleStatusTitle', 'Paddle 동기화 상태')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20,
+            background: paddleStatus?.configured ? '#d1fae5' : '#fee2e2', color: paddleStatus?.configured ? '#059669' : '#dc2626',
+            border: '1px solid ' + (paddleStatus?.configured ? '#6ee7b7' : '#fca5a5') }}>
+            {paddleStatus?.configured ? t('planPricing.paddleConfigured', '✅ 자격증명 설정됨') : t('planPricing.paddleNotConfigured', '⚠ 자격증명 미설정(PADDLE_SECRET_KEY)')}
+          </span>
+          {paddleStatus?.env && (
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20,
+              background: paddleStatus.env === 'production' ? '#dbeafe' : '#fef3c7', color: paddleStatus.env === 'production' ? '#2563eb' : '#b45309',
+              border: '1px solid ' + (paddleStatus.env === 'production' ? '#93c5fd' : '#fcd34d') }}>
+              {paddleStatus.env === 'production' ? t('planPricing.paddleEnvLive', 'LIVE (production)') : 'SANDBOX'}
+            </span>
+          )}
+          {paddleMsg && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>{paddleMsg}</span>}
+        </div>
+        {paddleStatus && Array.isArray(paddleStatus.plans) && paddleStatus.plans.length > 0 && (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table" style={{ width: '100%', fontSize: 12 }}>
+              <thead><tr>
+                <th>{t('planPricing.paddleColPlan', '플랜')}</th>
+                <th>{t('planPricing.paddleColProduct', 'Product ID')}</th>
+                <th>{t('planPricing.paddleColMonthly', '월 Price ID')}</th>
+                <th>{t('planPricing.paddleColAnnual', '연 Price ID')}</th>
+                <th style={{ textAlign: 'center' }}>{t('planPricing.paddleColStatus', '상태')}</th>
+                <th style={{ textAlign: 'center' }}>{t('planPricing.paddleColAction', '작업')}</th>
+              </tr></thead>
+              <tbody>
+                {paddleStatus.plans.filter(p => !p.is_custom_quote).map(p => {
+                  const synced = p.sync_status === 'synced' && p.paddle_product_id;
+                  return (
+                    <tr key={p.plan_id}>
+                      <td style={{ fontWeight: 700 }}>{p.name || p.plan_id}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 10, color: p.paddle_product_id ? 'var(--text-2)' : '#9ca3af' }}>{p.paddle_product_id || '—'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 10, color: p.price_id_monthly ? 'var(--text-2)' : '#9ca3af' }}>{p.price_id_monthly || '—'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 10, color: p.price_id_annual ? 'var(--text-2)' : '#9ca3af' }}>{p.price_id_annual || '—'}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+                          background: synced ? '#d1fae5' : '#f3f4f6', color: synced ? '#059669' : '#6b7280' }}>
+                          {synced ? t('planPricing.paddleSynced', '동기화됨') : t('planPricing.paddleUnsynced', '미동기화')}
+                        </span>
+                        {p.sync_at && <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>{String(p.sync_at).slice(0, 16).replace('T', ' ')}</div>}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button onClick={() => runPaddleSync(p.plan_id)} disabled={paddleSyncing} style={{
+                          padding: '4px 10px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff',
+                          fontSize: 10, fontWeight: 700, cursor: paddleSyncing ? 'wait' : 'pointer',
+                        }}>{t('planPricing.paddleSyncOne', '동기화')}</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {(!paddleStatus?.configured) && (
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>
+            {t('planPricing.paddleHint', 'PADDLE_SECRET_KEY(운영 .env)를 등록하면 재동기화 시 각 플랜의 Paddle Product·월/연 Price 가 자동 생성됩니다. Dashboard 수기 생성 불필요.')}
+          </div>
+        )}
       </div>
 
       {error && (

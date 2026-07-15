@@ -149,6 +149,19 @@ try {
   document.documentElement.setAttribute('data-theme', 'arctic_white');
 } catch (e) { /* SSR/프라이빗모드 안전 */ }
 
+/* [286차] ★고착된 platform_growth 컨텍스트 1회 자동 해제(배포 후 복구).
+ * 종전 버그: Admin Growth Center 진입만으로 localStorage 'gg_act_as_tenant'='platform_growth' 가 자동 ON 되고
+ * 영구 고착 → apiClient 가 전 API 에 X-Act-As-Tenant 헤더를 붙여 authedTenant 가 admin 계정 tenant 를
+ * platform_growth(데이터 0)로 바꿔 **창고·CRM·카탈로그·주문 등 전 메뉴가 빈 화면**이었다(최고관리자가 하위관리자
+ * 창고를 못 보던 진짜 원인). 자동 ON 은 제거됐지만 이미 고착된 브라우저는 남아 있으므로 버전드 1회 리셋으로 즉시 복구.
+ * 이후 플랫폼 컨텍스트는 오직 명시적 토글로만 켜진다(재토글 1클릭). 리셋 키가 남아 재실행되지 않음. */
+try {
+  if (!localStorage.getItem('gg_actas_reset_v286')) {
+    localStorage.removeItem('gg_act_as_tenant');
+    localStorage.setItem('gg_actas_reset_v286', '1');
+  }
+} catch (e) { /* 프라이빗모드 안전 */ }
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RootErrorBoundary>

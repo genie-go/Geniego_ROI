@@ -108,6 +108,7 @@ return function (App $app): void {
         'POST /catalog/brands'                            => 'Genie\\Handlers\\Catalog::saveBrand',
         'DELETE /catalog/brands/{id}'                     => 'Genie\\Handlers\\Catalog::deleteBrand',
         'POST /catalog/assign-brand'                      => 'Genie\\Handlers\\Catalog::assignBrand',       // [285차] 상품별 브랜드 지정(+즉시 전송)
+        'GET /catalog/st11-notice-types'                  => 'Genie\\Handlers\\Catalog::st11NoticeTypes',   // [286차] 11번가 상품정보제공고시 유형 정본(편집 UI)
         'POST /catalog/writeback/{channel}/{sku}/prepare' => 'Genie\\Handlers\\Catalog::prepare',
         'POST /catalog/approvals'                        => 'Genie\\Handlers\\Catalog::approvalCreate',
 
@@ -216,6 +217,7 @@ return function (App $app): void {
         'DELETE /wms/permissions/{id}'         => 'Genie\\Handlers\\Wms::deletePermission',
         'GET /wms/movements'                   => 'Genie\\Handlers\\Wms::listMovements',
         'POST /wms/movements'                  => 'Genie\\Handlers\\Wms::createMovement',
+        'POST /wms/set-stock'                  => 'Genie\\Handlers\\Wms::setSkuStock',           // [286차] 재고 절대 목표값 설정(원장 정합)
         'GET /wms/stock'                       => 'Genie\\Handlers\\Wms::listStock',
         'GET /wms/picking'                     => 'Genie\\Handlers\\Wms::listPicking',
         'POST /wms/picking'                    => 'Genie\\Handlers\\Wms::savePicking',
@@ -1269,6 +1271,10 @@ return function (App $app): void {
         'DELETE /v424/admin/plans/{id}'                 => 'Genie\\Handlers\\AdminPlans::delete',
         'GET /v424/admin/plans-menu-access'             => 'Genie\\Handlers\\AdminPlans::menuAccessAll',
         'PUT /v424/admin/plans/{id}/menu-access'        => 'Genie\\Handlers\\AdminPlans::menuAccessUpsert',
+        'GET /v424/admin/plans-paddle-status'           => 'Genie\\Handlers\\AdminPlans::paddleStatus',   // [286차] Paddle 동기화 상태
+        'POST /v424/admin/plans-paddle-sync'            => 'Genie\\Handlers\\AdminPlans::paddleSync',     // [286차] Paddle Product/Price 재동기화
+        'GET /api/v424/admin/plans-paddle-status'       => 'Genie\\Handlers\\AdminPlans::paddleStatus',
+        'POST /api/v424/admin/plans-paddle-sync'        => 'Genie\\Handlers\\AdminPlans::paddleSync',
         // 171차 — 4-tier 기간별 구독 가격 (1/3/6/12개월)
         'GET /v424/admin/plans-period-pricing'          => 'Genie\\Handlers\\AdminPlans::periodPricingAll',
         'PUT /v424/admin/plans/{id}/period-pricing'     => 'Genie\\Handlers\\AdminPlans::periodPricingUpsert',
@@ -2962,6 +2968,7 @@ return function (App $app): void {
     $register('POST',   '/catalog/brands');
     $register('DELETE', '/catalog/brands/{id}');
     $register('POST',   '/catalog/assign-brand');       // [285차] 상품별 브랜드 지정(+즉시 전송)
+    $register('GET',    '/catalog/st11-notice-types');  // [286차] 11번가 상품정보제공고시 유형 정본(편집 UI)
     $register('POST',   '/catalog/writeback/{channel}/{sku}/prepare');
     $register('POST',   '/catalog/approvals');
     // Email Marketing
@@ -3056,6 +3063,7 @@ return function (App $app): void {
     $register('DELETE', '/wms/permissions/{id}');
     $register('GET',    '/wms/movements');
     $register('POST',   '/wms/movements');
+    $register('POST',   '/wms/set-stock');          // [286차] 재고 절대 목표값 설정(원장 정합)
     $register('GET',    '/wms/stock');
     $register('GET',    '/wms/picking');
     $register('POST',   '/wms/picking');
@@ -3590,6 +3598,10 @@ return function (App $app): void {
     $register('DELETE', '/v424/admin/plans/{id}');
     $register('GET',    '/v424/admin/plans-menu-access');
     $register('PUT',    '/v424/admin/plans/{id}/menu-access');
+    $register('GET',    '/v424/admin/plans-paddle-status');   // [286차]
+    $register('POST',   '/v424/admin/plans-paddle-sync');     // [286차]
+    $register('GET',    '/api/v424/admin/plans-paddle-status');
+    $register('POST',   '/api/v424/admin/plans-paddle-sync');
     // 171차 — 4-tier 기간별 구독 가격
     $register('GET',    '/v424/admin/plans-period-pricing');
     $register('PUT',    '/v424/admin/plans/{id}/period-pricing');

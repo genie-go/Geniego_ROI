@@ -30,6 +30,7 @@ final class CouponAdmin
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/plan-pricing')) return $sm; // [286차] 쿠폰 조회=요금페이지 부여자만
         $pdo = Db::pdo();
 
         // 1) rules
@@ -107,6 +108,7 @@ final class CouponAdmin
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 쿠폰 규칙 변경=수익영향, master 전용
         $name = (string)($args['name'] ?? '');
         if (!in_array($name, ['signup', 'upgrade', 'renewal'], true)) {
             return self::json($res, ['error' => 'invalid_trigger'], 422);
@@ -158,6 +160,7 @@ final class CouponAdmin
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 쿠폰 발급=수익영향, master 전용
         $body = (array)$req->getParsedBody();
         $plan = (string)($body['plan'] ?? 'starter');
         $duration = max(1, min(365, (int)($body['duration_days'] ?? 7)));
@@ -211,6 +214,7 @@ final class CouponAdmin
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/plan-pricing')) return $sm; // [286차] 쿠폰 목록 조회=요금페이지 부여자만
         $qs = $req->getQueryParams();
         $status = (string)($qs['status'] ?? 'all');
         $q = trim((string)($qs['q'] ?? ''));
@@ -260,11 +264,14 @@ final class CouponAdmin
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
-        $code = (string)($args['code'] ?? '');
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 쿠폰 회수=수익영향, master 전용
+        // [286차] ★대소문자/공백 정규화(발급·사용 경로와 동일) + rowCount 확인 — 종전엔 코드 표기 불일치 시 0행인데도
+        //   ok:true(거짓 취소)라 쿠폰이 계속 사용가능했다. UPPER(TRIM) 매칭 + 실제 반영 건수로 정직 응답.
+        $code = strtoupper(trim((string)($args['code'] ?? '')));
         if ($code === '') return self::json($res, ['error' => 'invalid_code'], 422);
-        Db::pdo()->prepare(
-            'UPDATE free_coupons SET is_revoked = 1 WHERE code = ?'
-        )->execute([$code]);
+        $st = Db::pdo()->prepare('UPDATE free_coupons SET is_revoked = 1 WHERE UPPER(TRIM(code)) = ?');
+        $st->execute([$code]);
+        if ($st->rowCount() < 1) return self::json($res, ['ok' => false, 'error' => 'not_found', 'code' => $code], 404);
         return self::json($res, ['ok' => true, 'code' => $code]);
     }
 

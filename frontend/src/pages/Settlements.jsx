@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { IS_DEMO } from '../utils/demoEnv';
+import { tChannelName } from '../utils/tenantStorage'; // [286차] 크로스탭 채널 테넌트 스코프
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n";
 import { SETTLE_GUIDE } from "./settlementsGuideI18n.js";
@@ -29,7 +30,7 @@ const SETTLE_SYNC_CH = 'geniego_settle_sync';
 function useSettleSync() {
   const chRef = useRef(null);
   useEffect(() => {
-    try { chRef.current = new BroadcastChannel(SETTLE_SYNC_CH); } catch { return; }
+    try { chRef.current = new BroadcastChannel(tChannelName(SETTLE_SYNC_CH)); } catch { return; }
     return () => { try { chRef.current?.close(); } catch {} };
   }, []);
   const broadcast = useCallback((type, data) => {

@@ -395,7 +395,13 @@ final class UserAuth
             return 'platform_growth';
         }
         $t = trim((string)($u['tenant_id'] ?? ''));
-        return $t !== '' ? $t : ('acct_' . (int)($u['id'] ?? 0));
+        if ($t !== '') return $t;
+        // [286차] ★하위계정(팀원/하위관리자 = parent_user_id 보유)은 상위 owner 의 tenant 를 상속해야 한다 —
+        //   종전엔 tenant_id 가 비면 자기 'acct_<id>' 로 격리돼, 하위관리자·팀원이 만든 데이터(창고 등)를
+        //   최고관리자(owner)가 못 보고 서로 분리됐다. resolveTenantId 로 상속/발급+영속(다음 요청부터 빠른 조기반환).
+        //   ★타 계정 유입은 절대 없음 — parent_user_id 로 오직 자기 owner 의 tenant 만 따른다(교차테넌트 불가).
+        try { return self::resolveTenantId(Db::pdo(), $u); }
+        catch (\Throwable $e) { return 'acct_' . (int)($u['id'] ?? 0); }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1059,7 +1065,13 @@ final class UserAuth
 
     private static function callerTenant(array $caller): string
     {
-        return (string)($caller['tenant_id'] ?? ('acct_' . (int)($caller['id'] ?? 0)));
+        // [286차] ★빈 문자열 tenant_id 처리 + 하위계정 상속 — 종전 `??` 는 tenant_id='' 를 폴백 안 해 '' 반환 →
+        //   그 값으로 하위관리자를 만들면 하위관리자가 자기 'acct_<subId>' 로 격리됐다(최고관리자와 데이터 분리).
+        //   resolveTenantId 로 owner tenant 를 정확히 해석·발급(교차테넌트 유입 없음).
+        $t = trim((string)($caller['tenant_id'] ?? ''));
+        if ($t !== '') return $t;
+        try { return self::resolveTenantId(Db::pdo(), $caller); }
+        catch (\Throwable $e) { return 'acct_' . (int)($caller['id'] ?? 0); }
     }
 
     // ═════════════════════════════════════════════════════════════
@@ -1410,6 +1422,46 @@ final class UserAuth
         if (($caller['plan'] ?? '') !== 'admin') return [null, ['관리자만 접근할 수 있습니다.', 403]];
         if (($caller['admin_level'] ?? '') === 'sub') return [null, ['하위 관리자는 다른 관리자를 관리할 수 없습니다.', 403]];
         return [$caller, null];
+    }
+
+    /**
+     * [286차] 마스터 관리자 전용 게이트(외부 핸들러용·Response 반환). 통과 시 null, 실패 시 오류 Response.
+     *   요금정책·메뉴트리·메뉴접근 부여 등 **전역 설정/권한 부여**는 하위관리자(admin_level='sub')가 편집하면
+     *   admin_menus 스코프 체계 자체를 무력화(자기 자신에게 메뉴 부여=권한 상승)하므로 부여 여부와 무관히 master 전용이다.
+     *   종전엔 requirePlan('admin')만 있어 sub-admin(plan='admin')이 이 설정들을 직접 API 로 변경할 수 있었다.
+     */
+    public static function requireMasterAdmin2(ServerRequestInterface $req, ResponseInterface $res): ?ResponseInterface
+    {
+        [$caller, $err] = self::requireMasterAdmin($req);
+        if ($err !== null) {
+            return self::json($res, ['ok' => false, 'error' => $err[0], 'code' => 'MASTER_ADMIN_REQUIRED'], (int)$err[1]);
+        }
+        return null;
+    }
+
+    /**
+     * [286차] 하위관리자(sub-admin) 메뉴 스코프 서버 강제 — 부여된 admin_menus({프론트경로:'view'|'edit'}) 밖의
+     *   admin 기능 직접 호출 차단. 최고관리자(master)는 전 메뉴 통과. 종전엔 plan='admin'만 확인해 부여받지 않은
+     *   운영 admin 기능(성장센터·사이트소개·쿠폰 등)까지 하위관리자가 API 로 통과했다(클라 UI 만 숨김).
+     *   ★프론트 admin_menus SSOT(SubAdminManager가 사이드바 it.to 경로로 부여)와 동일 경로키로 대조 → 오차단 방지.
+     *   @param string $menuPath admin_menus 키(프론트 라우트 경로, 예 '/admin/growth').
+     *   @param bool   $needEdit 쓰기(POST/PUT/PATCH/DELETE)면 true — 'edit' 레벨 요구('view'는 거부).
+     */
+    public static function requireSubAdminMenu(ServerRequestInterface $req, ResponseInterface $res, string $menuPath, bool $needEdit = false): ?ResponseInterface
+    {
+        $caller = self::userByToken((string)(self::extractToken($req) ?? ''));
+        if (!$caller) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
+        if (($caller['plan'] ?? '') !== 'admin') return self::json($res, ['ok' => false, 'error' => '관리자만 접근할 수 있습니다.'], 403);
+        if (($caller['admin_level'] ?? '') !== 'sub') return null; // 최고관리자 → 전 메뉴 통과
+        $menus = self::decodeAdminMenus($caller['admin_menus'] ?? null); // {path: 'view'|'edit'}
+        $lvl = $menus[$menuPath] ?? null;
+        if ($lvl === null) {
+            return self::json($res, ['ok' => false, 'error' => '이 메뉴에 대한 접근 권한이 없습니다.', 'code' => 'SUBADMIN_MENU_DENIED'], 403);
+        }
+        if ($needEdit && $lvl !== 'edit') {
+            return self::json($res, ['ok' => false, 'error' => '이 메뉴는 열람 권한만 부여되어 수정할 수 없습니다.', 'code' => 'SUBADMIN_VIEW_ONLY'], 403);
+        }
+        return null;
     }
 
     /** GET /auth/admin/sub-admins — 최고관리자가 발급한 하위 관리자 목록 */
@@ -2015,13 +2067,24 @@ final class UserAuth
         }
         try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'plan.refund', ['used_days' => $usedDays, 'refund' => $refundAmount], $req); } catch (\Throwable $e) {}
 
+        // [286차] ★실제 결제 환불 배선 — 종전엔 DB(refunded=1)만 바꾸고 결제사 환불을 호출하지 않아
+        //   "환불 처리됨"이 거짓이었다(돈은 카드로 안 돌아감). 결제사(Paddle) Adjustments 로 실제 환불을 시도하고,
+        //   성공/대기 여부를 정직하게 안내한다(구독 해지는 즉시). Paddle 미설정/거래확인 필요 시 '요청 접수'로 표기.
+        $pg = ['ok' => false, 'status' => 'pending'];
+        try { $pg = \Genie\Handlers\Paddle::refundLatestForEmail($pdo, (string)($user['email'] ?? '')); } catch (\Throwable $e) { $pg = ['ok' => false, 'status' => 'error']; }
+        $refunded = !empty($pg['ok']);
+        $msg = $refunded
+            ? "환불이 처리되었습니다. (사용 {$usedDays}일, 환불액 \${$refundAmount}) 구독이 해지되었으며 결제수단으로 환급됩니다(결제사 처리에 영업일 수일 소요). 재가입 시 사용 {$usedDays}일이 소급 적용됩니다."
+            : "환불 요청이 접수되어 구독이 해지되었습니다. (사용 {$usedDays}일, 예상 환불액 \${$refundAmount}) 실제 결제 취소·환급은 결제사(Paddle) 처리 후 완료됩니다 — 처리 지연 시 관리자에게 문의해 주세요.";
         return self::json($res, [
             'ok'                 => true,
-            'refunded'           => true,
+            'refunded'           => $refunded,
+            'refund_status'      => $refunded ? 'refunded' : 'requested',
+            'pg_status'          => (string)($pg['status'] ?? ''),
             'used_days'          => $usedDays,
             'refund_amount'      => $refundAmount,
             'retro_days_pending' => $usedDays,
-            'msg'                => "환불 처리되었습니다. (사용 {$usedDays}일, 환불액 \${$refundAmount}) 재가입 시 사용 {$usedDays}일이 신규 구독에 소급 적용됩니다.",
+            'msg'                => $msg,
         ]);
     }
 

@@ -52,6 +52,12 @@ read -r -d '' CRONTAB <<EOF || true
 # ── 이메일 STO 발송 큐(야간 등 차단시간 적재분을 허용시각에 실발송) ──
 */15 * * * * GENIE_ENV=production php ${PROD}/bin/email_queue_cron.php >> /var/log/genie_email_queue.log 2>&1
 */17 * * * * GENIE_ENV=demo php ${DEMO}/bin/email_queue_cron.php >> /var/log/genie_email_queue_demo.log 2>&1
+# ── [286차] SMS 예약 발송 큐(scheduled_at 도래분 실발송; 종전 워커 부재로 무음 유실이던 근본결함 종결) ──
+*/5 * * * * GENIE_ENV=production php ${PROD}/bin/sms_queue_cron.php >> /var/log/genie_sms_queue.log 2>&1
+*/6 * * * * GENIE_ENV=demo php ${DEMO}/bin/sms_queue_cron.php >> /var/log/genie_sms_queue_demo.log 2>&1
+# ── [286차] 카카오 알림톡 예약 발송 큐(SMS 와 동일 구조·잠재 무음유실 트랩 종결) ──
+*/5 * * * * GENIE_ENV=production php ${PROD}/bin/kakao_queue_cron.php >> /var/log/genie_kakao_queue.log 2>&1
+*/6 * * * * GENIE_ENV=demo php ${DEMO}/bin/kakao_queue_cron.php >> /var/log/genie_kakao_queue_demo.log 2>&1
 # ── [255차 P1] 옴니채널 아웃박스 디스패치(세그먼트→다채널 워터폴 비동기 발송, 배치 드레인) ──
 */5 * * * * GENIE_ENV=production php ${PROD}/bin/omni_dispatch_cron.php >> /var/log/genie_omni_dispatch.log 2>&1
 */7 * * * * GENIE_ENV=demo php ${DEMO}/bin/omni_dispatch_cron.php >> /var/log/genie_omni_dispatch_demo.log 2>&1

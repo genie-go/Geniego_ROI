@@ -83,7 +83,22 @@ function ProductTab() {
   const marginColor=m=>m>=40?'#22c55e':m>=20?'#eab308':'#ef4444';
   const isLow=p=>p.stock>0&&p.stock<=(p.safeQty||20);
   const openModal=(type,p=null)=>{setEditing(p);if(type==='add')setForm({name:'',sku:'',category:'',supplier:'',cost:0,supplyPrice:0,price:0,safeQty:20,stock:0,channels:[],status:'active',origin:'',weightKg:0});else if(p)setForm({...p,newPrice:p.price,newStock:p.stock,promoRate:10,promoType:t('operations.discountRate'),promoDays:7});setModal(type);};
-  const applyAction=()=>{if(modal==='edit'||modal==='add'){if(modal==='add')setProducts(ps=>[...ps,{...form,id:`P${String(ps.length+1).padStart(3,'0')}`,channelIds:{}}]);else setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,...form}:p));}else if(modal==='price'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,price:+form.newPrice,cost:form.newCost!==undefined?+form.newCost:p.cost}:p));}else if(modal==='promo'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,promo:{type:form.promoType,rate:+form.promoRate}}:p));}setModal(null);pushNotification&&pushNotification({type:'success',message:t('operations.fbUpdated')});};
+  const applyAction=()=>{
+    const curModal=modal;
+    if(curModal==='edit'||curModal==='add'){if(curModal==='add')setProducts(ps=>[...ps,{...form,id:`P${String(ps.length+1).padStart(3,'0')}`,channelIds:{}}]);else setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,...form}:p));}else if(curModal==='price'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,price:+form.newPrice,cost:form.newCost!==undefined?+form.newCost:p.cost}:p));}else if(curModal==='promo'){setProducts(ps=>ps.map(p=>p.id===editing.id?{...p,promo:{type:form.promoType,rate:+form.promoRate}}:p));}
+    setModal(null);
+    // [286차] ★운영 영속 배선 — 종전엔 로컬 state 만 바꾸고 성공 토스트(새로고침 시 소실=거짓 성공). 상품 마스터(po_products)에
+    //   upsert(POST=INSERT OR REPLACE)로 실제 저장하고, 실패면 정직하게 오류 토스트. (재고는 WMS 입고 경로가 SSOT — 여기서 안 보냄.)
+    if(IS_DEMO || curModal==='promo'){ pushNotification&&pushNotification({type:'success',message:t('operations.fbUpdated')}); return; }
+    const sku=String((curModal==='add'?form.sku:(editing?.sku||form.sku))||'').trim();
+    if(!sku){ pushNotification&&pushNotification({type:'error',message:t('operations.fbNeedSku','저장하려면 SKU가 필요합니다')}); return; }
+    const payload=curModal==='price'
+      ? { sku, base_price:+form.newPrice||0, cost_price:(form.newCost!==undefined?+form.newCost:(editing?.cost||0)) }
+      : { sku, product_name:form.name||editing?.name||sku, category:form.category||'', base_price:+form.price||0, cost_price:+form.cost||0 };
+    postJson('/v420/price/products', payload)
+      .then(r=>{ if(r&&r.ok===false){ pushNotification&&pushNotification({type:'error',message:r.error||t('operations.fbFailed','저장 실패')}); } else { pushNotification&&pushNotification({type:'success',message:t('operations.fbUpdated')}); } })
+      .catch(e=>{ pushNotification&&pushNotification({type:'error',message:(e&&e.message)||t('operations.fbFailed','저장 실패')}); });
+  };
   const handleExcel=()=>{downloadCSV(`Products_${new Date().toISOString().slice(0,10)}.csv`,[t('operations.colId'),t('operations.colSku'),t('operations.colName'),t('operations.colCategory'),t('operations.colSupplier'),t('operations.colCost'),t('operations.colSupplyPrice'),t('operations.colSalePrice'),t('operations.colMargin'),t('operations.colSafeStock'),t('operations.colStock'),t('operations.colOrigin'),t('operations.colWeight'),t('operations.colStatus'),t('operations.colChannels')],filtered.map(p=>[p.id,p.sku,p.name,p.category||'',p.supplier||'',p.cost,p.supplyPrice||'',p.price,margin(p),p.safeQty||'',p.stock,p.origin||'',p.weightKg||'',STATUS_CFG[p.status]?.label||p.status,p.channels?.length||0]));};
 
   return (

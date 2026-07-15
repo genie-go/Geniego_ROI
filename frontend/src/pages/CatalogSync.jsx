@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { tGet, tSet, tRemove, tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리
+import { useNavigate } from 'react-router-dom'; // [286차] 재고 클릭 → WMS 입고등록 이동
 import { IS_DEMO } from '../utils/demoEnv'; // [259차] 하드코딩 파생재고(예약/안전) 운영 미노출 게이트
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useConnectorSync } from '../context/ConnectorSyncContext';
@@ -321,6 +322,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                 detail_html: prod.detailHtml || '',
                 image_url: (typeof prod.image === 'string' && /^(https?:|data:)/.test(prod.image)) ? prod.image : (imgs[0] || ''),
                 images: imgs,
+                brand: prod.brand || '',   // [286차] 브랜드 전송 누락 수정(handleApply 와 동일)
                 ...(prod._meta || {}),
                 category_code: code,
                 action: 'register',
@@ -405,6 +407,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                             detail_html: prod.detailHtml || '',
                             image_url: (typeof prod.image === 'string' && /^(https?:|data:)/.test(prod.image)) ? prod.image : (imgs[0] || ''),
                             images: imgs,
+                            brand: prod.brand || '',   // [286차] ★브랜드 전송 누락 수정 — 종전엔 _meta 에만 의존했는데 brand 는 top-level(r.brand)이라 미전송 → 11번가 "브랜드명 필요" 재발. 명시 전송.
                             ...(prod._meta || {}),   // [277차] 고시·배송/반품·AS·원산지·유효일(채널 필수)
                             action,
                         });
@@ -1281,12 +1284,84 @@ const CatalogTab = memo(function CatalogTab() {
     //   상품 마스터(po_products)와 채널 리스팅(catalog_listing) 양쪽을 함께 갱신해야 전송 시 실제로 실린다.
     const [brandOptions, setBrandOptions] = useState([]);
     const [brandBusy, setBrandBusy] = useState('');
+    const navigate = useNavigate();   // [286차] 재고 클릭 → WMS 입고등록 이동
+    // [286차] ★재고는 입출고 원장에서 파생되는 running balance → 직접 인라인 수정 금지(원장과 발산 방지).
+    //   목록에서 재고 클릭 시 WMS 입고등록 폼으로 이동(상품 프리필) → 창고·수량 선택해 입고 등록 → on_hand·이력에 정합 반영.
+    const goInbound = useCallback((r) => {
+        const q = new URLSearchParams({ tab: 'inout', sku: String(r.sku || ''), name: String(r.name || '') });
+        navigate(`/wms-manager?${q.toString()}`);
+    }, [navigate]);
     const loadBrands = useCallback(() => {
         getJsonAuth('/api/catalog/brands')
             .then(d => setBrandOptions((d?.items || []).map(b => b.name).filter(Boolean)))
             .catch(() => setBrandOptions([]));
     }, []);
     useEffect(() => { loadBrands(); }, [loadBrands]);
+
+    // [286차] 11번가 상품정보제공고시 유형 정본(40종) 로드 — 고시 편집 UI 소비.
+    const [noticeTypes, setNoticeTypes] = useState([]);
+    const [noticeModal, setNoticeModal] = useState(null);   // 편집 대상 상품 행
+    useEffect(() => {
+        getJsonAuth('/api/catalog/st11-notice-types')
+            .then(d => setNoticeTypes(Array.isArray(d?.types) ? d.types : []))
+            .catch(() => setNoticeTypes([]));
+    }, []);
+
+    // [286차] 상품 고시 저장 — po_products(마스터)에 notice_json 영속(+_fallback 은 편입). 등록 시 _meta 로 11번가 전송.
+    const saveProductNotice = useCallback(async (r, typeCode, items) => {
+        const noticeJson = JSON.stringify({ type: typeCode, items });
+        setBrandBusy(r.sku);
+        try {
+            if (r._fallback) {
+                await postJson('/v420/price/products', {
+                    sku: r.sku, product_name: r.name || r.sku, category: r.category || '',
+                    base_price: Number(r.price) || 0, cost_price: Number(r.productCost) || Number(r.purchaseCost) || 0,
+                    unit: (typeof r.unitType === 'string' && r.unitType) ? r.unitType : 'ea',
+                    initial_stock: Number(r.inventory) || 0, notice_json: noticeJson,
+                });
+            } else {
+                await requestJsonAuth(`/v420/price/products/${encodeURIComponent(r.sku)}`, 'PUT', { notice_json: noticeJson });
+            }
+            setProducts(prev => prev.map(p => p.sku === r.sku
+                ? { ...p, _fallback: false, noticeType: typeCode, _meta: { ...(p._meta || {}), notice_json: noticeJson } }
+                : p));
+            setToast(t('catalogSync.notice.saved', '상품정보제공고시를 저장했습니다') + (r._fallback ? ` · ${t('catalogSync.brand.statMastered', '상품 마스터에 편입됨')}` : ''));
+            setTimeout(() => setToast(null), 2500);
+            setNoticeModal(null);
+        } catch (e) {
+            setToast(`❌ ${e.message}`);
+            setTimeout(() => setToast(null), 3500);
+        } finally { setBrandBusy(''); }
+    }, [t]);
+
+    // [286차] 목록에서 재고 직접 수정 — po_products(마스터) initial_stock 갱신(+updateProduct 가 reflectStockToWms 로 WMS 동기화).
+    //   _fallback(재고/채널 유래)은 마스터 편입. 저장 후 등록/전송 시 optionAllQty 로 채널에 반영된다.
+    const saveProductStock = useCallback(async (r, val) => {
+        const qty = Math.max(0, Math.floor(Number(val)));
+        if (!Number.isFinite(qty)) return;
+        setBrandBusy(r.sku);
+        try {
+            if (r._fallback) {
+                await postJson('/v420/price/products', {
+                    sku: r.sku, product_name: r.name || r.sku, category: r.category || '',
+                    base_price: Number(r.price) || 0, cost_price: Number(r.productCost) || Number(r.purchaseCost) || 0,
+                    unit: (typeof r.unitType === 'string' && r.unitType) ? r.unitType : 'ea', initial_stock: qty,
+                });
+            } else {
+                await requestJsonAuth(`/v420/price/products/${encodeURIComponent(r.sku)}`, 'PUT', { initial_stock: qty });
+            }
+            // [286차] ★재고관리(WMS) 정합 — on_hand 을 목표값으로 설정(현재값과의 델타를 StockAdj 원장으로 기록).
+            //   po_products.initial_stock(등록 optionAllQty)·wms_stock.on_hand·입출고 이력이 모두 같은 값으로 일치한다.
+            //   (신규 SKU 는 createProduct 가 이미 on_hand+INIT 원장 생성 → 여기선 delta=0 무해.)
+            try { await postJson('/api/wms/set-stock', { sku: r.sku, qty, name: r.name || r.sku }); } catch { /* WMS 반영 실패는 상품재고 저장을 막지 않음(다음 동기화/실사로 수렴) */ }
+            setProducts(prev => prev.map(p => p.sku === r.sku ? { ...p, inventory: qty, _fallback: false } : p));
+            setToast(t('catalogSync.stock.saved', '재고를 수정했습니다') + ` — ${qty}`);
+            setTimeout(() => setToast(null), 2200);
+        } catch (e) {
+            setToast(`❌ ${e.message}`);
+            setTimeout(() => setToast(null), 3500);
+        } finally { setBrandBusy(''); }
+    }, [t]);
 
     const setProductBrand = useCallback(async (skus, brand) => {
         const list = (Array.isArray(skus) ? skus : [skus]).filter(Boolean);
@@ -1303,6 +1378,56 @@ const CatalogTab = memo(function CatalogTab() {
             await postJson('/api/catalog/assign-brand', { skus: list, brand });   // channel 생략 = 전 채널
             setProducts(prev => prev.map(p => list.includes(p.sku) ? { ...p, brand } : p));
             setToast(t('catalogSync.brand.statAssigned', '브랜드를 지정했습니다') + ` — ${brand} (${list.length})`);
+            setTimeout(() => setToast(null), 2500);
+        } catch (e) {
+            setToast(`❌ ${e.message}`);
+            setTimeout(() => setToast(null), 3500);
+        } finally { setBrandBusy(''); }
+    }, [brandOptions, t]);
+
+    /**
+     * [286차] 목록에서 상품 단위 브랜드 인라인 지정.
+     *   ★버그: 캡처 항목은 재고/채널 수집(_fallback)이라 po_products·catalog_listing 어디에도 없어
+     *     기존 setProductBrand 의 UPDATE 가 0행 → 브랜드가 저장될 곳이 없었다. 그래서 입력칸을 disabled 로
+     *     막아 "클릭해도 무반응"이었다. 브랜드는 11번가 상품등록 필수값이므로 지정이 가능해야 한다.
+     *   수정: _fallback 항목은 화면에 이미 있는 행 데이터로 상품 마스터(po_products)에 편입(비-아웃바운드·가역)
+     *     → 브랜드가 영속되고 이후 11번가 등록 경로(catalog_listing.brand)가 값을 읽는다. 등록된 상품은 기존 경로.
+     */
+    const assignBrandInline = useCallback(async (r, brandRaw) => {
+        const brand = (brandRaw || '').trim();
+        // ★[286차 후속] r.brand 와 비교하지 않는다 — 입력칸 onChange 가 blur 이전에 이미 로컬 state(r.brand)를
+        //   새 값으로 갱신하므로 여기서 비교하면 항상 같아져 early-return(저장이 안 됨). 변경 감지는 onBlur 의
+        //   dataset.orig(포커스 시점 값) 비교가 담당한다. 여기서는 빈 값만 거른다.
+        if (!brand) return;
+        setBrandBusy(r.sku);
+        setToast(null);
+        try {
+            // 목록에 없는 브랜드면 먼저 정본 목록에 등록(assign-brand 는 미등록 브랜드를 거부한다).
+            if (!brandOptions.includes(brand)) {
+                await postJson('/api/catalog/brands', { name: brand });
+                setBrandOptions(prev => prev.includes(brand) ? prev : [...prev, brand].sort());
+            }
+            if (r._fallback) {
+                // 재고/채널 유래 항목 → 상품 마스터 편입(브랜드 포함). 화면 표시 필드만 사용(날조 없음).
+                await postJson('/v420/price/products', {
+                    sku: r.sku,
+                    product_name: r.name || r.sku,
+                    category: r.category || '',
+                    base_price: Number(r.price) || 0,
+                    cost_price: Number(r.productCost) || Number(r.purchaseCost) || 0,
+                    unit: (typeof r.unitType === 'string' && r.unitType) ? r.unitType : 'ea',
+                    initial_stock: Number(r.inventory) || 0,
+                    brand,
+                });
+            } else {
+                await requestJsonAuth(`/v420/price/products/${encodeURIComponent(r.sku)}`, 'PUT', { brand });
+            }
+            // 이미 채널 리스팅이 있으면 거기에도 반영(없으면 무해한 0행). channel 생략 = 전 채널.
+            await postJson('/api/catalog/assign-brand', { skus: [r.sku], brand });
+            // 편입 후엔 등록상품이므로 _fallback 해제(다음 로드에서 po_products 로 다시 그려진다).
+            setProducts(prev => prev.map(p => p.sku === r.sku ? { ...p, brand, _fallback: false } : p));
+            setToast((t('catalogSync.brand.statAssigned', '브랜드를 지정했습니다') + ` — ${brand}`)
+                + (r._fallback ? ` · ${t('catalogSync.brand.statMastered', '상품 마스터에 편입됨')}` : ''));
             setTimeout(() => setToast(null), 2500);
         } catch (e) {
             setToast(`❌ ${e.message}`);
@@ -1963,21 +2088,40 @@ const CatalogTab = memo(function CatalogTab() {
                                         {/* [285차] 브랜드 인라인 지정 — 11번가 상품등록 필수. 비어 있으면 눈에 띄게 경고한다. */}
                                         <td onClick={e => e.stopPropagation()} style={{ minWidth: 130 }}>
                                             <input list="genie-catalog-brands" value={r.brand || ''}
-                                                disabled={!!brandBusy || r._fallback}
-                                                onChange={e => setProducts(prev => prev.map(p => p.sku === r.sku ? { ...p, brand: e.target.value } : p))}
+                                                disabled={brandBusy === r.sku}
+                                                onChange={e => {
+                                                    const v = e.target.value;
+                                                    setProducts(prev => prev.map(p => p.sku === r.sku ? { ...p, brand: v } : p));
+                                                    // [286차] datalist 에서 기존 브랜드를 '선택'하면 즉시 자동 저장(선택=확정, blur 를 기다리지 않는다).
+                                                    //   자유입력 신규 브랜드는 아직 목록에 없으므로 blur/Enter 에서 저장한다.
+                                                    const vt = v.trim();
+                                                    if (vt && brandOptions.includes(vt) && vt !== (e.currentTarget.dataset.orig || '')) {
+                                                        e.currentTarget.dataset.orig = vt;   // blur 재저장(중복) 방지
+                                                        assignBrandInline(r, vt);
+                                                    }
+                                                }}
                                                 onFocus={e => { e.currentTarget.dataset.orig = e.currentTarget.value; }}
                                                 onBlur={e => {
                                                     const v = e.currentTarget.value.trim();
-                                                    if (v && v !== (e.currentTarget.dataset.orig || '')) setProductBrand(r.sku, v);
+                                                    if (v && v !== (e.currentTarget.dataset.orig || '')) assignBrandInline(r, v);
                                                 }}
                                                 onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                                                 placeholder={t('catalogSync.brand.fAssignPh', '브랜드 지정')}
-                                                title={t('catalogSync.brand.assignHint', '11번가 상품등록에 필수입니다. 입력 후 Enter 또는 다른 곳을 클릭하면 저장됩니다.')}
+                                                title={t('catalogSync.brand.assignHint2', '11번가 상품등록에 필수입니다. 목록에서 선택하면 즉시 저장되고, 새 브랜드는 입력 후 Enter·다른 곳 클릭 시 저장됩니다.')}
                                                 style={{
                                                     width: 120, fontSize: 11, padding: "3px 6px", borderRadius: 6,
                                                     border: `1px solid ${(r.brand || '') ? "#e2e8f0" : "#f59e0b"}`,
                                                     background: (r.brand || '') ? "#fff" : "rgba(245,158,11,0.08)",
                                                 }} />
+                                            {/* [286차] 상품정보제공고시 편집 — 11번가 상품등록 필수. 미설정 시 '기타 재화·상세설명 참조'로 자동 처리되나, 여기서 유형·값을 직접 지정할 수 있다. */}
+                                            <button type="button" onClick={e => { e.stopPropagation(); setNoticeModal(r); }}
+                                                title={t('catalogSync.notice.editHint', '상품정보제공고시 편집(11번가 상품등록 필수 항목)')}
+                                                style={{ marginTop: 4, fontSize: 10, padding: "2px 7px", borderRadius: 6, cursor: "pointer",
+                                                    border: `1px solid ${(r.noticeType || r._meta?.notice_json) ? "#16a34a" : "#cbd5e1"}`,
+                                                    background: (r.noticeType || r._meta?.notice_json) ? "rgba(34,197,94,0.08)" : "#fff",
+                                                    color: (r.noticeType || r._meta?.notice_json) ? "#16a34a" : "#64748b" }}>
+                                                📋 {t('catalogSync.notice.btn', '고시')}{(r.noticeType || r._meta?.notice_json) ? ' ✓' : ''}
+                                            </button>
                                         </td>
                                         <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
                                         <td style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
@@ -1994,14 +2138,15 @@ const CatalogTab = memo(function CatalogTab() {
                                         <td style={{ fontFamily: "monospace", fontSize: 11, color: "#a78bfa" }}>{fmtKRW(r.purchaseCost)}</td>
                                         <td style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#f97316" }}>{fmtKRW(r.productCost)}</td>
                                         <td style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: marginColor }}>{margin != null ? `${margin}%` : "-"}</td>
-                                        <td>
+                                        {/* [286차] 재고 = 입출고 원장에서 파생되는 running balance(직접 인라인 수정 금지). 클릭 시 WMS 입고등록으로 이동(상품 프리필). */}
+                                        <td onClick={e => { e.stopPropagation(); goInbound(r); }} style={{ minWidth: 96, cursor: "pointer" }}
+                                            title={t('catalogSync.stock.inboundHint', '클릭 시 WMS 입고등록으로 이동 — 창고·수량을 선택해 입고 등록합니다(재고는 입출고 원장에서 산출).')}>
                                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                <div style={{ width: 44, height: 4, background: '#ffffff', borderRadius: 4 }}>
-                                                    <div style={{ width: `${Math.min(100, (r.inventory / 350) * 100)}%`, height: "100%", background: r.inventory < 20 ? "#ef4444" : r.inventory < 80 ? "#eab308" : "#22c55e", borderRadius: 4 }} />
+                                                <div style={{ width: 36, height: 4, background: '#eef2f7', borderRadius: 4, flexShrink: 0 }}>
+                                                    <div style={{ width: `${Math.min(100, (Number(r.inventory) / 350) * 100)}%`, height: "100%", background: Number(r.inventory) < 20 ? "#ef4444" : Number(r.inventory) < 80 ? "#eab308" : "#22c55e", borderRadius: 4 }} />
                                                 </div>
-                                                <span style={{ fontSize: 10, fontFamily: "monospace", color: r.delta?.inventory ? "#f97316" : "#374151" }}>
-                                                    {fmtStock(r.inventory, r)}{r.delta?.inventory && " ●"}
-                                                </span>
+                                                <span style={{ fontSize: 10, fontFamily: "monospace", color: r.delta?.inventory ? "#f97316" : "#374151" }}>{fmtStock(r.inventory, r)}</span>
+                                                <span style={{ fontSize: 9, color: "#4f8ef7", border: "1px solid rgba(79,142,247,0.4)", borderRadius: 5, padding: "1px 5px", whiteSpace: "nowrap" }}>📦 {t('catalogSync.stock.inbound', '입고')}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -2043,6 +2188,8 @@ const CatalogTab = memo(function CatalogTab() {
 
                 {/* Detail drawer */}
                 {detail && <ProductDetail product={detail} onClose={() => setDetail(null)} />}
+                {noticeModal && <ProductNoticeModal product={noticeModal} types={noticeTypes} busy={brandBusy === noticeModal.sku}
+                    onSave={(typeCode, items) => saveProductNotice(noticeModal, typeCode, items)} onClose={() => setNoticeModal(null)} />}
 
                 {/* Register modal → PriceOpt 통합 완료 */}
 
@@ -2071,6 +2218,91 @@ const CatalogTab = memo(function CatalogTab() {
 });
 
 /* ─── Product Detail Drawer ─────────────────────────────────────────────────── */
+// [286차] 상품정보제공고시 편집 모달 — 11번가 상품등록 필수. 고시유형(40종) 선택 + 항목값 입력(비우면 '상세설명 참조').
+function ProductNoticeModal({ product: p, types, busy, onSave, onClose }) {
+    const { t } = useI18n();
+    const REF = t('catalogSync.notice.ref', '상세설명 참조');
+    const initial = useMemo(() => {
+        let type = p.noticeType || '';
+        let items = {};
+        const nj = p._meta?.notice_json || '';
+        if (nj) {
+            try { const d = JSON.parse(nj); if (d && d.type) type = String(d.type); if (d && d.items && typeof d.items === 'object') items = d.items; } catch { /* ignore */ }
+        }
+        return { type, items };
+    }, [p]);
+    const [typeCode, setTypeCode] = useState(initial.type || '');
+    const [items, setItems] = useState(initial.items || {});
+    const def = useMemo(() => types.find(x => String(x.code) === String(typeCode)) || null, [types, typeCode]);
+
+    useEffect(() => {
+        const fn = e => { if (e.key === "Escape") onClose(); };
+        window.addEventListener("keydown", fn);
+        return () => window.removeEventListener("keydown", fn);
+    }, [onClose]);
+
+    const fillAllRef = () => {
+        if (!def) return;
+        setItems(prev => { const nx = { ...prev }; def.items.forEach(it => { if (!String(nx[it.name] || '').trim()) nx[it.name] = REF; }); return nx; });
+    };
+    const save = () => {
+        if (!def) return;
+        const out = {};
+        def.items.forEach(it => { const v = String(items[it.name] || '').trim(); out[it.name] = v || REF; });
+        onSave(String(def.code), out);
+    };
+
+    return (
+        <>
+            <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 210 }} />
+            <div style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: 480, maxWidth: "94vw", background: "#fff", borderLeft: "1px solid rgba(99,140,255,0.2)", zIndex: 211, overflowY: "auto", padding: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+                    <div>
+                        <div style={{ fontWeight: 900, fontSize: 15, color: "#1f2937" }}>📋 {t('catalogSync.notice.title', '상품정보제공고시')}</div>
+                        <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>{p.name}</div>
+                    </div>
+                    <button onClick={onClose} className="btn-ghost" style={{ padding: "5px 10px" }}>✕</button>
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 12, lineHeight: 1.5 }}>
+                    {t('catalogSync.notice.desc', '전자상거래법 필수 항목입니다. 유형을 선택하고 값을 입력하세요. 비워두면 법이 허용하는 "상세설명 참조"로 전송됩니다.')}
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5 }}>{t('catalogSync.notice.type', '고시 유형')}</div>
+                    <select value={typeCode} onChange={e => setTypeCode(e.target.value)} style={{ width: "100%", padding: "7px 9px", borderRadius: 7, border: "1px solid #cbd5e1", fontSize: 12, background: "#fff" }}>
+                        <option value="">{t('catalogSync.notice.pickType', '유형 선택… (미선택 시 기타 재화)')}</option>
+                        {types.map(ty => <option key={ty.code} value={ty.code}>{ty.name}</option>)}
+                    </select>
+                </div>
+                {def && (
+                    <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>{t('catalogSync.notice.items', '항목값')}</div>
+                            <button type="button" onClick={fillAllRef} style={{ fontSize: 10, padding: "3px 8px", borderRadius: 6, border: "1px solid #cbd5e1", background: "#f8fafc", cursor: "pointer" }}>
+                                {t('catalogSync.notice.fillRef', '전체 "상세설명 참조" 채우기')}
+                            </button>
+                        </div>
+                        {def.items.map(it => (
+                            <div key={it.code} style={{ marginBottom: 8 }}>
+                                <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 3 }}>{it.name}</div>
+                                <input value={items[it.name] || ''} onChange={e => setItems(prev => ({ ...prev, [it.name]: e.target.value }))}
+                                    placeholder={REF} style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #e2e8f0", fontSize: 11 }} />
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                    <button type="button" disabled={busy || !def} onClick={save} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "none", background: def ? "#4f8ef7" : "#cbd5e1", color: "#fff", fontWeight: 800, fontSize: 12, cursor: def ? "pointer" : "default" }}>
+                        {busy ? '…' : t('catalogSync.notice.save', '고시 저장')}
+                    </button>
+                    <button type="button" onClick={onClose} style={{ padding: "9px 16px", borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", fontSize: 12, cursor: "pointer" }}>
+                        {t('common.cancel', '취소')}
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+}
+
 const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
     const { t } = useI18n();
     useEffect(() => {

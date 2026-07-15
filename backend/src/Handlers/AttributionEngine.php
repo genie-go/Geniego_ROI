@@ -1159,8 +1159,11 @@ final class AttributionEngine
             // [현 차수 감사 ATT-1] 취소/반품 주문 제외 — attribution_result 는 취소 시 삭제/영점화되지 않아
             //   귀속매출·전환수에 과다 계상되고, 형제(AttributionMetrics:82·geo-holdout:488/506)와 불일치였다.
             //   channel_orders 에 취소/반품 행이 있으면 제외(픽셀 단독 전환=행 미존재→NOT EXISTS 참→포함 유지).
+            // [286차 SSOT 통일] 취소제외를 매출맵(:1200)·형제경로와 동일한 2축(event_type + status 토큰) observedExclusionInline
+            //   으로 교체. 종전 event_type-only 는 status 토큰('취소완료' 등)만으로 취소된 주문을 전환집합에 남겨
+            //   전환수·incremental_cpa 는 과대·매출은 0 으로 빠지는 동일함수 내 모순이었다.
             . 'AND NOT EXISTS (SELECT 1 FROM channel_orders co WHERE co.tenant_id = ar.tenant_id '
-            . "AND co.channel_order_id = ar.order_id AND COALESCE(co.event_type,'order') IN ('cancel','return')) "
+            . 'AND co.channel_order_id = ar.order_id AND (' . OrderHub::observedExclusionInline('co') . ')) '
             // [현 차수 감사 ATT-2] 결정적 정렬 — MAX_ORDERS 초과 절단 시 남는 집합이 비결정(run마다 총계 변동)이던 문제 해소.
             . 'GROUP BY ar.order_id ORDER BY conv_at DESC LIMIT ' . self::MAX_ORDERS
         );

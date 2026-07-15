@@ -900,14 +900,19 @@ final class OrderHub
             $sw = ['co.tenant_id = ?']; $sa = [$tenant];
             if ($period  !== null) { $sw[] = "co.ordered_at LIKE ?"; $sa[] = $period . '%'; }
             if ($channel !== null) { $sw[] = "co.channel = ?";        $sa[] = $channel; }
-            $sw[] = "COALESCE(co.status,'') NOT IN ('cancelled','canceled','취소','반품','refunded','returned','cancel','return')";
+            // [286차 SSOT 통일] 취소 제외를 매출과 동일한 2축(event_type+status 토큰) cancelExclusion 으로 교체.
+            //   종전 하드코딩 8토큰은 'CancelDone'/'취소완료'/'취소요청'/'주문취소'·event_type='cancel'(웹훅취소)을 놓쳐
+            //   매출에선 제외된 주문에 배송비를 청구해 영업이익이 과소계상됐다. 반품은 매출에 포함(returnFee)되므로 배송비도 포함(대칭).
+            [$cxSql, $cxTok] = self::cancelExclusion('co');
+            $sw[] = "NOT $cxSql";
+            foreach ($cxTok as $tk) { $sa[] = $tk; }
             $swSql = implode(' AND ', $sw);
             $shipSt = $pdo->prepare(
                 "SELECT COALESCE(SUM(CASE WHEN fr.ship > 0 AND (fr.thr <= 0 OR co.total_price < fr.thr) THEN fr.ship ELSE 0 END),0) AS shipfee
                  FROM channel_orders co
                  JOIN (SELECT channel_key, shipping_standard AS ship, free_ship_threshold AS thr FROM kr_fee_rule
                        WHERE tenant_id = ? AND id IN (SELECT MAX(id) FROM kr_fee_rule WHERE tenant_id = ? GROUP BY channel_key)) fr
-                   ON fr.channel_key = co.channel
+                   ON LOWER(fr.channel_key) = LOWER(co.channel)
                  WHERE $swSql"
             );
             $shipSt->execute(array_merge([$tenant, $tenant], $sa));

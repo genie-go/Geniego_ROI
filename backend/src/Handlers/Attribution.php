@@ -244,6 +244,8 @@ final class Attribution {
 
     /** GET /v424/attribution/identity-coverage — cross-device 식별 그래프 커버리지(결정론 ID-resolution). */
     public static function identityCoverage(Request $req, Response $res): Response {
+        // [286차] marketing_advanced=growth 서버 강제 — 데모 면제, 운영 실테넌트만.
+        if (\Genie\Db::env() !== 'demo') { $_pg = \Genie\Handlers\UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $pdo = Db::pdo(); $tenant = self::tenantId($req);
         $out = ['ok' => true, 'identities' => 0, 'linked_sessions' => 0, 'cross_device_identities' => 0, 'max_devices_per_identity' => 0,
             'note' => '결정론적(해시 기반·PII 미저장) cross-device 식별 그래프. 모바일↔데스크톱 여정을 동일인으로 스티칭해 어트리뷰션 여정 완전성을 높입니다.'];
@@ -475,6 +477,8 @@ final class Attribution {
     // ── Results ───────────────────────────────────────────────────────────
 
     public static function results(Request $request, Response $response, array $args): Response {
+        // [286차] marketing_advanced(어트리뷰션 대시보드)=growth 서버 강제 — 데모 면제, 운영 실테넌트만. (touch/score 인제스트는 미게이트)
+        if (\Genie\Db::env() !== 'demo') { $_pg = \Genie\Handlers\UserAuth::requirePlan($request, $response, 'growth'); if ($_pg) return $_pg; }
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
         $q      = $request->getQueryParams();
@@ -498,6 +502,8 @@ final class Attribution {
     // ── Summary ───────────────────────────────────────────────────────────
 
     public static function summary(Request $request, Response $response, array $args): Response {
+        // [286차] marketing_advanced=growth 서버 강제 — 데모 면제, 운영 실테넌트만.
+        if (\Genie\Db::env() !== 'demo') { $_pg = \Genie\Handlers\UserAuth::requirePlan($request, $response, 'growth'); if ($_pg) return $_pg; }
         $pdo    = Db::pdo();
         $tenant = self::tenantId($request);
         $q      = $request->getQueryParams();

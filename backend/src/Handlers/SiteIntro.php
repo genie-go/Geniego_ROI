@@ -128,6 +128,7 @@ final class SiteIntro
     public static function adminGet(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo();
         self::ensureTables($pdo);
         return self::json($res, [
@@ -142,6 +143,7 @@ final class SiteIntro
     public static function saveCompany(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = (array)$req->getParsedBody();
         $f = ['name','tagline','summary','description','founded','ceo','address','email','phone','website','vision','mission','biz_reg','copyright'];
@@ -157,6 +159,7 @@ final class SiteIntro
     public static function saveVisibility(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = (array)$req->getParsedBody();
         $set = []; $vals = [];
@@ -171,6 +174,7 @@ final class SiteIntro
     public static function teamSave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = (array)$req->getParsedBody();
         $now = gmdate('c');
@@ -200,6 +204,7 @@ final class SiteIntro
     public static function teamDelete(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $pdo->prepare("DELETE FROM site_team WHERE id=?")->execute([(int)($args['id'] ?? 0)]);
         return self::json($res, ['ok' => true, 'team' => self::teamRows($pdo, false)]);
@@ -209,6 +214,7 @@ final class SiteIntro
     public static function historySave(Request $req, Response $res): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $b = (array)$req->getParsedBody();
         $now = gmdate('c');
@@ -229,6 +235,7 @@ final class SiteIntro
     public static function historyDelete(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin'); if ($gate !== null) return $gate;
+        if ($sm = UserAuth::requireSubAdminMenu($req, $res, '/admin/site-intro')) return $sm; // [286차] 하위관리자는 '/admin/site-intro' 부여자만
         $pdo = Db::pdo(); self::ensureTables($pdo);
         $pdo->prepare("DELETE FROM site_history WHERE id=?")->execute([(int)($args['id'] ?? 0)]);
         return self::json($res, ['ok' => true, 'history' => self::historyRows($pdo, false)]);

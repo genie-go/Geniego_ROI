@@ -992,7 +992,7 @@ function ProductsTab({ token }) {
                             return (
                                 <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <div>{lbl(t('priceOpt.courier', '계약 택배사'))}<input style={inpStyle} value={f.courier || ''} onChange={e => upd('courier', e.target.value)} placeholder="예: CJ대한통운" /></div>
+                                        <div>{lbl(t('priceOpt.courier', '계약 택배사'))}<input style={inpStyle} value={f.courier || ''} onChange={e => upd('courier', e.target.value)} placeholder={t('priceOpt.courierPh', '예: CJ대한통운')} /></div>
                                         <div>{lbl(t('priceOpt.senderName', '보내는 분/업체'))}<input style={inpStyle} value={f.sender_name || ''} onChange={e => upd('sender_name', e.target.value)} placeholder={t('priceOpt.senderName', '보내는 분/업체')} /></div>
                                     </div>
                                     <div style={{ fontSize: 11, color: '#f97316', fontWeight: 700, marginTop: 4 }}>📦 {t('priceOpt.releaseAddr', '출고지 주소')}</div>
@@ -1127,7 +1127,7 @@ function ProductsTab({ token }) {
                                     </datalist>
                                 </div>
                                 <div>{lbl(t('priceOpt.manufacturer', '제조사'))}<input style={inpStyle} value={form.manufacturer} onChange={e => set('manufacturer', e.target.value)} placeholder="Maker" /></div>
-                                <div>{lbl(t('priceOpt.origin'))}<input style={inpStyle} value={form.origin} onChange={e => set('origin', e.target.value)} placeholder="대한민국" /></div>
+                                <div>{lbl(t('priceOpt.origin'))}<input style={inpStyle} value={form.origin} onChange={e => set('origin', e.target.value)} placeholder={t('priceOpt.originPh', '대한민국')} /></div>
                                 <div>{lbl(t('priceOpt.modelName'))}<input style={inpStyle} value={form.model_name} onChange={e => set('model_name', e.target.value)} placeholder="Model" /></div>
                                 <div>{lbl(t('priceOpt.barcode'))}<input style={inpStyle} value={form.barcode} onChange={e => set('barcode', e.target.value)} placeholder="8809..." /></div>
                                 <div>{lbl(t('priceOpt.taxType'))}<select style={inpStyle} value={form.tax_type} onChange={e => set('tax_type', e.target.value)}>
@@ -1219,7 +1219,7 @@ function ProductsTab({ token }) {
                                 <div style={{ display: 'grid', gap: 6 }}>
                                     <div>{lbl(t('priceOpt.releaseAddr', '출고지 주소'))}<input style={inpStyle} value={form.release_addr} onChange={e => set('release_addr', e.target.value)} placeholder={t('priceOpt.releaseAddr', '출고지 주소')} /></div>
                                     <div>{lbl(t('priceOpt.returnAddr', '반품/교환지 주소'))}<input style={inpStyle} value={form.return_addr} onChange={e => set('return_addr', e.target.value)} placeholder={t('priceOpt.returnAddr', '반품/교환지 주소')} /></div>
-                                    <div>{lbl(t('priceOpt.returnCourier', '택배사'))}<input style={inpStyle} value={form.return_courier} onChange={e => set('return_courier', e.target.value)} placeholder="예: CJ대한통운" /></div>
+                                    <div>{lbl(t('priceOpt.returnCourier', '택배사'))}<input style={inpStyle} value={form.return_courier} onChange={e => set('return_courier', e.target.value)} placeholder={t('priceOpt.courierPh', '예: CJ대한통운')} /></div>
                                 </div>
                             )}
                         </div>
@@ -1234,7 +1234,7 @@ function ProductsTab({ token }) {
                             {optGroups.map((g, gi) => (
                                 <div key={gi} style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr auto', gap: 6, marginBottom: 6, alignItems: 'end' }}>
                                     <div>{lbl(t('priceOpt.optionGroupName'))}<input style={inpStyle} value={g.name} onChange={e => setOptGroupName(gi, e.target.value)} placeholder={t('priceOpt.optionGroupName')} /></div>
-                                    <div>{lbl(t('priceOpt.optionValues'))}<input style={inpStyle} defaultValue={g.values.join(', ')} onBlur={e => setOptGroupValues(gi, e.target.value)} placeholder="빨강, 파랑, 검정" /></div>
+                                    <div>{lbl(t('priceOpt.optionValues'))}<input style={inpStyle} defaultValue={g.values.join(', ')} onBlur={e => setOptGroupValues(gi, e.target.value)} placeholder={t('priceOpt.colorPh', '빨강, 파랑, 검정')} /></div>
                                     <button type="button" onClick={() => removeOptGroup(gi)} style={{ height: 30, padding: '0 8px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: 12 }}>✕</button>
                                 </div>
                             ))}

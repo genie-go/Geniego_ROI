@@ -306,7 +306,7 @@ class PriceOpt
     /** POST /v420/price/products */
     public static function createProduct(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -522,7 +522,7 @@ class PriceOpt
     /** [276차] GET /v420/price/fulfillment — 계정 공통 배송/반품 설정 조회. */
     public static function getFulfillment(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         $db = self::db(); $t = self::tenant($request);
         $st = $db->prepare("SELECT settings_json FROM po_fulfillment WHERE tenant_id=?");
         $st->execute([$t]);
@@ -533,7 +533,7 @@ class PriceOpt
     /** [276차] POST /v420/price/fulfillment — 계정 공통 배송/반품 설정 저장(출고지·반품지·택배사·기본배송비). */
     public static function saveFulfillment(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         $db = self::db(); $t = self::tenant($request);
         $body = self::body($request);
         $allow = ['courier', 'sender_name', 'release_zip', 'release_addr', 'return_zip', 'return_addr',
@@ -548,7 +548,7 @@ class PriceOpt
     /** PUT /v420/price/products/{sku} */
     public static function updateProduct(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -588,7 +588,7 @@ class PriceOpt
     /** DELETE /v420/price/products/{sku} */
     public static function deleteProduct(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db  = self::db();
         $t   = self::tenant($request);
         $sku = $args['sku'] ?? '';
@@ -617,7 +617,7 @@ class PriceOpt
     /** POST /v420/price/elasticity */
     public static function addElasticity(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -645,7 +645,7 @@ class PriceOpt
     /** POST /v420/price/elasticity/bulk — CSV-style bulk import */
     public static function bulkElasticity(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -741,7 +741,7 @@ class PriceOpt
     /** POST /v420/price/shipping — 채널별 배송조건 저장(무료배송/소비자부담 + 배송비). */
     public static function saveShipping(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim((string)($body['sku'] ?? '')); $channel = (string)($body['channel'] ?? '*');
         $mode = (string)($body['ship_mode'] ?? 'buyer_paid');
@@ -754,7 +754,7 @@ class PriceOpt
     /** POST /v420/price/optimize */
     public static function optimize(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db   = self::db();
         $t    = self::tenant($request);
         $body = self::body($request);
@@ -796,7 +796,7 @@ class PriceOpt
      *  순진한 이익최대가(경쟁 반응 무시)가 경쟁사 언더컷을 유발해 이익이 잠식되는 "함정"을 시뮬레이션·정량 비교. */
     public static function gameTheorySim(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim((string)($body['sku'] ?? '')); if ($sku === '') return self::json($response, ['ok' => false, 'error' => 'sku required'], 400);
         $channel = (string)($body['channel'] ?? '*');
@@ -882,7 +882,7 @@ class PriceOpt
     /** POST /v420/price/optimize/batch */
     public static function optimizeBatch(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $skus = $body['skus'] ?? [];
         $results = [];
@@ -926,7 +926,7 @@ class PriceOpt
     /** POST /v420/price/simulate */
     public static function simulate(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim($body['sku'] ?? ''); $prices = array_map('floatval', $body['prices'] ?? []);
         if (!$sku || !count($prices)) return self::json($response, ['ok'=>false,'error'=>'sku and prices[] required'], 400);
@@ -970,7 +970,7 @@ class PriceOpt
     /** POST /v420/channel-mix/simulate */
     public static function channelMixSimulate(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $budget = (float)($body['total_budget'] ?? 1000000);
         $channels = $body['channels'] ?? [];
@@ -1066,7 +1066,7 @@ class PriceOpt
     /** POST /v420/price/competitor */
     public static function upsertCompetitor(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $sku = trim($body['sku'] ?? '');
         if (!$sku) return self::json($response, ['ok'=>false,'error'=>'sku required'], 400);
@@ -1081,7 +1081,7 @@ class PriceOpt
      *   (compA=최저·compB=차순·alert=우리가 더 비쌈). 실 자격증명 확보 후 즉시 라이브(리프라이서 elasticity 모드가 경쟁가 가드에 사용). */
     public static function harvestCompetitors(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         $db = self::db(); $t = self::tenant($request);
         return self::json($response, self::harvestCompetitorsForTenant($db, $t));
     }
@@ -1373,7 +1373,7 @@ class PriceOpt
     /** POST /v420/price/repricer/rules */
     public static function createRepricerRule(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         $name = trim($body['name'] ?? '');
         if (!$name) return self::json($response, ['ok'=>false,'error'=>'name required'], 400);
@@ -1434,7 +1434,7 @@ class PriceOpt
     /** POST /v420/price/repricer/rules/{id}/toggle */
     public static function toggleRepricerRule(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $id = (int)($args['id'] ?? 0);
         $db->prepare("UPDATE po_repricer_rules SET active = CASE WHEN active=1 THEN 0 ELSE 1 END WHERE id=? AND tenant_id=?")->execute([$id, $t]);
         return self::json($response, ['ok'=>true,'toggled'=>$id]);
@@ -1448,7 +1448,7 @@ class PriceOpt
      */
     public static function runRepricer(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err;
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err;
         return self::json($response, self::repriceForTenant(self::tenant($request)));
     }
 
@@ -1639,7 +1639,7 @@ class PriceOpt
     /** POST /v420/price/calendar */
     public static function createCalendarEvent(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request); $body = self::body($request);
         // [282차 R2 P2] 종전 항상 '초안' 저장 → 프론트 "예정" KPI(status==='예정' 카운트)가 영원히 0이고 생성한
         //   프로모가 예정 집계에 안 잡혔다. 시작일이 지정된 프로모는 '예정'(예약됨), 미지정은 '초안'으로 저장해 정합.
@@ -1653,7 +1653,7 @@ class PriceOpt
     /** DELETE /v420/price/calendar/{id} */
     public static function deleteCalendarEvent(Request $request, Response $response, array $args): Response
     {
-        if ($err = UserAuth::requirePro($request, $response)) return $err; // [227차 감사 P0] 익명 쓰기 차단
+        if ($err = UserAuth::requirePlan($request, $response, 'pro')) return $err; // [227차 감사 P0] 익명 쓰기 차단
         $db = self::db(); $t = self::tenant($request);
         $db->prepare("DELETE FROM po_calendar WHERE id=? AND tenant_id=?")->execute([(int)($args['id']??0), $t]);
         return self::json($response, ['ok'=>true]);

@@ -368,6 +368,8 @@ final class AutoRecommend
      */
     public static function channelEffectiveness(Request $req, Response $res): Response
     {
+        // [286차] marketing_advanced=growth 서버 강제 — 데모백엔드(쇼케이스) 면제, 운영 실테넌트만.
+        if (\Genie\Db::env() !== 'demo') { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $b = self::body($req);
         $qp = (array)$req->getQueryParams();
         $period = (string)($qp['period'] ?? $b['period'] ?? 'monthly');
@@ -503,6 +505,8 @@ final class AutoRecommend
 
     public static function recommend(Request $req, Response $res): Response
     {
+        // [286차] marketing_advanced=growth 서버 강제 — 데모 면제, 운영 실테넌트만.
+        if (\Genie\Db::env() !== 'demo') { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $b = self::body($req);
         $lang = \Genie\I18n::lang($req);
         $budget = max(0, (int)($b['budget'] ?? 0));
@@ -844,6 +848,8 @@ final class AutoRecommend
     /** GET /v424/marketing/benchmarks — 참조 벤치마크 공개(DB 우선, 투명성) */
     public static function benchmarks(Request $req, Response $res): Response
     {
+        // [286차] marketing_advanced=growth 서버 강제 — 데모 면제, 운영 실테넌트만.
+        if (\Genie\Db::env() !== 'demo') { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $rows = [];
         foreach (self::loadBenchmarks() as $id => $c) {
             $rows[] = ['channel' => $id, 'label' => $c['label'], 'cpm' => $c['cpm'], 'ctr' => $c['ctr'],

@@ -246,6 +246,12 @@ final class Reviews
         $reviews = is_array($result['reviews'] ?? null) ? $result['reviews'] : [];
         $note = (string)($result['note'] ?? '');
         $mode = (string)($result['mode'] ?? (count($reviews) ? 'live' : 'empty'));
+        // [286차] ★거짓 '정상 동기화' 차단 — 전용 리뷰 어댑터 없는(레지스트리 추가) 채널은 collectReviews 가 mode='unsupported'
+        //   를 주는데 종전엔 error 키가 없어 syncResultOk=true → 거짓 stamp. skipped 반환해 연결상태를 정직 표시.
+        if ($mode === 'unsupported' && !$reviews) {
+            return ['channel' => $channel, 'fetched' => 0, 'saved' => 0, 'converted' => 0, 'mode' => 'unsupported',
+                    'skipped' => true, 'note' => $note ?: '이 채널은 리뷰 수집 전용 어댑터가 없습니다.'];
+        }
         $saved = 0; $converted = 0;
         if ($reviews) { $p = self::persistReviews($pdo, $tenant, $channel, $reviews); $saved = $p['saved']; $converted = $p['converted']; }
         return ['channel' => $channel, 'fetched' => count($reviews), 'saved' => $saved, 'converted' => $converted, 'mode' => $mode, 'note' => $note];

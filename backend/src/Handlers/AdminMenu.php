@@ -358,6 +358,7 @@ final class AdminMenu
     {
         $g = self::gate($req, $resp, 'admin');
         if (isset($g['error'])) return $g['error'];
+        if ($m = UserAuth::requireMasterAdmin2($req, $resp)) return $m; // [286차] ★메뉴트리 편집=권한상승 벡터, master 전용(sub-admin 차단)
 
         $menuId = (string)($args['menu_id'] ?? '');
         if (!self::validId($menuId)) {
@@ -458,6 +459,7 @@ final class AdminMenu
     {
         $g = self::gate($req, $resp, 'admin');
         if (isset($g['error'])) return $g['error'];
+        if ($m = UserAuth::requireMasterAdmin2($req, $resp)) return $m; // [286차] 메뉴트리 재정렬=master 전용
 
         $body = (array)$req->getParsedBody();
         $changes = $body['changes'] ?? null;
@@ -560,6 +562,7 @@ final class AdminMenu
     {
         $g = self::gate($req, $resp, 'admin');
         if (isset($g['error'])) return $g['error'];
+        if ($m = UserAuth::requireMasterAdmin2($req, $resp)) return $m; // [286차] 메뉴트리 초기화=master 전용
         if (!$g['is_super']) {
             return self::json($resp, [
                 'error'    => 'insufficient_role',

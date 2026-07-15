@@ -513,7 +513,7 @@ function AppLayout() {
                       <Route path="/pricing" element={<PricingPublic />} />
                       <Route path="/app-pricing" element={<PricingPublic />} />
                       <Route path="/data-product" element={<DataProduct />} />
-                      <Route path="/db-admin" element={<DbAdmin />} />
+                      <Route path="/db-admin" element={<AdminRouteGuard><DbAdmin /></AdminRouteGuard>} />{/* [286차 보안] admin 전용 DB 콘솔 — 미가드 노출 봉쇄(/menu-access-manager 와 동일 게이트) */}
                       <Route path="/rollup" element={<RollupDashboard />} />
                       <Route path="/ai-rule-engine" element={<AIRuleEngine />} />
                       <Route path="/campaign-manager" element={<CampaignManager />} />
@@ -521,21 +521,21 @@ function AppLayout() {
                       <Route path="/ai-budget-allocator" element={<Navigate to="/auto-marketing" replace />} />
                       <Route path="/omni-channel" element={<OmniChannel />} />
                       <Route path="/wms-manager" element={<WmsManager />} />
-                      <Route path="/user-management" element={<UserManagement />} />
+                      <Route path="/user-management" element={<AdminRouteGuard><UserManagement /></AdminRouteGuard>} />{/* [286차 보안] 플랫폼 사용자관리(migrate·security-audit) admin 전용 — 구독자 팀관리는 /admin/sub-admins 별도 */}
                       {/* [276차 보안] admin 전용 페이지이나 sidebarManifest 미등재 → pathToMenuKey=null →
                           MenuAccessGuard 통과 갭. 일반 로그인 사용자가 UI 렌더 가능(백엔드 /v424/admin/* 는 차단)
                           이던 노출을 AdminRouteGuard(=/admin/* 와 동일 클라 게이트)로 봉쇄. */}
                       <Route path="/menu-access-manager" element={<AdminRouteGuard><MenuAccessManager /></AdminRouteGuard>} />
                       <Route path="/content-calendar" element={<ContentCalendar />} />
                       <Route path="/budget-tracker" element={<BudgetTracker />} />
-                      <Route path="/system-monitor" element={<SystemMonitor />} />
+                      <Route path="/system-monitor" element={<AdminRouteGuard><SystemMonitor /></AdminRouteGuard>} />{/* [286차 보안] 시스템 모니터 admin 전용 */}
                       <Route path="/operations-guide" element={<Navigate to="/operations" replace />} />
                       <Route path="/auto-marketing" element={<AutoMarketing />} />
                       <Route path="/help" element={<HelpCenter />} />
                       <Route path="/channel-kpi" element={<ChannelKPI />} />
                       <Route path="/payment/success" element={<PaymentSuccess />} />
                       <Route path="/payment/fail" element={<PaymentFail />} />
-                      <Route path="/pg-config" element={<PgConfig />} />
+                      <Route path="/pg-config" element={<AdminRouteGuard><PgConfig /></AdminRouteGuard>} />{/* [286차 보안] 결제 게이트웨이 관리자 콘솔(/v424/admin/paddle) admin 전용 */}
                       <Route path="/crm" element={<CRM />} />
                       <Route path="/email-marketing" element={<EmailMarketing />} />
                       <Route path="/onsite-cro" element={<OnsiteCro />} />

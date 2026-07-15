@@ -165,10 +165,13 @@ final class ProductAddon
         $id = (int)$pdo->lastInsertId();
         try { Db::audit($pdo, $tenant, 'product_addon.purchase', ['id' => $id, 'pack_size' => $size, 'price_usd' => $pack['price_usd'], 'by' => $actor]); } catch (\Throwable $e) {}
         $eff = PlanLimits::effectiveProductsLimit($pdo, $tenant);
+        // [286차] ★거짓 청구 표기 정직화 — 종전 "월 $X 청구"는 실제 결제사 청구를 만들지 않아(paddle_ref NULL) 거짓이었다(매출누수).
+        //   권한(등록 한도 확대)은 즉시 부여하되, 청구는 '예정/결제 연동 후 반영'으로 정직 표기(실제 반복청구 배선 시 갱신).
         return self::json($res, [
             'ok' => true, 'id' => $id, 'pack_size' => $size, 'price_usd' => $pack['price_usd'],
+            'billing_status' => 'pending',
             'effective_limit' => $eff, 'used' => PlanLimits::productCount($pdo, $tenant),
-            'message' => "+{$size}건 추가팩이 적용되었습니다(월 \${$pack['price_usd']}). 바로 계속 등록할 수 있습니다.",
+            'message' => "+{$size}건 추가팩이 적용되었습니다(예정 청구액 월 \${$pack['price_usd']} — 실제 청구는 결제 연동 후 반영). 바로 계속 등록할 수 있습니다.",
         ]);
     }
 

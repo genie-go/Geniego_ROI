@@ -225,7 +225,8 @@ final class ChannelSync
         //   INSERT 목록에서 누락, 상세HTML·추가이미지는 컬럼 자체가 부재). 멱등 ALTER 로 보강 — 이미 존재 시 예외무시.
         //   origin_product_id: 네이버는 수정(PUT)에 originProductNo 를 쓰는데 channel_product_id 는 channelProductNo(다른 번호)다.
         //   이 값이 없으면 기존 상품 정보 변경이 불가능하다(항상 신규등록으로 시도 → 400/중복).
-        foreach (['detail_html TEXT', 'images_json TEXT', 'origin_product_id TEXT'] as $col) {
+        // [286차] notice_json/notice_type — 채널(네이버 등)에서 수집한 상품정보제공고시를 영속(타 채널 등록 재사용).
+        foreach (['detail_html TEXT', 'images_json TEXT', 'origin_product_id TEXT', 'notice_json TEXT', 'notice_type TEXT'] as $col) {
             try { $pdo->exec("ALTER TABLE channel_products ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
         Db::ensureChannelOrders($pdo); // SSOT: channel_orders 를 Db::ensureChannelOrders 로 일원화(종전 LiveCommerce 와 중복 제거)
@@ -1028,6 +1029,13 @@ final class ChannelSync
             $op = (array)($body['originProduct'] ?? []);
             $detail = (string)($op['detailContent'] ?? '');
             if ($detail !== '') $products[$i]['detail_html'] = $detail;
+            // [286차] ★상품정보제공고시 수집 — 네이버 detailAttribute.productInfoProvidedNotice(유형+항목값)를
+            //   그대로 보존한다. 종전엔 상세를 가져오면서도 고시는 버려 타 채널(11번가 등) 등록 시 재입력해야 했다.
+            $notice = (array)(($op['detailAttribute']['productInfoProvidedNotice'] ?? []) ?: []);
+            if ($notice) {
+                $products[$i]['notice_type'] = (string)($notice['productInfoProvidedNoticeType'] ?? '');
+                $products[$i]['notice_json'] = json_encode($notice, JSON_UNESCAPED_UNICODE);
+            }
             $rep = (string)($op['images']['representativeImage']['url'] ?? '');
             if ($rep !== '') $products[$i]['image_url'] = $rep;
             $imgs = [];
@@ -2137,7 +2145,9 @@ final class ChannelSync
             return '';
         }
         $code = (int)$m[1];
-        if ($code === 0) return '';
+        // [286차] ★성공 코드는 fault 아님 — 종전 0 만 예외해 상품등록 성공(resultCode=200/210)을 "거부"로 오표시했다
+        //   (실제 등록됐는데 UI엔 ❌). 11번가 REST 성공 = 0(주문/인증) · 200/210(상품등록). 이들은 정상 성공.
+        if ($code === 0 || $code === 200 || $code === 210) return '';
         // [285차] 11번가는 오류 문구를 응답 형태별로 다른 태그에 싣는다:
         //   AuthMessage → <resultMessage>, ClientMessage(상품등록 검증실패) → <message>, 주문 → <result_text>.
         $msg = '';
@@ -2174,7 +2184,8 @@ final class ChannelSync
               . "&orderDateFrom={$from}&orderDateTo={$to}";
         [$code, $body, $err] = self::httpGet($url, ['Authorization' => "Bearer {$apiKey}", 'Accept' => 'application/json']);
         if ($err || $code >= 400) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"{$label} 주문조회 실패(code={$code}) — ESM api_key/seller_id/권한 확인"];
+            // [286차] ★HTTP 실패에 ok=true(거짓 성공) 금지 — 11번가(285차)와 동일 정직화. 실패는 sync_status='error' 로.
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"{$label} 주문조회 실패(code={$code}) — ESM api_key/seller_id/권한 확인"];
         }
         $orders = [];
         foreach ((array)($body['orders'] ?? $body['data'] ?? []) as $o) {
@@ -2219,7 +2230,8 @@ final class ChannelSync
             'Authorization' => "Bearer {$apiKey}", 'X-Seller-Id' => $sellerId, 'Accept' => 'application/json',
         ]);
         if ($err || $code >= 400) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"롯데온 주문조회 실패(code={$code}) — api_key/seller_id/권한 확인"];
+            // [286차] ★HTTP 실패에 ok=true(거짓 성공) 금지 — 실패는 sync_status='error' 로 정직 노출.
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"롯데온 주문조회 실패(code={$code}) — api_key/seller_id/권한 확인"];
         }
         $orders = [];
         foreach ((array)($body['orders'] ?? $body['data'] ?? $body['orderList'] ?? []) as $o) {
@@ -3465,7 +3477,10 @@ final class ChannelSync
         if ($c >= 200 && $c < 300 && (string)$rc !== '' && (string)$rc !== '0' && stripos(json_encode($b, JSON_UNESCAPED_UNICODE), 'error') === false) {
             return ['ok' => true, 'channel_product_id' => $goodsNo ?: $sku, 'note' => 'godomall 가격/재고 push(신규 등록은 카테고리·이미지 필요)'];
         }
-        return ['ok' => ($c >= 200 && $c < 300), 'channel_product_id' => $goodsNo ?: $sku, 'error' => ($c >= 200 && $c < 300) ? null : "godomall 쓰기 실패(code={$c})", 'detail' => mb_substr(json_encode($b, JSON_UNESCAPED_UNICODE), 0, 200)];
+        // [286차 가짜성공 제거] 종전 폴백이 바디 무시하고 2xx면 무조건 ok:true 반환 → goods.php 가 200 바디에 실패코드
+        //   (rc='0'·빈값·'error')를 실어보내도 "성공"으로 은폐(리프라이서/재고동기화 채널 미반영인데 DB엔 신가격 표기).
+        //   CREATE 경로(:3470)와 동일하게 strict 미통과 시 정직하게 ok:false. (279차 shopee A-2 수정과 동일 유형.)
+        return ['ok' => false, 'channel_product_id' => $goodsNo ?: $sku, 'error' => "godomall 쓰기 실패/미확인(code={$c})", 'detail' => mb_substr(json_encode($b, JSON_UNESCAPED_UNICODE), 0, 200)];
     }
 
     /** [현 차수] WooCommerce REST v3 상품 등록/수정/내림 — woocommerceFetch 와 동일 인증(consumer key/secret).
@@ -3882,29 +3897,82 @@ final class ChannelSync
                     'detail' => '11번가: <apiPrdAttrBrandCd> 미보유 시 <brand> 명 필수.'];
         }
         $brandXml = '<brand>' . htmlspecialchars($brand, ENT_XML1) . '</brand>';
-        $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1); $sku = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
-        $price = (int)round((float)($p['price'] ?? 0)); $qty = (int)($p['inventory'] ?? 0);
-        // [현 차수] 이미지 — 11번가는 prdImage01~prdImage10 에 **공개 URL** 을 받는다(01=대표).
-        //   종전엔 미전송이라 이미지 없는 상품이 등록됐다.
+        // [286차] ★11번가 필수 필드 — 판매시작일(aplBgnDy). 누락 시 등록 거부(운영 실측:
+        //   "상품등록실패 : 판매시작일(aplBgnDy)이 누락되었습니다." ClientMessage resultCode=500).
+        //   실제 판매 시작일 = 등록 시점(오늘). 서버 tz(CST)와 무관하게 11번가 기준(KST=UTC+9) 날짜로 계산한다.
+        //   지어낸 값이 아니라 실제 등록일이며, 형식은 11번가 요구 YYYYMMDD.
+        $aplBgnDy = gmdate('Ymd', time() + 9 * 3600);
+        // [286차] ★판매기간 — selTermUseYn=N(무기한 판매). 11번가는 aplBgnDy 만 주면 판매종료일(aplEndDy) 지정을
+        //   내부적으로 시도하다 "상품등록실패 : 판매종료일 지정 중 Exception." (resultCode=500) 을 낸다(운영 실측).
+        //   무기한 판매로 선언하면 종료일 요구가 사라진다. aplBgnDy(오늘)=실제 판매 시작일은 그대로 전송.
+        $aplXml   = '<aplBgnDy>' . $aplBgnDy . '</aplBgnDy><selTermUseYn>N</selTermUseYn>';
+        // [286차] ★11번가 필수 — 상품정보제공고시. 셀러 개발가이드 실측 확정 구조:
+        //   <ProductNotification><type>고시유형코드</type><item><code>항목코드</code><name>값</name></item>…</ProductNotification>
+        //   (prdInfoObjAll 등 추측 태그는 무시됨을 운영 실측으로 확인). 유형/항목코드 정본 = backend/data/st11_notice_types.json.
+        $noticeXml = self::elevenStNoticeXml($p);
+        $name = htmlspecialchars((string)($p['name'] ?? $p['sku'] ?? ''), ENT_XML1);
+        $sku  = htmlspecialchars((string)($p['sku'] ?? ''), ENT_XML1);
+        $price = (int)round((float)($p['price'] ?? 0));
+        $qty   = max(0, (int)($p['inventory'] ?? 0));
+        // 이미지 — prdImage01~10 공개 URL(01=대표).
         $imgXml = '';
         foreach (self::imageUrls($p, 10) as $i => $u) {
-            $imgXml .= '<prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>'
-                     . htmlspecialchars($u, ENT_XML1) . '</prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '>';
+            $tag = 'prdImage' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT);
+            $imgXml .= "<$tag>" . htmlspecialchars($u, ENT_XML1) . "</$tag>";
         }
-        // [285차] ★11번가 필수 필드 — 판매방식코드(selMthdCd). 누락 시 등록 거부:
-        //   "상품등록실패 : 판매방식코드(selMthdCd)는 필수입니다." (ClientMessage resultCode=500, 운영 실측)
-        //   공식 코드표(개발가이드): 01=고정가판매 · 02/03=사용안함 · 04=예약판매 · 05=중고판매.
-        //   **API 서비스는 고정가판매/예약판매/중고판매만 제공**한다 → 일반 판매 = '01'.
-        //   (값 '0' 은 목록에 없어 "API로 이용할 수 없는 판매 방식" 으로 거부됐다 — 실측 확인.)
-        $xml = '<?xml version="1.0" encoding="EUC-KR"?>'
-             . '<Product><dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
-             . $baseXml
+        $cdata = static fn($s) => '<![CDATA[' . str_replace(']]>', ']] >', (string)$s) . ']]>';
+        // [286차] ★상세설명(htmlDetail) 필수·공백 거부 → detail_html > spec > 상품명 폴백.
+        $detail = trim((string)($p['detail_html'] ?? '')) ?: (trim((string)($p['spec'] ?? '')) ?: (string)($p['name'] ?? $p['sku'] ?? ''));
+        // [286차] ★원산지(필수) — 지역코드(area.xlsx) 없이 통과하는 03(기타)+원산지명. rmaterialTypCd=05(상품별 원산지 상세설명 참조).
+        //   실제 원산지(_meta.origin) 있으면 사용, 없으면 법 허용 참조문구 '상세설명 참조'(네이버 경로와 동일 정책).
+        $origin = htmlspecialchars(trim((string)($p['origin'] ?? '')) ?: '상세설명 참조', ENT_XML1);
+        // [286차] ★A/S·반품/교환 안내(필수·공백불가). 상품값 있으면 사용, 없으면 '.'(11번가 허용 최소값).
+        $asText  = trim((string)($p['as_guide'] ?? '')) ?: (trim((string)($p['as_phone'] ?? '')) ?: '.');
+        $rtnText = trim((string)($p['return_courier'] ?? '')) !== '' ? '반품/교환은 판매자에게 문의해 주세요.' : '.';
+        // [286차] ★배송비 — 상품 배송비 있으면 고정(02)+금액, 없으면 무료(01). 반품/교환 배송비 필수(10원 단위·미설정 시 표준 기본).
+        $shipFee = (int)round((float)($p['ship_fee'] ?? 0));
+        $dlvCostXml = $shipFee > 0
+            ? '<dlvCstInstBasiCd>02</dlvCstInstBasiCd><dlvCst1>' . $shipFee . '</dlvCst1>'
+            : '<dlvCstInstBasiCd>01</dlvCstInstBasiCd>';
+        $rtnFee  = (int)round((float)($p['return_ship_fee'] ?? 0));   if ($rtnFee  <= 0) $rtnFee  = 2500;
+        $exchFee = (int)round((float)($p['exchange_ship_fee'] ?? 0)); if ($exchFee <= 0) $exchFee = $rtnFee * 2;
+        $rtnFee  = (int)(round($rtnFee / 10) * 10);  $exchFee = (int)(round($exchFee / 10) * 10);
+        // 미성년자 구매가능(기본 Y).
+        $minor = strtolower(trim((string)($p['minor_purchase'] ?? '')));
+        $minorYn = in_array($minor, ['n', 'no', 'false', '0', '불가'], true) ? 'N' : 'Y';
+
+        // [286차] ★상품등록 XML 전면 재작성 — 셀러 개발가이드 정본 구조·필드명·순서(API TESTER 템플릿) 준수.
+        //   종전 field-by-field 누적으로 sellPrc(→selPrc)·prdStockQty(→optSelectYn+optionAllQty)·dispCtgrStatCd(허구태그)·
+        //   ctgrNo(허구) 등 오류가 잠복했다. 일반배송·고정가·새상품·국내·무옵션 표준 필수필드를 정본 순서로 완비한다.
+        //   조건부 필수(옵션/사은품/해외배송/식품·의료·KC인증 카테고리)는 미해당(해당 시 상품 메타로 확장).
+        $xml = '<?xml version="1.0" encoding="EUC-KR"?><Product>'
              . '<selMthdCd>01</selMthdCd>'
+             . '<dispCtgrNo>' . htmlspecialchars($cat, ENT_XML1) . '</dispCtgrNo>'
+             . '<prdTypCd>01</prdTypCd>'
+             . '<prdNm>' . $name . '</prdNm>'
              . $brandXml
-             . '<prdNm>' . $name . '</prdNm><sellPrc>' . $price . '</sellPrc>'
-             . '<prdStockQty>' . $qty . '</prdStockQty><sellerPrdCd>' . $sku . '</sellerPrdCd>'
+             . '<rmaterialTypCd>05</rmaterialTypCd><orgnTypCd>03</orgnTypCd><orgnNmVal>' . $origin . '</orgnNmVal>'
+             . '<sellerPrdCd>' . $sku . '</sellerPrdCd>'
+             . '<suplDtyfrPrdClfCd>01</suplDtyfrPrdClfCd>'
+             . '<prdStatCd>01</prdStatCd>'
+             . '<minorSelCnYn>' . $minorYn . '</minorSelCnYn>'
              . $imgXml
-             . '<dispCtgrStatCd>1</dispCtgrStatCd></Product>';
+             . '<htmlDetail>' . $cdata($detail) . '</htmlDetail>'
+             . $aplXml
+             . '<selPrc>' . $price . '</selPrc>'
+             // [286차 재고=0 거부 근본수정] 옵션개편 API 가 optionAllQty=99 를 0 으로 읽어 "상품재고 수량이 0개" 거부.
+             //   단일상품(무옵션)의 11번가 표준 재고 필드는 <prdSelQty>(판매재고수량)다 — 이를 주(主)로 전송하고,
+             //   optionAllQty 도 함께 보낸다(11번가는 미인식 필드를 무시하므로 양쪽 계정정책 모두 커버·무해).
+             . '<optSelectYn>N</optSelectYn><prdSelQty>' . $qty . '</prdSelQty><optionAllQty>' . $qty . '</optionAllQty>'
+             . '<dlvCnAreaCd>01</dlvCnAreaCd><dlvWyCd>01</dlvWyCd>'
+             . $dlvCostXml
+             . '<bndlDlvCnYn>Y</bndlDlvCnYn><dlvCstPayTypCd>03</dlvCstPayTypCd>'
+             . '<rtngdDlvCst>' . $rtnFee . '</rtngdDlvCst><exchDlvCst>' . $exchFee . '</exchDlvCst>'
+             . '<asDetail>' . $cdata($asText) . '</asDetail>'
+             . '<rtngExchDetail>' . $cdata($rtnText) . '</rtngExchDetail>'
+             . '<dlvClf>02</dlvClf>'
+             . $noticeXml
+             . '</Product>';
         // [285차] ★XML 선언과 Content-Type 은 EUC-KR 인데 바디는 UTF-8 로 나가고 있었다(변환 누락).
         //   11번가 파서가 한글 상품명을 깨진 바이트로 받는다 → 반드시 EUC-KR 로 변환해서 전송한다.
         //   EUC-KR 로 표현 불가한 문자(이모지 등)는 '?' 로 치환된다(11번가가 어차피 받지 못하는 문자).
@@ -3917,7 +3985,8 @@ final class ChannelSync
         $fault = self::elevenStFault((string)$raw);
         if ($c >= 200 && $c < 300 && $fault === '') {
             $pid = $cpid; $rx = @simplexml_load_string((string)$raw);
-            if ($rx !== false) { $pno = (string)($rx->prdNo ?? $rx->ProductNo ?? ''); if ($pno !== '') $pid = $pno; }
+            // [286차] 성공 응답의 상품번호 태그는 <productNo>(실측 9495120048). 종전 prdNo/ProductNo 만 봐서 미캡처 → 이후 수정(PUT)이 신규로 재시도되던 위험.
+            if ($rx !== false) { $pno = (string)($rx->productNo ?? $rx->prdNo ?? $rx->ProductNo ?? ''); if ($pno !== '') $pid = $pno; }
             return ['ok' => true, 'channel_product_id' => $pid !== null ? (string)$pid : null];
         }
         $detail = @iconv('EUC-KR', 'UTF-8//IGNORE', (string)$raw);
@@ -3925,6 +3994,93 @@ final class ChannelSync
         return ['ok' => false,
                 'error'  => $fault !== '' ? "11번가 거부 — {$fault}" : "11번가 HTTP {$c}" . ($err !== '' ? " — {$err}" : ''),
                 'detail' => mb_substr(trim(preg_replace('/\s+/', ' ', $detail)), 0, 200)];
+    }
+
+    /**
+     * [286차] 11번가 상품정보제공고시 XML 생성 — 셀러 개발가이드(로그인) 실측 스펙.
+     *   <ProductNotification><type>{고시유형코드}</type><item><code>{항목코드}</code><name>{값}</name></item>…</ProductNotification>
+     *   값 = 사용자가 상품에 입력한 고시값(notice_json.items[라벨|코드])이 있으면 그것, 없으면 법정 허용문구 '상세설명 참조'.
+     *   ★날조 아님 — '상세설명 참조'는 11번가/전자상거래법이 허용하는 표준 문구(네이버 경로와 동일 정책).
+     *   유형코드 = 상품의 st11_notice_type > notice_category 매핑 > 기타 재화(891045) 순.
+     */
+    private static function elevenStNoticeXml(array $p): string
+    {
+        $types = self::st11NoticeTypes();
+        if (!$types) return '';   // 정본 데이터 없으면 미전송(11번가가 요구하면 실패로 정직 노출 — 가짜 전송 안 함)
+        // notice_json 파싱(사용자 편집 고시 = {type:11번가유형코드, items:{라벨|코드:값}}). 네이버 수집형({productInfoProvidedNoticeType,...})도 무해.
+        $userItems = []; $njType = '';
+        $nj = $p['notice_json'] ?? '';
+        if (is_string($nj) && $nj !== '') {
+            $d = json_decode($nj, true);
+            if (is_array($d)) { $userItems = (array)($d['items'] ?? []); $njType = (string)($d['type'] ?? ''); }
+        } elseif (is_array($nj)) {
+            $userItems = (array)($nj['items'] ?? $nj); $njType = (string)($nj['type'] ?? '');
+        }
+        // 유형코드 결정: 명시(st11_notice_type) > notice_json.type(11번가 코드) > notice_category 매핑 > 기타 재화(891045)
+        $typeCode = trim((string)($p['st11_notice_type'] ?? ''));
+        if (($typeCode === '' || !isset($types[$typeCode])) && $njType !== '' && isset($types[$njType])) $typeCode = $njType;
+        if ($typeCode === '' || !isset($types[$typeCode])) {
+            $typeCode = self::st11NoticeTypeFor((string)($p['notice_category'] ?? ''));
+        }
+        $def = $types[$typeCode] ?? ($types['891045'] ?? null);
+        if (!$def || empty($def['items'])) return '';
+        $typeCode = (string)$def['code'];
+        $REF = '상세설명 참조';
+        $xml = '<ProductNotification><type>' . htmlspecialchars($typeCode, ENT_XML1) . '</type>';
+        foreach ($def['items'] as $it) {
+            $code  = (string)($it['code'] ?? '');
+            $label = (string)($it['name'] ?? '');
+            if ($code === '') continue;
+            $val = '';
+            if ($label !== '' && isset($userItems[$label]) && trim((string)$userItems[$label]) !== '') $val = trim((string)$userItems[$label]);
+            elseif (isset($userItems[$code]) && trim((string)$userItems[$code]) !== '') $val = trim((string)$userItems[$code]);
+            else $val = $REF;
+            $xml .= '<item><code>' . htmlspecialchars($code, ENT_XML1) . '</code><name>' . htmlspecialchars($val, ENT_XML1) . '</name></item>';
+        }
+        $xml .= '</ProductNotification>';
+        return $xml;
+    }
+
+    /** [286차] 11번가 고시유형 정본(backend/data/st11_notice_types.json) 로드 — 요청당 1회 메모. code=>{code,name,items[]}. */
+    private static function st11NoticeTypes(): array
+    {
+        static $map = null;
+        if ($map !== null) return $map;
+        $map = [];
+        $f = __DIR__ . '/../../data/st11_notice_types.json';
+        try {
+            if (is_file($f)) {
+                $arr = json_decode((string)file_get_contents($f), true);
+                if (is_array($arr)) foreach ($arr as $t) { if (!empty($t['code'])) $map[(string)$t['code']] = $t; }
+            }
+        } catch (\Throwable $e) { /* 파일 없거나 손상 — 빈 맵(미전송) */ }
+        return $map;
+    }
+
+    /** [286차] 우리 내부 notice_category(276차 29품목 키) → 11번가 고시유형코드. 미매핑은 '기타 재화'(891045·법정 catch-all). */
+    private static function st11NoticeTypeFor(string $noticeCategory): string
+    {
+        $k = strtolower(trim($noticeCategory));
+        static $m = [
+            'wear' => '891011', 'clothing' => '891011', 'apparel' => '891011',
+            'shoes' => '891012', 'bag' => '891013',
+            'fashion' => '891014', 'fashionitem' => '891014', 'accessory' => '891014',
+            'bedding' => '891015', 'furniture' => '891016',
+            'tv' => '891017', 'homeappliance' => '891018', 'seasonappliance' => '891019',
+            'office' => '891020', 'computer' => '891020', 'camera' => '891021',
+            'smalldigital' => '891022', 'mobile' => '891023', 'navigation' => '891024',
+            'car' => '891025', 'carproduct' => '891025', 'medical' => '891026', 'medicaldevice' => '891026',
+            'kitchen' => '891027', 'cosmetic' => '891028', 'cosmetics' => '891028',
+            'jewelry' => '891029', 'watch' => '891029',
+            'agri' => '891030', 'agrifood' => '891030', 'freshfood' => '891030',
+            'food' => '891031', 'processedfood' => '891031',
+            'health' => '891032', 'healthfood' => '891032', 'healthfunctionalfood' => '891032',
+            'kids' => '891033', 'kidsproduct' => '891033', 'instrument' => '891034',
+            'sports' => '891035', 'book' => '891036',
+            'digitalcontent' => '891043', 'giftcard' => '891044', 'voucher' => '891044',
+            'general' => '891045', 'etc' => '891045', 'other' => '891045', '' => '891045',
+        ];
+        return $m[$k] ?? '891045';
     }
 
     /** [228차] ESM 2.0(G마켓/옥션) 상품 등록/수정 — Bearer+siteGubun(esmFetch 동일 인증). ★카테고리코드(category_code) 필수. */
@@ -3986,11 +4142,11 @@ final class ChannelSync
         //   Shopify/WooCommerce 가 읽어온 이미지도 raw_json 안에만 남고 버려졌다(네이버는 읽지도 않았음).
         //   이미지·상세는 목록수집/상세수집이 시점을 달리하므로 COALESCE 병합(새 값 NULL 이면 기존 보존).
         $stmt  = $pdo->prepare("INSERT INTO channel_products
-            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at,image_url,detail_html,images_json,origin_product_id)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            (tenant_id,channel,channel_product_id,sku,name,price,compare_price,inventory,status,category,weight,variants_json,raw_json,synced_at,image_url,detail_html,images_json,origin_product_id,notice_json,notice_type)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             . self::upsertTail($pdo, 'tenant_id,channel,channel_product_id',
                 ['name','price','inventory','status','category','synced_at'],
-                ['image_url','detail_html','images_json','origin_product_id'], 'channel_products'));
+                ['image_url','detail_html','images_json','origin_product_id','notice_json','notice_type'], 'channel_products'));
         foreach ($products as $p) {
             if (!($p['channel_product_id'] ?? null)) continue;
             // 188차 P0 보안: 데모 데이터의 운영 DB 유입 차단(전 채널 단일 chokepoint).
@@ -4009,6 +4165,9 @@ final class ChannelSync
                 (($p['detail_html'] ?? '') !== '') ? $p['detail_html'] : null,
                 !empty($p['images']) ? json_encode($p['images'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
                 (($p['origin_product_no'] ?? '') !== '') ? (string)$p['origin_product_no'] : null,
+                // [286차] 상품정보제공고시 — 빈 값은 NULL 정규화(COALESCE 병합이 기존 수집값 보존).
+                (($p['notice_json'] ?? '') !== '') ? (string)$p['notice_json'] : null,
+                (($p['notice_type'] ?? '') !== '') ? (string)$p['notice_type'] : null,
             ]);
             // 재고 테이블도 업데이트
             $inv = $pdo->prepare("INSERT INTO channel_inventory(tenant_id,channel,sku,product_name,available,synced_at)
@@ -5418,10 +5577,23 @@ final class ChannelSync
                 //   웹훅 주문을 영구 누락하던 폐루프 단절 해소. 원통화·원금은 raw_json 보존(KRW 무변환=동일).
                 $rawW = $body;
                 if ($curW !== '' && $curW !== 'KRW') { $rawW['orig_currency'] = $curW; $rawW['orig_total_price'] = (float)($body['total'] ?? 0); $rawW['orig_unit_price'] = (float)($body['price'] ?? 0); }
-                $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,addr,ordered_at,event_type,raw_json,synced_at)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['buyer_email']??'',$body['product_name']??'',$skuW?:null,$qtyW,$unitW,$totalW,$body['status']??'pending',$body['addr']??($body['address']??''),$body['ordered_at']??$now,$evtNormW,json_encode($rawW, JSON_UNESCAPED_UNICODE),$now]);
-                if ($incCRw === null) {
+                // [286차] 동시 재전송(채널 타임아웃 후 재시도) 경합 방어 — 선행 SELECT 통과 후 UNIQUE(tenant,channel,order_id)
+                //   위반이 uncaught 로 500 을 내면 채널이 재시도를 폭주시킨다(핸들러가 정산/WMS/CRM/귀속까지 무거움).
+                //   Paddle 웹훅과 동일하게 중복은 삼키고 신규 side-effect 를 건너뛴다(선행 전송이 이미 처리·200 반환).
+                $dupW = false;
+                try {
+                    $pdo->prepare("INSERT INTO channel_orders(tenant_id,channel,channel_order_id,buyer_name,buyer_email,product_name,sku,qty,unit_price,total_price,status,addr,ordered_at,event_type,raw_json,synced_at)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                        ->execute([$tenant,$channel,$oidW,$body['buyer_name']??'',$body['buyer_email']??'',$body['product_name']??'',$skuW?:null,$qtyW,$unitW,$totalW,$body['status']??'pending',$body['addr']??($body['address']??''),$body['ordered_at']??$now,$evtNormW,json_encode($rawW, JSON_UNESCAPED_UNICODE),$now]);
+                } catch (\PDOException $e) {
+                    $msg = $e->getMessage();
+                    if ((string)$e->getCode() === '23000' || (string)$e->getCode() === '23505'
+                        || stripos($msg, 'duplicate') !== false || stripos($msg, 'unique') !== false) {
+                        $dupW = true;  // 중복 재전송 — side-effect 건너뜀
+                    } else { throw $e; }
+                }
+                if ($dupW) { /* 선행 전송이 처리함 — 신규 주문 side-effect 생략 */ }
+                elseif ($incCRw === null) {
                     // 정상 신규 주문 → 실재고 차감 + CRM + 어트리뷰션(폴링 정합).
                     if ($skuW !== '') {
                         self::decInventory($pdo, $tenant, $channel, $skuW, $qtyW);

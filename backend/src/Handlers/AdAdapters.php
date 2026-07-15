@@ -1377,7 +1377,7 @@ final class AdAdapters
             (string)$d['copy'], (string)$d['subheadline'], $campName,
         ]), fn($v) => $v !== '')));
         if (count($hCand) < 3 || count($dCand) < 2) {
-            return ['ok' => true, 'status' => 'partial', 'adgroup_id' => $agId, 'ad_id' => '', 'keywords' => $kwOk,
+            return ['ok' => true, 'status' => 'partial', 'adgroup_id' => $agNumEarly, 'ad_id' => '', 'keywords' => $kwOk,
                 'note' => 'RSA 최소요건 미충족(헤드라인 3·설명 2) — 고객 소재 문구가 부족해 광고를 만들지 않았습니다. '
                     . '벤더 기본 문구로 대체 게재하지 않습니다(소재 헤드라인/서브헤드라인/카피를 채우면 즉시 생성).'];
         }

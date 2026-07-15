@@ -610,7 +610,22 @@ class Paddle
             UPDATE paddle_subscriptions SET status='paused', last_event_at=?, updated_at=CURRENT_TIMESTAMP
             WHERE paddle_subscription_id=?
         ")->execute([$at, $subId]);
-        self::auditLog($subId, 'subscription_paused', "at=$at");
+        // [286차] ★권한 회수 — 종전엔 status만 바꾸고 setUserPlan을 안 해, 과금이 멈춘(paused) 계정이 유료권한을
+        //   무기한 유지(매출누수·fail-open). canceled 와 동일하게 이메일 역해석 후 demo 로 강등한다.
+        //   (Paddle paused = 청구 중단 상태. 유예기간 정책이 필요하면 current_period_end 비교로 게이트 가능.)
+        $email = $d['custom_data']['user_email'] ?? $d['custom_data']['email'] ?? '';
+        if ($email === '' && $subId !== '') {
+            try {
+                $er = $db->prepare("SELECT user_email FROM paddle_subscriptions WHERE paddle_subscription_id=? LIMIT 1");
+                $er->execute([$subId]);
+                $email = (string)($er->fetchColumn() ?: '');
+            } catch (\Throwable $e) {}
+        }
+        if ($email) {
+            self::setUserPlan($db, $email, 'demo', null);
+            try { \Genie\Handlers\AdminGrowth::recordChurn($db, $email, 'paused'); } catch (\Throwable $e) {}
+        }
+        self::auditLog($subId, 'subscription_paused', "email=$email at=$at");
     }
 
     private static function onTransactionCompleted(\PDO $db, array $d, string $at): void
@@ -853,10 +868,163 @@ class Paddle
         curl_close($ch);
 
         $data = json_decode((string)$raw, true) ?? [];
+        $data['_http'] = (int)$status;
         if ($status >= 400) {
             error_log("[Paddle API v2] $method $path => $status: $raw");
         }
         return $data;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       [286차] Paddle Billing v2 — 관리자 상품/요금제 → Paddle Product·Price 자동 생성·관리.
+         관리자가 관리자페이지에서 상품/요금제(이름·설명·월요금·연요금·통화·판매여부)를 저장하면
+         Paddle Dashboard 수동생성 없이 **API로** Product → 월 Price → 연 Price 를 자동 생성하고
+         반환된 product_id / price_id 를 plan_config 에 저장한다. Paddle 가격은 불변이라
+         금액이 바뀌면 기존 Price 를 archive 하고 새 Price 를 만든다(구독자 기존 가격 보존).
+       ══════════════════════════════════════════════════════════════════════════ */
+
+    /** plan_config 에 paddle 연동 컬럼 멱등 보강(product_id·currency·마지막 동기화). */
+    public static function ensurePlanPaddleCols(\PDO $db): void
+    {
+        foreach ([
+            'paddle_product_id', 'paddle_sync_at', 'paddle_sync_status', 'currency',
+        ] as $col) {
+            try { $db->exec("ALTER TABLE plan_config ADD COLUMN {$col} VARCHAR(64)"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        }
+    }
+
+    /**
+     * 한 플랜을 Paddle Product/Price 로 동기화. plan_config 를 정본으로 읽고 결과 ID 를 되쓴다.
+     * @return array{ok:bool, reason?:string, product_id?:string, price_id_monthly?:string, price_id_annual?:string, detail?:mixed}
+     */
+    public static function syncPlanProduct(\PDO $db, string $planId): array
+    {
+        if (!self::secretKey()) return ['ok' => false, 'reason' => 'paddle_not_configured'];
+        self::ensurePlanPaddleCols($db);
+        $st = $db->prepare("SELECT plan_id,name,description,price_usd,price_annual_usd,price_id_monthly,price_id_annual,paddle_product_id,currency,is_active,is_custom_quote FROM plan_config WHERE plan_id=?");
+        $st->execute([$planId]);
+        $p = $st->fetch(\PDO::FETCH_ASSOC);
+        if (!$p) return ['ok' => false, 'reason' => 'plan_not_found'];
+
+        $active   = (int)($p['is_active'] ?? 1) === 1;
+        $custom   = (int)($p['is_custom_quote'] ?? 0) === 1;
+        $currency = strtoupper(trim((string)($p['currency'] ?? ''))) ?: 'USD';
+        $monthly  = (float)($p['price_usd'] ?? 0);
+        $annual   = (float)($p['price_annual_usd'] ?? 0);
+        $name     = trim((string)($p['name'] ?? '')) ?: $planId;
+        $desc     = (string)($p['description'] ?? '');
+
+        // 맞춤견적(Enterprise)·무료(Free)·유료금액 0 은 Paddle Price 대상이 아님 — 상품만(또는 스킵).
+        if ($custom || ($monthly <= 0 && $annual <= 0)) {
+            $save = $db->prepare("UPDATE plan_config SET paddle_sync_status=?, paddle_sync_at=? WHERE plan_id=?");
+            $save->execute([$custom ? 'custom_quote' : 'no_price', gmdate('c'), $planId]);
+            return ['ok' => true, 'skipped' => $custom ? 'custom_quote' : 'no_price'];
+        }
+
+        // 1) Product — 없으면 생성, 있으면 갱신(+판매여부→active/archived).
+        $prodId   = trim((string)($p['paddle_product_id'] ?? ''));
+        $prodBody = ['name' => $name, 'tax_category' => 'standard', 'custom_data' => ['plan_id' => $planId]];
+        if ($desc !== '') $prodBody['description'] = mb_substr($desc, 0, 500);
+        if ($prodId === '') {
+            $r = self::paddleApiV2('POST', '/products', $prodBody);
+            $prodId = (string)($r['data']['id'] ?? '');
+            if ($prodId === '') return ['ok' => false, 'reason' => 'product_create_failed', 'detail' => $r['error'] ?? $r];
+        } else {
+            self::paddleApiV2('PATCH', '/products/' . rawurlencode($prodId), $prodBody + ['status' => $active ? 'active' : 'archived']);
+        }
+
+        // 2) Price — 월/연. 금액이 다르면 기존 archive 후 신규 생성(불변성).
+        $ensurePrice = function (string $interval, float $amountUsd, string $existingId) use ($db, $prodId, $currency, $planId): string {
+            $cents = (int)round($amountUsd * 100);
+            if ($cents <= 0) return $existingId;   // 해당 주기 미판매(월/연 중 하나만 있을 수 있음)
+            // 기존 Price 금액 확인 — 같으면 재사용.
+            if ($existingId !== '') {
+                $cur = self::paddleApiV2('GET', '/prices/' . rawurlencode($existingId));
+                $curAmt = (int)($cur['data']['unit_price']['amount'] ?? -1);
+                $curCcy = strtoupper((string)($cur['data']['unit_price']['currency_code'] ?? ''));
+                $curStat = (string)($cur['data']['status'] ?? '');
+                if ($curAmt === $cents && $curCcy === $currency && $curStat === 'active') return $existingId;
+                // 금액/통화 변경 → 기존 archive(구독자 기존가 유지·신규 구독만 새 가격).
+                if ($existingId !== '' && ($cur['data']['id'] ?? '') !== '') {
+                    self::paddleApiV2('PATCH', '/prices/' . rawurlencode($existingId), ['status' => 'archived']);
+                }
+            }
+            $r = self::paddleApiV2('POST', '/prices', [
+                'product_id'    => $prodId,
+                'description'   => ($interval === 'month' ? 'Monthly' : 'Annual') . ' — ' . $planId,
+                'unit_price'    => ['amount' => (string)$cents, 'currency_code' => $currency],
+                'billing_cycle' => ['interval' => $interval, 'frequency' => 1],
+                'tax_mode'      => 'account_setting',
+                'quantity'      => ['minimum' => 1, 'maximum' => 1],
+                'custom_data'   => ['plan_id' => $planId, 'cycle' => $interval],
+            ]);
+            return (string)($r['data']['id'] ?? $existingId);
+        };
+
+        $newMonthly = $ensurePrice('month', $monthly, trim((string)($p['price_id_monthly'] ?? '')));
+        $newAnnual  = $ensurePrice('year',  $annual,  trim((string)($p['price_id_annual'] ?? '')));
+
+        // 3) 결과 되쓰기.
+        $upd = $db->prepare("UPDATE plan_config SET paddle_product_id=?, price_id_monthly=?, price_id_annual=?, currency=?, paddle_sync_status='ok', paddle_sync_at=? WHERE plan_id=?");
+        $upd->execute([$prodId, $newMonthly, $newAnnual, $currency, gmdate('c'), $planId]);
+
+        return ['ok' => true, 'product_id' => $prodId, 'price_id_monthly' => $newMonthly, 'price_id_annual' => $newAnnual];
+    }
+
+    /** Paddle 서버 자격증명(PADDLE_SECRET_KEY) 설정 여부. */
+    public static function isConfigured(): bool { return self::secretKey() !== ''; }
+
+    /** 현재 Paddle 환경 라벨(live/sandbox). */
+    public static function envLabel(): string { return self::env(); }
+
+    /** [286차] 판매중지 — Paddle Product + 그 Price 들을 archived 로 전환(신규결제 차단·기존구독 유지). */
+    public static function archivePlanProduct(string $productId): array
+    {
+        if (!self::secretKey() || $productId === '') return ['ok' => false, 'reason' => 'not_configured_or_no_product'];
+        // 상품 소속 Price 목록 조회 후 각각 archive.
+        try {
+            $prices = self::paddleApiV2('GET', '/prices?product_id=' . rawurlencode($productId) . '&status=active&per_page=50');
+            foreach ((array)($prices['data'] ?? []) as $pr) {
+                $pid = (string)($pr['id'] ?? '');
+                if ($pid !== '') self::paddleApiV2('PATCH', '/prices/' . rawurlencode($pid), ['status' => 'archived']);
+            }
+        } catch (\Throwable $e) { /* best-effort */ }
+        $r = self::paddleApiV2('PATCH', '/products/' . rawurlencode($productId), ['status' => 'archived']);
+        return ['ok' => ((int)($r['_http'] ?? 0) < 400)];
+    }
+
+    /**
+     * [286차] 구독자 최근 완료 거래를 Paddle 로 실제 환불(Adjustments API). 종전 환불요청은 DB 만 바꾸고
+     *   결제사 환불을 호출하지 않아 "환불 처리됨"이 거짓이었다. Paddle 미설정/구독·거래 없으면 pending 반환.
+     * @return array{ok:bool, status:string, detail?:mixed}
+     */
+    public static function refundLatestForEmail(\PDO $db, string $email): array
+    {
+        if (!self::secretKey()) return ['ok' => false, 'status' => 'not_configured'];
+        if ($email === '') return ['ok' => false, 'status' => 'no_email'];
+        $subId = '';
+        try {
+            $st = $db->prepare("SELECT paddle_subscription_id FROM paddle_subscriptions WHERE user_email=? ORDER BY updated_at DESC LIMIT 1");
+            $st->execute([$email]);
+            $subId = (string)($st->fetchColumn() ?: '');
+        } catch (\Throwable $e) { /* 테이블 미존재 등 */ }
+        if ($subId === '') return ['ok' => false, 'status' => 'no_subscription'];
+        $tx  = self::paddleApiV2('GET', '/transactions?subscription_id=' . rawurlencode($subId) . '&status=completed&order_by=created_at[DESC]&per_page=1');
+        $txn = $tx['data'][0] ?? null;
+        if (!$txn || empty($txn['id'])) return ['ok' => false, 'status' => 'no_transaction'];
+        $items = [];
+        foreach ((array)($txn['items'] ?? ($txn['details']['line_items'] ?? [])) as $li) {
+            $iid = (string)($li['id'] ?? '');
+            if ($iid !== '') $items[] = ['item_id' => $iid, 'type' => 'full'];
+        }
+        $r = self::paddleApiV2('POST', '/adjustments', [
+            'action'         => 'refund',
+            'transaction_id' => (string)$txn['id'],
+            'reason'         => 'Customer refund request (within 30-day window)',
+            'items'          => $items ?: [['type' => 'full']],
+        ]);
+        $ok = ((int)($r['_http'] ?? 0) < 400) && !empty($r['data']['id']);
+        return ['ok' => $ok, 'status' => $ok ? 'refunded' : 'refund_api_failed', 'detail' => $ok ? ($r['data']['id'] ?? '') : ($r['error'] ?? null)];
     }
 
     // ── Webhook signature verification (Billing v2 HMAC-SHA256) ──────────────

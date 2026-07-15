@@ -745,8 +745,9 @@ class EmailMarketing
         if ($cap > 0) {
             try {
                 $cutoff = gmdate('Y-m-d H:i:s', time() - max(1, $win) * 86400);
+                // [286차] push_sent 포함 — CRM::isFrequencyCapped 와 동일 정합(웹푸시 캡 우회 차단).
                 $cs = $pdo->prepare("SELECT customer_id, COUNT(*) AS cnt FROM crm_activities
-                    WHERE tenant_id=:t AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent') AND created_at >= :c GROUP BY customer_id");
+                    WHERE tenant_id=:t AND type IN ('email_sent','kakao_sent','sms_sent','whatsapp_sent','push_sent') AND created_at >= :c GROUP BY customer_id");
                 $cs->execute([':t'=>$tenant, ':c'=>$cutoff]);
                 foreach ($cs->fetchAll(\PDO::FETCH_ASSOC) as $r) { $capMap[(int)$r['customer_id']] = (int)$r['cnt']; }
             } catch (\Throwable $e) {}

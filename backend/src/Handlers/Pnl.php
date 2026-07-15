@@ -62,6 +62,12 @@ final class Pnl
         if ($env === 'demo' && !$isDemo) {
             return ['error' => self::json($resp, ['ok' => false, 'error' => 'production_blocked_in_demo'], 403)];
         }
+        // [286차] pnl_analytics=growth 서버 강제 — 프론트 메뉴게이팅 우회 직접 API 호출 차단(심층방어).
+        //   데모(쇼케이스)는 면제, 실 테넌트만 게이트. RANK: admin5/ent4/pro3/growth2 통과, free/starter(≤1) 차단.
+        if (!$isDemo) {
+            $err = \Genie\Handlers\UserAuth::requirePlan($req, $resp, 'growth');
+            if ($err) return ['error' => $err];
+        }
         return ['tenant' => $tenant, 'isDemo' => $isDemo, 'pdo' => Db::pdoFor($isDemo)];
     }
 
@@ -131,14 +137,17 @@ final class Pnl
             $shipW = ['co.tenant_id = ?']; $shipA = [$tenant];
             if ($from !== '') { $shipW[] = "SUBSTR(co.ordered_at,1,10) >= ?"; $shipA[] = $from; }
             if ($to   !== '') { $shipW[] = "SUBSTR(co.ordered_at,1,10) <= ?"; $shipA[] = $to; }
-            $shipW[] = "COALESCE(co.status,'') NOT IN ('cancelled','canceled','취소','반품','refunded','returned','cancel','return')";
+            // [286차 SSOT 통일] settlementsStats 와 동일하게 취소 제외를 2축 cancelExclusion 으로 교체(하드코딩 8토큰 드리프트 제거).
+            [$cxSql, $cxTok] = \Genie\Handlers\OrderHub::cancelExclusion('co');
+            $shipW[] = "NOT $cxSql";
+            foreach ($cxTok as $tk) { $shipA[] = $tk; }
             $shipSql = implode(' AND ', $shipW);
             $shipSt = $pdo->prepare(
                 "SELECT COALESCE(SUM(CASE WHEN fr.ship > 0 AND (fr.thr <= 0 OR co.total_price < fr.thr) THEN fr.ship ELSE 0 END),0) AS shipfee
                  FROM channel_orders co
                  JOIN (SELECT channel_key, shipping_standard AS ship, free_ship_threshold AS thr FROM kr_fee_rule
                        WHERE tenant_id = ? AND id IN (SELECT MAX(id) FROM kr_fee_rule WHERE tenant_id = ? GROUP BY channel_key)) fr
-                   ON fr.channel_key = co.channel
+                   ON LOWER(fr.channel_key) = LOWER(co.channel)
                  WHERE $shipSql"
             );
             $shipSt->execute(array_merge([$tenant, $tenant], $shipA));

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useI18n } from '../i18n';
 import { IS_DEMO } from '../utils/demoEnv'; // [259차] 하드코딩 관세(total*0.08) 운영 미노출 게이트
+import { tChannelName } from '../utils/tenantStorage'; // [286차] 크로스탭 채널 테넌트 스코프
 import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceState'; // [279차] 라우팅 규칙 서버 영속
 import { useGlobalData } from '../context/GlobalDataContext';
 import { useAuth } from '../auth/AuthContext';
@@ -70,7 +71,7 @@ function useCrossTabSync(onMessage) {
     const bcRef = useRef(null);
     useEffect(() => {
         try {
-            const bc = new BroadcastChannel(BC_NAME);
+            const bc = new BroadcastChannel(tChannelName(BC_NAME));
             bc.onmessage = (e) => cbRef.current?.(e.data);
             bcRef.current = bc;
             return () => bc.close();

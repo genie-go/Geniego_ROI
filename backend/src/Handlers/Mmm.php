@@ -53,6 +53,8 @@ final class Mmm
     public static function model(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $lang = \Genie\I18n::lang($req);
         $qs = $req->getQueryParams();
         $window = max(14, min(365, (int)($qs['window'] ?? 90)));
@@ -93,6 +95,8 @@ final class Mmm
     public static function backtest(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $qs = $req->getQueryParams();
         $window  = max(21, min(365, (int)($qs['window'] ?? 90)));
         $holdout = max(7, min(60, (int)($qs['holdout'] ?? 14)));
@@ -164,6 +168,8 @@ final class Mmm
     public static function series(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $qs = $req->getQueryParams();
         $window = max(14, min(365, (int)($qs['window'] ?? 90)));
         if (self::isDemo($tenant)) {
@@ -204,6 +210,8 @@ final class Mmm
     public static function optimize(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $lang = \Genie\I18n::lang($req);
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
@@ -344,6 +352,8 @@ final class Mmm
     public static function frontier(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $lang = \Genie\I18n::lang($req);
         $body = (array)($req->getParsedBody() ?? []);
         if (empty($body)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $body = $d; }
@@ -631,6 +641,8 @@ final class Mmm
     public static function bayesian(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);
+        // [286차] marketing_advanced(MMM)=growth 서버 강제 — 데모 면제, 실 테넌트만. RANK growth2 이상 통과.
+        if (!self::isDemo($tenant)) { $_pg = UserAuth::requirePlan($req, $res, 'growth'); if ($_pg) return $_pg; }
         $qs = $req->getQueryParams();
         $window = max(14, min(365, (int)($qs['window'] ?? 90)));
         $method = (($qs['method'] ?? 'mcmc') === 'bootstrap') ? 'bootstrap' : 'mcmc';

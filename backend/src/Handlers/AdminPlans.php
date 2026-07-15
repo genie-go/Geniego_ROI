@@ -75,6 +75,7 @@ final class AdminPlans
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 요금정책 변경=master 전용(sub-admin 차단)
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
@@ -142,22 +143,99 @@ final class AdminPlans
             (int)($body['discount_pct'] ?? 20),
             substr($actor, 0, 64),
         ]);
-        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화
-        return self::json($res, ['ok' => true, 'plan_id' => $planId]);
+        // [286차] 통화 저장(폼 입력) + Paddle Product/Price **자동 동기화** — 관리자가 저장하면 Paddle 에
+        //   Product→월Price→연Price 가 API 로 자동 생성/갱신되고 그 ID 가 plan_config 로 되쓰인다.
+        //   Paddle 미설정(자격증명 전)이면 조용히 스킵 → 자격증명 등록 후 '재동기화'로 일괄 생성 가능.
+        try {
+            \Genie\Handlers\Paddle::ensurePlanPaddleCols($pdo);
+            $ccy = strtoupper(trim((string)($body['currency'] ?? 'USD'))) ?: 'USD';
+            $pdo->prepare("UPDATE plan_config SET currency=? WHERE plan_id=?")->execute([$ccy, $planId]);
+        } catch (\Throwable $e) { /* currency 컬럼 보강 실패 무시 */ }
+        $paddle = null;
+        try { $paddle = \Genie\Handlers\Paddle::syncPlanProduct($pdo, $planId); }
+        catch (\Throwable $e) { $paddle = ['ok' => false, 'reason' => 'sync_exception', 'detail' => $e->getMessage()]; }
+        self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화(paddle id 포함)
+        return self::json($res, ['ok' => true, 'plan_id' => $planId, 'paddle' => $paddle]);
     }
 
     public static function delete(Request $req, Response $res, array $args): Response
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 요금정책 삭제/판매중지=master 전용
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
         }
         $pdo = Db::pdo();
         $pdo->prepare('UPDATE plan_config SET is_active = 0 WHERE plan_id = ?')->execute([$planId]);
+        // [286차] 판매중지 → Paddle Product 도 archived 로 전환(신규 결제 차단·기존 구독 유지).
+        try {
+            \Genie\Handlers\Paddle::ensurePlanPaddleCols($pdo);
+            $st = $pdo->prepare("SELECT paddle_product_id FROM plan_config WHERE plan_id=?");
+            $st->execute([$planId]);
+            $prodId = trim((string)$st->fetchColumn());
+            if ($prodId !== '') \Genie\Handlers\Paddle::archivePlanProduct($prodId);
+        } catch (\Throwable $e) { /* Paddle 미설정/오류 무시 — 로컬 판매중지는 유효 */ }
         self::mirrorPlanTablesToSibling($pdo); // 데모 DB 동기화
         return self::json($res, ['ok' => true]);
+    }
+
+    /** [286차] POST /v424/admin/plans/paddle-sync — 전체(또는 body.plan_id) 재동기화. 자격증명 등록 후 일괄 생성용. */
+    public static function paddleSync(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] Paddle 상품/가격 동기화=master 전용
+        $pdo = Db::pdo();
+        $body = (array)$req->getParsedBody();
+        $only = trim((string)($body['plan_id'] ?? ''));
+        \Genie\Handlers\Paddle::ensurePlanPaddleCols($pdo);
+        if (!\Genie\Handlers\Paddle::isConfigured()) {
+            return self::json($res, ['ok' => false, 'reason' => 'paddle_not_configured',
+                'message' => 'Paddle 자격증명(PADDLE_SECRET_KEY)이 아직 설정되지 않았습니다. 등록 후 재동기화하세요.'], 200);
+        }
+        $ids = [];
+        if ($only !== '') { $ids = [$only]; }
+        else {
+            $st = $pdo->query("SELECT plan_id FROM plan_config WHERE is_active=1 ORDER BY display_order");
+            $ids = array_map('strval', $st->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+        }
+        $results = [];
+        foreach ($ids as $pid) {
+            try { $results[$pid] = \Genie\Handlers\Paddle::syncPlanProduct($pdo, $pid); }
+            catch (\Throwable $e) { $results[$pid] = ['ok' => false, 'reason' => 'exception', 'detail' => $e->getMessage()]; }
+        }
+        self::mirrorPlanTablesToSibling($pdo);
+        return self::json($res, ['ok' => true, 'results' => $results]);
+    }
+
+    /** [286차] GET /v424/admin/plans/paddle-status — 플랜별 Paddle 동기화 상태(구성여부·product/price ID·마지막시각). */
+    public static function paddleStatus(Request $req, Response $res): Response
+    {
+        $gate = UserAuth::requirePlan($req, $res, 'admin');
+        if ($gate !== null) return $gate;
+        $pdo = Db::pdo();
+        \Genie\Handlers\Paddle::ensurePlanPaddleCols($pdo);
+        $rows = [];
+        try {
+            $st = $pdo->query("SELECT plan_id,name,price_usd,price_annual_usd,currency,paddle_product_id,price_id_monthly,price_id_annual,paddle_sync_status,paddle_sync_at,is_active,is_custom_quote FROM plan_config ORDER BY display_order");
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $rows[] = [
+                    'plan_id' => $r['plan_id'], 'name' => $r['name'],
+                    'price_usd' => $r['price_usd'], 'price_annual_usd' => $r['price_annual_usd'],
+                    'currency' => $r['currency'] ?: 'USD',
+                    'paddle_product_id' => $r['paddle_product_id'] ?: '',
+                    'price_id_monthly' => $r['price_id_monthly'] ?: '',
+                    'price_id_annual' => $r['price_id_annual'] ?: '',
+                    'sync_status' => $r['paddle_sync_status'] ?: 'unsynced',
+                    'sync_at' => $r['paddle_sync_at'] ?: '',
+                    'is_active' => (int)($r['is_active'] ?? 1),
+                    'is_custom_quote' => (int)($r['is_custom_quote'] ?? 0),
+                ];
+            }
+        } catch (\Throwable $e) { /* 스키마 미비 */ }
+        return self::json($res, ['ok' => true, 'configured' => \Genie\Handlers\Paddle::isConfigured(), 'env' => \Genie\Handlers\Paddle::envLabel(), 'plans' => $rows]);
     }
 
     /**
@@ -169,6 +247,7 @@ final class AdminPlans
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] DB 통계/관리 조회=master 전용(민감)
         $pdo = Db::pdo();
         $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $stats = [
@@ -429,6 +508,7 @@ final class AdminPlans
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] ★메뉴접근 부여=권한상승 벡터, master 전용
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);
@@ -539,6 +619,7 @@ final class AdminPlans
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [286차] 기간별 요금 변경=master 전용
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);

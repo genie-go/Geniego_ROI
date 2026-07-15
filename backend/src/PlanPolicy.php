@@ -21,18 +21,21 @@ final class PlanPolicy
         'pro' => 3, 'enterprise' => 4, 'admin' => 5,
     ];
 
-    /** 상용 기능키 → 최소 요구 플랜 (프론트 MENU_MIN_PLAN coarse 미러). */
+    /** 상용 기능키 → 최소 요구 플랜 (프론트 planMenuPolicy.js MENU_MIN_PLAN 정합).
+     *  [286차] 프론트 드리프트 수정 — report_builder/pnl_analytics/ai_insights 는 프론트에서 growth 이나
+     *  종전 여기선 starter 였다(서버 저티어 통과=수익누수). marketing_advanced 키는 아예 부재였다. growth 로 정합. */
     public const FEATURE_MIN_PLAN = [
-        'marketing'      => 'starter',  // 광고/캠페인/CRM/이메일/카카오/여정/자동마케팅
-        'auto_campaign'  => 'starter',
-        'report_builder' => 'starter',
-        'pnl_analytics'  => 'starter',
-        'ai_insights'    => 'starter',
-        'ops'            => 'pro',       // WMS/가격최적화/공급망/반품
-        'data_product'   => 'pro',
-        'ai_rule_engine' => 'pro',
-        'data_schema'    => 'pro',
-        'developer_hub'  => 'enterprise',
+        'marketing'          => 'starter',  // 기본 광고/캠페인/CRM/이메일/카카오/여정/자동마케팅
+        'auto_campaign'      => 'starter',
+        'marketing_advanced' => 'growth',   // [286차] 어트리뷰션/MMM/채널KPI/예산플래너/AutoRecommend(고급 마케팅 분석)
+        'report_builder'     => 'growth',    // [286차] starter→growth(프론트 정합)
+        'pnl_analytics'      => 'growth',     // [286차] starter→growth
+        'ai_insights'        => 'growth',      // [286차] starter→growth
+        'ops'                => 'pro',       // WMS/가격최적화/공급망/반품
+        'data_product'       => 'pro',
+        'ai_rule_engine'     => 'pro',
+        'data_schema'        => 'pro',
+        'developer_hub'      => 'enterprise',
     ];
 
     public static function rank(string $plan): int

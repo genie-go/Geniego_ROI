@@ -95,16 +95,13 @@ export default function AdminGrowthCenter() {
   const [mode, setMode] = useState("test");
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
-  // [251차] ★Growth Center 진입 = 플랫폼 컨텍스트 자동 선택(ON). 이후 기존 모든 메뉴(크리에이티브·자동화 전략·
-  //   어트리뷰션 등)가 platform_growth 데이터로 동작. 상단 토글/배너의 "끄기"로 내 계정으로 복귀 가능.
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("gg_act_as_tenant") !== "platform_growth") {
-        localStorage.setItem("gg_act_as_tenant", "platform_growth");
-        window.dispatchEvent(new Event("gg-actas-change"));
-      }
-    } catch (e) {}
-  }, []);
+  // [286차] ★★버그 근본수정 — 종전엔 Growth Center 진입만으로 platform_growth 컨텍스트를 자동 ON 했다.
+  //   그 플래그는 localStorage 에 영구 고착되고 apiClient 가 전 API 요청에 X-Act-As-Tenant 헤더를 붙여
+  //   authedTenant 가 admin 계정의 tenant 를 'platform_growth'(데이터 0)로 바꿔버려 **창고·CRM·카탈로그·주문 등
+  //   모든 테넌트 스코프 메뉴가 빈 화면**이 됐다(최고관리자가 하위관리자 창고를 못 보던 진짜 원인).
+  //   → 자동 ON 완전 제거. 플랫폼 컨텍스트는 오직 아래 PlatformContextToggle 의 **명시적 클릭**으로만 켜지며,
+  //     켜지면 상단에 눈에 띄는 배너 + "끄기(내 계정으로)" 버튼이 상시 노출된다(의도적·가역적·비고착).
+  //   Growth Center 자체 데이터는 서버 AdminGrowth::TENANT='platform_growth' 상수로 강제되므로 이 플래그와 무관(안전).
 
   const flash = (m, isErr) => { if (isErr) { setErr(String(m)); setMsg(""); } else { setMsg(String(m)); setErr(""); } setTimeout(() => { setMsg(""); setErr(""); }, 4000); };
 
