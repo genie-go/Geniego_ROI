@@ -388,9 +388,16 @@ final class Db
         if (isset($done[$oid])) return;
         try {
             if (self::isMySQL($pdo)) {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', sku VARCHAR(120), name VARCHAR(255), qty DOUBLE DEFAULT 0, supplier VARCHAR(200), wh_id VARCHAR(60), status VARCHAR(40) DEFAULT 'pending', eta VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_so_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', sku VARCHAR(120), name VARCHAR(255), qty DOUBLE DEFAULT 0, supplier VARCHAR(200), wh_id VARCHAR(60), status VARCHAR(40) DEFAULT 'pending', eta VARCHAR(32), unit_cost DOUBLE DEFAULT 0, cost_total DOUBLE DEFAULT 0, created_at VARCHAR(32), updated_at VARCHAR(32), KEY idx_wms_so_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
             } else {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS wms_supply_orders (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', sku TEXT, name TEXT, qty REAL DEFAULT 0, supplier TEXT, wh_id TEXT, status TEXT DEFAULT 'pending', eta TEXT, unit_cost REAL DEFAULT 0, cost_total REAL DEFAULT 0, created_at TEXT, updated_at TEXT)");
+            }
+            // [287차] 발주단가/발주금액 컬럼 자가치유 — 기존(구스키마) 테이블은 CREATE IF NOT EXISTS 로 컬럼이 안 붙으므로
+            //   멱등 ALTER 로 보강(없던 unit_cost/cost_total 이 없어 사용자 입력 원가가 유실되고 '총 발주금액'이 상시 ₩0 이던 결함).
+            $colType = self::isMySQL($pdo) ? 'DOUBLE DEFAULT 0' : 'REAL DEFAULT 0';
+            foreach (['unit_cost', 'cost_total'] as $col) {
+                try { $pdo->exec("ALTER TABLE wms_supply_orders ADD COLUMN $col $colType"); }
+                catch (\Throwable $e) { /* 이미 존재 시 무시(멱등) */ }
             }
             $done[$oid] = true;
         } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }

@@ -142,6 +142,7 @@ class WmsCctv
                 source VARCHAR(16) NOT NULL DEFAULT 'direct',
                 bridge_id INT DEFAULT 0,
                 model VARCHAR(160) DEFAULT '',
+                info_json TEXT,
                 last_tested_at VARCHAR(32) DEFAULT '',
                 test_status VARCHAR(16) DEFAULT '',
                 test_message VARCHAR(255) DEFAULT '',
@@ -172,6 +173,7 @@ class WmsCctv
                 rtsp_template TEXT DEFAULT '', snapshot_template TEXT DEFAULT '',
                 username TEXT, password TEXT, active INTEGER DEFAULT 1, sort_order INTEGER DEFAULT 0,
                 source TEXT NOT NULL DEFAULT 'direct', bridge_id INTEGER DEFAULT 0, model TEXT DEFAULT '',
+                info_json TEXT,
                 last_tested_at TEXT DEFAULT '', test_status TEXT DEFAULT '', test_message TEXT DEFAULT '',
                 created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS wms_cctv_bridges (
@@ -182,7 +184,7 @@ class WmsCctv
         }
         // 기 배포 테이블 보강(멱등) — 브리지 컬럼. ★MySQL TEXT DEFAULT 거부 회피(VARCHAR·무DEFAULT 또는 숫자만).
         foreach ([
-            'source VARCHAR(16)', 'bridge_id INT', 'model VARCHAR(160)',
+            'source VARCHAR(16)', 'bridge_id INT', 'model VARCHAR(160)', 'info_json TEXT',
         ] as $col) { try { $pdo->exec("ALTER TABLE wms_cameras ADD COLUMN {$col}"); } catch (\Throwable $e) {} }
     }
 
@@ -334,6 +336,8 @@ class WmsCctv
             'source'       => (string)($r['source'] ?? 'direct'),
             'bridge_id'    => (int)($r['bridge_id'] ?? 0),
             'model'        => (string)($r['model'] ?? ''),
+            // [287차] CCTV 정보 보기 탭용 device 메타(제조사·관리자웹·내외부 IP·포트·프로그램 등)
+            'info'         => (function ($j) { $d = json_decode((string)$j, true); return is_array($d) ? $d : []; })((string)($r['info_json'] ?? '')),
             'active'       => (int)($r['active'] ?? 1) === 1,
             'sort_order'   => (int)($r['sort_order'] ?? 0),
             'last_tested_at' => (string)($r['last_tested_at'] ?? ''),
@@ -453,6 +457,11 @@ class WmsCctv
             $v = (string)($b[$k] ?? '');
             if ($v !== '') $secrets[$k] = Crypto::encrypt($v);
         }
+        // [287차] device 메타(정보 보기 탭용) — info(객체) 또는 info_json(문자열) 수용. 미전송 시 UPDATE서 기존값 보존.
+        $infoProvided = array_key_exists('info', $b) || array_key_exists('info_json', $b);
+        $infoVal = '';
+        if (isset($b['info']) && is_array($b['info'])) $infoVal = json_encode($b['info'], JSON_UNESCAPED_UNICODE);
+        elseif (isset($b['info_json'])) $infoVal = (string)$b['info_json'];
 
         if ($id > 0) {
             $set = "wh_id=:wh, name=:name, place=:place, vendor=:vendor, protocol=:proto, host=:host,
@@ -460,6 +469,7 @@ class WmsCctv
                     rtsp_template=:rtpl, snapshot_template=:stpl, active=:active, sort_order=:sort,
                     source=:source, bridge_id=:bridge, model=:model, updated_at=:ua";
             foreach ($secrets as $k => $_) { $set .= ", $k=:$k"; $cols[":$k"] = $secrets[$k]; }
+            if ($infoProvided) { $set .= ", info_json=:info"; $cols[':info'] = $infoVal; }
             $st = $pdo->prepare("UPDATE wms_cameras SET $set WHERE id=:id AND tenant_id=:t");
             $cols[':id'] = $id;
             $st->execute($cols);
@@ -471,12 +481,13 @@ class WmsCctv
         $cols[':ca'] = $now;
         $cols[':username'] = $secrets['username'] ?? null;
         $cols[':password'] = $secrets['password'] ?? null;
+        $cols[':info'] = $infoVal;
         $st = $pdo->prepare("INSERT INTO wms_cameras
             (tenant_id, wh_id, name, place, vendor, protocol, host, port, rtsp_port, channel, direct_url,
              rtsp_template, snapshot_template, username, password, active, sort_order,
-             source, bridge_id, model, created_at, updated_at)
+             source, bridge_id, model, info_json, created_at, updated_at)
             VALUES (:t,:wh,:name,:place,:vendor,:proto,:host,:port,:rport,:ch,:durl,:rtpl,:stpl,
-                    :username,:password,:active,:sort,:source,:bridge,:model,:ca,:ua)");
+                    :username,:password,:active,:sort,:source,:bridge,:model,:info,:ca,:ua)");
         $st->execute($cols);
         $newId = (int)$pdo->lastInsertId();
         return self::json($res, ['ok' => true, 'camera' => self::publicView(self::row($t, $newId) ?? [])], 201);

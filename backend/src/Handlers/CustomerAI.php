@@ -450,7 +450,8 @@ class CustomerAI
     }
 
     /* ─── POST /api/customer-ai/auto-action/dispatch ─── [현 차수 P3] 대기 액션 상태전이(집행/취소) ───
-     *   action_ref + action('dispatch'|'cancel'). dispatch 는 옴니 캠페인 초안 생성을 best-effort 시도 후 상태 전이. */
+     *   action_ref + action('dispatch'|'cancel'). ★이 엔드포인트는 큐 상태전이(queued→dispatched/canceled)만 수행하며
+     *   실제 채널 발송은 옴니/캠페인 연동·승인 경로에서 별도 집행된다(여기서 초안 생성·발송은 하지 않음 — 오해 소지 주석 정정). */
     public static function dispatchAutoAction(Request $req, Response $res): Response
     {
         $tenant = self::tenant($req);

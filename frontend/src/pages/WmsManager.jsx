@@ -1618,7 +1618,9 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
             if (Array.isArray(r?.supplyOrders)) setBeOrders(r.supplyOrders.map(o => ({
                 id: o.id, _be: true, sku: o.sku, name: o.name, qty: Number(o.qty) || 0,
                 supplier: o.supplier, status: o.status, eta: o.eta, wh: o.wh_id,
-                orderDate: (o.created_at || '').slice(0, 10), unitCost: 0, total: 0,
+                orderDate: (o.created_at || '').slice(0, 10),
+                // [287차] 백엔드 영속 원가 실반영(종전 하드코딩 0 → 발주단가/발주금액·총 발주금액 KPI 항상 ₩0 이던 결함)
+                unitCost: Number(o.unit_cost) || 0, total: Number(o.cost_total) || (Number(o.qty) * Number(o.unit_cost)) || 0,
             })));
         } catch {}
     }, []);
@@ -1855,10 +1857,18 @@ const LotManagementTab = memo(function LotManagementTab({ lotManagement, registe
     const handleSubmit = async () => {
         const expiry = new Date(form.expiryDate);
         const daysLeft = Math.ceil((expiry - today) / (1000*60*60*24));
-        try { await wmsApi.createLot(form); await reloadLots(); } catch {}
-        registerLot({ ...form, daysLeft });
-        setSaved(true);
-        setTimeout(() => { setSaved(false); setForm({ sku:'', name:'', lotNo:'', mfgDate:'', expiryDate:'', qty:0, wh:'W001' }); }, 2000);
+        const resetForm = () => setTimeout(() => { setSaved(false); setForm({ sku:'', name:'', lotNo:'', mfgDate:'', expiryDate:'', qty:0, wh:'W001' }); }, 2000);
+        if (IS_DEMO) { registerLot({ ...form, daysLeft }); setSaved(true); resetForm(); return; }
+        // [287차] 운영: 종전엔 서버 영속 실패를 빈 catch 로 삼키고 로컬 state 만 등록해 "등록 완료"를 거짓표시하던
+        //   fake-looks-real(새로고침 시 소실 → FEFO 유통기한 임박경보 누락). 실패를 표면화하고 성공표시를 막는다.
+        try {
+            const r = await wmsApi.createLot(form);
+            if (r && r.ok === false) { alert(String(r.error || r.detail || t('wms.lotRegFail', '로트 등록 실패'))); return; }
+            await reloadLots();
+            setSaved(true); resetForm();
+        } catch (e) {
+            alert(t('wms.lotRegFail', '로트 등록 실패') + ': ' + String(e?.message || e));
+        }
     };
     return (
         <div style={{ display:'grid', gap:16 }}>
@@ -1925,7 +1935,9 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
             if (Array.isArray(r?.supplyOrders)) setBeOrders(r.supplyOrders.map(o => ({
                 id: o.id, _be: true, sku: o.sku, name: o.name, qty: Number(o.qty) || 0,
                 supplier: o.supplier, status: o.status, eta: o.eta, wh: o.wh_id,
-                orderDate: (o.created_at || '').slice(0, 10), unitCost: 0, total: 0,
+                orderDate: (o.created_at || '').slice(0, 10),
+                // [287차] 백엔드 영속 원가 실반영(종전 하드코딩 0 → 발주단가/발주금액·총 발주금액 KPI 항상 ₩0 이던 결함)
+                unitCost: Number(o.unit_cost) || 0, total: Number(o.cost_total) || (Number(o.qty) * Number(o.unit_cost)) || 0,
             })));
         } catch {}
     }, []);

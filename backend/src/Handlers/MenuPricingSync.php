@@ -139,6 +139,7 @@ final class MenuPricingSync
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [287차] 가격산정 스코어=요금정책 변경 벡터, master 전용(sub-admin 차단·AdminPlans 대칭)
         $body = (array)$req->getParsedBody();
         $scores = isset($body['scores']) && is_array($body['scores']) ? $body['scores'] : [];
         $actor  = substr((string)($req->getAttribute('auth_key') ?? 'admin'), 0, 64);
@@ -197,6 +198,7 @@ final class MenuPricingSync
     {
         $gate = UserAuth::requirePlan($req, $res, 'admin');
         if ($gate !== null) return $gate;
+        if ($m = UserAuth::requireMasterAdmin2($req, $res)) return $m; // [287차] plan_period_pricing 직접 write=요금정책 변경, master 전용(periodPricingUpsert 대칭)
         $planId = (string)($args['id'] ?? '');
         if (!preg_match('/^[a-z0-9_-]{1,64}$/i', $planId)) {
             return self::json($res, ['error' => 'invalid_plan_id'], 422);

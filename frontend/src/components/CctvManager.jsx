@@ -63,6 +63,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
     const [showBridges, setShowBridges] = useState(false);
     const [newBridgeName, setNewBridgeName] = useState('');
     const [pairInfo, setPairInfo] = useState(null); // { name, pair_code } 방금 발급
+    const [infoId, setInfoId] = useState(0);        // [287차] 정보 보기 패널이 열린 카메라 id(0=닫힘)
 
     const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -461,12 +462,46 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                             {c.test_message && <div style={{ fontSize: 10, color: '#6b7280', marginTop: 6, wordBreak: 'break-word' }}>{c.test_message}</div>}
                             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
                                 <Btn onClick={() => setViewing(c)} color="#0ea5e9" small disabled={!c.active}>▶ {t('wms.cctv.viewBtn', '실시간 보기')}</Btn>
+                                <Btn onClick={() => setInfoId(v => v === c.id ? 0 : c.id)} color="#0d9488" small>ℹ {t('wms.cctv.infoBtn', '정보 보기')}</Btn>
                                 <Btn onClick={() => test(c)} color="#6366f1" small disabled={busy === 'test' + c.id}>
                                     {busy === 'test' + c.id ? t('wms.cctv.testing', '테스트 중…') : t('wms.cctv.testBtn', '연결 테스트')}
                                 </Btn>
                                 <Btn onClick={() => edit(c)} color="#64748b" small>{t('wms.cctv.editBtn', '수정')}</Btn>
                                 <Btn onClick={() => remove(c)} color="#ef4444" small>🗑</Btn>
                             </div>
+                            {infoId === c.id && (() => {
+                                // [287차] CCTV 정보 보기 — device 메타(info_json) + 연결정보 전체를 표로 표시.
+                                const nf = c.info || {};
+                                const rows = [
+                                    [t('wms.cctv.iModel', '모델'), nf.model || c.model],
+                                    [t('wms.cctv.iMaker', '제조사'), nf.manufacturer],
+                                    [t('wms.cctv.iProgram', '프로그램'), nf.program],
+                                    [t('wms.cctv.iProto', '프로토콜'), (c.protocol || '').toUpperCase() + (c.source === 'bridge' ? ' · ' + t('wms.cctv.viaBridge', '브리지 경유(LAN)') : '')],
+                                    [t('wms.cctv.iLan', 'LAN 주소'), c.host ? `${c.host}:${c.rtsp_port || nf.rtsp_port || ''}` : (nf.int_ip || '')],
+                                    ['RTSP', c.rtsp_template || nf.rtsp],
+                                    [t('wms.cctv.iIntIp', '내부 IP'), nf.int_ip],
+                                    [t('wms.cctv.iExtIp', '외부 IP'), nf.ext_ip],
+                                    [t('wms.cctv.iPorts', '포트(영상/웹)'), (nf.video_port || nf.web_port) ? `${nf.video_port || '-'} / ${nf.web_port || '-'}${nf.alt_port ? ' (' + nf.alt_port + ')' : ''}` : ''],
+                                    [t('wms.cctv.iAdminWeb', '관리자 웹'), nf.admin_web],
+                                    [t('wms.cctv.iNvrId', '녹화기 ID'), nf.nvr_login],
+                                    [t('wms.cctv.iBridge', '브리지'), c.source === 'bridge' ? (bridges.find(b => b.id === c.bridge_id)?.name || '-') : t('wms.cctv.srcDirect', '직접')],
+                                    [t('wms.cctv.iWh', '창고'), c.wh_id ? whName(c.wh_id) : '-'],
+                                ].filter(r => r[1]);
+                                return (
+                                    <div style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(13,148,136,0.06)', border: '1px solid rgba(13,148,136,0.2)' }}>
+                                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0f766e', marginBottom: 6 }}>ℹ {t('wms.cctv.infoTitle', 'CCTV 장비 정보')}</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: 11 }}>
+                                            {rows.map(([k, v]) => (
+                                                <React.Fragment key={k}>
+                                                    <div style={{ color: '#6b7280', fontWeight: 700, whiteSpace: 'nowrap' }}>{k}</div>
+                                                    <div style={{ color: '#111827', wordBreak: 'break-all', fontFamily: /IP|RTSP|주소|포트|웹/.test(k) ? 'monospace' : 'inherit' }}>{String(v)}</div>
+                                                </React.Fragment>
+                                            ))}
+                                        </div>
+                                        {nf.note && <div style={{ fontSize: 10, color: '#6b7280', marginTop: 8 }}>※ {nf.note}</div>}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     ))}
                 </div>

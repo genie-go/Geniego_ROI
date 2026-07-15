@@ -630,9 +630,11 @@ export default function Approvals() {
     try {
       const r = await postJsonAuth(`/api/v423/approvals/${id}/execute`, {});
       if (r && r.ok !== false && !r.detail) {
-        addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${t('approvalsPage.executeDone')}` });
-        setMsg(`✓ #${id} ${t('approvalsPage.executeDone')}`); loadRequests();
-      } else setMsg(r?.detail || r?.error || t('approvalsPage.actionFail', '처리에 실패했습니다.'));
+        // [287차] 백엔드가 실 집행 결과에 따라 정직한 message 를 반환(executed=실행완료 / approved_manual=수동집행 안내).
+        const done = r.message || t('approvalsPage.executeDone');
+        addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${done}` });
+        setMsg(`✓ #${id} ${done}`); loadRequests();
+      } else setMsg(r?.message || r?.detail || r?.error || t('approvalsPage.actionFail', '처리에 실패했습니다.'));
     } catch { setMsg(t('approvalsPage.actionFail', '처리에 실패했습니다.')); }
     finally { setBusy(false); }
   };

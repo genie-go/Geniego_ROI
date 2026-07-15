@@ -602,18 +602,66 @@ final class Alerting {
         $pdo = Db::pdo();
         $actor = self::actor($request);
         $id = (int)($args["id"] ?? 0);
-
         // 208차 검수(P0 IDOR): 테넌트 소유 검증 — 타 테넌트 액션 실행(라이트백) 차단.
         $tnt = self::tenantOf($request);
-        $st = $pdo->prepare("UPDATE action_request SET status=? WHERE id=? AND tenant_id=?");
-        $st->execute(["executed",$id,$tnt]);
-        if ($st->rowCount() === 0) {
+
+        // [287차 가짜집행 근본수정] 종전엔 status='executed' 로만 바꾸고 어떤 외부 API 도 호출하지 않아,
+        //   프론트는 "실행 완료"를 표시하나 실제 광고 캠페인은 그대로 소진되던 fake-looks-real 이었다.
+        //   이제 저장된 action_json 을 읽어 실 액추에이터(AdAdapters, 자격증명 게이트·감사로그 내장)로 집행하고
+        //   집행 결과에 따라 상태를 정직하게 기록한다(executed=실집행성공 / failed=실패 / approved_manual=자동집행 불가).
+        $row = $pdo->prepare("SELECT action_json, status FROM action_request WHERE id=? AND tenant_id=?");
+        $row->execute([$id, $tnt]);
+        $r = $row->fetch(PDO::FETCH_ASSOC);
+        if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"action_request not found"], JSON_UNESCAPED_UNICODE));
             return $response->withStatus(404)->withHeader('Content-Type','application/json');
         }
-        self::audit($pdo, $actor, "action_execute", ["id"=>$id]);
+        $action = $r["action_json"] ? json_decode($r["action_json"], true) : [];
+        if (!is_array($action)) $action = [];
 
-        return TemplateResponder::respond($response, ["ok"=>true, "id"=>$id, "status"=>"executed"]);
+        // PRESETS_JSON placeholder 계약(platform/campaign_id/adset_id/daily_budget)에 맞춘 정규화.
+        $channel = (string)($action['channel'] ?? $action['platform'] ?? '');
+        $extId   = (string)($action['campaign_ext_id'] ?? $action['external_id'] ?? $action['campaign_id'] ?? $action['adset_id'] ?? '');
+        $type    = strtolower((string)($action['action'] ?? $action['type'] ?? $action['action_type'] ?? ''));
+        $budget  = (int)($action['daily_budget'] ?? $action['budget'] ?? 0);
+
+        $dispatched = false; $result = null; $finalStatus = 'approved_manual'; $message = '';
+        try {
+            if ($channel !== '' && $extId !== '' && (strpos($type,'pause')!==false || strpos($type,'lock')!==false || strpos($type,'stop')!==false || strpos($type,'off')!==false)) {
+                $result = AdAdapters::pause($pdo, $tnt, $channel, $extId);
+                $dispatched = true;
+            } elseif ($channel !== '' && $extId !== '' && strpos($type,'budget')!==false && $budget > 0) {
+                $result = AdAdapters::updateBudget($pdo, $tnt, $channel, $extId, $budget);
+                $dispatched = true;
+            }
+        } catch (\Throwable $e) {
+            $result = ['ok'=>false, 'error'=>$e->getMessage()];
+            $dispatched = true;
+        }
+
+        if ($dispatched) {
+            $ok = is_array($result) && !empty($result['ok']);
+            $finalStatus = $ok ? 'executed' : 'failed';
+            $message = $ok
+                ? ('실행 완료 — ' . $channel . ' ' . $type)
+                : ('실집행 실패: ' . (string)($result['error'] ?? $result['status'] ?? 'unknown') . ' (자격증명/캠페인ID 확인)');
+        } else {
+            // 자동 집행 대상(광고 pause/예산조정)이 아니면 거짓 "executed" 대신 수동집행 대기로 정직 기록.
+            $message = '승인됨 — 이 액션 유형은 자동 집행 대상이 아니라 수동 처리가 필요합니다.';
+        }
+
+        $pdo->prepare("UPDATE action_request SET status=? WHERE id=? AND tenant_id=?")
+            ->execute([$finalStatus, $id, $tnt]);
+        self::audit($pdo, $actor, "action_execute", ["id"=>$id, "channel"=>$channel, "type"=>$type, "dispatched"=>$dispatched, "status"=>$finalStatus, "result"=>$result]);
+
+        return TemplateResponder::respond($response, [
+            "ok"         => $finalStatus !== 'failed',
+            "id"         => $id,
+            "status"     => $finalStatus,
+            "dispatched" => $dispatched,
+            "message"    => $message,
+            "result"     => $result,
+        ]);
     }
 
     public static function auditLogs(Request $request, Response $response, array $args): Response {

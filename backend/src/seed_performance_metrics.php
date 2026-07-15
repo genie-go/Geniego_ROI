@@ -5,6 +5,16 @@
 require_once __DIR__ . '/Db.php';
 use Genie\Db;
 
+// [287차] 목데이터 오염 방지 가드 — 이 시더는 실 performance_metrics(운영이 실데이터로 읽는 동일 테이블)에 mock 을 INSERT 한다.
+//   HTTP 미도달이나 운영 DB 대상 수동 오실행 시 KPI 오염 소지가 있어, 데모 환경 또는 명시적 --force 없이는 실행을 거부한다.
+$__argv = $argv ?? [];
+$__isDemoEnv = (getenv('GENIE_ENV') === 'demo') || in_array('--demo', $__argv, true);
+$__forced    = in_array('--force', $__argv, true);
+if (!$__isDemoEnv && !$__forced) {
+    fwrite(STDERR, "[seed_performance_metrics] 거부: 운영 목데이터 오염 방지. 데모 환경(GENIE_ENV=demo) 또는 --force 플래그가 필요합니다.\n");
+    exit(2);
+}
+
 try {
     $pdo = Db::pdo();
     

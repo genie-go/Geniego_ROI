@@ -4323,9 +4323,25 @@ final class Connectors
             }
             if ($good + $bad > 0) $csat = round($good / ($good + $bad) * 100, 1);
         }
+        // [287차] 응답시간(첫응답·해결 소요 분) — ticket_metrics 1페이지(≤100) calendar 평균. UI(CRM.jsx)가 약속하나
+        //   종전 어떤 fetcher 도 세팅 안 해 avg_first_reply_min/avg_resolution_min 이 항상 0 이던 갭. 실패 시 0 유지(무회귀).
+        $firstReply = 0.0; $resolution = 0.0;
+        [$mc, $mb] = self::httpGet($base . '/ticket_metrics.json', $h);
+        if ($mc >= 200 && $mc < 300) {
+            $frSum = 0.0; $frN = 0; $reSum = 0.0; $reN = 0;
+            foreach ((array)($mb['ticket_metrics'] ?? []) as $m) {
+                $fr = $m['reply_time_in_minutes']['calendar'] ?? null;
+                if (is_numeric($fr)) { $frSum += (float)$fr; $frN++; }
+                $re = $m['full_resolution_time_in_minutes']['calendar'] ?? null;
+                if (is_numeric($re)) { $reSum += (float)$re; $reN++; }
+            }
+            if ($frN > 0) $firstReply = round($frSum / $frN, 1);
+            if ($reN > 0) $resolution = round($reSum / $reN, 1);
+        }
         return ['hasCreds' => true, 'live' => true, 'rows' => [[
             'date' => $end, 'tickets_created' => $created, 'tickets_solved' => $solved,
             'open_tickets' => $open, 'csat' => $csat,
+            'avg_first_reply_min' => $firstReply, 'avg_resolution_min' => $resolution,
         ]]];
     }
 

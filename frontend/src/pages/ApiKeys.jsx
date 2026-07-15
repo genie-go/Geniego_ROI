@@ -177,7 +177,7 @@ const CHANNEL_FIELDS = {
   lazada:    [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: 'OAuth 액세스 토큰 (인증 후)', secret: true }, { k: 'region', label: '리전 (sg/my/th/id/ph/vn)' }],
   // [284차 P2] shop_url 은 어댑터(rakutenFetch/rakutenWrite)가 읽지 않는 참고용 필드 — ESA 인증은 service_secret·license_key 만 사용. 필수 강제 해제.
   rakuten:   [{ k: 'service_secret', label: 'Service Secret', secret: true }, { k: 'license_key', label: 'License Key', secret: true }, { k: 'shop_url', label: '점포 URL (참고용·선택)', opt: true }],
-  qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }],
+  qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }, { k: 'currency', label: '정산 통화 (예: JPY/KRW · 미입력 시 JPY)', opt: true }],
   // [227차] tiktok_shop — 실 어댑터(ChannelSync tiktokFetch v202309 HMAC+shop_cipher)가 요구하는 자격증명.
   //   기존엔 CHANNEL_FIELDS 누락으로 일반 api_key 폴백만 입력돼 등록이 불완전(app_key/app_secret/access_token 미입력)했음.
   tiktok_shop: [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'shop_cipher', label: 'Shop Cipher (선택)' }],
@@ -239,8 +239,10 @@ const CHANNEL_FIELDS = {
   pinterest_ads: [{ k: 'access_token', label: '액세스 토큰 (Ads API v5)', secret: true }, { k: 'ad_account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   // [240차] 로드맵(연동 예정) — 자격증명 저장은 되나 전용 어댑터 준비 중.
   microsoft_ads: [{ k: 'refresh_token', label: '리프레시 토큰', secret: true }, { k: 'client_id', label: '앱(클라이언트) ID' }, { k: 'client_secret', label: '클라이언트 시크릿', secret: true }, { k: 'developer_token', label: '개발자 토큰', secret: true }, { k: 'customer_id', label: '고객(Customer) ID' }, { k: 'account_id', label: '광고계정 ID' }], // [251차] 백엔드 요구 customer_id·account_id 누락 보강
-  x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }],
-  amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }],
+  x_ads:     [{ k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }, { k: 'access_token', label: 'Access Token', secret: true }, { k: 'access_token_secret', label: 'Access Token Secret', secret: true }, { k: 'account_id', label: '광고계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
+  // [287차] amazon_ads region(na/eu/fe) 추가 — 백엔드 Connectors.php:2682 가 이 값으로 Advertising API 엔드포인트를 선택.
+  //   미수집이던 종전엔 EU/FE(일본) 광고주가 자격증명을 다 넣어도 기본 na 호스트로 호출→profile 부재→sync 영구 실패였음.
+  amazon_ads: [{ k: 'client_id', label: 'LWA Client ID' }, { k: 'client_secret', label: 'LWA Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token', secret: true }, { k: 'profile_id', label: '프로필 ID' }, { k: 'region', label: '리전 (na/eu/fe · 미입력 시 na)', opt: true }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
   // [251차] taboola/outbrain — 기존엔 필드가 레지스트리에서만 와서 로드 실패 시 단일 api_key 로 degrade(연동불가). 하드코딩 보강.
   // [284차 P2] currency 는 라벨 정규식('선택')에만 의존해 선택 처리되던 취약 상태 → 명시 opt:true 로 견고화(라벨 변경/번역에도 필수 승격 방지).
   taboola: [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'account_id', label: '계정 ID' }, { k: 'currency', label: '과금 통화 (예: USD · 미입력 시 USD)', opt: true }],
@@ -259,7 +261,9 @@ const DEFAULT_FIELDS = [{ k: 'api_key', label: 'API 키 / 액세스 토큰', sec
 
 /* [현 차수 P0] 필드 선택여부 판정 — 명시 opt:true 또는 라벨에 '선택/optional' 포함 시 선택(미입력 허용).
    그 외는 필수. 부분 입력 저장으로 sync 가 무음 실패하는 것을 ConnectModal 에서 사전 차단. */
-const isOptionalField = (f) => f?.opt === true || /선택|optional/i.test(String(f?.label || ''));
+const isOptionalField = (f) => f?.opt === true || String(f?.k || '') === 'currency' || /선택|optional/i.test(String(f?.label || ''));
+// [287차] currency 는 백엔드 어댑터가 전부 `?: 'USD'` 기본처리하므로 전역 선택필드 — 레지스트리 시드 채널
+//   (reddit_ads/apple_search_ads/amazon_dsp 등)의 통화 라벨에 '선택'이 없어 필수로 강제→등록 차단이던 결함 해소.
 
 /* [229차] 채널별 발급 매뉴얼(레이어 팝업·iframe). public/api_manuals/<key>.html 정적 서빙.
    youtube=큐레이트, 나머지=issuanceGuide 단계 기반 생성. 이 집합의 채널만 '📖 발급 매뉴얼' 버튼 노출. */
@@ -886,7 +890,7 @@ export default function ApiKeys() {
       const extra = [], ef = {};
       for (const c of r.channels) {
         const canon = REG_ALIAS[c.channel_key] || c.channel_key;
-        if (Array.isArray(c.fields) && c.fields.length) ef[c.channel_key] = c.fields.map(f => ({ k: f.k, label: f.label, secret: f.secret !== false }));
+        if (Array.isArray(c.fields) && c.fields.length) ef[c.channel_key] = c.fields.map(f => ({ k: f.k, label: f.label, secret: f.secret !== false, opt: f.opt === true })); // [287차] 레지스트리 시드 opt 플래그 보존(종전 유실→필수 오강제)
         const grp = SK2G[c.sync_kind] || (FINE.has(c.group_type) ? c.group_type : (G2A[c.group_type] || 'own_etc'));
         if (!existing.has(canon)) extra.push({ key: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1', group: grp });
       }
@@ -1321,6 +1325,7 @@ export default function ApiKeys() {
           channels={allChannels}
           summary={summary}
           creds={creds}
+          regFields={regFields}
           applies={applies}
           loading={loading}
           onChannelTest={handleChannelTest}
@@ -1905,7 +1910,7 @@ function ApplyStatusPanel({ applies = [], onRefresh, t }) {
 /* ═══════════════════════════════════════════════════════════════════
    Tab: Overview — 채널별 등록 현황 + Quick actions
    ═══════════════════════════════════════════════════════════════════ */
-function OverviewTab({ channels, summary, creds, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, onManual, testingId, t }) {
+function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], loading, onChannelTest, onConnect, onApply, onOAuth, onManual, testingId, t }) {
   // [238차] ★선행조건: 채널 API 키 발급신청에는 회사정보(사업자번호·주소 등)가 필요(발급 폼에 자동 채워짐).
   //   누락 시 채널 연동 '전에' 회사정보 완성을 먼저 안내(정확한 순서). 완성 기준=profileComplete SSOT.
   const { user } = useAuth();
@@ -1947,7 +1952,9 @@ function OverviewTab({ channels, summary, creds, applies = [], loading, onChanne
   const renderCard = (ch) => {
     const sum = summary[ch.key] || { keyCount: 0, hasRequired: false };
     // 필요 자격증명 필드 목록(채널별) — 전부 등록되면 'full', 일부면 'partial', 없으면 'none'.
-    const reqFields = CHANNEL_FIELDS[ch.key] || DEFAULT_FIELDS;
+    // [287차] 레지스트리 시드 채널(zendesk/mailchimp/klaviyo 등)은 CHANNEL_FIELDS 부재→DEFAULT_FIELDS(api_key 1개)로
+    //   폴백해 부분등록(3필수 중 1)을 녹색 'full'로 오표시(false-green)하던 결함. ConnectModal(:2529)과 동일하게 regFields 참조.
+    const reqFields = CHANNEL_FIELDS[ch.key] || regFields[ch.key] || DEFAULT_FIELDS;
     const reqCount = reqFields.length;
     const known = regKeys[ch.key];               // 실제 등록된 키명 집합(undefined=데모/요약전용)
     const credCount = known ? known.size : 0;

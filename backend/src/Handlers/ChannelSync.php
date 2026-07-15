@@ -481,17 +481,29 @@ final class ChannelSync
             return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Amazon Orders 조회 실패(code={$oCode}) — SP-API 앱 Orders 권한 확인"];
         }
         $orders = [];
+        // [287차] 라인아이템(sku/상품명/단가) 보강 — 종전엔 'Amazon Order'·sku'' 고정이라 재고차감·WMS·CRM 상품귀속이
+        //   전부 skip 됐다. ★N+1 레이트리밋 하드캡: 상위 $itemBudget 건만 getOrderItems 호출(285차 502 트랩 방지),
+        //   초과분은 sku'' 현행 유지(무회귀). 재고차감/귀속은 cron 반복+신규주문(상위=최신) 우선이라 점진 보강됨.
+        //   ★캡을 낮게 유지(저장 요청서 syncTenantChannel 이 동기실행되므로 지연 상한 방어·285차 502).
+        $itemBudget = 15;
         foreach ((array)($oBody['payload']['Orders'] ?? []) as $o) {
             $oid = (string)($o['AmazonOrderId'] ?? '');
             if ($oid === '') continue;
+            $liSku = ''; $liName = 'Amazon Order'; $liUnit = 0.0;
+            if ($itemBudget > 0) {
+                $li = self::amazonOrderItems($host, $accessToken, $oid);
+                if ($li) { $liSku = $li['sku']; if ($li['name'] !== '') $liName = $li['name']; $liUnit = $li['unit_price']; }
+                $itemBudget--;
+                usleep(200000); // ~5 req/s 이하 스로틀
+            }
             $orders[] = [
                 'channel_order_id' => $oid,
                 'buyer_name'  => (string)($o['BuyerInfo']['BuyerName'] ?? ''),
                 'buyer_email' => (string)($o['BuyerInfo']['BuyerEmail'] ?? ''),
-                'product_name'=> 'Amazon Order',
-                'sku'         => '',
+                'product_name'=> $liName,
+                'sku'         => $liSku,
                 'qty'         => (int)($o['NumberOfItemsShipped'] ?? 0) + (int)($o['NumberOfItemsUnshipped'] ?? 0),
-                'unit_price'  => 0,
+                'unit_price'  => $liUnit,
                 'total_price' => (float)($o['OrderTotal']['Amount'] ?? 0),
                 'currency'    => strtoupper((string)($o['OrderTotal']['CurrencyCode'] ?? '')), // [228차 S5] 다통화 정규화
                 'status'      => strtolower((string)($o['OrderStatus'] ?? 'pending')),
@@ -526,6 +538,31 @@ final class ChannelSync
             ];
         }
         return $products;
+    }
+
+    /** [287차] Amazon 주문 라인아이템(sellerSku·title·단가) — getOrderItems. 실패/빈응답 시 [](현행 유지·가짜없음).
+     *   ★N+1 레이트리밋 방지를 위해 호출부에서 상위 N건만 보강(285차 502 트랩). SP-API orderItems 버스트 한도 존중. */
+    private static function amazonOrderItems(string $host, string $accessToken, string $oid): array
+    {
+        $url = "https://{$host}/orders/v0/orders/" . rawurlencode($oid) . "/orderItems";
+        [$code, $body] = self::httpGet($url, ['x-amz-access-token' => $accessToken, 'Accept' => 'application/json']);
+        if ($code >= 400 || !isset($body['payload']['OrderItems'])) return [];
+        $items = (array)($body['payload']['OrderItems'] ?? []);
+        if (!$items) return [];
+        // 대표 아이템 = 수량 최대(단일 sku 매핑용). 총액은 주문 OrderTotal 유지.
+        $primary = null; $maxQty = -1;
+        foreach ($items as $it) {
+            $q = (int)($it['QuantityOrdered'] ?? 0);
+            if ($q > $maxQty) { $maxQty = $q; $primary = $it; }
+        }
+        if (!is_array($primary)) return [];
+        $q = max(1, (int)($primary['QuantityOrdered'] ?? 1));
+        $lineAmt = (float)($primary['ItemPrice']['Amount'] ?? 0); // ItemPrice.Amount = 라인 합계 → 단가 환산
+        return [
+            'sku'        => (string)($primary['SellerSKU'] ?? ''),
+            'name'       => (string)($primary['Title'] ?? ''),
+            'unit_price' => $lineAmt > 0 ? round($lineAmt / $q, 2) : 0,
+        ];
     }
 
     /** Amazon 마켓플레이스 ID → SP-API 리전 엔드포인트(NA/EU/FE). */
@@ -1689,13 +1726,25 @@ final class ChannelSync
         }
         [$iCode, $iBody] = self::httpGet('https://marketplace.walmartapis.com/v3/items?limit=50', $h);
         $products = [];
+        // [287차] 재고 보강 — 종전 inventory=0 고정으로 전 Walmart 상품이 품절 오탐되던 결함. SKU별 /v3/inventory 조회.
+        //   ★N+1 하드캡(상위 20 SKU)+스로틀, 실패 시 0 유지(무회귀·가짜없음·저장요청 동기실행 지연방어).
+        $invBudget = 20;
         foreach ((array)($iBody['ItemResponse'] ?? []) as $p) {
+            $sku = (string)($p['sku'] ?? '');
+            $inv = 0;
+            if ($sku !== '' && $invBudget > 0) {
+                [$invCode, $invBody] = self::httpGet('https://marketplace.walmartapis.com/v3/inventory?sku=' . rawurlencode($sku), $h);
+                if ($invCode < 400 && isset($invBody['quantity']['amount'])) $inv = (int)$invBody['quantity']['amount'];
+                elseif ($invCode < 400 && isset($invBody['inventory']['quantity']['amount'])) $inv = (int)$invBody['inventory']['quantity']['amount'];
+                $invBudget--;
+                usleep(150000);
+            }
             $products[] = [
                 // [현 차수 P1] channel_product_id 를 상품 고유키(wpid/itemId/sku)로 — 기존 'mart'는 마켓 상수(WALMART_US)라
                 //   전 상품이 동일값→(tenant,channel,channel_product_id) upsert 로 1행으로 붕괴했다.
-                'channel_product_id'=>(string)($p['wpid'] ?? $p['itemId'] ?? $p['sku'] ?? ''), 'sku'=>(string)($p['sku'] ?? ''),
+                'channel_product_id'=>(string)($p['wpid'] ?? $p['itemId'] ?? $p['sku'] ?? ''), 'sku'=>$sku,
                 'name'=>(string)($p['productName'] ?? ''), 'price'=>(float)($p['price']['amount'] ?? 0), 'compare_price'=>0.0,
-                'inventory'=>0, 'status'=>(string)($p['publishedStatus'] ?? 'PUBLISHED'), 'source'=>'live',
+                'inventory'=>$inv, 'status'=>(string)($p['publishedStatus'] ?? 'PUBLISHED'), 'source'=>'live',
             ];
         }
         return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (Walmart v3)'];
@@ -1773,7 +1822,34 @@ final class ChannelSync
                 ];
             }
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Shopee OpenAPI v2)'];
+        // [287차] 상품/재고 수집 — 종전 products=>[] 로 채널재고·DigitalShelf 공백이던 갭. get_item_list→get_item_base_info.
+        //   실패 시 빈배열(무회귀·가짜없음).
+        $products = [];
+        try {
+            $lpath = '/api/v2/product/get_item_list';
+            $lq = http_build_query(['partner_id'=>$pid, 'timestamp'=>$ts, 'access_token'=>$tok, 'shop_id'=>$shop, 'sign'=>$sign($lpath),
+                'offset'=>0, 'page_size'=>50, 'item_status'=>'NORMAL']);
+            [$ilCode, $ilBody] = self::httpGet("{$host}{$lpath}?{$lq}");
+            $ids = array_values(array_filter(array_map(fn($r) => (string)($r['item_id'] ?? ''), (array)($ilBody['response']['item'] ?? []))));
+            if ($ilCode < 400 && $ids) {
+                $bpath = '/api/v2/product/get_item_base_info';
+                $bq = http_build_query(['partner_id'=>$pid, 'timestamp'=>$ts, 'access_token'=>$tok, 'shop_id'=>$shop, 'sign'=>$sign($bpath),
+                    'item_id_list'=>implode(',', array_slice($ids, 0, 50))]);
+                [$ibCode, $ibBody] = self::httpGet("{$host}{$bpath}?{$bq}");
+                foreach ((array)($ibBody['response']['item_list'] ?? []) as $it) {
+                    $price = 0.0;
+                    if (isset($it['price_info'][0]['current_price'])) $price = (float)$it['price_info'][0]['current_price'];
+                    $stock = (int)($it['stock_info_v2']['summary_info']['total_available_stock']
+                        ?? ($it['stock_info'][0]['current_stock'] ?? 0));
+                    $products[] = [
+                        'channel_product_id'=>(string)($it['item_id'] ?? ''), 'sku'=>(string)($it['item_sku'] ?? ''),
+                        'name'=>(string)($it['item_name'] ?? ''), 'price'=>$price, 'compare_price'=>0.0,
+                        'inventory'=>$stock, 'status'=>strtolower((string)($it['item_status'] ?? 'active')), 'source'=>'live',
+                    ];
+                }
+            }
+        } catch (\Throwable $e) { $products = []; }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (Shopee OpenAPI v2)'];
     }
 
     // ── Lazada (Open Platform · app HMAC-SHA256 + OAuth access_token) ────────
@@ -1785,27 +1861,58 @@ final class ChannelSync
         if ($appKey === '' || $appSecret === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Lazada: app_key·app_secret·access_token(OAuth 인증 후)·region 입력 필요'];
         $hostMap = ['sg'=>'api.lazada.sg','my'=>'api.lazada.com.my','th'=>'api.lazada.co.th','id'=>'api.lazada.co.id','ph'=>'api.lazada.com.ph','vn'=>'api.lazada.vn'];
         $host = 'https://' . ($hostMap[$region] ?? 'api.lazada.sg') . '/rest';
-        $apiPath = '/orders/get';
-        $params = ['app_key'=>$appKey, 'access_token'=>$tok, 'timestamp'=>(string)(time() * 1000), 'sign_method'=>'sha256',
-            'created_after'=>gmdate('c', time() - 30 * 86400), 'sort_direction'=>'DESC', 'offset'=>'0', 'limit'=>'50'];
-        ksort($params);
-        $base = $apiPath; foreach ($params as $k=>$v) $base .= $k . $v;
-        $params['sign'] = strtoupper(hash_hmac('sha256', $base, $appSecret));
-        [$oCode, $oBody] = self::httpGet($host . $apiPath . '?' . http_build_query($params));
+        [$oCode, $oBody] = self::lazadaGet($host, '/orders/get', $appKey, $appSecret, $tok,
+            ['created_after'=>gmdate('c', time() - 30 * 86400), 'sort_direction'=>'DESC', 'offset'=>'0', 'limit'=>'50']);
         if ($oCode >= 400 || isset($oBody['code']) && (string)$oBody['code'] !== '0') {
             return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Lazada 주문조회 실패(code={$oCode}) — " . (string)($oBody['message'] ?? 'app_key/secret/token/region 확인')];
         }
-        $orders = [];
+        // [287차] 주문 라인아이템(상품명·sku·단가) 보강 — 종전 product_name/sku 빈값으로 재고차감/CRM귀속 skip 이던 갭.
+        //   ★N+1 하드캡(상위 20건·최신우선)+스로틀, 실패 시 빈값 유지(무회귀·저장요청 동기실행 지연방어).
+        $orders = []; $itemBudget = 20;
         foreach ((array)($oBody['data']['orders'] ?? []) as $o) {
+            $oid = (string)($o['order_id'] ?? $o['order_number'] ?? '');
+            $pname = ''; $sku = ''; $unit = 0.0;
+            if ($oid !== '' && $itemBudget > 0) {
+                [$iCode, $iBody] = self::lazadaGet($host, '/order/items/get', $appKey, $appSecret, $tok, ['order_id'=>$oid]);
+                $it = (array)($iBody['data'][0] ?? []);
+                if ($iCode < 400 && $it) {
+                    $pname = (string)($it['name'] ?? ''); $sku = (string)($it['sku'] ?? $it['shop_sku'] ?? '');
+                    $unit = (float)($it['paid_price'] ?? $it['item_price'] ?? 0);
+                }
+                $itemBudget--; usleep(150000);
+            }
             $orders[] = [
-                'channel_order_id'=>(string)($o['order_id'] ?? $o['order_number'] ?? ''),
+                'channel_order_id'=>$oid,
                 'buyer_name'=>trim(((string)($o['customer_first_name'] ?? '')) . ' ' . ((string)($o['customer_last_name'] ?? ''))),
-                'buyer_email'=>'', 'product_name'=>'', 'sku'=>'', 'qty'=>(int)($o['items_count'] ?? 1), 'unit_price'=>0.0,
+                'buyer_email'=>'', 'product_name'=>$pname, 'sku'=>$sku, 'qty'=>(int)($o['items_count'] ?? 1), 'unit_price'=>$unit,
                 'total_price'=>(float)($o['price'] ?? 0), 'currency'=>strtoupper((string)($o['currency'] ?? '')),
                 'status'=>self::genStatus((string)(($o['statuses'][0] ?? ($o['order_status'] ?? '')))), 'ordered_at'=>(string)($o['created_at'] ?? ''), 'source'=>'live',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (Lazada OpenAPI · ' . $region . ')'];
+        // [287차] 상품/재고 수집 — /products/get. 실패 시 빈배열(무회귀).
+        $products = [];
+        [$pCode, $pBody] = self::lazadaGet($host, '/products/get', $appKey, $appSecret, $tok, ['filter'=>'live', 'limit'=>'50', 'offset'=>'0']);
+        if ($pCode < 400) {
+            foreach ((array)($pBody['data']['products'] ?? []) as $p) {
+                $skuNode = (array)($p['skus'][0] ?? []);
+                $products[] = [
+                    'channel_product_id'=>(string)($p['item_id'] ?? ''), 'sku'=>(string)($skuNode['SellerSku'] ?? $skuNode['ShopSku'] ?? ''),
+                    'name'=>(string)($p['attributes']['name'] ?? ''), 'price'=>(float)($skuNode['price'] ?? 0), 'compare_price'=>(float)($skuNode['special_price'] ?? 0),
+                    'inventory'=>(int)($skuNode['quantity'] ?? $skuNode['Available'] ?? 0), 'status'=>strtolower((string)($skuNode['Status'] ?? 'active')), 'source'=>'live',
+                ];
+            }
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (Lazada OpenAPI · ' . $region . ')'];
+    }
+
+    /** [287차] Lazada 서명 GET(app HMAC-SHA256). [$code,$body] 반환. orders/items/products 공용. */
+    private static function lazadaGet(string $host, string $apiPath, string $appKey, string $appSecret, string $tok, array $extra = []): array
+    {
+        $params = array_merge(['app_key'=>$appKey, 'access_token'=>$tok, 'timestamp'=>(string)(time() * 1000), 'sign_method'=>'sha256'], $extra);
+        ksort($params);
+        $base = $apiPath; foreach ($params as $k=>$v) $base .= $k . $v;
+        $params['sign'] = strtoupper(hash_hmac('sha256', (string)$base, $appSecret));
+        return self::httpGet($host . $apiPath . '?' . http_build_query($params));
     }
 
     // ── Qoo10 QSM Open API (api_key 인증) — best-effort(라이브 셀러 계정 검증 필요) ──
@@ -1823,16 +1930,17 @@ final class ChannelSync
         if ($oCode >= 400 || (isset($oBody['ResultCode']) && (int)$oBody['ResultCode'] !== 0)) {
             return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Qoo10 주문조회 실패(code={$oCode}) — QSM API 키/권한 확인(라이브 셀러 계정 필요)"];
         }
+        // [287차] 정산통화 오버라이드 — QSM(ebayjapan.qapi)=JP 게이트웨이라 기본 JPY 정확. 단 비일본(KR 등) 셀러가
+        //   자격증명에 currency 를 지정하면 그 값을 우선(응답 currency > cred currency > JPY). 비JPY 셀러 매출 팽창 방지.
+        $defCur = strtoupper(trim((string)($creds['currency'] ?? 'JPY'))) ?: 'JPY';
         $orders = [];
         foreach ((array)($oBody['ResultObject'] ?? []) as $o) {
             $orders[] = [
                 'channel_order_id'=>(string)($o['orderNo'] ?? $o['packNo'] ?? ''), 'buyer_name'=>(string)($o['receiver'] ?? $o['buyer'] ?? ''),
                 'buyer_email'=>'', 'product_name'=>(string)($o['itemTitle'] ?? ''), 'sku'=>(string)($o['sellerItemCode'] ?? ''),
                 'qty'=>(int)($o['orderQty'] ?? 1), 'unit_price'=>(float)($o['price'] ?? 0), 'total_price'=>(float)($o['orderAmount'] ?? $o['price'] ?? 0),
-                // [현 차수 값정합] Qoo10 QSM(ebayjapan.qapi)=일본 마켓플레이스 → 금액은 JPY. currency='' 면 saveOrders 가
-                //   fxToKrw 를 건너뛰어 ¥ 가 ₩ 로 합산(약 9배 과소). Yahoo!JP 패턴처럼 통화필드 우선·없으면 JPY 폴백.
                 // [현 차수 감사 P1] 상태 상수('발주확인') → 실 상태필드(있으면) 판독 + 취소/반품 전이(미반영 해소).
-                'currency'=>strtoupper((string)($o['currency'] ?? 'JPY')),
+                'currency'=>strtoupper((string)($o['currency'] ?? $defCur)),
                 'status'=>((string)($o['orderStatus'] ?? ($o['status'] ?? '')) ?: '발주확인'),
                 'event_type'=>self::classifyCancelReturn((string)($o['orderStatus'] ?? ($o['status'] ?? '')), '') ?? 'order',
                 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
@@ -1893,7 +2001,21 @@ final class ChannelSync
                 'status'=>self::genStatus((string)($o['orderStatus'] ?? $o['status'] ?? '')), 'ordered_at'=>(string)($o['orderDate'] ?? ''), 'source'=>'live',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>$orders, 'note'=>count($orders) . ' orders (godomall)'];
+        // [287차] 상품/재고 수집 — godo5 /api/goods.php getGoodsList. 실패/미지원 시 빈배열(무회귀·가짜없음).
+        $products = [];
+        [$gCode, $gBody] = self::httpGet("{$mall}/api/goods.php?" . http_build_query([
+            'partner_key'=>$pkey, 'key'=>$apiKey, 'method'=>'getGoodsList', 'page'=>1, 'size'=>50, 'return'=>'json',
+        ]));
+        if ($gCode < 400 && !empty($gBody)) {
+            foreach ((array)($gBody['data']['goods'] ?? $gBody['goods'] ?? []) as $g) {
+                $products[] = [
+                    'channel_product_id'=>(string)($g['goodsNo'] ?? $g['goodsCd'] ?? ''), 'sku'=>(string)($g['goodsCd'] ?? ''),
+                    'name'=>(string)($g['goodsNm'] ?? $g['goods_name'] ?? ''), 'price'=>(float)($g['fixedPrice'] ?? $g['price'] ?? 0), 'compare_price'=>0.0,
+                    'inventory'=>(int)($g['stockCnt'] ?? $g['stock'] ?? 0), 'status'=>strtolower((string)($g['goodsDisplayFl'] ?? 'active')), 'source'=>'live',
+                ];
+            }
+        }
+        return ['ok'=>true, 'products'=>$products, 'orders'=>$orders, 'note'=>count($orders) . ' orders + ' . count($products) . ' products (godomall)'];
     }
 
     /** XML POST(원시 본문 반환) — Yahoo!JP 등 XML API용. 반환 [code, rawBody, err]. */

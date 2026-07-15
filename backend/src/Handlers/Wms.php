@@ -1428,11 +1428,17 @@ class Wms
             if ($st->rowCount() === 0 && !self::exists('wms_supply_orders', $id, $t)) return self::json($res, ['ok' => false, 'error' => '없음'], 404);
             return self::json($res, ['ok' => true, 'id' => $id]);
         }
-        $st = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,created_at,updated_at) VALUES (:t,:sku,:name,:qty,:sup,:wh,:s,:eta,:ca,:ua)");
+        // [287차] 발주단가·발주금액 영속 — 종전 INSERT 가 unit_cost/cost_total 을 누락해 사용자 입력 원가가 유실되고
+        //   '총 발주금액' KPI 가 상시 ₩0 이던 결함. cost_total 은 서버에서 qty×unit_cost 로 SSOT 산출(프론트 값 불신).
+        $qty = (float)($b['qty'] ?? 0);
+        $unitCost = (float)($b['unitCost'] ?? $b['unit_cost'] ?? 0);
+        $costTotal = $unitCost > 0 ? $qty * $unitCost : (float)($b['total'] ?? $b['cost_total'] ?? 0);
+        $st = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,unit_cost,cost_total,created_at,updated_at) VALUES (:t,:sku,:name,:qty,:sup,:wh,:s,:eta,:uc,:ct,:ca,:ua)");
         $st->execute([
             ':t' => $t, ':sku' => (string)($b['sku'] ?? ''), ':name' => (string)($b['name'] ?? ''),
-            ':qty' => (float)($b['qty'] ?? 0), ':sup' => (string)($b['supplier'] ?? ''), ':wh' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
-            ':s' => (string)($b['status'] ?? 'pending'), ':eta' => (string)($b['eta'] ?? ''), ':ca' => $now, ':ua' => $now,
+            ':qty' => $qty, ':sup' => (string)($b['supplier'] ?? ''), ':wh' => (string)($b['whId'] ?? $b['wh_id'] ?? ''),
+            ':s' => (string)($b['status'] ?? 'pending'), ':eta' => (string)($b['eta'] ?? ''),
+            ':uc' => $unitCost, ':ct' => $costTotal, ':ca' => $now, ':ua' => $now,
         ]);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
     }
