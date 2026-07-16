@@ -85,8 +85,51 @@ final class SmsMarketing
             $pdo->exec("CREATE TABLE IF NOT EXISTS sms_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, category TEXT DEFAULT 'promotion', body TEXT, variables TEXT, created_at TEXT, updated_at TEXT)");
             $pdo->exec("CREATE TABLE IF NOT EXISTS sms_campaigns (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, name TEXT, template_id TEXT, segment_id TEXT, scheduled_at TEXT, message TEXT, status TEXT DEFAULT 'draft', sent_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
         }
+        // [현 차수 SEG-C4] phone DNC(SMS/WhatsApp 수신거부) suppression — email_suppression 대칭.
+        //   수신번호는 crm_customers 매핑 여부와 무관하게 차단(미매핑 fail-open 갭 SEG-C4 해소). phone=정규화(숫자만).
+        if (self::isMysql($pdo)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_suppression (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo', phone VARCHAR(40) NOT NULL, reason VARCHAR(32) DEFAULT 'sms_opt_out', source VARCHAR(32) DEFAULT 'user', created_at VARCHAR(32), UNIQUE KEY uq_sms_suppress (tenant_id, phone)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS sms_suppression (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL DEFAULT 'demo', phone TEXT NOT NULL, reason TEXT DEFAULT 'sms_opt_out', source TEXT DEFAULT 'user', created_at TEXT)");
+            $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uq_sms_suppress ON sms_suppression(tenant_id, phone)");
+        }
         // [283차 P0] topic(콘텐츠 카테고리) — 선호센터 토픽 옵트아웃을 SMS 캠페인에도 강제(멱등 ALTER, 기본 NULL=무회귀).
         try { $pdo->exec("ALTER TABLE sms_campaigns ADD COLUMN topic VARCHAR(20) DEFAULT NULL"); } catch (\Throwable $e) {}
+    }
+
+    /** [현 차수 SEG-C4] phone DNC 조회 — 정규화(숫자만) 후 tenant 스코프 매칭. EmailMarketing::isSuppressed 대칭.
+     *  crm_customers 매핑 여부와 무관하게 동작하므로 통합 게이트의 미매핑 phone fail-open 갭을 닫는다. 테이블 부재/오류=미차단(무회귀). */
+    public static function isPhoneSuppressed(\PDO $pdo, string $tenant, string $phone): bool
+    {
+        $digits = preg_replace('/\D/', '', (string)$phone);
+        if ($digits === '' || strlen($digits) < 8) return false;
+        try {
+            $s = $pdo->prepare("SELECT 1 FROM sms_suppression WHERE tenant_id=:t AND phone=:p LIMIT 1");
+            $s->execute([':t'=>$tenant, ':p'=>$digits]);
+            return (bool)$s->fetchColumn();
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** [현 차수 SEG-C4] 멱등 phone suppression 적재(STOP·수신거부·관리자 DNC). */
+    public static function suppressPhone(\PDO $pdo, string $tenant, string $phone, string $reason = 'sms_opt_out', string $source = 'user'): void
+    {
+        $digits = preg_replace('/\D/', '', (string)$phone);
+        if ($digits === '' || strlen($digits) < 8) return;
+        try {
+            $pdo->prepare("INSERT INTO sms_suppression (tenant_id,phone,reason,source,created_at) VALUES (:t,:p,:r,:s,:c)")
+                ->execute([':t'=>$tenant, ':p'=>$digits, ':r'=>$reason, ':s'=>$source, ':c'=>gmdate('c')]);
+        } catch (\Throwable $e) { /* unique 충돌 = 이미 등록됨 */ }
+    }
+
+    /** [현 차수 SEG-C4] 인바운드 STOP/무료거부 키워드 판별(정통망법 무료수신거부·다국어). */
+    private static function isStopKeyword(string $msg): bool
+    {
+        $m = strtolower(trim($msg));
+        if ($m === '') return false;
+        foreach (['stop','unsubscribe','cancel','quit','수신거부','무료거부','무료수신거부','수신중단','광고차단','그만','거부'] as $kw) {
+            if (strpos($m, $kw) !== false) return true;
+        }
+        return false;
     }
 
     /* ─────────── 209차 P1: SMS Templates CRUD (/api/sms/templates) ─────────── */
@@ -471,6 +514,67 @@ final class SmsMarketing
             ->execute([$tenant,$type,$to,$message,$result['ok']?'sent':'failed',$result['msg_id']??null,$result['error']??null,$now,$now]);
 
         return TemplateResponder::respond($res, ['ok'=>$result['ok'],'status'=>$result['ok']?'sent':'failed','msg_id'=>$result['msg_id']??null,'error'=>$result['error']??null]);
+    }
+
+    /* ─── [현 차수 SEG-C4] phone DNC 관리 + 인바운드 STOP 인테이크 (email_suppression 대칭) ─── */
+
+    // GET /api/sms/suppression — phone DNC 목록(인증)
+    public static function listSuppression(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $rows = $pdo->prepare("SELECT phone, reason, source, created_at FROM sms_suppression WHERE tenant_id=? ORDER BY created_at DESC LIMIT 2000");
+        $rows->execute([$tenant]);
+        $list = $rows->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $byReason = [];
+        foreach ($list as $r) { $rk = (string)($r['reason'] ?? 'sms_opt_out'); $byReason[$rk] = ($byReason[$rk] ?? 0) + 1; }
+        return TemplateResponder::respond($res, ['ok'=>true, 'suppression'=>$list, 'total'=>count($list), 'by_reason'=>$byReason]);
+    }
+
+    // POST /api/sms/suppression — 관리자 수동 등록/가져오기
+    public static function addSuppression(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $body = self::bodyArr($req);
+        $phone = preg_replace('/\D/', '', (string)($body['phone'] ?? ''));
+        if ($phone === '' || strlen($phone) < 8) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'유효한 전화번호가 필요합니다']);
+        self::suppressPhone($pdo, $tenant, $phone, (string)($body['reason'] ?? 'manual'), 'admin');
+        return TemplateResponder::respond($res, ['ok'=>true, 'phone'=>$phone]);
+    }
+
+    // DELETE /api/sms/suppression — 해제(수신거부 철회 재동의)
+    public static function removeSuppression(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $body = self::bodyArr($req);
+        $phone = preg_replace('/\D/', '', (string)($body['phone'] ?? ($req->getQueryParams()['phone'] ?? '')));
+        if ($phone === '') return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'phone 필요']);
+        $pdo->prepare("DELETE FROM sms_suppression WHERE tenant_id=? AND phone=?")->execute([$tenant, $phone]);
+        return TemplateResponder::respond($res, ['ok'=>true]);
+    }
+
+    // POST /api/sms/opt-out — 인바운드 STOP/무료거부 인테이크. {phone|from, message?}
+    //   message 지정 시 STOP 키워드일 때만 등록(오탐 방지). message 미지정=명시 opt-out 요청.
+    //   (캐리어 MO 직접 웹훅[공개/서명]은 provider별 포맷·public bypass 필요 → 후속 인프라. 본 엔드포인트는 인증 경유.)
+    public static function optOut(Request $req, Response $res, array $args = []): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = Db::pdo(); $tenant = self::tenant($req);
+        $body = self::bodyArr($req);
+        $phone = preg_replace('/\D/', '', (string)($body['phone'] ?? ($body['from'] ?? '')));
+        $message = (string)($body['message'] ?? ($body['text'] ?? ''));
+        if ($phone === '' || strlen($phone) < 8) return TemplateResponder::respond($res->withStatus(422), ['ok'=>false,'error'=>'phone 필요']);
+        if ($message !== '' && !self::isStopKeyword($message)) {
+            return TemplateResponder::respond($res, ['ok'=>true, 'suppressed'=>false, 'reason'=>'not_stop_keyword']);
+        }
+        self::suppressPhone($pdo, $tenant, $phone, 'sms_opt_out', 'inbound');
+        return TemplateResponder::respond($res, ['ok'=>true, 'suppressed'=>true, 'phone'=>$phone]);
     }
 
     // POST /api/sms/broadcast

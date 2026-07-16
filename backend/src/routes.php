@@ -502,6 +502,11 @@ return function (App $app): void {
         'GET /sms/campaigns'                      => 'Genie\\Handlers\\SmsMarketing::listCampaigns',
         'POST /sms/campaigns'                     => 'Genie\\Handlers\\SmsMarketing::saveCampaign',
         'POST /sms/campaigns/{id}/{action}'       => 'Genie\\Handlers\\SmsMarketing::campaignAction',
+        // [현 차수 SEG-C4] phone DNC(수신거부) 관리 + 인바운드 STOP 인테이크
+        'GET /sms/suppression'                    => 'Genie\\Handlers\\SmsMarketing::listSuppression',
+        'POST /sms/suppression'                   => 'Genie\\Handlers\\SmsMarketing::addSuppression',
+        'DELETE /sms/suppression'                 => 'Genie\\Handlers\\SmsMarketing::removeSuppression',
+        'POST /sms/opt-out'                       => 'Genie\\Handlers\\SmsMarketing::optOut',
 
         // ── GDPR / 개인정보 동의 관리 ─────────────────────────────────────
         // 204차: /api 접두 없이 등록(basePath '/api' strip 후 매칭). 과거 '/api/gdpr/*' 등록은
@@ -3253,6 +3258,10 @@ return function (App $app): void {
     $register('GET',    '/sms/campaigns');
     $register('POST',   '/sms/campaigns');
     $register('POST',   '/sms/campaigns/{id}/{action}');
+    $register('GET',    '/sms/suppression');       // [현 차수 SEG-C4] phone DNC 관리
+    $register('POST',   '/sms/suppression');
+    $register('DELETE', '/sms/suppression');
+    $register('POST',   '/sms/opt-out');           // [현 차수 SEG-C4] 인바운드 STOP 인테이크
     // GDPR (204차: /api 접두 제거 — basePath strip 정합)
     $register('POST',   '/gdpr/consent');
     $register('GET',    '/gdpr/consent');

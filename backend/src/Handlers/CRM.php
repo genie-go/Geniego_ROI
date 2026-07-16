@@ -1136,6 +1136,14 @@ class CRM
             if ($channel === 'email' && $email !== '' && EmailMarketing::isSuppressed($pdo, $tenant, $email)) {
                 return ['allowed' => false, 'reason' => 'email_suppressed'];
             }
+            // (a'') [현 차수 SEG-C4] phone 하드 suppression(SMS STOP/무료거부/관리자 DNC) — sms_suppression.
+            //   ★crm_customers 매핑 여부와 무관하게 차단 → 미매핑 phone 이 $customerId=0 로 fail-open 되던 갭(SEG-C4) 해소.
+            //   $contact['phone'] 이 있을 때만·phone 계열 채널에서만 평가(email 등 무회귀). 테이블 부재/오류=미차단.
+            $phone = (string)($contact['phone'] ?? '');
+            if ($phone !== '' && in_array($channel, ['sms', 'whatsapp', 'kakao'], true)
+                && SmsMarketing::isPhoneSuppressed($pdo, $tenant, $phone)) {
+                return ['allowed' => false, 'reason' => 'phone_suppressed'];
+            }
 
             // (b) quiet-hours — 고객 개인(crm_customer_prefs) 우선, 없으면 테넌트 STO 로 폴백.
             $cfg = self::commsFreqConfig($pdo, $tenant);

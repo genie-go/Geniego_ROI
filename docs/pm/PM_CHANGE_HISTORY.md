@@ -56,6 +56,12 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 - 핵심: ①crm_channel_prefs=CANONICAL_CONSENT_STORE 승격(Purpose/Brand/Jurisdiction/Policy Version/Evidence/Record Version 추가·채널별 자체 Engine 금지) ②**Boolean→Contextual Record**(opted_in=Evidence없는 Legacy Boolean→LOW trust·자동 GRANTED 금지) ③**Unknown≠Granted·목적 확대 금지**(현행 opt-out 기본허용 SEG-M1·채널→전목적 확대 교정) ④**Consent≠Suppression**(email_suppression/phone DNC=Part3-3-2) ⑤**Merge 시 Consent 보존**(EPIC05 병합 동의확대 방지 구현·덮어쓰기 금지) ⑥Projection≠Source·보수적 Resolution(Latest Withdrawal 우선) ⑦단계별 Hook(Build/Approval/Sync/Execution)·Fail-closed.
 - 정직: Purpose/Brand/Evidence/Policy Version/Projection/Conflict/Temporal=현행 부재→목표계약. crm_channel_prefs/isMarketingSendAllowed/quiet-hours 보존(Legacy Equivalence). UNEXPLAINED·LEGACY_PRIVACY_DEFECT→전환차단. 기능후퇴 0. **실 스토어/Import/Projection/CI가드 구현=후속 승인 세션**. 다음=Part 3-3-2(Suppression·Preference·Revocation Propagation). 선행 P0=SEG-C4(phone DNC)·SEG-H2(Audience Removal).
 
+### ★선행 P0 실구현 — SEG-C4 phone DNC + SMS STOP (실제 코드변경·배포대기)
+- **무엇을/왜**: 발송 게이트가 phone 을 consent lookup key 로 쓰지 않아 미매핑 번호가 fail-open(SEG-C4). Part3-3-2 Canonical 설계대로 phone-키 suppression 스토어 신설.
+- **수정(email_suppression 대칭·무회귀)**: `sms_suppression` 테이블(MySQL+SQLite, tenant+phone UNIQUE) · `SmsMarketing::isPhoneSuppressed/suppressPhone/isStopKeyword` 헬퍼 · 관리 API `GET/POST/DELETE /sms/suppression`(인증) · 인바운드 STOP 인테이크 `POST /sms/opt-out`(키워드 다국어 stop/무료거부/수신거부…) · **게이트 통합** `CRM::isMarketingSendAllowed` 에 phone 하드 suppression 체크(phone계열 채널·`$contact['phone']` 有·**crm_customers 매핑 무관 차단**→미매핑 fail-open 갭 해소). 라우트 2단계 등록.
+- **검증**: 로컬 PHP 부재→정밀 정적검토(참조 CRM:1144=EmailMarketing:1136 대칭·라우트 4쌍 매칭·전 메서드 정의 확인). 구문=CI G11·G9(라우트정합), 기능=배포 후 헤드리스.
+- **잔여**: 캐리어 MO 직접 웹훅(공개/서명·provider별 포맷·public bypass 등록)=후속 인프라(현 opt-out 은 인증 경유). SEG-H2(Audience Removal)=외부 3-provider API·라이브 검증 필요→블라인드 구현 지양(287차 죽은스켈레톤 교훈).
+
 ### EPIC 06-A Part 3-3-2 — Canonical Suppression Engine·Preference Center·Revocation Propagation·Execution-time Validation (비파괴·코드변경 0)
 - **설계 명세 확정**(§111 Legal override·provider 확인없는 완료·provider audience 일괄재생성·회귀없는 Migration·기능후퇴 금지, §112 100여 문서→통합 3종+ADR). Part 1 실 suppression(email_suppression·bounceWebhook·isFrequencyCapped·isQuietNow·AdAdapters Removal 부재 SEG-H2·phone DNC 부재 SEG-C4) 근거.
 - 산출: docs/segmentation/CANONICAL_SUPPRESSION_{SCHEMA,GOVERNANCE}.md + CANONICAL_PREFERENCE_REVOCATION.md + docs/architecture/ADR_CANONICAL_SUPPRESSION_AND_PREFERENCE_PLATFORM.md.
