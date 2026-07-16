@@ -37,6 +37,12 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 - 핵심: ①Segment Membership≠Audience Member(Definition/Version/**Snapshot불변**/Candidate/Member/Exclusion 신설) ②AdAdapters=Destination(Part3-3) 보존·refreshSegmentForSend+발송루프=Canonical Build로 앞단 대체·Identity=EPIC05 재사용(자체구현 금지)·CRM/광고/Email별 독립 Builder 금지 ③Purpose 필수·segment_version 고정 ④Exclusion·Suppression 우선(Legal>Global>Deletion>Explicit>Channel>Identity>Eligibility>Inclusion)·현행 email_suppression만→legal/tombstone/phone 확대 ⑤Preview=Build 동일 Pipeline·Count 유형 구분 ⑥멱등/Lock/Fail-closed·Queue PII 원문 불포함·Dedup 결정론 ⑦Static List Governance 신설(현행 부재·Malware/Consent Evidence/Retention).
 - 정직: Snapshot/Preview/Diff/Approval/Removal/Reconciliation=현행 부재→목표계약. Build Equivalence UNEXPLAINED/LEGACY_WRONG_TARGET_RISK→전환차단. 기능후퇴 0. **실 스토어/파이프라인 구현=후속 승인 세션**. 다음=Part 3-2(Eligibility Engine). 선행 P0=SEG-C1~C4·SEG-H1/H2/H5.
 
+### EPIC 06-A Part 3-2 — Canonical Audience Eligibility Engine·Identity·Freshness·Destination Readiness (비파괴·코드변경 0)
+- **설계 명세 확정**(§97 외부 채널 실행·Consent 완화 금지, §98 80여 문서→통합 3종+ADR). Part 1 실 게이트 isMarketingSendAllowed·무게이트 SEG-C1~C4 근거.
+- 산출: docs/segmentation/CANONICAL_AUDIENCE_{ELIGIBILITY,FRESHNESS_DESTINATION,ELIGIBILITY_GOVERNANCE}.md + docs/architecture/ADR_CANONICAL_AUDIENCE_ELIGIBILITY_ENGINE.md.
+- 핵심: ①isMarketingSendAllowed=CANONICAL_ELIGIBILITY_ENGINE 승격(Identity/Identifier/Freshness/Destination/Jurisdiction 확장·채널별 자체 Eligibility 금지) ②3중 분리(Membership≠Eligibility·Eligibility≠Consent·**Contactability≠Reachability**) ③**Unknown≠Eligible·Fail-closed**(현행 fail-open SEG-M1·phone SEG-C4 교정) ④Identifier 결정론 선택+Shared Identifier 정책 ⑤단계별 Recheck(Build/Approval/Sync/**Execution-time**)·무게이트 경로 강제=선행 P0 ⑥Wrong-target(Cross-Tenant/Wrong Account 286차·Reused Phone/Deleted)+Test/Demo Production 차단.
+- 정직: Identity Confidence/Freshness/Destination Readiness/Contactability≠Reachability=현행 부재→목표계약. isMarketingSendAllowed/isFrequencyCapped/email_suppression 보존(Equivalence). Threshold=Golden+운영증거(임의숫자 금지). 기능후퇴 0. **실 Engine 구현=후속 승인 세션**. 다음=Part 3-3(Consent·Suppression·Privacy). 선행 P0=SEG-C1~C4·H2/H5.
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜

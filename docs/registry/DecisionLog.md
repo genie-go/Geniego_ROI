@@ -20,6 +20,9 @@
 | **EPIC06-A P3-1: Segment Membership≠Audience Member(Snapshot 신설)** | 289 | 현행 발송루프 즉석필터·Snapshot 부재(SEG-H4/H5)로 과거대상 재현·Reconciliation 불가 | Audience Definition/Version/불변Snapshot/Candidate/Member/Exclusion 신설·ADR_CANONICAL_AUDIENCE_BUILDER |
 | **AdAdapters=Destination 보존(Builder 아님)·단일 Canonical Builder** | 289 | AdAdapters 실 아웃바운드는 Destination층·CRM/광고/Email별 독립 Builder 중복금지 | AdAdapters=Part3-3 VALIDATED_LEGACY·발송루프=Canonical Build로 앞단 대체 |
 | **Static List Governance 신설(현행 진짜 부재)** | 289 | Part1 부재증명 | Malware Scan·Consent Evidence·Tenant Scope·Retention·Audit 필수·신설 정당 |
+| **EPIC06-A P3-2: isMarketingSendAllowed=Canonical Eligibility Engine 승격** | 289 | 실 중앙게이트 정본·채널별 자체 Eligibility 다중 없음 | Identity/Identifier/Freshness/Destination 확장·채널별 독립 Engine 금지·ADR_CANONICAL_AUDIENCE_ELIGIBILITY_ENGINE |
+| **Contactability≠Reachability·Unknown≠Eligible(Fail-closed)** | 289 | 현행 미분리·fail-open(SEG-M1·phone SEG-C4) | 3중 분리+Fail-closed·Unknown 차단·무게이트 경로(SEG-C1~C4) Execution Recheck 강제(P0) |
+| **Eligibility Threshold=Golden+운영증거(임의숫자 금지)** | 289 | 실값 자동산출 원칙 | Identity Confidence 등 Threshold 하드코딩 금지·Golden Dataset+운영증거로 확정 |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
