@@ -50,6 +50,12 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 - **검증**: 로컬 PHP 부재로 구동/php -l 로컬 불가 → 정밀 정적검토(brace/스코프/시그니처·프로덕션 정본 복사) 완료. 구문=push 시 CI G11(php -l), 기능=배포 후 헤드리스(배포승인 필요).
 - **잔여 SEG-C4**: 미매핑 phone fail-open + 인바운드 STOP(무료거부) — phone-키 suppression 스토어(Part3-3 Canonical)+carrier STOP 웹훅. C1~C3로 매핑고객 부분완화. 별도 구현세션. **배포는 사용자 승인 후**.
 
+### EPIC 06-A Part 3-3-1 — Canonical Consent Engine·Registry·Evidence·Versioning·Projection Foundation (비파괴·코드변경 0)
+- **설계 명세 확정**(§101 외부 일괄전파·기존 Store 삭제·회귀없는 Migration·기능후퇴 금지, §102 90여 문서→통합 3종+ADR). Part 1 실 store crm_channel_prefs·isMarketingSendAllowed·EPIC05 ADR(consent를 person_id/Purpose/Brand 승격) 근거.
+- 산출: docs/segmentation/CANONICAL_CONSENT_{SCHEMA,EVIDENCE_CAPTURE,PROJECTION_GOVERNANCE}.md + docs/architecture/ADR_CANONICAL_CONSENT_ENGINE.md.
+- 핵심: ①crm_channel_prefs=CANONICAL_CONSENT_STORE 승격(Purpose/Brand/Jurisdiction/Policy Version/Evidence/Record Version 추가·채널별 자체 Engine 금지) ②**Boolean→Contextual Record**(opted_in=Evidence없는 Legacy Boolean→LOW trust·자동 GRANTED 금지) ③**Unknown≠Granted·목적 확대 금지**(현행 opt-out 기본허용 SEG-M1·채널→전목적 확대 교정) ④**Consent≠Suppression**(email_suppression/phone DNC=Part3-3-2) ⑤**Merge 시 Consent 보존**(EPIC05 병합 동의확대 방지 구현·덮어쓰기 금지) ⑥Projection≠Source·보수적 Resolution(Latest Withdrawal 우선) ⑦단계별 Hook(Build/Approval/Sync/Execution)·Fail-closed.
+- 정직: Purpose/Brand/Evidence/Policy Version/Projection/Conflict/Temporal=현행 부재→목표계약. crm_channel_prefs/isMarketingSendAllowed/quiet-hours 보존(Legacy Equivalence). UNEXPLAINED·LEGACY_PRIVACY_DEFECT→전환차단. 기능후퇴 0. **실 스토어/Import/Projection/CI가드 구현=후속 승인 세션**. 다음=Part 3-3-2(Suppression·Preference·Revocation Propagation). 선행 P0=SEG-C4(phone DNC)·SEG-H2(Audience Removal).
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜

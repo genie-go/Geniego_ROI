@@ -23,6 +23,9 @@
 | **EPIC06-A P3-2: isMarketingSendAllowed=Canonical Eligibility Engine 승격** | 289 | 실 중앙게이트 정본·채널별 자체 Eligibility 다중 없음 | Identity/Identifier/Freshness/Destination 확장·채널별 독립 Engine 금지·ADR_CANONICAL_AUDIENCE_ELIGIBILITY_ENGINE |
 | **Contactability≠Reachability·Unknown≠Eligible(Fail-closed)** | 289 | 현행 미분리·fail-open(SEG-M1·phone SEG-C4) | 3중 분리+Fail-closed·Unknown 차단·무게이트 경로(SEG-C1~C4) Execution Recheck 강제(P0) |
 | **Eligibility Threshold=Golden+운영증거(임의숫자 금지)** | 289 | 실값 자동산출 원칙 | Identity Confidence 등 Threshold 하드코딩 금지·Golden Dataset+운영증거로 확정 |
+| **EPIC06-A P3-3-1: crm_channel_prefs=Canonical Consent Store 승격·Boolean→Record** | 289 | 실 consent store·opted_in=Evidence없는 Legacy Boolean | Purpose/Brand/Policy Version/Evidence 추가·자동 GRANTED 금지·ADR_CANONICAL_CONSENT_ENGINE |
+| **Consent≠Suppression·Merge 시 Consent 보존** | 289 | 개념 분리·EPIC05 병합 동의확대 방지 | email_suppression/phone DNC=Suppression(Part3-3-2)·병합 시 덮어쓰기 금지 |
+| **Unknown≠Granted·목적 확대 금지(Consent)** | 289 | 현행 opt-out 기본허용(SEG-M1)·채널→전목적 확대 암묵 | Unknown 차단+Purpose 분리·보수적 Resolution(Latest Withdrawal 우선) |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
