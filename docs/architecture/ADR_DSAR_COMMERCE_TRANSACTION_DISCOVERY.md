@@ -1,0 +1,29 @@
+# ADR — DSAR Commerce Transaction Discovery (Customer/Order/Cart/Checkout/Invoice/Payment/Refund/Chargeback) (EPIC 06-A Part 3-3-3-3-3-3-3-2)
+
+- **일자**: 289차 (2026-07-16)
+- **상태**: Accepted (Customer·Order·Cart·Checkout·Invoice·Payment·Refund·Chargeback Transaction Discovery Governance 계약 명세 확정. 비파괴 — 코드변경 0). 실 Adapter·Order Item 스토어·Retrieval·Reconciliation·CI 가드 구현은 후속 승인 세션(Golden Transaction Dataset+Conformance+Legacy Equivalence+verify+배포승인). **Customer Account만 검색 완료선언·Guest Email만으로 Person 확정·Order Header만 검색·Payment Intent와 Charge 혼용·Refund 원 Charge 미연결·Dispute Evidence 자동공개·PCI Secret 조회/저장·Wrong Merchant 검색 금지. Subscription/Coupon=Part 3-3-3-3-3-3-3-3, Marketplace=3-3-3-3-3-3-3-4, PCI/Fraud/KYC=3-3-3-3-3-3-3-5.**
+- **근거(실측)**: [`../segmentation/CANONICAL_DSAR_TRANSACTION_DISCOVERY_CUSTOMER_ORDER.md`](../segmentation/CANONICAL_DSAR_TRANSACTION_DISCOVERY_CUSTOMER_ORDER.md) · [`PAYMENT`](../segmentation/CANONICAL_DSAR_TRANSACTION_DISCOVERY_PAYMENT.md) · [`GOVERNANCE`](../segmentation/CANONICAL_DSAR_TRANSACTION_DISCOVERY_GOVERNANCE.md) · `channel_orders`(buyer·product/sku/qty flatten·cancel)·`OrderHub`/`Pnl`(취소 역분개 268차·refund/refunded·정산 zero-out 288차)·`Payment`(Toss·billing_key)·`PgSettlement`·`BillingMethod`·`Paddle`(MoR·paddle_events·Dispute)·`CouponAdmin`/`CouponRedeem`·crm_customers · Part 3-3-3-3-3-3-3-1 Commerce Foundation · Part 3-3-3-3-2 Verification Token · EPIC05 Merge.
+
+## 결정 (핵심)
+
+1. **★실측 정직·인프라 부재·GAP 명시**: **① Cart/Checkout/Abandoned Cart/Checkout Session/Quote=NOT_APPLICABLE**(grep 0 — 마켓플레이스(11번가/쿠팡/네이버)가 구매전 퍼널 소유·GeniegoROI 는 **완료주문만** 동기화). **② Order Item(다품목)=KNOWN GAP**(channel_orders 는 product_name/sku/qty 를 주문행에 flatten·288차 "OrderItem 다품목 유실" 확정·별도 line-item 스토어 부재). **③ Dispute/Chargeback/Representment=NOT_APPLICABLE**(Paddle.php MoR SaaS 청구만·내부 마켓주문 분쟁관리 부재). **④ Payment Intent/Authorization/Capture 분해=Provider 소유**(channel_orders=buyer_paid 단일·내부 미분해). 지어내기 금지. 기존 channel_orders/OrderHub/Payment/Paddle/Coupon=정본·확장·Object별 독립 Candidate Store 금지(§89).
+
+2. **Customer Account ≠ 주문 Contact·Guest Email ≠ Identity(§3.1·3.2)**: Account Owner/Purchaser/Billing/Shipping/Recipient/Gift/Invoice/Payment Method Holder/Corporate/Authorized Buyer 역할 분리(13종). Guest Order 를 Email 만으로 자동귀속 금지 → Order/Checkout/Guest Ref/Verified Email/Phone/Device/Billing/Shipping/Payment Customer/Conversion/Date/Store/Shared Risk 종합. Guest-to-known Conversion·Customer Alias/Merge(EPIC05) 추적.
+
+3. **Order Header ≠ 완료(§3.4)**: Order Item(다품목 GAP)·Adjustment(Coupon)·Discount·Tax·Address·Contact Role·Note·Status History·Invoice·Payment·Refund·Shipment(WMS)·Return 동반. Order Note/Gift Message/Delivery Instruction/Internal Fraud Note=Free-text Review/Redaction(자동 Export 금지).
+
+4. **Payment Intent ≠ Charge·Amount/Date ≠ Payment 귀속(§3.5·3.6)**: Payment Intent/Authorization/Capture/Charge/Transaction/Settlement 분리(Provider 객체). Amount/Currency/Date/Last Four 만으로 Subject 귀속 금지 → Order/Payment/Charge/Refund ID+Merchant Account+Customer Relationship+Subject Role 종합. Payment Customer ID/Object=Merchant/Store/Environment/Provider Account Binding.
+
+5. **Refund 원 Charge 연결·Reversal(§3.7)**: Refund(refund/refunded·OrderHub 역분개)=원 Payment/Charge/Order/Invoice 연결·Full/Partial/Item-level/Shipping/Tax 구분·**Alternate Destination 강화검토**. Authorization/Payment Reversal 별도 검색.
+
+6. **Payment Credential 최소화·Dispute Evidence 보호(§3.8)**: Payment Method=Token Reference(billing_key)/Masked Metadata 만·**Full PAN/CVV/PIN/Secret/Detokenized 조회·저장·Export 금지**(발견=Security Incident). Chargeback/Dispute Evidence(N/A·Paddle)=자동공개 금지·Security/Legal/Third-party Review.
+
+7. **Deleted/Archived·Provider vs Internal 불일치(§3.9)**: Deleted Customer/Archived Order/Voided Invoice/Failed Payment/Reversed Authorization/Closed Dispute 별도 조사(Endpoint/Audit/Archive). **Cancelled Order 에 Captured Payment 잔존·Refunded Order 에 Outstanding Invoice 잔존=High-risk Mismatch**. Provider·OMS·ERP·Payment·Warehouse·Webhook 동일 Record 중복그룹.
+
+8. **정직·무후퇴·Coverage/Gap**: Order Item(다품목)·Contact Role·Guest Identity·Transaction Graph·Candidate/Coverage/Gap=현행 부재/GAP→목표계약. Coverage 다차원·Critical Gap(Order Item 미검색·Payment-Order 미연결·Captured Payment 내부부재·Refund 원 Charge 미연결·PCI) 시 Access Review 차단. channel_orders/OrderHub/Payment/Paddle/Coupon/PgSettlement 보존(Legacy Equivalence·API Compatibility·PCI Control 제거 금지). UNEXPLAINED·LEGACY_PCI_DEFECT·LEGACY_WRONG_ORDER_RISK·고객영향 LEGACY_DISCOVERY_GAP→전환차단. 기능후퇴 0.
+
+## 무후퇴·영구 규칙 (§89)
+신규 Customer/Cart/Checkout/Order/Invoice/Payment/Refund/Dispute Object 추가 전: Provider/Store/Merchant Scope·Object Registry·Subject Role·Identifier Mapping·Relationship Graph·Personal/Sensitive/PCI Classification·Deleted/Archived/Historical Capability·Candidate Inclusion/Exclusion·Free-text/Evidence Review·Deduplication/Reconciliation·Coverage 정의 → Golden/Conformance·Lint/Guard·중복/후퇴·ADR/PM 기록. **Customer/Order/Payment/Refund별 독립 DSAR Registry/Candidate Store/Coverage Engine 중복 생성 금지.**
+
+## 결과
+Transaction Entity(37)·Customer(14)/Guest(10)/Alias·Address/Contact Role(13)·**Cart/Checkout/Quote=NOT_APPLICABLE**·Order(19)/**Order Item=KNOWN GAP(다품목)**/Adjustment(12)/Status History/Note(8)·Invoice(12)/Receipt/Credit Note/Tax·Payment Intent/Authorization/Capture/Charge/Transaction(Provider)·Multiple Tender/Partial·Refund(10)/Reversal·**Dispute/Chargeback/Representment=NOT_APPLICABLE(Paddle MoR)**·Evidence/Relationship Graph(20)/Candidate(17)·Dedup/Reconciliation(17)·Coverage(28)/Gap(25)·Evidence/Explain·Permission(21)·Lint/Guard·Error(27)/Warning(17)·Golden(70+)/Conformance/Equivalence **계약 명세 확정**(코드변경 0). 산출=docs/segmentation/CANONICAL_DSAR_TRANSACTION_DISCOVERY_{CUSTOMER_ORDER,PAYMENT,GOVERNANCE}.md(§82 70여 문서 통합). **★Cart/Checkout/Dispute/Chargeback=NOT_APPLICABLE·Order Item 다품목=KNOWN GAP·PAN/CVV/Vault=N/A 정직표기**. 다음 **EPIC 06-A Part 3-3-3-3-3-3-3-3 — Subscription·Billing·Recurring Payment·Plan·Coupon·Wallet·Gift Card Discovery** 입력 준비 완료.
