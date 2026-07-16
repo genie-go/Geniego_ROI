@@ -31,6 +31,12 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 - 핵심 결정: ①기존 엔진 확장(crm_segments→SQL Adapter 승격·재구현 금지) ②벤더중립 JSON DSL 상위호환(현행 6 operator·AND 보존+OR/NOT/중첩/Sequence/Count/Aggregation 확대) ③Definition↔Version↔Membership↔Snapshot 분리·불변버전(registry 버전 핀→재현성 SEG-H4) ④참조 Registry 기반(EPIC03/05·자체 SQL 재계산 SEG-M4 단일화) ⑤의미 일관성(Operator Conformance·Preview=실행·Null≠False·TZ명시 SEG-M2) ⑥Adapter 보안·Circular/Cost Guard·Permission(멤버/PII/Export 분리)·Migration Shadow Compare(UNEXPLAINED→전환차단).
 - 정직: 실시간세그/Snapshot/Removal/Model거버넌스=현행 부재→목표계약 명시. 6 operator·AND·fail-closed·취소차감·identity통합=Semantic Equivalence 보존. 기능후퇴 0. **실 파서/검증기/플래너/어댑터/CI가드 구현=후속 승인 세션(Golden Dataset+verify+배포승인)**. 다음=Part 3(Audience Builder·Snapshot Governance). 선행 P0=발송 게이트 표준화(SEG-C1~C4).
 
+### EPIC 06-A Part 3-1 — Canonical Audience Builder Foundation·Schema·Build Pipeline (비파괴·코드변경 0)
+- **설계 명세 파운데이션 확정**(§84 외부 Destination 업로드·발송·일괄재생성 금지 준수, §85 70여 문서→통합 3종+ADR). Part 1 실 Audience 인프라(AdAdapters 아웃바운드·Snapshot 부재 SEG-H4/H5) 근거. **외부 업로드·발송 범위 밖**.
+- 산출: docs/segmentation/CANONICAL_AUDIENCE_{SCHEMA,BUILD_PIPELINE,GOVERNANCE}.md + docs/architecture/ADR_CANONICAL_AUDIENCE_BUILDER.md.
+- 핵심: ①Segment Membership≠Audience Member(Definition/Version/**Snapshot불변**/Candidate/Member/Exclusion 신설) ②AdAdapters=Destination(Part3-3) 보존·refreshSegmentForSend+발송루프=Canonical Build로 앞단 대체·Identity=EPIC05 재사용(자체구현 금지)·CRM/광고/Email별 독립 Builder 금지 ③Purpose 필수·segment_version 고정 ④Exclusion·Suppression 우선(Legal>Global>Deletion>Explicit>Channel>Identity>Eligibility>Inclusion)·현행 email_suppression만→legal/tombstone/phone 확대 ⑤Preview=Build 동일 Pipeline·Count 유형 구분 ⑥멱등/Lock/Fail-closed·Queue PII 원문 불포함·Dedup 결정론 ⑦Static List Governance 신설(현행 부재·Malware/Consent Evidence/Retention).
+- 정직: Snapshot/Preview/Diff/Approval/Removal/Reconciliation=현행 부재→목표계약. Build Equivalence UNEXPLAINED/LEGACY_WRONG_TARGET_RISK→전환차단. 기능후퇴 0. **실 스토어/파이프라인 구현=후속 승인 세션**. 다음=Part 3-2(Eligibility Engine). 선행 P0=SEG-C1~C4·SEG-H1/H2/H5.
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜

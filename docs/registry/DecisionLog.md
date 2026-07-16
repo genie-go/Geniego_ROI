@@ -17,6 +17,9 @@
 | **EPIC06-A P2: Canonical DSL=현행 상위호환(교체 아님)** | 289 | crm_segments rules JSON `[{field,op,value}]` 정본·refreshSegmentMembers SQL컴파일 정본 | Canonical=SQL Adapter 승격·6 operator/AND 보존+확대·ADR_CANONICAL_SEGMENT_DSL |
 | **참조 Registry 기반화(자체 SQL 재계산 제거)** | 289 | ltv/frequency 자체 SQL·churn/clv 인라인근사가 EPIC03 Semantic·BG/NBD 실모델과 중복(SEG-M4) | SEMANTIC_METRIC/MODEL_SCORE 참조 단일화·근사는 별도 model_id 라벨 |
 | **Canonical 실 구현=별도 승인세션(Golden+verify+배포승인)** | 289 | 미검증 엔진 구현은 무후퇴·verify 위반 | P2=설계명세만(코드변경0)·Migration은 Shadow Compare·UNEXPLAINED시 전환차단 |
+| **EPIC06-A P3-1: Segment Membership≠Audience Member(Snapshot 신설)** | 289 | 현행 발송루프 즉석필터·Snapshot 부재(SEG-H4/H5)로 과거대상 재현·Reconciliation 불가 | Audience Definition/Version/불변Snapshot/Candidate/Member/Exclusion 신설·ADR_CANONICAL_AUDIENCE_BUILDER |
+| **AdAdapters=Destination 보존(Builder 아님)·단일 Canonical Builder** | 289 | AdAdapters 실 아웃바운드는 Destination층·CRM/광고/Email별 독립 Builder 중복금지 | AdAdapters=Part3-3 VALIDATED_LEGACY·발송루프=Canonical Build로 앞단 대체 |
+| **Static List Governance 신설(현행 진짜 부재)** | 289 | Part1 부재증명 | Malware Scan·Consent Evidence·Tenant Scope·Retention·Audit 필수·신설 정당 |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
