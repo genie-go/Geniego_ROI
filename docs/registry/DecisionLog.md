@@ -33,6 +33,9 @@
 | **EPIC06-A P3-3-3-1: 데이터 헌법 원칙의 런타임 강제화(재구현 금지)** | 289 | 헌법 Vol1~5/No-PII/Compliance/GdprConsent=원칙만·런타임 강제 부재 | Privacy Governance 로 확장·강제화·독립 Privacy Engine 금지·ADR_PRIVACY_PURPOSE_LIMITATION_GOVERNANCE |
 | **포괄 Purpose 금지·Consent+Processing Purpose 단일 Registry** | 289 | crm_channel_prefs 채널만·정식 Purpose Registry 부재·BUSINESS/MARKETING 포괄 | 구체 Purpose 강제·Consent Purpose(P3-3-1)+Processing Purpose 통합·Consumer PII Level(Full Profile 무차별 금지) |
 | **법률 적합성 코드 자동단정 금지** | 289 | Lawful Basis/Jurisdiction 자동확정 위험 | LEGAL_REVIEW_REQUIRED 상태·UNEXPLAINED/LEGACY_PRIVACY_DEFECT 전환차단 |
+| **EPIC06-A P3-3-3-2: 무기한 보존 금지·조기삭제/과도보존 둘 다 결함** | 289 | 정식 Retention Registry 부재·PERMANENT 남용 위험 | Data Asset Registry+Retention Policy/Class/Trigger 신설·RETAINED_TOO_LONG/DELETED_TOO_EARLY 탐지·ADR_RETENTION_ARCHIVAL_DATA_LIFECYCLE |
+| **Archive≠삭제 대체·Backup Restore 후 Deletion Replay** | 289 | 삭제 Subject 재등장 위험·dist.bak 누적(278차) | Deletion Tombstone/Restore Filter/Deletion Replay·Orphan/Shadow 탐지(dist.bak 재발방지) |
+| **Retention 실 구현=별도 승인세션(회귀없는 대량삭제 금지)** | 289 | 대량 Hard Delete 는 데이터손실·verify 필요 | P3-3-3-2=설계명세만·Expiry Job=Dry Run+멱등+Golden+배포승인 후 |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
