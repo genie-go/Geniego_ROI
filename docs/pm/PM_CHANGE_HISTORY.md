@@ -1,4 +1,30 @@
 
+## 289차 (2026-07-16) — 288차 코드 커밋 정합 + EPIC 06-A Part 1(Segmentation·Audience·Cohort Inventory & Baseline)
+
+### 무엇을 / 왜
+- **288차 서버배포분 git 이력 정합**: 운영+데모에 배포됐으나 미커밋이던 확정결함 19건 수정(35파일)을 검증 후 커밋(476f029e43b). 가짜녹색 systemic·모델교체·VAT·TOCTOU·issuanceGuide 15개국 등. pre-commit 게이트 전통과(G2 sacred SHA·G10 react-hooks·G11 php-l·G12 채널배선·G14 정적자산).
+- **EPIC 06-A Part 1 — Enterprise Segmentation, Audience & Cohort Inventory·Eligibility·Consent·Channel Mapping·Data Isolation Baseline**(비파괴·코드변경 0): EPIC 00~05 거버넌스 연속. 4개 병렬 감사 에이전트로 실코드 전수조사(모든 주장 file:line).
+- **핵심 발견**: "segment" 3도메인(Customer `crm_segments` / Decisioning 집계코호트 / Growth ICP 페르소나) · 실 고객엔진=crm_segments+members(SoT, version/snapshot 부재) · Consent=발송시점 중앙게이트 isMarketingSendAllowed(빌드 아님) · Audience 아웃바운드 Meta/Google/TikTok 실동작·해시전용(consent재검증·Removal·Reconciliation 전무) · **CRITICAL wrong-target**: /sms/send·/whatsapp/send·sendOne 무게이트·/sms/broadcast opt-out우회·phone DNC 부재(PM 직접 재증명).
+
+### 데이터/테이블
+- 신규 테이블/코드 **0**(baseline 문서만). 기존 정본 확인: crm_segments/crm_segment_members·crm_channel_prefs·email_suppression·isMarketingSendAllowed·isFrequencyCapped·AdAdapters::syncAudience.
+
+### API
+- 변경 없음. 인벤토리: /crm/segments*·/crm/cohort-retention·/ai/generate/segment(고아)·/customer-ai/ltv-segments·/email/suppression·/v418x/decisioning/segments·/v421/connectors/audience/sync·/v424/admin/growth/segments.
+
+### 사용 금지 데이터
+- 세그먼트 소스=라이브 crm_customers/crm_activities(가짜유입 0)·demo 격리(IS_DEMO)·audience 소스 demo→[]. 목/더미 운영혼입 미발견.
+
+### 테스트/검증
+- 코드변경 0(감사·문서). CRITICAL 3건(무게이트 발송) PM 직접 Read 재증명(FP 아님). 288 커밋 pre-commit 게이트 통과·워킹트리 clean.
+
+### 리스크/잔여
+- **P0(별도 승인 구현세션)**: 발송 게이트 표준화(SEG-C1~C4) — /sms/send·/whatsapp/send·sendOne·/sms/broadcast 에 isMarketingSendAllowed 강제 + phone-키 suppression/DNC + 인바운드 STOP. **P1**: Audience 업로드 consent·Removal·Reconciliation(SEG-H1/H2/H5)·DSAR push 미도달(H3)·Membership 스냅샷(H4). 발송로직 수정=verify+배포승인 필수라 baseline 단계 미실행.
+- 다음: **EPIC 06-A Part 2 — Canonical Segment Schema, DSL, Rule Engine, Versioning & Dependency Governance**.
+
+### 완료 기준(다음 개발자)
+docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT_ARCHITECTURE_BASELINE}.md + docs/architecture/ADR_SEGMENTATION_ARCHITECTURE_BASELINE.md 의 "존재/정본" 재구현 금지. 3개 "segment" 도메인 통합 금지(명명 분리). crm_segments 등 정본은 확장만.
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜
