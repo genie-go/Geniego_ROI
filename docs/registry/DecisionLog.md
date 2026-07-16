@@ -26,6 +26,9 @@
 | **EPIC06-A P3-3-1: crm_channel_prefs=Canonical Consent Store 승격·Boolean→Record** | 289 | 실 consent store·opted_in=Evidence없는 Legacy Boolean | Purpose/Brand/Policy Version/Evidence 추가·자동 GRANTED 금지·ADR_CANONICAL_CONSENT_ENGINE |
 | **Consent≠Suppression·Merge 시 Consent 보존** | 289 | 개념 분리·EPIC05 병합 동의확대 방지 | email_suppression/phone DNC=Suppression(Part3-3-2)·병합 시 덮어쓰기 금지 |
 | **Unknown≠Granted·목적 확대 금지(Consent)** | 289 | 현행 opt-out 기본허용(SEG-M1)·채널→전목적 확대 암묵 | Unknown 차단+Purpose 분리·보수적 Resolution(Latest Withdrawal 우선) |
+| **EPIC06-A P3-3-2: email_suppression=Canonical Suppression Store 승격·Revocation 전파 신설** | 289 | 실 suppression store(email만)·Revocation Propagation 부재(SEG-H2) | 전채널 Type 33종 확장·Snapshot Overlay/Provider Removal 신설·ADR_CANONICAL_SUPPRESSION_AND_PREFERENCE_PLATFORM |
+| **Provider 200≠Removed·Removal 후 Re-add 방지** | 289 | AdAdapters Add만·Remove/Reconcile 부재(SEG-H2/H5)·refresh 재생성(SEG-L4) | Removal 상태 세분화+Tombstone/Live Check·Reconciliation 신설 |
+| **Execution-time Live Validation=발송게이트 계약화(P0 원형)** | 289 | isMarketingSendAllowed 발송루프 게이트가 원형·무게이트 SEG-C1~C4 | 단계별 Recheck(예약/Queue/Provider 직전)·Fail-closed·SEG-C4 phone DNC=SMS_OPT_OUT Type |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
