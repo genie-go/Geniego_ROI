@@ -29,6 +29,7 @@
 | **EPIC06-A P3-3-2: email_suppression=Canonical Suppression Store 승격·Revocation 전파 신설** | 289 | 실 suppression store(email만)·Revocation Propagation 부재(SEG-H2) | 전채널 Type 33종 확장·Snapshot Overlay/Provider Removal 신설·ADR_CANONICAL_SUPPRESSION_AND_PREFERENCE_PLATFORM |
 | **Provider 200≠Removed·Removal 후 Re-add 방지** | 289 | AdAdapters Add만·Remove/Reconcile 부재(SEG-H2/H5)·refresh 재생성(SEG-L4) | Removal 상태 세분화+Tombstone/Live Check·Reconciliation 신설 |
 | **Execution-time Live Validation=발송게이트 계약화(P0 원형)** | 289 | isMarketingSendAllowed 발송루프 게이트가 원형·무게이트 SEG-C1~C4 | 단계별 Recheck(예약/Queue/Provider 직전)·Fail-closed·SEG-C4 phone DNC=SMS_OPT_OUT Type |
+| **SEG-C4 phone DNC 실구현·SEG-H2 라이브세션 연기** | 289 | SEG-C4=DB-only(email 대칭 안전)·SEG-H2=외부 3-provider API 미검증 | C4 구현(sms_suppression+게이트, 커밋 407c1231872)·**H2 블라인드 지양→라이브 광고계정 검증세션(287차 죽은스켈레톤 교훈)** |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
