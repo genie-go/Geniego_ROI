@@ -203,6 +203,15 @@ final class WhatsApp
 
         $now = gmdate('c');
 
+        // [현 차수 SEG-C2] 무게이트 단건 발송 정직화 — 브로드캐스트(broadcast)·옴니 워터폴과 동일한 동의센터 통합
+        //   게이트(옵트아웃/조용시간/빈도캡) 적용. 종전엔 임의 번호로 무조건 발송되어 WhatsApp 수신거부 고객에게도
+        //   발송 가능했다. 수신번호→고객 역매핑 시 강제, cid=0(미매핑)은 fail-open(브로드캐스트/워터폴 동일·무회귀).
+        $cid = self::customerIdByPhone($pdo, $tenant, preg_replace('/\D/', '', $to));
+        $g   = CRM::isMarketingSendAllowed($tenant, $cid, 'whatsapp', ['phone' => $to]);
+        if (!($g['allowed'] ?? false)) {
+            return TemplateResponder::respond($res, ['ok' => false, 'status' => 'blocked', 'reason' => $g['reason'] ?? 'opt_out', 'error' => '수신거부/빈도제한/조용시간 등으로 발송이 차단되었습니다.']);
+        }
+
         if (false /*was demo*/) {
             // 데모: 시뮬레이션
             $pdo->prepare("INSERT INTO whatsapp_messages(tenant_id,recipient,template_name,body,status,sent_at,created_at) VALUES(?,?,?,?,?,?,?)")

@@ -43,6 +43,13 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 - 핵심: ①isMarketingSendAllowed=CANONICAL_ELIGIBILITY_ENGINE 승격(Identity/Identifier/Freshness/Destination/Jurisdiction 확장·채널별 자체 Eligibility 금지) ②3중 분리(Membership≠Eligibility·Eligibility≠Consent·**Contactability≠Reachability**) ③**Unknown≠Eligible·Fail-closed**(현행 fail-open SEG-M1·phone SEG-C4 교정) ④Identifier 결정론 선택+Shared Identifier 정책 ⑤단계별 Recheck(Build/Approval/Sync/**Execution-time**)·무게이트 경로 강제=선행 P0 ⑥Wrong-target(Cross-Tenant/Wrong Account 286차·Reused Phone/Deleted)+Test/Demo Production 차단.
 - 정직: Identity Confidence/Freshness/Destination Readiness/Contactability≠Reachability=현행 부재→목표계약. isMarketingSendAllowed/isFrequencyCapped/email_suppression 보존(Equivalence). Threshold=Golden+운영증거(임의숫자 금지). 기능후퇴 0. **실 Engine 구현=후속 승인 세션**. 다음=Part 3-3(Consent·Suppression·Privacy). 선행 P0=SEG-C1~C4·H2/H5.
 
+### ★선행 P0 실구현 — 발송 게이트 표준화 SEG-C1~C3 (실제 코드변경·배포대기)
+- **무엇을/왜**: EPIC06-A Part1에서 확정한 CRITICAL wrong-target(무게이트 발송) 3경로에 정본 게이트 `CRM::isMarketingSendAllowed` 강제. 종전엔 SMS 마케팅 수신거부 고객에게도 발송 가능(컴플라이언스 위험).
+- **수정(확장·무회귀, 정본 dispatchCampaignCore 미러)**: SmsMarketing::send(SEG-C1 단건)·SmsMarketing::broadcast(SEG-C3 freq-only→전체게이트)·WhatsApp::send(SEG-C2 단건). 각 수신번호→customerIdByPhone 역매핑 후 옵트아웃/이메일suppression/조용시간/빈도캡 실차단. **cid=0(미매핑)=fail-open**(캠페인/브로드캐스트/옴니 워터폴 전부 동일 규약·무회귀). broadcast 죽은 $freqCfg 제거·집계(capped/quiet/opted_out) 정합.
+- **★오탐 정정**: `WhatsApp::sendOne`은 무게이트 아님 — 유일 호출자 Omnichannel::deliverWaterfall가 직전 isMarketingSendAllowed 통과 후 호출(상위 게이트). Part1 에이전트 SEG-C2 sendOne 하위우려 기각.
+- **검증**: 로컬 PHP 부재로 구동/php -l 로컬 불가 → 정밀 정적검토(brace/스코프/시그니처·프로덕션 정본 복사) 완료. 구문=push 시 CI G11(php -l), 기능=배포 후 헤드리스(배포승인 필요).
+- **잔여 SEG-C4**: 미매핑 phone fail-open + 인바운드 STOP(무료거부) — phone-키 suppression 스토어(Part3-3 Canonical)+carrier STOP 웹훅. C1~C3로 매핑고객 부분완화. 별도 구현세션. **배포는 사용자 승인 후**.
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜

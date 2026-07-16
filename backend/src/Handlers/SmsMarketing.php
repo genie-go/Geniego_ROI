@@ -443,6 +443,16 @@ final class SmsMarketing
 
         $now = gmdate('c');
 
+        // [현 차수 SEG-C1] 무게이트 단건 발송 정직화 — 캠페인(dispatchCampaignCore)·브로드캐스트와 동일한
+        //   동의센터 통합 게이트(옵트아웃/이메일suppression/조용시간/빈도캡) 적용. 종전엔 임의 번호로 무조건 발송되어
+        //   SMS 마케팅 수신거부 고객에게도 발송 가능했다(wrong-target). 수신번호→고객 역매핑 시 강제, cid=0(미매핑)은
+        //   fail-open(캠페인/브로드캐스트/옴니 워터폴 전부 동일 규약·무회귀).
+        $cid = self::customerIdByPhone($pdo, $tenant, $to);
+        $g   = CRM::isMarketingSendAllowed($tenant, $cid, 'sms', ['phone' => $to]);
+        if (!($g['allowed'] ?? false)) {
+            return TemplateResponder::respond($res, ['ok' => false, 'status' => 'blocked', 'reason' => $g['reason'] ?? 'opt_out', 'error' => '수신거부/빈도제한/조용시간 등으로 발송이 차단되었습니다.']);
+        }
+
         if (false /*was demo*/) {
             $pdo->prepare("INSERT INTO sms_messages(tenant_id,msg_type,recipient,body,status,sent_at,created_at) VALUES(?,?,?,?,?,?,?)")
                 ->execute([$tenant,$type,$to,$message,'delivered',$now,$now]);
@@ -494,16 +504,23 @@ final class SmsMarketing
             ]);
         }
 
-        // [현 차수] 빈도캡 — crm_customers.phone 역매핑 가능 시에만 평가(best-effort, 매핑 안 되면 기존대로 발송).
-        $freqCfg = CRM::commsFreqConfig($pdo, $tenant);
-
-        $sent = $failed = 0; $capped = 0;
+        $sent = $failed = 0; $capped = 0; $optout = 0; $quiet = 0;
         foreach (array_slice($numbers, 0, 500) as $to) {
             $to = preg_replace('/\D/', '', (string)$to);
             if (strlen($to) < 8) continue;
-            // [현 차수] 수신번호 → customer_id 역매핑(전화번호 정규화 후 일치). 매핑 시 빈도캡 평가 대상.
+            // [현 차수 SEG-C3] 수신번호 → customer_id 역매핑(전화번호 정규화 후 일치).
             $cid = self::customerIdByPhone($pdo, $tenant, $to);
-            if ($cid > 0 && CRM::isFrequencyCapped($pdo, $tenant, $cid, $freqCfg['cap'], $freqCfg['window'])) { $capped++; continue; }
+            // [현 차수 SEG-C3] 브로드캐스트도 캠페인(dispatchCampaignCore)과 동일한 동의센터 통합 게이트 적용.
+            //   종전엔 빈도캡만 평가하고 옵트아웃/suppression/조용시간을 우회 → 수신거부 번호에도 대량발송 가능했다.
+            //   게이트가 빈도캡까지 포함하므로 별도 isFrequencyCapped 호출은 제거(이중집계 방지). cid=0 fail-open(무회귀).
+            $g = CRM::isMarketingSendAllowed($tenant, $cid, 'sms', ['phone' => $to]);
+            if (!($g['allowed'] ?? false)) {
+                $rc = (string)($g['reason'] ?? '');
+                if (strpos($rc, 'freq') !== false) { $capped++; }
+                elseif (strpos($rc, 'quiet') !== false) { $quiet++; }
+                else { $optout++; }
+                continue;
+            }
             if ($plan === 'demo') {
                 $status = rand(0, 9) < 95 ? 'delivered' : 'failed'; // 데모 시뮬레이션 한정
             } else {
@@ -524,7 +541,7 @@ final class SmsMarketing
             }
         }
 
-        return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'total'=>$sent+$failed]);
+        return TemplateResponder::respond($res, ['ok'=>true,'sent'=>$sent,'failed'=>$failed,'capped'=>$capped,'opted_out'=>$optout,'quiet_deferred'=>$quiet,'total'=>$sent+$failed]);
     }
 
     // GET /api/sms/messages
