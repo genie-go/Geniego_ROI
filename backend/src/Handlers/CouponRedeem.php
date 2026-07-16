@@ -132,13 +132,20 @@ final class CouponRedeem
             // free_coupons update
             // [225차 P0-2] NOW() 는 MySQL 전용 → SQLite 폴백서 throw/500. 양 드라이버 공통
             //   CURRENT_TIMESTAMP 로 교체(MySQL·SQLite 모두 표준 지원).
-            $pdo->prepare(
+            // [현 차수] 원자 선점(TOCTOU 방어) — 85행 사전체크와 137행 증가가 분리돼 동시 리딤 시 한도 1 초과 소진/
+            //   1회용 쿠폰 이중 사용이 가능했다. use_count<max_uses 조건부 UPDATE + rowCount 로 원자화(사전체크는 빠른 실패용 유지).
+            $upd = $pdo->prepare(
                 'UPDATE free_coupons
                     SET use_count = use_count + 1,
                         redeemed_at = CURRENT_TIMESTAMP,
                         redeemed_by_user_id = ?
-                  WHERE id = ?'
-            )->execute([$userId, $coupon['id']]);
+                  WHERE id = ? AND use_count < max_uses'
+            );
+            $upd->execute([$userId, $coupon['id']]);
+            if ($upd->rowCount() === 0) {
+                $pdo->rollBack();
+                return self::json($res, ['error' => 'coupon_exhausted', 'message' => '쿠폰 사용 한도 초과.'], 403);
+            }
 
             // coupon_redemptions insert
             $pdo->prepare(

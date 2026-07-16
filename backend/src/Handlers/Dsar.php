@@ -789,7 +789,9 @@ final class Dsar
         $applyAnon('orderhub_claims', self::ANONYMIZE['orderhub_claims'], 'order_id', $orderIds);
         $applyAnon('shipment_tracking', self::ANONYMIZE['shipment_tracking'], 'order_ref', $orderIds);
         // live_orders.buyer 는 성명/이메일 혼재 가능 → 이메일 일치분만 익명화(가능한 범위).
-        $applyAnon('live_orders', self::ANONYMIZE['live_orders'], 'buyer', [$email]);
+        // [현 차수] $ciEmail=true — 종전 5번째 인자 누락(기본 false)으로 SQLite 폴백에서 buyer 원문 정확일치만 매칭,
+        //   "User@X.com" 처럼 대문자 포함 이메일의 라이브커머스 주문 신원식별자가 미삭제된 채 completed 처리됐다(channel_orders 는 787행에서 이미 고침).
+        $applyAnon('live_orders', self::ANONYMIZE['live_orders'], 'buyer', [$email], true);
 
         // raw_vendor_event.raw_payload — 벤더 원문 페이로드에 성명/전화/주소가 그대로 들어있다(Db.php:1007).
         //   고객키가 없어 LIKE 로만 도달한다. DSAR 은 드문 연산이므로 풀스캔 비용은 수용 가능하다.

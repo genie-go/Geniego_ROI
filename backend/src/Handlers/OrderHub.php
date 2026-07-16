@@ -628,9 +628,11 @@ final class OrderHub
             $active = $stA->fetch(\PDO::FETCH_ASSOC) ?: ['cnt' => 0, 'rev' => 0];
 
             // status 버킷 카운트(프론트 orderStats와 동일 토큰셋)
-            $bucket = function (array $tokens) use ($pdo, $baseSql, $baseArgs, $ph) {
-                $s = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND status IN (" . $ph($tokens) . ")");
-                $s->execute(array_merge($baseArgs, $tokens));
+            // [현 차수] 상태버킷도 취소 제외(2축) — 종전엔 status IN(...)만 봐서 event_type='cancel' 이나 status='delivered'
+            //   로 남은 주문이 done·cancelled 에 이중 계상, 상태별 합≠활성주문수였다(매출/이익 영향 없는 표시용 카운트 왜곡).
+            $bucket = function (array $tokens) use ($pdo, $baseSql, $baseArgs, $ph, $cancelExpr, $cancelTokens) {
+                $s = $pdo->prepare("SELECT COUNT(*) FROM channel_orders WHERE $baseSql AND NOT $cancelExpr AND status IN (" . $ph($tokens) . ")");
+                $s->execute(array_merge($baseArgs, $cancelTokens, $tokens));
                 return (int)$s->fetchColumn();
             };
             $pending  = $bucket($pendingTokens);
@@ -1289,6 +1291,25 @@ final class OrderHub
                 'returns_count'   => $returns,
             ], $now);
         }
+        // [현 차수 P1] 전량취소 등으로 활성주문이 0이 된 채널의 estimated 정산행 zero-out.
+        //   종전엔 활성주문 있는 채널만($os 결과) 순회 → 취소로 결과에서 사라진 채널의 estimated gross 가 잔존,
+        //   settlementsStats/Pnl::components 가 취소매출을 revenue 로 영구 계상(영업·순이익 과대)했다.
+        //   실 정산(status!='estimated', ingest 된 confirmed/pending)은 보존 — estimated 행만 0 처리.
+        try {
+            $activeChannels = array_values(array_filter(
+                array_map(static fn($o) => (string)($o['channel'] ?? ''), $orders),
+                static fn($c) => $c !== ''
+            ));
+            if ($activeChannels) {
+                $ph  = implode(',', array_fill(0, count($activeChannels), '?'));
+                $pdo->prepare("UPDATE orderhub_settlements SET gross_sales=0,net_payout=0,platform_fee=0,ad_fee=0,coupon_discount=0,return_fee=0,orders_count=0,returns_count=0,updated_at=? WHERE tenant_id=? AND period=? AND status='estimated' AND channel NOT IN ($ph)")
+                    ->execute(array_merge([$now, $tenant, $period], $activeChannels));
+            } else {
+                // 이 기간 활성주문 전무 → 모든 estimated 행 0 처리(실 정산은 미포함).
+                $pdo->prepare("UPDATE orderhub_settlements SET gross_sales=0,net_payout=0,platform_fee=0,ad_fee=0,coupon_discount=0,return_fee=0,orders_count=0,returns_count=0,updated_at=? WHERE tenant_id=? AND period=? AND status='estimated'")
+                    ->execute([$now, $tenant, $period]);
+            }
+        } catch (\Throwable $e) { /* best-effort — zero-out 실패가 롤업을 막지 않음 */ }
         return $rolled;
     }
 

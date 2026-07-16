@@ -46,6 +46,12 @@ class OAuth
         //   portal/auth(app_id 파라미터) → oauth2/access_token(JSON {app_id,secret,auth_code} → data.access_token).
         //   표준 OAuth2 와 파라미터/응답이 달라 dialect='tiktok_marketing' 로 authorize/callback 에서 분기 처리.
         'tiktok'   => ['auth' => 'https://business-api.tiktok.com/portal/auth', 'token' => 'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/', 'scope' => '', 'extra' => [], 'dialect' => 'tiktok_marketing'],
+        // [현 차수] TikTok Shop(커머스) OAuth — Marketing(광고)과 별개.
+        //   authorize=services.tiktokshop.com/open/authorize?service_id={service_id}&state (redirect_uri 는 파트너센터 앱에 등록).
+        //   token=auth.tiktok-shops.com/api/v2/token/get?app_key&app_secret&auth_code&grant_type=authorized_code (GET) → data.access_token.
+        //   저장 후 ChannelSync::tiktokFetch(channel=tiktok_shop)가 access_token 으로 /authorization/202309/shops 에서 shop_cipher 자동 도출.
+        //   ★파트너센터 Redirect(Callback) URL = https://{운영도메인}/api/v425/oauth/tiktok_shop/callback (redirectUri()와 동일).
+        'tiktok_shop' => ['auth' => 'https://services.tiktokshop.com/open/authorize', 'token' => 'https://auth.tiktok-shops.com/api/v2/token/get', 'scope' => '', 'extra' => [], 'dialect' => 'tiktok_shop'],
         'kakao'    => ['auth' => 'https://kauth.kakao.com/oauth/authorize', 'token' => 'https://kauth.kakao.com/oauth/token', 'scope' => 'talk_message', 'extra' => []],
         'naver'    => ['auth' => 'https://nid.naver.com/oauth2.0/authorize', 'token' => 'https://nid.naver.com/oauth2.0/token', 'scope' => '', 'extra' => []],
         // [282차 R3] Twitch(라이브 커머스 멀티송출) — 표준 OAuth2. 브로드캐스터 팔로워 통계 스코프(moderator:read:followers).
@@ -132,7 +138,9 @@ class OAuth
                 'error' => 'Naver 로그인(NID) OAuth 는 커머스/광고 권한을 제공하지 않습니다. 스마트스토어는 커머스 API client_id·client_secret(HMAC), 검색광고는 API 라이선스 키를 수동 등록하세요.'], 200);
         }
         $cfg = self::config($provider);
-        if ($cfg['client_id'] === '') {
+        // [현 차수] TikTok Shop 은 셀러가 폼에 입력·저장한 app_key/app_secret/service_id(테넌트 자격증명)로 인증하므로
+        //   플랫폼 config(client_id) 조기체크에서 제외한다(아래 dialect 분기에서 테넌트 자격증명 확인).
+        if ($cfg['client_id'] === '' && $provider !== 'tiktok_shop') {
             return self::json($res, ['ok' => false, 'configured' => false, 'error' => $provider . ' OAuth 앱이 미설정입니다. 관리자가 client_id/secret을 등록하면 활성화됩니다.'], 200);
         }
         $tenant = UserAuth::authedTenant($req) ?: 'demo';
@@ -147,6 +155,19 @@ class OAuth
             try { self::db()->prepare("INSERT INTO oauth_state(state,tenant_id,provider,created_at) VALUES(?,?,?,?)")->execute([$state, $tenant, $provider, self::now()]); } catch (\Throwable $e2) {}
         }
         $p = self::PROVIDERS[$provider];
+        // [현 차수] TikTok Shop: authorize 는 service_id + state (redirect_uri 는 파트너센터 앱에 등록).
+        //   ★셀러가 폼에 저장한 service_id(테넌트 자격증명) 우선, 플랫폼 폴백. app_key/app_secret 은 callback 토큰교환에서 사용.
+        //   Access Token 은 인증 후 동적 발급되므로 셀러가 수동입력하지 않는다.
+        if (($p['dialect'] ?? '') === 'tiktok_shop') {
+            $serviceId = self::loadCred($tenant, 'tiktok_shop', 'service_id');
+            if ($serviceId === '') $serviceId = self::tiktokShopServiceId();
+            if ($serviceId === '') {
+                return self::json($res, ['ok' => false, 'configured' => false, 'manual_required' => true,
+                    'error' => 'TikTok Shop: 먼저 App Key·App Secret·Service ID 를 입력·저장한 뒤 [인증]하세요. Access Token 은 인증으로 자동 발급됩니다.'], 200);
+            }
+            $url = $p['auth'] . '?' . http_build_query(['service_id' => $serviceId, 'state' => $state]);
+            return self::json($res, ['ok' => true, 'configured' => true, 'authorize_url' => $url]);
+        }
         // [227차] TikTok Marketing API: app_id 파라미터·response_type/scope 없음(권한은 앱 설정에서 부여).
         if (($p['dialect'] ?? '') === 'tiktok_marketing') {
             $url = $p['auth'] . '?' . http_build_query([
@@ -229,6 +250,42 @@ class OAuth
             return $res->withHeader('Location', $front . '?oauth=success&provider=' . $provider)->withStatus(302);
         }
 
+        // ── [현 차수] TikTok Shop 토큰 교환(GET token/get: app_key/app_secret/auth_code → data.access_token) ──
+        //   ★셀러가 저장한 app_key/app_secret(테넌트 자격증명) 우선, 플랫폼 폴백. Access Token 은 여기서 동적 발급·저장.
+        if (($p['dialect'] ?? '') === 'tiktok_shop') {
+            $appKey    = self::loadCred($tenant, 'tiktok_shop', 'app_key');    if ($appKey === '')    $appKey = $cfg['client_id'];
+            $appSecret = self::loadCred($tenant, 'tiktok_shop', 'app_secret'); if ($appSecret === '') $appSecret = $cfg['client_secret'];
+            if ($appKey === '' || $appSecret === '') {
+                error_log('[OAuth.callback] TikTok Shop: app_key/app_secret 미저장(셀러가 폼에 먼저 저장 필요)');
+                return $res->withHeader('Location', $front . '?oauth=token_failed')->withStatus(302);
+            }
+            $tok = self::httpGet($p['token'] . '?' . http_build_query([
+                'app_key'    => $appKey,
+                'app_secret' => $appSecret,
+                'auth_code'  => $code,
+                'grant_type' => 'authorized_code',
+            ]));
+            $data   = is_array($tok['data'] ?? null) ? $tok['data'] : [];
+            $access = (string)($data['access_token'] ?? '');
+            if ($access === '') {
+                error_log('[OAuth.callback] TikTok Shop token exchange failed: ' . self::errDigest($tok));
+                return $res->withHeader('Location', $front . '?oauth=token_failed')->withStatus(302);
+            }
+            try {
+                // ChannelSync::tiktokFetch(channel=tiktok_shop)가 읽는 key_name 으로 저장(shop_cipher 는 첫 sync 에서 자동 도출).
+                self::saveCred($tenant, 'tiktok_shop', 'app_key', $appKey);
+                self::saveCred($tenant, 'tiktok_shop', 'app_secret', $appSecret);
+                self::saveCred($tenant, 'tiktok_shop', 'access_token', $access);
+                if (!empty($data['refresh_token'])) self::saveCred($tenant, 'tiktok_shop', 'refresh_token', (string)$data['refresh_token']);
+                try { self::db()->prepare("UPDATE channel_credential SET test_status='ok', last_tested_at=? WHERE tenant_id=? AND channel='tiktok_shop' AND key_name='access_token'")->execute([gmdate('c'), $tenant]); } catch (\Throwable $e) {}
+                // OAuth 토큰 취득 = 실 발급 검증 → 발급신청 완료 처리.
+                try { \Genie\Handlers\ChannelCreds::markApplyCompleted(self::db(), $tenant, 'tiktok_shop', true); } catch (\Throwable $e) {}
+                // 저장 즉시 1회 동기화(상품/주문) — shop_cipher 자동 도출 포함. best-effort.
+                try { \Genie\Handlers\ChannelSync::syncTenantChannel($tenant, 'tiktok_shop', 'pro'); } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {}
+            return $res->withHeader('Location', $front . '?oauth=success&provider=tiktok_shop')->withStatus(302);
+        }
+
         $body = http_build_query([
             'grant_type' => 'authorization_code',
             'code' => $code,
@@ -298,6 +355,11 @@ class OAuth
         };
         $set('oauth_' . $provider . '_client_id', $cid);
         $set('oauth_' . $provider . '_client_secret', $sec);
+        // [현 차수] TikTok Shop 은 authorize 에 service_id 가 별도로 필요(app_key=client_id, app_secret=client_secret 외).
+        if ($provider === 'tiktok_shop') {
+            $svc = trim((string)($b['service_id'] ?? ''));
+            $set('oauth_tiktok_shop_service_id', $svc);
+        }
         return self::json($res, ['ok' => true, 'provider' => $provider, 'configured' => self::config($provider)['client_id'] !== '']);
     }
 
@@ -354,6 +416,34 @@ class OAuth
         // 일부 provider(naver/legacy facebook)는 querystring 응답
         parse_str((string)$raw, $parsed);
         return is_array($parsed) ? $parsed : [];
+    }
+
+    /** [현 차수] GET(JSON 응답) — TikTok Shop token/get(GET 쿼리파라미터) 등. */
+    private static function httpGet(string $url): array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        ]);
+        $raw = curl_exec($ch); curl_close($ch);
+        $j = json_decode((string)$raw, true);
+        return is_array($j) ? $j : [];
+    }
+
+    /** [현 차수] TikTok Shop service_id: env(OAUTH_TIKTOK_SHOP_SERVICE_ID) > app_setting(oauth_tiktok_shop_service_id, 암호화). */
+    private static function tiktokShopServiceId(): string
+    {
+        $v = (string)(getenv('OAUTH_TIKTOK_SHOP_SERVICE_ID') ?: '');
+        if ($v === '') {
+            try {
+                $g = self::db()->prepare("SELECT svalue FROM app_setting WHERE skey='oauth_tiktok_shop_service_id' LIMIT 1");
+                $g->execute();
+                $r = $g->fetchColumn();
+                if ($r !== false && $r !== null) $v = Crypto::decrypt((string)$r);
+            } catch (\Throwable $e) {}
+        }
+        return $v;
     }
 
     /** [227차] JSON 바디 POST(TikTok Marketing API 등 application/json 요구 provider 용). */

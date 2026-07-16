@@ -132,18 +132,29 @@ final class GraphScore {
             )->execute([$tenant, $t, $nid, $nid, '{}', gmdate('c')]);
         }
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO graph_edge(tenant_id,src_type,src_id,dst_type,dst_id,edge_weight,edge_label,meta_json,created_at)
-             VALUES(?,?,?,?,?,?,?,?,?)'
-        );
-        $stmt->execute([
-            $tenant, $srcType, $srcId, $dstType, $dstId,
-            $weight, $label !== '' ? $label : null,
-            json_encode($extra, JSON_UNESCAPED_UNICODE),
-            gmdate('c'),
-        ]);
+        // [현 차수] append-only → 진짜 upsert(멱등) — 종전엔 동일 (src,dst) 엣지를 멱등 재동기화할 때마다 무조건 INSERT 해
+        //   중복행이 누적, SUM(edge_weight) 집계 스코어(scoreInfluencer/scoreSku/summary)가 단조 팽창해 top-scorer 랭킹이
+        //   최다동기화 엔티티로 왜곡됐다. docblock('upsert/update an edge') 계약대로 (tenant,src,dst) 단위 1행 유지. upsertNode 패턴.
+        $sel = $pdo->prepare('SELECT id FROM graph_edge WHERE tenant_id=? AND src_type=? AND src_id=? AND dst_type=? AND dst_id=? LIMIT 1');
+        $sel->execute([$tenant, $srcType, $srcId, $dstType, $dstId]);
+        $eid = $sel->fetchColumn();
+        if ($eid !== false && $eid !== null) {
+            $pdo->prepare('UPDATE graph_edge SET edge_weight=?, edge_label=?, meta_json=? WHERE id=?')
+                ->execute([$weight, $label !== '' ? $label : null, json_encode($extra, JSON_UNESCAPED_UNICODE), $eid]);
+        } else {
+            $pdo->prepare(
+                'INSERT INTO graph_edge(tenant_id,src_type,src_id,dst_type,dst_id,edge_weight,edge_label,meta_json,created_at)
+                 VALUES(?,?,?,?,?,?,?,?,?)'
+            )->execute([
+                $tenant, $srcType, $srcId, $dstType, $dstId,
+                $weight, $label !== '' ? $label : null,
+                json_encode($extra, JSON_UNESCAPED_UNICODE),
+                gmdate('c'),
+            ]);
+            $eid = (int)$pdo->lastInsertId();
+        }
 
-        return TemplateResponder::respond($response, ['ok' => true, 'edge_id' => (int)$pdo->lastInsertId()]);
+        return TemplateResponder::respond($response, ['ok' => true, 'edge_id' => (int)$eid]);
     }
 
     public static function listEdges(Request $request, Response $response, array $args): Response {

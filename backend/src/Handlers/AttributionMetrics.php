@@ -138,8 +138,11 @@ final class AttributionMetrics
             $spends = []; $revenue = [];
             foreach ($rows as $r) {
                 $ch = $r['channel'];
-                if (!isset($spends[$ch])) $spends[$ch] = [];
-                $spends[$ch][] = ['week' => $r['week'], 'spend' => (float)$r['spend'], 'revenue' => (float)$r['revenue']];
+                if (!isset($spends[$ch]))  $spends[$ch]  = [];
+                if (!isset($revenue[$ch])) $revenue[$ch] = [];
+                $spends[$ch][]  = ['week' => $r['week'], 'spend' => (float)$r['spend'], 'revenue' => (float)$r['revenue']];
+                // [현 차수] 최상위 revenue 키가 종전엔 []선언 후 미채움(죽은 출력) → 프론트가 response.revenue 읽으면 빈 차트. 실채움.
+                $revenue[$ch][] = ['week' => $r['week'], 'revenue' => (float)$r['revenue']];
             }
             return self::ok($response, [
                 'spends' => $spends,
@@ -209,10 +212,13 @@ final class AttributionMetrics
             $params = $request->getQueryParams();
             $days = max(1, min(365, (int)($params['days'] ?? 30)));
             $rows = self::queryP($pdo,
+                // [현 차수] 광고귀속 일별추세 — orders=전환(conversions), visitors=clicks 로 정합화.
+                //   종전엔 orders=clicks·visitors=impressions·newCustomers=conversions 로 앨리어싱해 AOV=매출/클릭
+                //   (클릭≫전환이라 AOV 대폭 과소·orders 에 클릭수 노출)이었다. 전환=광고가 보고한 실 구매수라 orders 로 정직.
+                //   newCustomers 는 performance_metrics 에 소스 없음 → 0(날조 제거). conversionRate=전환/방문.
                 'SELECT date, '
                 . 'SUM(spend) AS adSpend, SUM(revenue) AS revenue, '
-                . 'SUM(impressions) AS visitors, SUM(clicks) AS orders, '
-                . 'SUM(conversions) AS newCustomers '
+                . 'SUM(clicks) AS visitors, SUM(conversions) AS orders '
                 . 'FROM performance_metrics '
                 . 'WHERE tenant_id = :t '
                 . "AND date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL $days DAY), '%Y-%m-%d') "
@@ -225,9 +231,9 @@ final class AttributionMetrics
                 'revenue' => (float)$r['revenue'],
                 'visitors' => (int)$r['visitors'],
                 'orders' => (int)$r['orders'],
-                'newCustomers' => (int)$r['newCustomers'],
+                'newCustomers' => 0,
                 'roas' => ((float)$r['adSpend']) > 0 ? round(((float)$r['revenue']) / ((float)$r['adSpend']), 2) : 0,
-                'conversionRate' => ((int)$r['orders']) > 0 ? round(((int)$r['newCustomers']) * 100 / ((int)$r['orders']), 2) : 0,
+                'conversionRate' => ((int)$r['visitors']) > 0 ? round(((int)$r['orders']) * 100 / ((int)$r['visitors']), 2) : 0,
                 'avgOrderValue' => ((int)$r['orders']) > 0 ? round(((float)$r['revenue']) / ((int)$r['orders']), 0) : 0,
                 'returningCustomers' => 0,
             ], $rows);

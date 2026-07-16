@@ -451,18 +451,33 @@ class DemandForecast
         $todayTs = gmmktime(0, 0, 0, (int)substr($today, 5, 2), (int)substr($today, 8, 2), (int)substr($today, 0, 4));
         $d30     = gmdate('Y-m-d', $todayTs - 30 * 86400);
 
-        // 1) 현재고 보유 SKU(합산 available>0)
-        $inv = [];
+        // 1) 현재고 보유 SKU — [현 차수] 물리재고 SSOT = wms_stock.on_hand 우선(autoReplenishForTenant stockMap 정합).
+        //   종전엔 channel_inventory.available 만(폴백 소스를 유일 소스로) 읽어, wms_stock(헤더 총재고·발주 SSOT)와
+        //   불일치 → on_hand·tied_capital 과대(마진배수)·회전정상 SKU 를 dead 로 오분류했다. wms 미추적 SKU 만 channel 폴백.
+        $names = []; $qtyMap = [];
         try {
             $rs = $pdo->prepare("SELECT sku, SUM(available) AS qty, MAX(product_name) AS name
                                    FROM channel_inventory
                                   WHERE tenant_id = :t AND sku IS NOT NULL AND sku <> ''
-                                  GROUP BY sku HAVING SUM(available) > 0");
+                                  GROUP BY sku");
             $rs->execute([':t' => $tenant]);
             foreach ($rs->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-                $inv[(string)$r['sku']] = ['qty' => (float)$r['qty'], 'name' => (string)(($r['name'] ?? '') !== '' ? $r['name'] : $r['sku'])];
+                $sku = (string)$r['sku'];
+                $qtyMap[$sku] = (float)$r['qty'];
+                $names[$sku]  = (string)(($r['name'] ?? '') !== '' ? $r['name'] : $sku);
             }
-        } catch (\Throwable $e) { $inv = []; }
+        } catch (\Throwable $e) {}
+        try {
+            $rw = $pdo->prepare("SELECT sku, SUM(on_hand) AS oh FROM wms_stock WHERE tenant_id = ? AND sku IS NOT NULL AND sku <> '' GROUP BY sku");
+            $rw->execute([$tenant]);
+            foreach ($rw->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $sku = (string)$r['sku'];
+                $qtyMap[$sku] = (float)$r['oh']; // 물리 우선 덮어쓰기
+                if (!isset($names[$sku])) $names[$sku] = $sku;
+            }
+        } catch (\Throwable $e) {}
+        $inv = [];
+        foreach ($qtyMap as $sku => $q) { if ($q > 0) $inv[$sku] = ['qty' => $q, 'name' => $names[$sku] ?? $sku]; }
         if (!$inv) {
             return self::json($res, ['ok' => true, 'tenant' => $tenant, 'items' => [], 'summary' =>
                 ['in_stock_skus' => 0, 'healthy' => 0, 'slow' => 0, 'dead' => 0, 'total_tied_capital' => 0, 'dead_tied_capital' => 0, 'slow_tied_capital' => 0],

@@ -470,7 +470,7 @@ final class ChannelSync
         );
         $accessToken = (string)($tBody['access_token'] ?? '');
         if ($accessToken === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Amazon LWA 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Amazon LWA 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
         }
         // 2) SP-API Orders(최근 30일). x-amz-access-token 헤더만으로 인증.
         $host = self::amazonEndpoint($marketplaceId);
@@ -478,7 +478,7 @@ final class ChannelSync
         $url = "https://{$host}/orders/v0/orders?MarketplaceIds=" . rawurlencode($marketplaceId) . "&CreatedAfter=" . rawurlencode($createdAfter);
         [$oCode, $oBody] = self::httpGet($url, ['x-amz-access-token' => $accessToken, 'Accept' => 'application/json']);
         if ($oCode >= 400 || !isset($oBody['payload'])) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Amazon Orders 조회 실패(code={$oCode}) — SP-API 앱 Orders 권한 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Amazon Orders 조회 실패(code={$oCode}) — SP-API 앱 Orders 권한 확인"];
         }
         $orders = [];
         // [287차] 라인아이템(sku/상품명/단가) 보강 — 종전엔 'Amazon Order'·sku'' 고정이라 재고차감·WMS·CRM 상품귀속이
@@ -643,7 +643,7 @@ final class ChannelSync
         $auth = "CEA algorithm=HmacSHA256, access-key={$accessKey}, signed-date={$datetime}, signature={$signature}";
         [$code, $body] = self::httpGet($host . $path . '?' . $query, ['Authorization' => $auth, 'Content-Type' => 'application/json;charset=UTF-8']);
         if ($code >= 400) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Coupang 주문 조회 실패(code={$code}) — access_key/secret_key/vendor_id 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Coupang 주문 조회 실패(code={$code}) — access_key/secret_key/vendor_id 확인"];
         }
         $orders = [];
         foreach ((array)($body['data'] ?? []) as $os) {
@@ -1332,12 +1332,12 @@ final class ChannelSync
             $q['sign'] = self::tiktokSign($appSecret, $path, $q, '');
             [$sCode, $sBody] = self::httpGet($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json']);
             if ($sCode >= 400 || (int)($sBody['code'] ?? -1) !== 0) {
-                return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"TikTok Shop 샵 조회 실패(code={$sCode}) — app_key/app_secret/access_token 확인"];
+                return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"TikTok Shop 샵 조회 실패(code={$sCode}) — app_key/app_secret/access_token 확인"];
             }
             $shops = (array)($sBody['data']['shops'] ?? []);
             $shopCipher = (string)($shops[0]['cipher'] ?? '');
             if ($shopCipher === '') {
-                return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: 인가된 샵 없음 — 판매자 앱 인증 확인'];
+                return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>'TikTok Shop: 인가된 샵 없음 — 판매자 앱 인증 확인'];
             }
         }
         // 2) 최근 7일 주문 검색(POST). query=서명대상(app_key/timestamp/shop_cipher/page_size), body=기간 필터.
@@ -1347,7 +1347,7 @@ final class ChannelSync
         $q['sign'] = self::tiktokSign($appSecret, $path, $q, (string)$bodyJson);
         [$oCode, $oBody] = self::httpPost($base . $path . '?' . http_build_query($q), ['x-tts-access-token' => $accessToken, 'Content-Type' => 'application/json'], (string)$bodyJson);
         if ($oCode >= 400 || (int)($oBody['code'] ?? -1) !== 0) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"TikTok Shop 주문 조회 실패(code={$oCode}) — 권한/shop_cipher 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"TikTok Shop 주문 조회 실패(code={$oCode}) — 권한/shop_cipher 확인"];
         }
         $orders = [];
         foreach ((array)($oBody['data']['orders'] ?? []) as $o) {
@@ -1443,13 +1443,13 @@ final class ChannelSync
         [$sCode, $sBody] = self::httpPost('https://api.rms.rakuten.co.jp/es/2.0/order/searchOrder/', $headers, (string)$searchBody);
         $orderNumbers = (array)($sBody['orderNumberList'] ?? []);
         if ($sCode >= 400 || empty($orderNumbers)) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Rakuten 주문 검색(code={$sCode}) — service_secret/license_key 또는 기간내 주문 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Rakuten 주문 검색(code={$sCode}) — service_secret/license_key 또는 기간내 주문 확인"];
         }
         // 2) 주문 상세 조회.
         $getBody = json_encode(['orderNumberList' => array_slice($orderNumbers, 0, 100), 'version' => 7], JSON_UNESCAPED_UNICODE);
         [$gCode, $gBody] = self::httpPost('https://api.rms.rakuten.co.jp/es/2.0/order/getOrder/', $headers, (string)$getBody);
         if ($gCode >= 400) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Rakuten 주문 상세 실패(code={$gCode})"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Rakuten 주문 상세 실패(code={$gCode})"];
         }
         $orders = [];
         foreach ((array)($gBody['OrderModelList'] ?? []) as $o) {
@@ -1528,7 +1528,7 @@ final class ChannelSync
         );
         $accessToken = (string)($tBody['access_token'] ?? '');
         if ($accessToken === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Cafe24 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Cafe24 토큰 발급 실패(code={$tCode}) — client_id/secret/refresh_token 확인"];
         }
         // 2) orders(최근 7일). embed=items 로 품목 동시조회.
         $url = "{$apiBase}/admin/orders?start_date=" . gmdate('Y-m-d', time() - 7 * 86400) . '&end_date=' . gmdate('Y-m-d') . '&limit=50&embed=items';
@@ -1538,7 +1538,7 @@ final class ChannelSync
             'X-Cafe24-Api-Version' => '2024-06-01',
         ]);
         if ($oCode >= 400 || !isset($oBody['orders'])) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Cafe24 주문 조회 실패(code={$oCode}) — Admin API mall.read_order 권한 확인"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Cafe24 주문 조회 실패(code={$oCode}) — Admin API mall.read_order 권한 확인"];
         }
         $orders = [];
         foreach ((array)($oBody['orders'] ?? []) as $o) {
@@ -1631,7 +1631,7 @@ final class ChannelSync
         $auth = '&consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
         [$pCode, $pBody] = self::httpGet("{$site}/wp-json/wc/v3/products?per_page=50{$auth}");
         [$oCode, $oBody] = self::httpGet("{$site}/wp-json/wc/v3/orders?per_page=50{$auth}");
-        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"WooCommerce 연결 실패(code={$pCode}/{$oCode}) — site_url·키/권한 확인"];
+        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"WooCommerce 연결 실패(code={$pCode}/{$oCode}) — site_url·키/권한 확인"];
         $products = [];
         foreach ((array)$pBody as $p) {
             if (!is_array($p) || !isset($p['id'])) continue;
@@ -1668,7 +1668,7 @@ final class ChannelSync
         $h = ['Authorization'=>'Bearer ' . $tok, 'Accept'=>'application/json'];
         [$pCode, $pBody] = self::httpGet("{$base}/rest/V1/products?searchCriteria%5BpageSize%5D=50", $h);
         [$oCode, $oBody] = self::httpGet("{$base}/rest/V1/orders?searchCriteria%5BpageSize%5D=50", $h);
-        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Magento 연결 실패(code={$pCode}/{$oCode}) — base_url·토큰/권한 확인"];
+        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Magento 연결 실패(code={$pCode}/{$oCode}) — base_url·토큰/권한 확인"];
         $products = [];
         foreach ((array)($pBody['items'] ?? []) as $p) {
             $qty = 0; foreach (($p['extension_attributes']['stock_item'] ?? []) as $sk=>$sv) { if ($sk==='qty') $qty=(int)$sv; }
@@ -1705,7 +1705,7 @@ final class ChannelSync
             ['Authorization'=>'Basic ' . $basic, 'Content-Type'=>'application/x-www-form-urlencoded', 'Accept'=>'application/json', 'WM_SVC.NAME'=>'Walmart Marketplace', 'WM_QOS.CORRELATION_ID'=>$cid2],
             'grant_type=client_credentials');
         $tok = (string)($tBody['access_token'] ?? '');
-        if ($tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Walmart 토큰 발급 실패(code={$tCode}) — client_id/secret 확인"];
+        if ($tok === '') return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Walmart 토큰 발급 실패(code={$tCode}) — client_id/secret 확인"];
         $h = ['WM_SEC.ACCESS_TOKEN'=>$tok, 'Authorization'=>'Basic ' . $basic, 'WM_QOS.CORRELATION_ID'=>$cid2, 'WM_SVC.NAME'=>'Walmart Marketplace', 'Accept'=>'application/json'];
         $createdAfter = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400);
         [$oCode, $oBody] = self::httpGet('https://marketplace.walmartapis.com/v3/orders?limit=50&createdStartDate=' . rawurlencode($createdAfter), $h);
@@ -1803,7 +1803,7 @@ final class ChannelSync
         $q = http_build_query(['partner_id'=>$pid, 'timestamp'=>$ts, 'access_token'=>$tok, 'shop_id'=>$shop, 'sign'=>$sign($path),
             'time_range_field'=>'create_time', 'time_from'=>$ts - 15 * 86400, 'time_to'=>$ts, 'page_size'=>50]);
         [$lCode, $lBody] = self::httpGet("{$host}{$path}?{$q}");
-        if ($lCode >= 400 || !empty($lBody['error'])) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Shopee 주문목록 실패(code={$lCode}) — " . (string)($lBody['message'] ?? 'partner/token/shop 확인')];
+        if ($lCode >= 400 || !empty($lBody['error'])) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Shopee 주문목록 실패(code={$lCode}) — " . (string)($lBody['message'] ?? 'partner/token/shop 확인')];
         $sns = array_values(array_filter(array_map(fn($r) => (string)($r['order_sn'] ?? ''), (array)($lBody['response']['order_list'] ?? []))));
         $orders = [];
         if ($sns) {
@@ -1864,7 +1864,7 @@ final class ChannelSync
         [$oCode, $oBody] = self::lazadaGet($host, '/orders/get', $appKey, $appSecret, $tok,
             ['created_after'=>gmdate('c', time() - 30 * 86400), 'sort_direction'=>'DESC', 'offset'=>'0', 'limit'=>'50']);
         if ($oCode >= 400 || isset($oBody['code']) && (string)$oBody['code'] !== '0') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Lazada 주문조회 실패(code={$oCode}) — " . (string)($oBody['message'] ?? 'app_key/secret/token/region 확인')];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Lazada 주문조회 실패(code={$oCode}) — " . (string)($oBody['message'] ?? 'app_key/secret/token/region 확인')];
         }
         // [287차] 주문 라인아이템(상품명·sku·단가) 보강 — 종전 product_name/sku 빈값으로 재고차감/CRM귀속 skip 이던 갭.
         //   ★N+1 하드캡(상위 20건·최신우선)+스로틀, 실패 시 빈값 유지(무회귀·저장요청 동기실행 지연방어).
@@ -1928,7 +1928,7 @@ final class ChannelSync
         ]);
         [$oCode, $oBody] = self::httpGet($url);
         if ($oCode >= 400 || (isset($oBody['ResultCode']) && (int)$oBody['ResultCode'] !== 0)) {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Qoo10 주문조회 실패(code={$oCode}) — QSM API 키/권한 확인(라이브 셀러 계정 필요)"];
+            return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Qoo10 주문조회 실패(code={$oCode}) — QSM API 키/권한 확인(라이브 셀러 계정 필요)"];
         }
         // [287차] 정산통화 오버라이드 — QSM(ebayjapan.qapi)=JP 게이트웨이라 기본 JPY 정확. 단 비일본(KR 등) 셀러가
         //   자격증명에 currency 를 지정하면 그 값을 우선(응답 currency > cred currency > JPY). 비JPY 셀러 매출 팽창 방지.
@@ -1962,7 +1962,7 @@ final class ChannelSync
               . '<SellerId>' . htmlspecialchars($seller) . '</SellerId></Req>';
         [$oCode, $raw, $err] = self::httpReqXml('https://circus.shopping.yahooapis.jp/ShoppingWebService/V1/orderList',
             ['Authorization'=>'Bearer ' . $tok, 'Content-Type'=>'application/xml'], $body);
-        if ($oCode >= 400 || $raw === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"Yahoo! Japan 주문조회 실패(code={$oCode}) — access_token/seller_id 확인(라이브 스토어 계정 필요)"];
+        if ($oCode >= 400 || $raw === '') return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Yahoo! Japan 주문조회 실패(code={$oCode}) — access_token/seller_id 확인(라이브 스토어 계정 필요)"];
         $orders = [];
         try {
             $xml = @simplexml_load_string($raw);
@@ -1990,7 +1990,7 @@ final class ChannelSync
             'partner_key'=>$pkey, 'key'=>$apiKey, 'method'=>'getOrderList', 'date_type'=>'order',
             'start_date'=>gmdate('Y-m-d', time() - 30 * 86400), 'end_date'=>gmdate('Y-m-d'), 'page'=>1, 'size'=>50, 'return'=>'json',
         ]));
-        if ($oCode >= 400 || empty($oBody)) return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"godomall 주문조회 실패(code={$oCode}) — partner_key/api_key/mall_url 확인(라이브 스토어 계정 필요)"];
+        if ($oCode >= 400 || empty($oBody)) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"godomall 주문조회 실패(code={$oCode}) — partner_key/api_key/mall_url 확인(라이브 스토어 계정 필요)"];
         $orders = [];
         foreach ((array)($oBody['data']['orders'] ?? $oBody['orders'] ?? []) as $o) {
             $orders[] = [

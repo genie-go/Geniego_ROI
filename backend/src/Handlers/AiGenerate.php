@@ -22,7 +22,9 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 final class AiGenerate
 {
     private const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
-    private const DEFAULT_MODEL = 'claude-3-5-haiku-20241022'; // 빠르고 저렴한 모델
+    // [현 차수] claude-3-5-haiku-20241022 는 2026-02-19 은퇴(API 404) → 현행 저가 모델로 교체.
+    //   종전엔 정상 키를 등록하고 model 미지정 시 죽은 ID로 404 → "연결 실패" 오진 + 이메일/광고문구 생성 무동작.
+    private const DEFAULT_MODEL = 'claude-haiku-4-5'; // 빠르고 저렴한 모델(Haiku 4.5)
 
     private static function plan(Request $req): string
     {

@@ -268,7 +268,9 @@ final class Mapping {
 
         // [266차] 스텁 제거 — 정규화 정본 테이블(normalized_activity_event)에서 이 raw_value 를 쓰는
         //   실제 행수를 테넌트 스코프로 카운트(재캐노니컬라이즈 영향 추정). field 는 SQL 주입 차단 위해 화이트리스트.
-        $tenant = (string)($request->getAttribute('auth_tenant') ?? '');
+        // [현 차수] 다른 메서드와 동일하게 self::tenantId 로 통일 — 종전 raw auth_tenant 단독(폴백 없음)이라
+        //   세션인증 경로(미들웨어 미주입)에서 tenant='' → 영향행 0 으로 단락, apply() 가 실제 재작성하는데 미리보기가 과소보고.
+        $tenant = self::tenantId($request);
         $COLMAP = [ // 매핑 field → normalized_activity_event 실컬럼
             'vendor'=>'vendor', 'channel'=>'channel', 'campaign'=>'campaign_name', 'campaign_name'=>'campaign_name',
             'adset'=>'adset_name', 'adset_name'=>'adset_name', 'keyword'=>'keyword',

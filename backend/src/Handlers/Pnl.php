@@ -478,7 +478,26 @@ final class Pnl
         //   대상: COGS(매입원가)·광고비·플랫폼수수료·배송비(공제 매입). 쿠폰/반품비는 매출차감(contra-revenue)이라
         //   매입 아님 → 제외(이중계상 방지). 손익 마진엔 미반영(별도 납부 뷰).
         $comp = self::components($pdo, $tenant, $from, $to);
-        $vatInclusiveInputs = $comp['cogs'] + $comp['adSpend'] + $comp['platformFee'] + $comp['shippingCost'];
+        // [현 차수] 매입세액 베이스에서 해외 광고비(리버스차지 대상·국내 매입세액 없음) 제외 — 국내 세금계산서(VAT 10% 포함)
+        //   발행 광고매체만 VAT-inclusive 매입으로 인정. 종전 adSpend 전액 10/110 공제는 Google/Meta 등 해외광고비까지
+        //   공제해 net_vat_payable 과소(환급 과대)였다(광고비 큰 테넌트일수록 오차 확대).
+        $domesticAdSpend = 0.0;
+        try {
+            $domChannels = ['naver_sa','naver_searchad','naver_shopping','kakao_moment','kakao']; // 국내 세금계산서 발행 매체
+            $dph = implode(',', array_fill(0, count($domChannels), '?'));
+            if ($from !== '' && $to !== '') {
+                $ds = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND LOWER(channel) IN ($dph) AND SUBSTR(date,1,10)>=? AND SUBSTR(date,1,10)<=?");
+                $ds->execute(array_merge([$tenant], $domChannels, [$from, $to]));
+            } elseif ($from !== '') {
+                $ds = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND LOWER(channel) IN ($dph) AND SUBSTR(date,1,10)>=?");
+                $ds->execute(array_merge([$tenant], $domChannels, [$from]));
+            } else {
+                $ds = $pdo->prepare("SELECT COALESCE(SUM(spend),0) FROM performance_metrics WHERE tenant_id=? AND LOWER(channel) IN ($dph)");
+                $ds->execute(array_merge([$tenant], $domChannels));
+            }
+            $domesticAdSpend = (float)$ds->fetchColumn();
+        } catch (\Throwable $e) { $domesticAdSpend = 0.0; }
+        $vatInclusiveInputs = $comp['cogs'] + $domesticAdSpend + $comp['platformFee'] + $comp['shippingCost'];
         $inputVat = $vatRate > 0 ? round($vatInclusiveInputs * $vatRate / (1 + $vatRate)) : 0.0;
         $outputVat = round($outputVat);
         $netVat = $outputVat - $inputVat; // 납부(+)/환급(-) 세액

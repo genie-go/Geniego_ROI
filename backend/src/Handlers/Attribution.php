@@ -486,9 +486,15 @@ final class Attribution {
         $since  = (string)($q['since'] ?? date('Y-m-d', strtotime('-30 days')));
         $until  = (string)($q['until'] ?? date('Y-m-d'));
 
+        // [현 차수] 취소/반품 주문 제외 — attribution_result 는 취소 시 삭제/영점화되지 않아 형제(엔진 loadJourneys:1166·
+        //   AttributionMetrics·geo-holdout)와 카운트 불일치였다. order_id↔channel_order_id NOT EXISTS(2축 observedExclusionInline).
+        //   픽셀 단독 전환(order_id NULL/빈값)은 매칭 행 부재→NOT EXISTS 참→포함 유지. 인라인 리터럴이라 바인딩 불변.
+        $exQ = ' AND NOT EXISTS (SELECT 1 FROM channel_orders co WHERE co.tenant_id = attribution_result.tenant_id '
+             . 'AND co.channel_order_id = attribution_result.order_id AND (' . OrderHub::observedExclusionInline('co') . ')) ';
         $stmt = $pdo->prepare(
-            'SELECT * FROM attribution_result WHERE tenant_id=? AND DATE(created_at)>=? AND DATE(created_at)<=?
-             ORDER BY created_at DESC LIMIT ' . max(1, (int)$limit) // 209차 P1: LIMIT ? 배열바인딩 MySQL 500 → 검증 int inline
+            'SELECT * FROM attribution_result WHERE tenant_id=? AND DATE(created_at)>=? AND DATE(created_at)<=?'
+             . $exQ .
+             'ORDER BY created_at DESC LIMIT ' . max(1, (int)$limit) // 209차 P1: LIMIT ? 배열바인딩 MySQL 500 → 검증 int inline
         );
         $stmt->execute([$tenant, $since, $until]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -510,6 +516,9 @@ final class Attribution {
         $since  = (string)($q['since'] ?? date('Y-m-d', strtotime('-30 days')));
         $until  = (string)($q['until'] ?? date('Y-m-d'));
 
+        // [현 차수] 취소/반품 제외(results 와 동일 2축 NOT EXISTS) — 형제 경로와 orders 카운트 정합.
+        $exQ = ' AND NOT EXISTS (SELECT 1 FROM channel_orders co WHERE co.tenant_id = attribution_result.tenant_id '
+             . 'AND co.channel_order_id = attribution_result.order_id AND (' . OrderHub::observedExclusionInline('co') . ')) ';
         $stmt = $pdo->prepare(
             'SELECT attributed_channel,
                     COUNT(*) AS orders,
@@ -517,8 +526,9 @@ final class Attribution {
                     ROUND(MAX(confidence_score),4) AS max_confidence,
                     ROUND(MIN(confidence_score),4) AS min_confidence
              FROM attribution_result
-             WHERE tenant_id=? AND DATE(created_at)>=? AND DATE(created_at)<=?
-             GROUP BY attributed_channel
+             WHERE tenant_id=? AND DATE(created_at)>=? AND DATE(created_at)<=?'
+             . $exQ .
+            'GROUP BY attributed_channel
              ORDER BY orders DESC'
         );
         $stmt->execute([$tenant, $since, $until]);

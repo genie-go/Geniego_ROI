@@ -312,7 +312,10 @@ final class KrChannel {
             }
             // Ensure period fields default to today
             if (!isset($n['period_start'])) $n['period_start'] = date('Y-m-01');
-            if (!isset($n['period_end']))   $n['period_end']   = date('Y-m-t');
+            // [현 차수] period_end 미매핑 채널(11st/gmarket/auction: 정산일자·정산기간→period_start 만 매핑)은
+            //   종전 당월말일(date('Y-m-t'))로 강제 → 6월 정산을 7월 적재 시 start=6월/end=7/31 로 어떤 기간경계 조회에서도
+            //   소실(KR 정산 매출·수수료 과소집계). 단일 정산일 채널은 정산일자를 시작·종료 양쪽으로 사용.
+            if (!isset($n['period_end']))   $n['period_end']   = $n['period_start'] ?? date('Y-m-t');
             $normalized[] = $n;
         }
 

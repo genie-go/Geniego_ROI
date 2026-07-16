@@ -180,7 +180,9 @@ const CHANNEL_FIELDS = {
   qoo10:     [{ k: 'api_key', label: 'QSM API 키', secret: true }, { k: 'seller_id', label: '셀러 ID' }, { k: 'currency', label: '정산 통화 (예: JPY/KRW · 미입력 시 JPY)', opt: true }],
   // [227차] tiktok_shop — 실 어댑터(ChannelSync tiktokFetch v202309 HMAC+shop_cipher)가 요구하는 자격증명.
   //   기존엔 CHANNEL_FIELDS 누락으로 일반 api_key 폴백만 입력돼 등록이 불완전(app_key/app_secret/access_token 미입력)했음.
-  tiktok_shop: [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'access_token', label: '액세스 토큰', secret: true }, { k: 'shop_cipher', label: 'Shop Cipher (선택)' }],
+  // [현 차수] TikTok Shop 은 App Key·App Secret·Service ID 만 발급받아 입력하고, Access Token 은 [인증] 버튼으로 OAuth 인증 시
+  //   동적 발급·자동 저장된다(수동입력 불필요). shop_cipher 도 첫 동기화에서 자동 도출. → access_token/shop_cipher 는 선택.
+  tiktok_shop: [{ k: 'app_key', label: 'App Key' }, { k: 'app_secret', label: 'App Secret', secret: true }, { k: 'service_id', label: 'Service ID (OAuth 인증용 · 파트너센터 Manage API)' }, { k: 'access_token', label: '액세스 토큰 (OAuth 인증으로 자동 발급 · 수동입력 불필요)', secret: true, opt: true }, { k: 'shop_cipher', label: 'Shop Cipher (인증 후 자동 도출 · 선택)', opt: true }],
   // 자사몰 D2C
   shopify:   [{ k: 'shop_domain', label: 'Shop 도메인 (xxx.myshopify.com)' }, { k: 'access_token', label: 'Admin API 액세스 토큰', secret: true }],
   woocommerce: [{ k: 'site_url', label: '사이트 URL' }, { k: 'consumer_key', label: 'Consumer Key', secret: true }, { k: 'consumer_secret', label: 'Consumer Secret', secret: true }],
@@ -188,38 +190,38 @@ const CHANNEL_FIELDS = {
   cafe24:    [{ k: 'mall_id', label: '몰 ID' }, { k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'refresh_token', label: 'Refresh Token (OAuth2)', secret: true }],
   godomall:  [{ k: 'partner_key', label: '파트너 키', secret: true }, { k: 'api_key', label: 'API 키', secret: true }, { k: 'mall_url', label: '스토어 도메인 (xxx.godomall.com)' }],
   // 물류/배송
-  cj:          [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
-  lotte:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
-  hanjin:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
-  logen:       [{ k: 'api_key', label: '스마트택배 추적 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
-  epost:       [{ k: 'api_key', label: '스마트택배 추적 API 키 (우체국택배)', secret: true }, { k: 'cust_code', label: '계약(고객) 코드' }],
+  cj:          [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
+  lotte:       [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
+  hanjin:      [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
+  logen:       [{ k: 'api_key', label: '스마트택배 추적 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
+  epost:       [{ k: 'api_key', label: '스마트택배 추적 API 키 (우체국택배)', secret: true }, { k: 'cust_code', label: '계약(고객) 코드 (참고용·선택)', opt: true }],
   smarttracker:[{ k: 'api_key', label: '스마트택배 t_key (전 택배사 통합 추적)', secret: true }],
   ocl_sameday: [{ k: 'api_key', label: '지니고 당일배송 API 키', secret: true }, { k: 'merchant_id', label: '머천트 ID' }, { k: 'region', label: '서비스 권역(예: 수도권)' }],
   fulfillment: [{ k: 'api_key', label: '3PL API 키', secret: true }, { k: 'warehouse_id', label: '창고 ID' }],
   // 국제특송
-  dhl:       [{ k: 'api_key', label: 'DHL API 키', secret: true }, { k: 'account_number', label: '계정 번호(Account)' }],
-  fedex:     [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
-  ups:       [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'account_number', label: '계정 번호' }],
-  ems:       [{ k: 'api_key', label: '우체국 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  dhl:       [{ k: 'api_key', label: 'DHL API 키', secret: true }, { k: 'account_number', label: '계정 번호(Account · 추적은 API키만으로 동작 · 선택)', opt: true }],
+  fedex:     [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'api_secret', label: 'API Secret', secret: true }, { k: 'account_number', label: '계정 번호 (추적은 API키만으로 동작 · 선택)', opt: true }],
+  ups:       [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'account_number', label: '계정 번호 (추적은 API키만으로 동작 · 선택)', opt: true }],
+  ems:       [{ k: 'api_key', label: '우체국 API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
   // [229차] TNT는 FedEx에 인수(2016)되어 FedEx Developer Portal/스킴 사용 → fedex와 동일 자격증명.
-  tnt:       [{ k: 'api_key', label: 'API Key (Client ID)', secret: true }, { k: 'api_secret', label: 'API Secret (Client Secret)', secret: true }, { k: 'account_number', label: '계정 번호' }],
-  cj_intl:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드' }],
+  tnt:       [{ k: 'api_key', label: 'API Key (Client ID)', secret: true }, { k: 'api_secret', label: 'API Secret (Client Secret)', secret: true }, { k: 'account_number', label: '계정 번호 (추적은 API키만으로 동작 · 선택)', opt: true }],
+  cj_intl:   [{ k: 'api_key', label: 'API 키', secret: true }, { k: 'cust_code', label: '고객(계약) 코드 (참고용·선택)', opt: true }],
   // 결제 게이트웨이(PG)
   inicis:    [{ k: 'mid', label: '상점 ID(MID)' }, { k: 'sign_key', label: '사인키(SignKey)', secret: true }, { k: 'api_key', label: 'API 키', secret: true }],
-  toss:      [{ k: 'client_key', label: '클라이언트 키' }, { k: 'secret_key', label: '시크릿 키', secret: true }],
+  toss:      [{ k: 'secret_key', label: '시크릿 키', secret: true }, { k: 'client_key', label: '클라이언트 키 (결제위젯용 · 정산수집 불필요 · 선택)', opt: true }],
   kcp:       [{ k: 'site_cd', label: '사이트 코드' }, { k: 'site_key', label: '사이트 키', secret: true }],
   // [229차] 신 카카오페이 개발자센터(developers.kakaopay.com)는 Secret Key(Authorization: SECRET_KEY)+CID 방식. 구 admin_key(KakaoAK) 폐기.
   kakaopay:  [{ k: 'cid', label: '가맹점 코드(CID)' }, { k: 'secret_key', label: 'Secret Key (Authorization: SECRET_KEY)', secret: true }],
   naverpay:  [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Client Secret', secret: true }, { k: 'partner_id', label: '파트너 ID(선택)' }],
   paypal:    [{ k: 'client_id', label: 'Client ID' }, { k: 'client_secret', label: 'Secret', secret: true }],
-  stripe:    [{ k: 'publishable_key', label: 'Publishable Key' }, { k: 'secret_key', label: 'Secret Key', secret: true }],
+  stripe:    [{ k: 'secret_key', label: 'Secret Key', secret: true }, { k: 'publishable_key', label: 'Publishable Key (클라이언트용 · 정산수집 불필요 · 선택)', opt: true }],
   // [228차] 글로벌 결제 전문 PG 자격증명
   // [229차] 백엔드 Paddle.php는 Billing v2(api.paddle.com·Bearer) → 단일 API 키(pdl_live_…). 구 Classic(vendor_id+auth_code) 폐기.
   paddle:    [{ k: 'api_key', label: 'API 키 (Billing v2 · Bearer pdl_live_…)', secret: true }],
   adyen:     [{ k: 'api_key', label: 'API 키 (X-API-Key)', secret: true }, { k: 'merchant_account', label: 'Merchant Account' }, { k: 'batch_start', label: '시작 정산배치 번호 (정산 첫 수집용 · CA의 최근 settlement batch 번호)', opt: true }],
   square:    [{ k: 'access_token', label: 'Access Token', secret: true }, { k: 'location_id', label: 'Location ID' }],
   braintree: [{ k: 'merchant_id', label: 'Merchant ID' }, { k: 'public_key', label: 'Public Key' }, { k: 'private_key', label: 'Private Key', secret: true }],
-  checkout:  [{ k: 'secret_key', label: 'Secret Key (sk_)', secret: true }, { k: 'public_key', label: 'Public Key (pk_)' }],
+  checkout:  [{ k: 'secret_key', label: 'Secret Key (sk_)', secret: true }, { k: 'public_key', label: 'Public Key (pk_ · 클라이언트용 · 정산수집 불필요 · 선택)', opt: true }],
   mollie:    [{ k: 'api_key', label: 'Live API 키 (live_)', secret: true }],
   razorpay:  [{ k: 'key_id', label: 'Key ID (rzp_live_)' }, { k: 'key_secret', label: 'Key Secret', secret: true }],
   klarna:    [{ k: 'username', label: 'API Username (MID/PID)' }, { k: 'password', label: 'API Password', secret: true }, { k: 'region', label: '리전 (eu / na / oc)' }],
@@ -290,6 +292,7 @@ const OAUTH_PROVIDER = {
   meta_ads: 'meta', facebook: 'facebook', instagram: 'facebook',
   google_ads: 'google', ga4: 'google',
   tiktok_business: 'tiktok',
+  tiktok_shop: 'tiktok_shop', // [현 차수] TikTok Shop(커머스) 원클릭 OAuth — 인증 후 access_token 자동저장·shop_cipher 자동도출
   kakao_moment: 'kakao',
   naver_sa: 'naver', naver_smartstore: 'naver', naverpay: 'naver',
 };

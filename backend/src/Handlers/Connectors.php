@@ -376,6 +376,16 @@ final class Connectors
     /**
      * Refresh LWA access token using client credentials + refresh_token
      */
+    /** [현 차수] Amazon SP-API marketplace → 리전 호스트 매핑(NA/EU/FE). ChannelSync::amazonEndpoint 정합. */
+    private static function amazonSpHost(string $mp): string
+    {
+        $fe = ['A1VC38T7YXB528','A39IBJ37TRP1C6','A19VAU5U5O7RUS']; // JP/AU/SG
+        $eu = ['A1F83G8C2ARO7P','A1PA6795UKMFR9','A13V1IB3VIYZZH','APJ6JRA9NG5V4','A1RKKUPIHCS9HS','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','ARBP9OOSHTCHU','A33AVAJ2PDY3EV','A17E79C6D8DWNP','A2VIGQ35RCS4UG','AMEN7PMS3EDWL']; // UK/DE/FR/IT/ES/NL/SE/PL/EG/TR/AE/SA/BE
+        if (in_array($mp, $fe, true)) return 'sellingpartnerapi-fe.amazon.com';
+        if (in_array($mp, $eu, true)) return 'sellingpartnerapi-eu.amazon.com';
+        return 'sellingpartnerapi-na.amazon.com'; // US/CA/MX/BR 기본
+    }
+
     private static function amazonRefreshToken(string $clientId, string $clientSecret, string $refreshToken): ?string
     {
         [$code, $body, $err] = self::httpPost(
@@ -410,8 +420,12 @@ final class Connectors
         $clientId      = (string)(getenv('AMAZON_CLIENT_ID')      ?: '');
         $clientSecret  = (string)(getenv('AMAZON_CLIENT_SECRET')   ?: '');
         $refreshToken  = (string)(getenv('AMAZON_REFRESH_TOKEN')   ?: '');
-        $marketplaceId = (string)($q['marketplace_id'] ?? getenv('AMAZON_MARKETPLACE_ID') ?: 'ATVPDKIKX0DER');
-        $endpoint      = (string)(getenv('AMAZON_SP_ENDPOINT') ?: 'https://sellingpartnerapi-na.amazon.com');
+        // [현 차수] marketplace_id 를 연동허브 자격증명(channel=amazon_spapi)에서도 도출 — 종전 query/env 만 봐서
+        //   미지정 시 US(ATVPDKIKX0DER) 고정. KR/JP/EU 셀러가 marketplace_id 를 등록해도 이 v421 경로가 US 로 호출→빈값이었다.
+        $marketplaceId = (string)($q['marketplace_id'] ?? getenv('AMAZON_MARKETPLACE_ID') ?: self::loadCred($tenant, 'amazon_spapi', 'marketplace_id') ?: 'ATVPDKIKX0DER');
+        // [현 차수] 리전 엔드포인트를 marketplace 로 도출(NA/EU/FE) — 종전 NA 고정이라 EU/JP 마켓이면 profile 부재로 영구 실패.
+        //   env(AMAZON_SP_ENDPOINT) 명시 시 우선. ChannelSync::amazonEndpoint 매핑과 동일.
+        $endpoint      = (string)(getenv('AMAZON_SP_ENDPOINT') ?: ('https://' . self::amazonSpHost($marketplaceId)));
 
         // Try DB fallback
         if ($refreshToken === '') {
@@ -475,7 +489,8 @@ final class Connectors
             'Accept'             => 'application/json',
         ]);
 
-        if ($err || $code >= 500) {
+        // [현 차수] 4xx(401/403: LWA 토큰만료·Reports 권한 부재) 가짜성공 차단 — 종전 5xx만 걸러 인증실패가 live:true 로 위장됐다.
+        if ($err || $code >= 400) {
             return TemplateResponder::respond($response->withStatus(502), [
                 'ok'    => false,
                 'error' => $err ?? "SP-API error $code",
@@ -507,7 +522,7 @@ final class Connectors
         $clientId     = (string)(getenv('AMAZON_CLIENT_ID')     ?: '');
         $clientSecret = (string)(getenv('AMAZON_CLIENT_SECRET') ?: '');
         $refreshToken = (string)(getenv('AMAZON_REFRESH_TOKEN') ?: '');
-        $endpoint     = (string)(getenv('AMAZON_SP_ENDPOINT')   ?: 'https://sellingpartnerapi-na.amazon.com');
+        $endpoint     = (string)(getenv('AMAZON_SP_ENDPOINT')   ?: ''); // [현 차수] marketplace 도출 후 리전 매핑(아래)
 
         if ($refreshToken === '') {
             $tokenRow     = self::loadToken($tenant, 'amazon');
@@ -541,7 +556,9 @@ final class Connectors
             }
         }
 
-        $marketplaceId = (string)($body['marketplace_id'] ?? getenv('AMAZON_MARKETPLACE_ID') ?: 'ATVPDKIKX0DER');
+        // [현 차수] marketplace 를 연동허브 자격증명에서도 도출 + 리전 엔드포인트 매핑(NA/EU/FE). 종전 US 고정 결함 해소.
+        $marketplaceId = (string)($body['marketplace_id'] ?? getenv('AMAZON_MARKETPLACE_ID') ?: self::loadCred($tenant, 'amazon_spapi', 'marketplace_id') ?: 'ATVPDKIKX0DER');
+        if ($endpoint === '') $endpoint = 'https://' . self::amazonSpHost($marketplaceId);
         $startDate     = (string)($body['start_date'] ?? date('Y-m-d', strtotime('-7 days')));
         $endDate       = (string)($body['end_date']   ?? date('Y-m-d'));
 
@@ -557,7 +574,8 @@ final class Connectors
             'Accept'             => 'application/json',
         ]);
 
-        if ($err || $code >= 500) {
+        // [현 차수] 4xx 가짜성공 차단 — 종전 5xx만 걸러 401/403 이 live:true 빈 주문으로 위장됐다.
+        if ($err || $code >= 400) {
             return TemplateResponder::respond($response->withStatus(502), ['ok' => false, 'error' => $err ?? "SP-API $code"]);
         }
 
@@ -1199,7 +1217,8 @@ final class Connectors
         ];
         [$code, $body, $err] = self::httpGet($url, $headers);
 
-        if ($err || $code >= 500) {
+        // [현 차수] 4xx(401/403: 서명·타임스탬프·권한 실패) 가짜성공 차단 — 종전 5xx만 걸러 인증실패가 live:true 로 위장됐다.
+        if ($err || $code >= 400) {
             return TemplateResponder::respond($response->withStatus(502), [
                 'ok' => false, 'provider' => 'naver_searchad', 'error' => $err ?? "API error $code",
             ]);
@@ -1256,12 +1275,15 @@ final class Connectors
         // [233차 감사 P1] 서명 정정 — 기존 gmdate('ymmdd')(月 'm' 중복 → yyMMMdd) + 서명메시지의 '{method}' 리터럴
         //   (미보간 → 서명 오염)로 쿠팡이 항상 401 거부, 실 테넌트 주문이 영구 0 이었다. ChannelSync::coupangFetch 정합.
         $datetime  = gmdate('ymd\THis\Z'); // yyMMdd'T'HHmmss'Z'
-        $path      = "/v2/providers/seller_api/apis/api/v1/vendor-items/orders";
+        // [현 차수] 정본 경로(ordersheets)로 교체 — 종전 seller_api/apis/api/v1/vendor-items/orders 는 주문 조회 경로가
+        //   아니라(상품 아이템 경로) 실 테넌트에서 404 를 받았고, 아래 게이트가 5xx만 걸러 404 가 live:true 빈 주문으로
+        //   위장됐다(자격증명·주문 정상이어도 영구 0건). ChannelSync::coupangFetch·ChannelCreds::pingCoupangCreds 정합.
+        $path      = "/v2/providers/openapi/apis/api/v4/vendors/{$vendorId}/ordersheets";
         $queryStr  = http_build_query([
-            'createdAtFrom' => $startDate . 'T00:00:00',
-            'createdAtTo'   => $endDate   . 'T23:59:59',
+            'createdAtFrom' => $startDate,
+            'createdAtTo'   => $endDate,
             'status'        => $status,
-            'limit'         => min(50, (int)($q['limit'] ?? 20)),
+            'maxPerPage'    => min(50, (int)($q['limit'] ?? 20)),
         ]);
         $message   = "{$datetime}GET{$path}{$queryStr}";
         $signature = hash_hmac('sha256', $message, $secretKey);
@@ -1273,7 +1295,8 @@ final class Connectors
             'Content-Type'  => 'application/json;charset=UTF-8',
         ]);
 
-        if ($err || $code >= 500) {
+        // [현 차수] 4xx(401/403/404) 가짜성공 차단 — 종전 5xx만 걸러 인증실패·경로오류가 live:true 로 위장됐다.
+        if ($err || $code >= 400) {
             return TemplateResponder::respond($response->withStatus(502), [
                 'ok' => false, 'provider' => 'coupang', 'error' => $err ?? "API error $code",
             ]);

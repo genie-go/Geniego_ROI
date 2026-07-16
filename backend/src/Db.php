@@ -369,10 +369,13 @@ final class Db
         if (isset($done[$oid])) return;
         try {
             if (self::isMySQL($pdo)) {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, provider VARCHAR(32) DEFAULT 'claude', api_key TEXT, model VARCHAR(64) DEFAULT 'claude-3-5-haiku-20241022', is_active TINYINT(1) DEFAULT 1, updated_at VARCHAR(40), UNIQUE KEY uq_ai_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, provider VARCHAR(32) DEFAULT 'claude', api_key TEXT, model VARCHAR(64) DEFAULT 'claude-haiku-4-5', is_active TINYINT(1) DEFAULT 1, updated_at VARCHAR(40), UNIQUE KEY uq_ai_tenant (tenant_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             } else {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, provider TEXT DEFAULT 'claude', api_key TEXT, model TEXT DEFAULT 'claude-3-5-haiku-20241022', is_active INTEGER DEFAULT 1, updated_at TEXT, UNIQUE(tenant_id))");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, provider TEXT DEFAULT 'claude', api_key TEXT, model TEXT DEFAULT 'claude-haiku-4-5', is_active INTEGER DEFAULT 1, updated_at TEXT, UNIQUE(tenant_id))");
             }
+            // [현 차수] 은퇴 모델(claude-3-5-haiku-20241022, 2026-02-19 종료·API 404)로 저장된 기존 행만 현행 모델로 자가치유.
+            //   다른 유효 모델을 명시 설정한 테넌트는 미변경(정확히 죽은 ID인 행만 갱신).
+            try { $pdo->exec("UPDATE ai_settings SET model='claude-haiku-4-5' WHERE model='claude-3-5-haiku-20241022'"); } catch (\Throwable $e2) {}
             $done[$oid] = true;
         } catch (\Throwable $e) { /* idempotent: 이미 존재 등 무시 */ }
     }

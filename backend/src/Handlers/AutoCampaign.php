@@ -417,22 +417,30 @@ class AutoCampaign
     /** [227차] 캠페인 allocations(채널×external_id) → 실 성과 합산(performance_metrics). 라이브 모니터링용. */
     private static function liveMetrics(PDO $pdo, string $tenant, array $allocations): array
     {
-        $agg = ['spend' => 0.0, 'revenue' => 0.0, 'conversions' => 0, 'impressions' => 0, 'clicks' => 0];
-        if ($tenant === 'unknown' || empty($allocations)) { $agg['roas'] = 0; return $agg; }
+        $agg = ['spend' => 0.0, 'revenue' => 0.0, 'adj_revenue' => 0.0, 'conversions' => 0, 'impressions' => 0, 'clicks' => 0];
+        if ($tenant === 'unknown' || empty($allocations)) { $agg['roas'] = 0; $agg['adj_roas'] = 0; return $agg; }
         foreach ($allocations as $a) {
             if (!is_array($a)) continue;
             $ch = (string)($a['channel'] ?? '');
             if ($ch === '') continue;
             $m = self::aggMetrics($pdo, $tenant, $ch, (string)($a['external_id'] ?? ''));
+            $rev = (float)($m['revenue'] ?? 0);
             $agg['spend']       += (float)($m['spend'] ?? 0);
-            $agg['revenue']     += (float)($m['revenue'] ?? 0);
+            $agg['revenue']     += $rev;
+            // [현 차수] 취소/반품 차감 실주문 귀속 매출(truthRatioForChannel SSOT) 동반 산출 — 표시 roas 는 매체 자가보고
+            //   (뷰스루 포함·취소 미차감)라 취소 발생 시 과대. adj_roas 를 payload 에 병기(UI 가 진실 ROI 표기 가능).
+            //   귀속 보정 데이터 부재 시 매체보고 폴백(회귀 0).
+            $ratio = self::truthRatioForChannel($pdo, $tenant, $ch, $rev);
+            $agg['adj_revenue'] += ($ratio !== null ? $rev * $ratio : $rev);
             $agg['conversions'] += (int)($m['conversions'] ?? 0);
             $agg['impressions'] += (int)($m['impressions'] ?? 0);
             $agg['clicks']      += (int)($m['clicks'] ?? 0);
         }
-        $agg['spend']   = round($agg['spend'], 2);
-        $agg['revenue'] = round($agg['revenue'], 2);
-        $agg['roas']    = $agg['spend'] > 0 ? round($agg['revenue'] / $agg['spend'], 2) : 0;
+        $agg['spend']       = round($agg['spend'], 2);
+        $agg['revenue']     = round($agg['revenue'], 2);
+        $agg['adj_revenue'] = round($agg['adj_revenue'], 2);
+        $agg['roas']        = $agg['spend'] > 0 ? round($agg['revenue'] / $agg['spend'], 2) : 0;
+        $agg['adj_roas']    = $agg['spend'] > 0 ? round($agg['adj_revenue'] / $agg['spend'], 2) : 0;
         return $agg;
     }
 
