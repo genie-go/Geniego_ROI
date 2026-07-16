@@ -1,0 +1,29 @@
+# ADR — DSAR Identity Verification, Requester Authentication & Representative Authorization (EPIC 06-A Part 3-3-3-3-2)
+
+- **일자**: 289차 (2026-07-16)
+- **상태**: Accepted (DSAR Identity Verification·Requester Authentication·Representative Authorization 계약 명세 확정. 비파괴 — 코드변경 0). 실 Verification Engine·Identity Match·Document Verification·Scope-bound Token·Reverification·CI 가드 구현은 후속 승인 세션(Golden Verification Dataset+Conformance+Legacy Equivalence+verify+배포승인). **미검증 Identity 데이터공개·Email/Phone Control 만으로 Person Identity 확정·OTP 평문·신분증 무기한보존·Agent Identity 만으로 Subject Data 공개·Account Recovery-DSAR 혼용 금지. Access/Export/Correction/Restriction/Erasure=Part 3-3-3-3-3~6.**
+- **근거(실측)**: [`../segmentation/CANONICAL_DSAR_VERIFICATION_SCHEMA.md`](../segmentation/CANONICAL_DSAR_VERIFICATION_SCHEMA.md) · [`WORKFLOW`](../segmentation/CANONICAL_DSAR_VERIFICATION_WORKFLOW.md) · [`GOVERNANCE`](../segmentation/CANONICAL_DSAR_VERIFICATION_GOVERNANCE.md) · 기존 `UserAuth`(login/MFA totp·sms·email/access key/189차 rate-limit)·`EnterpriseAuth`(SSO OIDC/SAML·SCIM·replay)·`AgencyPortal`(agency_client_link·revoke 403·scope_json)·`Dsar::verify`(이메일 fail-closed)·SMS OTP(273차) · Part 3-3-3-3-1 DSAR Registry · EPIC05 Customer Identity Graph/Merge·Unmerge.
+
+## 결정 (핵심)
+
+1. **기존 인증 인프라 확장(재구현 금지)**: `UserAuth` login/MFA/OTP/access key/rate-limit·`EnterpriseAuth` SSO/SCIM/replay·`AgencyPortal` 위임(revoke 403)·`Dsar` 이메일 fail-closed·SMS OTP·SecurityAudit·Crypto/Session/Token 은 **정본 — Canonical DSAR Verification Engine 아래 통합**. Request Type별(Access/Export/Correction/Restriction/Erasure) 독립 Verification Engine·중복 MFA/OTP/Token Service 신설 금지(§106). DSAR Assurance Level·Verification Session/Attempt·Identity Match(→Graph)·Document·Reverification·Scope-bound Token 은 현행 부재→신설.
+
+2. **Verification 강도 ∝ Request 위험(§3.1)**: 동일 Verification 금지 — 일반문의(Low)·상태조회(제한)·Access(중간)·Full Export(High)·Sensitive Export(Very High)·Identity/Identifier Rectification(High~Very High)·Erasure(High)·Agent Full Export(Very High). Risk-to-Level Mapping + SLA/Sensitivity/Scope/Fraud 종합.
+
+3. **로그인 Session ≠ DSAR 전권(§3.2)**: Session 존재만으로 Full Export/Sensitive/Identifier 변경/Erasure 자동승인 금지 → Session Age·Auth Method·MFA·최근 Credential/Recovery·Device/Location Risk·ATO Risk·Scope·Sensitivity 검증. Step-up Trigger 15종·Session Max Age(Request Type별).
+
+4. **Email/Phone Control ≠ Person Identity(§3.3·3.4)**: Email/Phone Verification = Identifier Control Evidence(Shared/Family/Company/Recycled/Forwarding/Alias/Compromised 고려). OTP/Magic Link=Secure Random·Hash·짧은Expiry·One-time·Attempt/Rate Limit·Request/Subject/Tenant Binding·Replay·Revocation. Knowledge-based(주문번호/주소/생일)=보조신호만·고신뢰 단독 금지.
+
+5. **신분증 최소수집·결과와 원문 분리(§3.5·3.6)**: 검증순서 Account→Step-up→Verified Identifier→Known Relationship→Limited Document→Manual Review. Document=필요 면/필드만·Number Tokenization·EXIF/Metadata 제거·**원본 짧은 Retention·Verification Result 장기 최소보존**·Provider Reference/Hash/Match/Expiry 만 보존. Provider 결과=최종진실 아님(Subject Match·Tenant/Brand·Scope·Fraud 추가평가).
+
+6. **Requester≠Subject·Agent 신원+권한 이중검증(§3.8)**: Agent Identity 검증만으로 불충분 → Agent Identity+Subject Identity+관계+Authorization Evidence+Type+Scope+Validity+Revocation+Delivery 권한 각각. Authorization Record/Version/Scope/Revocation(AgencyPortal 위임 일반화). 회사대표 권한 ≠ 다른 직원 개인데이터 전체공개. Guardian/Legal Rep/Executor 별 Evidence/Jurisdiction/Manual Review. Authorization 변경/철회 시 진행중 Fulfillment·Delivery Link 즉시반영.
+
+7. **Identity Match(→Graph)·Wrong-subject 차단·Fail-closed(§3.9)**: Match 는 Account/Person ID/Profile/Identifier/Relationship/Document/Device/Merge·Unmerge 기반·Score 단독승인 금지. Shared Identifier/Conflict/Merge 진행중=Wrong-subject Risk 평가·Reconciliation 완료까지 Fulfillment 중지. Enumeration 방지(계정존재 비공개·Generic Response·Timing). Verification Unknown/Expired/Assurance 미달/Conflict/Authorization 만료·철회/Fraud High/Token Invalid → Fail-closed.
+
+8. **Account Recovery 분리·Scope-bound Token·정직·무후퇴**: DSAR Verification ≠ Account Recovery(비번리셋/MFA해제 자동부여 안됨·역도 성립 안함·Recovery 직후 Cooldown). 후속 Engine 에 원본 Evidence 대신 서명 Token(Request/Subject/Scope/Assurance/Identity Version/Expiry·재사용/Scope확대/Client발급 금지)·Fulfillment/Delivery 직전 Recheck. UserAuth/EnterpriseAuth/AgencyPortal/Dsar 보존(Legacy Equivalence·API Compatibility). UNEXPLAINED·LEGACY_WRONG_SUBJECT_RISK·고객영향 LEGACY_SECURITY_DEFECT→전환차단. 기능후퇴 0.
+
+## 무후퇴·영구 규칙 (§106)
+신규 DSAR Verification Method/Agent Workflow/Document Verification/Verification Token 생성 전: Canonical DSAR Verification Registry·Verification Policy Registry·Request Type/Sensitivity·Customer Identity Registry(EPIC05)·Existing Authentication/MFA·Existing Verification Method 조회 → Assurance Level·Subject/Requester/Authorization 분리·Shared Identifier/Merge·Unmerge 위험·Evidence Minimization/Retention·Validity/Reverification·Fraud/Enumeration·Fulfillment/Delivery Recheck 정의 → Golden/Conformance·중복/후퇴·ADR/PM 기록. **Request Type별 독립 Verification Engine·중복 MFA/OTP/Token Service 중복 생성 금지.**
+
+## 결과
+Verification Entity(20)·Assurance Level(5)·Policy/Requirement/Risk-to-Level·Method(24)·Requester Authentication(9상태)/Account/Session/Step-up(15)·Session(13)/Attempt(8)/Challenge(10)/Retry-Lockout·Email/Phone/OTP Security·MFA(7)/Device/Knowledge 제한·Document(12/Minimization/결과 10)/Provider·Manual/Four-eyes·Identity Match(10상태·10차원)/Conflict(7)/Merge·Unmerge/Shared/Deleted/Anonymous·Agent Identity·Authorization(Type 10/상태 11/Scope/Version/Revocation)/Guardian/Legal/Company/Deceased·Evidence/Trust(5)·Decision(10)/Validity/Reverification(18)·Secure Token(Scope-bound)·Fulfillment/Delivery Recheck·Enumeration/Fraud(16)/Fail-closed/Cooldown·API/Permission(20)/Override(2인)·Lint(19)/Guard(19)·Error(27)/Warning(15)·Golden(50+)/Conformance/Equivalence **계약 명세 확정**(코드변경 0). 산출=docs/segmentation/CANONICAL_DSAR_VERIFICATION_{SCHEMA,WORKFLOW,GOVERNANCE}.md(§98 90여 문서 통합). 다음 **EPIC 06-A Part 3-3-3-3-3 — DSAR Access Request, Enterprise Data Discovery, Data Inventory Resolution & Third-party Retrieval Governance** 입력 준비 완료.
