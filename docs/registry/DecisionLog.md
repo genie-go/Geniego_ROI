@@ -14,6 +14,9 @@
 | **EPIC06-A: Segmentation Baseline=기존 확장(신 엔진 금지)** | 289 | crm_segments+members 실 SoT·isMarketingSendAllowed 중앙게이트 존재 | Option E(Hybrid) 확장·재구현 금지(ADR_SEGMENTATION_ARCHITECTURE_BASELINE) |
 | **"segment" 3도메인 명명 분리(통합 아님)** | 289 | Customer/Decisioning-cohort/Growth-ICP 의미 상이 | Canonical 명칭 분리·admin_growth_segment/Decisioning KEEP_SEPARATE |
 | **발송 게이트 표준화 P0(코드는 별도 세션)** | 289 | /sms/send·/whatsapp/send·sendOne 무게이트·/sms/broadcast 우회·phone DNC 부재(PM 재증명) | baseline은 리스크기록만·수정은 verify+배포승인 후 |
+| **EPIC06-A P2: Canonical DSL=현행 상위호환(교체 아님)** | 289 | crm_segments rules JSON `[{field,op,value}]` 정본·refreshSegmentMembers SQL컴파일 정본 | Canonical=SQL Adapter 승격·6 operator/AND 보존+확대·ADR_CANONICAL_SEGMENT_DSL |
+| **참조 Registry 기반화(자체 SQL 재계산 제거)** | 289 | ltv/frequency 자체 SQL·churn/clv 인라인근사가 EPIC03 Semantic·BG/NBD 실모델과 중복(SEG-M4) | SEMANTIC_METRIC/MODEL_SCORE 참조 단일화·근사는 별도 model_id 라벨 |
+| **Canonical 실 구현=별도 승인세션(Golden+verify+배포승인)** | 289 | 미검증 엔진 구현은 무후퇴·verify 위반 | P2=설계명세만(코드변경0)·Migration은 Shadow Compare·UNEXPLAINED시 전환차단 |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).

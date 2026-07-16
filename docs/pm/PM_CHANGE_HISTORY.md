@@ -25,6 +25,12 @@
 ### 완료 기준(다음 개발자)
 docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT_ARCHITECTURE_BASELINE}.md + docs/architecture/ADR_SEGMENTATION_ARCHITECTURE_BASELINE.md 의 "존재/정본" 재구현 금지. 3개 "segment" 도메인 통합 금지(명명 분리). crm_segments 등 정본은 확장만.
 
+### EPIC 06-A Part 2 — Canonical Segment Schema·DSL·Rule Engine·Versioning·Dependency Governance (비파괴·코드변경 0)
+- **설계 명세 파운데이션 확정**(§85 운영변환·Rebuild·Raw SQL·회귀없는 Migration 금지 준수, §86 70여 문서를 헌법 중복금지대로 통합 5종+ADR). Part 1 실 crm_segments 엔진에 근거.
+- 산출: docs/segmentation/CANONICAL_SEGMENT_{SCHEMA,DSL,OPERATOR_REGISTRY,RULE_ENGINE,GOVERNANCE}.md + docs/architecture/ADR_CANONICAL_SEGMENT_DSL.md.
+- 핵심 결정: ①기존 엔진 확장(crm_segments→SQL Adapter 승격·재구현 금지) ②벤더중립 JSON DSL 상위호환(현행 6 operator·AND 보존+OR/NOT/중첩/Sequence/Count/Aggregation 확대) ③Definition↔Version↔Membership↔Snapshot 분리·불변버전(registry 버전 핀→재현성 SEG-H4) ④참조 Registry 기반(EPIC03/05·자체 SQL 재계산 SEG-M4 단일화) ⑤의미 일관성(Operator Conformance·Preview=실행·Null≠False·TZ명시 SEG-M2) ⑥Adapter 보안·Circular/Cost Guard·Permission(멤버/PII/Export 분리)·Migration Shadow Compare(UNEXPLAINED→전환차단).
+- 정직: 실시간세그/Snapshot/Removal/Model거버넌스=현행 부재→목표계약 명시. 6 operator·AND·fail-closed·취소차감·identity통합=Semantic Equivalence 보존. 기능후퇴 0. **실 파서/검증기/플래너/어댑터/CI가드 구현=후속 승인 세션(Golden Dataset+verify+배포승인)**. 다음=Part 3(Audience Builder·Snapshot Governance). 선행 P0=발송 게이트 표준화(SEG-C1~C4).
+
 ## 288차 (2026-07-16) — 6도메인 전수감사(가짜녹색 근절) + 데이터 헌법 5권 + TikTok Shop OAuth + EPIC00 Ch1
 
 ### 무엇을 / 왜
