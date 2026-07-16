@@ -1,5 +1,7 @@
 # GeniegoROI Project Constitution (프로젝트 헌법)
 
+> **자매 헌법**: 데이터 영역은 [`DATA_INTELLIGENCE_CONSTITUTION.md`](DATA_INTELLIGENCE_CONSTITUTION.md)(최상위 데이터 헌법)가 동등한 최상위 지위로 규율한다 — 데이터 수집·검증·통합·AI·자동화는 그 문서를 우선한다.
+>
 > **Volume 1 — 원칙(Principles).** 이 문서는 GeniegoROI의 최상위 개발 원칙만 명문화한다.
 > **실행 메커니즘(게이트·레지스트리)은 여기서 재서술하지 않는다.** 아래 §11 SSOT 링크를 정본으로 따른다.
 > 이 문서 자체가 헌법 제2조(동일 기능을 다른 이름으로 재구현 금지)를 준수하기 위한 것이다.
