@@ -4,7 +4,7 @@
 > 정본 쌍: 본 문서(Lifecycle State/Transition/Approval/Effectiveness/Sunset/Retirement/Grandfathering) + [`CANONICAL_DSAR_REBATE_VERSIONING_MIGRATION_GOVERNANCE.md`](CANONICAL_DSAR_REBATE_VERSIONING_MIGRATION_GOVERNANCE.md)(Version/Snapshot/Diff/Supersession/Migration/Backfill/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md`](../architecture/ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md).
 > 선행: Rebate Program Master(4-5-3-1-1·**§6.8 "상세 Version=4-5-3-1-4" 위임 수령**)·Type/Classification(4-5-3-1-2)·Funding/Sponsor/Responsibility(4-5-3-1-3)·Monetary Reward Foundation(4-5-1-1~1-4)·Cashback Lifecycle(4-5-2-1~2-5).
-> **범위**: Program 자체의 생애주기/버전 전이만 — Rule 계산/Tier/Eligibility/Accrual/Claim/Settlement/Payout/Recovery 실행 아님(후속 4-5-3-1-5~9). **중복 구현 금지.**
+> **범위**: Program 자체의 생애주기/버전 전이만 — Rule 계산/Tier/Eligibility/Accrual/Claim/Settlement/Payout/Recovery 실행 아님(후속 선행설계 R1~R5). **중복 구현 금지.**
 
 ---
 
@@ -33,7 +33,7 @@
 ## 1. Canonical Entity (22) — §5 (이번 블록)
 
 REBATE_PROGRAM_LIFECYCLE_STATE·LIFECYCLE_STATE_MODEL·LIFECYCLE_TRANSITION·TRANSITION_TRIGGER·TRANSITION_GUARD·TRANSITION_ENFORCEMENT_HOOK·LIFECYCLE_APPROVAL·APPROVAL_POLICY·EFFECTIVENESS_WINDOW·ACTIVATION·SUSPENSION·RESUMPTION·SUNSET_PLAN·TERMINATION·RETIREMENT·ARCHIVE_REFERENCE·GRANDFATHERING_POLICY·GRANDFATHERED_PARTICIPANT·IN_FLIGHT_PROTECTION·LIFECYCLE_DECISION·LIFECYCLE_RECONCILIATION·LIFECYCLE_AUDIT_EVENT.
-**후속 블록(4-5-3-1-5~9)**: RULE·TIER·THRESHOLD·ELIGIBILITY·ACCRUAL·CLAIM·SETTLEMENT·PAYOUT·RECOVERY(**이번 블록 중복 구현 금지·Reference Field만 준비**).
+**후속 블록(선행설계 R1~R5)**: RULE·TIER·THRESHOLD·ELIGIBILITY·ACCRUAL·CLAIM·SETTLEMENT·PAYOUT·RECOVERY(**이번 블록 중복 구현 금지·Reference Field만 준비**).
 **현행 실체**: Snapshot/Rollback(menu_defaults)·Effectiveness(kr_fee_rule effective_from·free_coupons valid_until)·Supersession(catalog_writeback_job)·Transition Enforcement(auto_campaign) = REAL 재사용. 나머지 = **신설**.
 
 ## 2. Lifecycle State (§6) · State Model (§7) ★State≠Version

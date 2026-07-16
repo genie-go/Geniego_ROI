@@ -1,10 +1,10 @@
 # CANONICAL DSAR — Rebate Tier·Threshold·Calculation Definition Governance (Tier·Threshold·Basis·Method·Cap·Floor·Rounding·Proration·Reconciliation·Guard)
 
-> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> EPIC 06-A Rebate 실행계층 선행설계 R1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 정본 쌍: [`CANONICAL_DSAR_REBATE_RULE_DEFINITION.md`](CANONICAL_DSAR_REBATE_RULE_DEFINITION.md)(Rule/Condition/Operator/DSL/Scope/Stacking/Evaluation) + 본 문서(Tier/Threshold/Basis/Method/Cap/Floor/Rounding/Proration/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_RULE_TIER_THRESHOLD_CALCULATION.md`](../architecture/ADR_DSAR_REBATE_RULE_TIER_THRESHOLD_CALCULATION.md).
 > 선행: Type/Classification(4-5-3-1-2 **Calculation Basis 33·Structure 18=분류축**·본 문서=**실행 정의**)·Funding(4-5-3-1-3 Float 금지·Percentage+Amount)·Lifecycle/Versioning(4-5-3-1-4 as-of·Backfill≠Recalculation).
-> **범위**: 계산 **정의(Definition)**만 — Accrual 생성/Claim 승인/Settlement/Payout 실행 아님(후속 4-5-3-1-6~9).
+> **범위**: 계산 **정의(Definition)**만 — Accrual 생성/Claim 승인/Settlement/Payout 실행 아님(후속 선행설계 R2~R5).
 
 ---
 
@@ -49,7 +49,7 @@ REBATE_TIER_SCHEDULE·REBATE_TIER·TIER_THRESHOLD·TIER_BOUNDARY_POLICY·TIER_PR
   - CUMULATIVE_RETROACTIVE = 150 × 3% = **4.5**
   - INCREMENTAL_MARGINAL = (100 × 2%) + (50 × 3%) = **3.5**
   - **모델 미지정 시 계산 불가** → **★Progression Model 없는 Tier Schedule 발행 금지(기본값 추정 금지·fail-closed)**. 계약 원문 해석은 Authorized Reference(4-5-3-1-3 §9)로 근거화·**추정 금지**.
-- **Retroactive True-up(§22b)**: CUMULATIVE_RETROACTIVE에서 상위 Tier 달성 시 **기 발생 Accrual과의 차액(true-up)** 발생 → **기존 Accrual UPDATE 금지·차액을 신규 Append-only 항목으로 생성**(4-5-3-1-4 §32 Backfill≠Recalculation·OrderHub 역분개/4-5-2-5 Reversal 정합). **하향(미달) 시 clawback 판정=4-5-3-1-9 후속**.
+- **Retroactive True-up(§22b)**: CUMULATIVE_RETROACTIVE에서 상위 Tier 달성 시 **기 발생 Accrual과의 차액(true-up)** 발생 → **기존 Accrual UPDATE 금지·차액을 신규 Append-only 항목으로 생성**(4-5-3-1-4 §32 Backfill≠Recalculation·OrderHub 역분개/4-5-2-5 Reversal 정합). **하향(미달) 시 clawback 판정=선행설계 R5 후속**.
 
 ## 4. Calculation Definition (§22) · Basis Binding (§23) · Method (§24) ★Basis≠Method
 

@@ -1,10 +1,10 @@
 # CANONICAL DSAR — Rebate Rule Definition (Rule·Condition·Operator·DSL·Scope Precedence·Stacking·Evaluation)
 
-> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> EPIC 06-A Rebate 실행계층 선행설계 R1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 정본 쌍: 본 문서(Rule/Condition/Operator/DSL/Scope Precedence/Stacking/Evaluation) + [`CANONICAL_DSAR_REBATE_TIER_CALCULATION_GOVERNANCE.md`](CANONICAL_DSAR_REBATE_TIER_CALCULATION_GOVERNANCE.md)(Tier/Threshold/Basis/Method/Cap/Floor/Rounding/Proration/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_RULE_TIER_THRESHOLD_CALCULATION.md`](../architecture/ADR_DSAR_REBATE_RULE_TIER_THRESHOLD_CALCULATION.md).
 > 선행: Program Master(4-5-3-1-1 **§6.1 "Program≠Rule·Rule=후속" 위임 수령**)·Type/Classification(4-5-3-1-2 **Calculation Basis 33·Structure 18=분류축**)·Funding(4-5-3-1-3)·**Lifecycle/Versioning(4-5-3-1-4 as-of·in-flight pinning)**·Segmentation Canonical DSL(3-2).
-> **범위**: Rule **정의(Definition)**만 — Eligibility 판정/Accrual 생성/Claim 승인/Settlement/Payout 실행 아님(후속 4-5-3-1-6~9). **중복 구현 금지.**
+> **범위**: Rule **정의(Definition)**만 — Eligibility 판정/Accrual 생성/Claim 승인/Settlement/Payout 실행 아님(후속 선행설계 R2~R5). **중복 구현 금지.**
 
 ---
 
@@ -35,7 +35,7 @@
 ## 1. Canonical Entity (20) — §5 (이번 블록)
 
 REBATE_RULE·RULE_SET·RULE_CONDITION·CONDITION_TREE·CONDITION_OPERAND·RULE_OPERATOR_REGISTRY·RULE_SCOPE_BINDING·SCOPE_PRECEDENCE_POLICY·RULE_PRIORITY·STACKING_POLICY·EXCLUSIVITY_GROUP·RULE_VERSION_PIN·RULE_EVALUATION·EVALUATION_INPUT_SNAPSHOT·EVALUATION_TRACE·RULE_SIMULATION·RULE_DECISION·RULE_RECONCILIATION·RULE_EVIDENCE·RULE_AUDIT_EVENT.
-**후속 블록(4-5-3-1-6~9)**: ELIGIBILITY·ACCRUAL·CLAIM·SETTLEMENT·PAYOUT·RECOVERY(**이번 블록 중복 구현 금지·Reference Field만 준비**).
+**후속 블록(선행설계 R2~R5)**: ELIGIBILITY·ACCRUAL·CLAIM·SETTLEMENT·PAYOUT·RECOVERY(**이번 블록 중복 구현 금지·Reference Field만 준비**).
 **현행 실체**: Rule Store(rule_engine)·Operator 화이트리스트(METRICS/OPS/ACTIONS)·Condition Tree(Alerting)·Segment DSL(CRM)·Evaluation Evidence(rule_engine_log)·Scope 와일드카드/가드(PriceOpt) = REAL 재사용. 나머지 = **신설**.
 
 ## 2. Rule (§6) · Rule Set (§6b) ★Definition≠Evaluation

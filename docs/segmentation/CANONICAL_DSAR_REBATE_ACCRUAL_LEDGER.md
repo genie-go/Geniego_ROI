@@ -1,10 +1,10 @@
 # CANONICAL DSAR — Rebate Accrual & Ledger (Accrual·Ledger Entry·State·Idempotency·Reservation·Reversal·Immutability·Hash Chain)
 
-> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-7 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> EPIC 06-A Rebate 실행계층 선행설계 R3 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 정본 쌍: 본 문서(Accrual/Ledger/Entry/State/Idempotency/Reservation/Reversal/Immutability) + [`CANONICAL_DSAR_REBATE_BALANCE_GOVERNANCE.md`](CANONICAL_DSAR_REBATE_BALANCE_GOVERNANCE.md)(Balance/Aggregation/in-flight/Statement/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_ACCRUAL_LEDGER_BALANCE.md`](../architecture/ADR_DSAR_REBATE_ACCRUAL_LEDGER_BALANCE.md).
-> 선행: Funding(4-5-3-1-3 **§16 Commitment/§17 Reservation 위임 수령**)·Lifecycle(4-5-3-1-4 in-flight pinning·Backfill≠Recalculation)·**Rule/Tier(4-5-3-1-5 §22b true-up=Append-only 위임 수령)**·**Eligibility(4-5-3-1-6 Qualification≠Accrual≠Availability 위임 수령)**·Cashback Ledger(4-5-2-4).
-> **범위**: 발생(Accrual)·원장·잔액 구조만 — Claim 승인/Settlement/Payout/Recovery 실행 아님(후속 4-5-3-1-8~9). **중복 구현 금지.**
+> 선행: Funding(4-5-3-1-3 **§16 Commitment/§17 Reservation 위임 수령**)·Lifecycle(4-5-3-1-4 in-flight pinning·Backfill≠Recalculation)·**Rule/Tier(선행설계 R1 §22b true-up=Append-only 위임 수령)**·**Eligibility(선행설계 R2 Qualification≠Accrual≠Availability 위임 수령)**·Cashback Ledger(4-5-2-4).
+> **범위**: 발생(Accrual)·원장·잔액 구조만 — Claim 승인/Settlement/Payout/Recovery 실행 아님(후속 선행설계 R4~R5). **중복 구현 금지.**
 
 ---
 
@@ -28,39 +28,39 @@
 
 ### ★인접 관찰(설계 근거·본 세션 코드변경 0)
 - **`ad_spend_ledger`는 outbound 지급이 아니라 inbound 청구 원장**(테넌트 카드 과금·4-5-3-1-3 §"pg_settlement inbound 정산≠outbound payout" 계승). **구조·원자성 패턴은 재사용하되 방향(Rebate=outbound payable)을 동일시 금지**·이름만 바꿔 복제 금지.
-- **`amount BIGINT`(정수 원)와 `unit_price DECIMAL(10,2)`가 공존** — 이 저장소의 금전 표현은 **이미 Float를 쓰지 않는다**(4-5-3-1-5 §0 관찰의 Float는 알림 임계/가격 제안 계열). Rebate 원장=**정수 minor unit 또는 Decimal 택1 후 전 계층 일관(혼용 금지)**.
+- **`amount BIGINT`(정수 원)와 `unit_price DECIMAL(10,2)`가 공존** — 이 저장소의 금전 표현은 **이미 Float를 쓰지 않는다**(선행설계 R1 §0 관찰의 Float는 알림 임계/가격 제안 계열). Rebate 원장=**정수 minor unit 또는 Decimal 택1 후 전 계층 일관(혼용 금지)**.
 
 ---
 
 ## 1. Canonical Entity (20) — §5 (이번 블록)
 
 REBATE_ACCRUAL·ACCRUAL_LINE·REBATE_LEDGER·LEDGER_ENTRY·LEDGER_ENTRY_TYPE·LEDGER_STATE·STATE_TRANSITION·IDEMPOTENCY_KEY·SETTLEMENT_POINT·RESERVATION·RESERVATION_RECLAIM·REVERSAL·TRUE_UP_ENTRY·ADJUSTMENT·IMMUTABILITY_SEAL·HASH_CHAIN_LINK·ACCRUAL_SOURCE_BINDING·LEDGER_RECONCILIATION·LEDGER_EVIDENCE·LEDGER_AUDIT_EVENT.
-**후속 블록(4-5-3-1-8~9)**: CLAIM·SETTLEMENT·PAYOUT·RECOVERY/CLAWBACK(**이번 블록 중복 구현 금지·Reference Field만 준비**).
+**후속 블록(선행설계 R4~R5)**: CLAIM·SETTLEMENT·PAYOUT·RECOVERY/CLAWBACK(**이번 블록 중복 구현 금지·Reference Field만 준비**).
 **현행 실체**: 상태기계·UNIQUE 선점·결정적 Key·고아 회수·외부 원장 정합·정수 금액(ad_spend_ledger)·역분개 멱등(ChannelSync) = REAL 재사용. hash-chain/Rebate Accrual = **신설**.
 
 ## 2. Accrual (§38) · Source Binding (§39) ★Accrual≠Payout
 
-- **Accrual(§38)**: rebate_accrual_id·program·participant·**pinned program/rule/tier version(4-5-3-1-4·4-5-3-1-5)·qualification/eligibility evaluation reference(4-5-3-1-6)·calculation definition reference·accrued_amount(정수 minor unit 또는 Decimal)·currency·FX reference·accrual_basis_period·measurement window·accrued_at·as-of date·state·holdback/maturity reference·funding allocation reference(4-5-3-1-3)·commitment/reservation reference·idempotency_key·evidence**·status·audit. **★§4.1 Accrual≠Availability≠Claim≠Settlement≠Payout(발생·가용·청구·정산·지급 각각 별개 단계·4-5-3-1-6 §4.2 계승)**.
-- **Accrual Line(§38b)**: 거래/SKU/Tier 구간별 명세(**Tier 구간별 분해=4-5-3-1-5 §22a Progression Model 산출**·라인 합계=Accrual 총액 검증).
-- **Source Binding(§39)**: accrual_source_binding_id·accrual·**source transaction/settlement/claim reference·source system·input snapshot reference(불변·4-5-3-1-5 §13b)·trust/freshness**·evidence. **★Source 없는 Accrual 생성 금지(근거 없는 금전 발생 금지)·동일 Source 다중 Accrual 귀속 금지(§44 Idempotency·4-5-3-1-3 §4.10 Double Funding 대칭)**.
+- **Accrual(§38)**: rebate_accrual_id·program·participant·**pinned program/rule/tier version(4-5-3-1-4·선행설계 R1)·qualification/eligibility evaluation reference(선행설계 R2)·calculation definition reference·accrued_amount(정수 minor unit 또는 Decimal)·currency·FX reference·accrual_basis_period·measurement window·accrued_at·as-of date·state·holdback/maturity reference·funding allocation reference(4-5-3-1-3)·commitment/reservation reference·idempotency_key·evidence**·status·audit. **★§4.1 Accrual≠Availability≠Claim≠Settlement≠Payout(발생·가용·청구·정산·지급 각각 별개 단계·선행설계 R2 §4.2 계승)**.
+- **Accrual Line(§38b)**: 거래/SKU/Tier 구간별 명세(**Tier 구간별 분해=선행설계 R1 §22a Progression Model 산출**·라인 합계=Accrual 총액 검증).
+- **Source Binding(§39)**: accrual_source_binding_id·accrual·**source transaction/settlement/claim reference·source system·input snapshot reference(불변·선행설계 R1 §13b)·trust/freshness**·evidence. **★Source 없는 Accrual 생성 금지(근거 없는 금전 발생 금지)·동일 Source 다중 Accrual 귀속 금지(§44 Idempotency·4-5-3-1-3 §4.10 Double Funding 대칭)**.
 
 ## 3. Ledger (§40) · Entry (§41) · Entry Type (§41b) ★Append-only
 
 - **Ledger(§40)**: rebate_ledger_id·program·participant·**currency·legal entity·accounting entity(4-5-3-1-3 §Accounting)·opening reference·환산 정책**·status·evidence. **★현행 구조 재사용**: ad_spend_ledger(tenant_id·ym·**amount BIGINT**·status·order_id·reason·created_at·인덱스 idx_asl_tenant_ym·BillingMethod.php:133-147) — **단 방향(inbound 청구)이 다름(§0 관찰·복제 금지)**.
-- **Entry(§41)**: ledger_entry_id·ledger·accrual reference·**entry_type·amount(부호 명시)·currency·state·settlement_point·idempotency_key·related_entry_id(역분개 대상)·reason·created_at·created_by·pinned version·evidence·hash_chain_link**. **★§4.2 Ledger=Append-only·Immutable — 기존 Entry UPDATE/DELETE 금지**(4-5-3-1-4 §32·4-5-3-1-5 §22b true-up=신규 Entry 계승). **상태 전이만 허용**(§42·전이도 원자적 조건부 UPDATE).
-- **Entry Type(§41b, 14)**: ACCRUAL·TRUE_UP(§4.4 소급형 차액·**4-5-3-1-5 §22b 위임 수령**)·DOWN_TRUE_UP·ADJUSTMENT·CORRECTION(4-5-3-1-4 §26b 승인+영향목록 필수)·REVERSAL·CLAWBACK_REFERENCE(**실행은 4-5-3-1-9**)·EXPIRY·WRITE_OFF·CLAIM_LINK·SETTLEMENT_LINK·PAYOUT_LINK·FX_ADJUSTMENT·ROUNDING_RESIDUAL(4-5-3-1-5 §26 잔차 소유자).
+- **Entry(§41)**: ledger_entry_id·ledger·accrual reference·**entry_type·amount(부호 명시)·currency·state·settlement_point·idempotency_key·related_entry_id(역분개 대상)·reason·created_at·created_by·pinned version·evidence·hash_chain_link**. **★§4.2 Ledger=Append-only·Immutable — 기존 Entry UPDATE/DELETE 금지**(4-5-3-1-4 §32·선행설계 R1 §22b true-up=신규 Entry 계승). **상태 전이만 허용**(§42·전이도 원자적 조건부 UPDATE).
+- **Entry Type(§41b, 14)**: ACCRUAL·TRUE_UP(§4.4 소급형 차액·**선행설계 R1 §22b 위임 수령**)·DOWN_TRUE_UP·ADJUSTMENT·CORRECTION(4-5-3-1-4 §26b 승인+영향목록 필수)·REVERSAL·CLAWBACK_REFERENCE(**실행은 선행설계 R5**)·EXPIRY·WRITE_OFF·CLAIM_LINK·SETTLEMENT_LINK·PAYOUT_LINK·FX_ADJUSTMENT·ROUNDING_RESIDUAL(선행설계 R1 §26 잔차 소유자).
 
 ## 4. State (§42) · Transition (§42b) · Amount (§43)
 
-- **State(§42, 10)**: PENDING·**RESERVED**·ACCRUED·LOCKED(Holdback·4-5-3-1-6 §20d)·AVAILABLE·CLAIMED·SETTLING·SETTLED·PAID·REVERSED. **★현행 정본 재사용**: ad_spend_ledger `pending→charging→charged`(+`reconciling`)·**"미설정 시 원장은 'pending'으로 정직 기록(실청구 0)"**(BillingMethod.php:13)=**§4.11 미집행을 성공으로 위장 금지(287/288차 가짜녹색 근절 정합)**.
-- **Transition(§42b)**: **원자적 조건부 UPDATE + rowCount로만 전이**(4-5-3-1-6 §32·CouponRedeem 정본 계승)·전이 이력 Append-only·**단일 프로세스만 수행**("회수 자체도 원자적 상태전이로 단일 프로세스만 수행"·BillingMethod.php:549)·Terminal(PAID/REVERSED) 재전이 금지(4-5-3-1-4 §10).
-- **Amount(§43)**: **정수 minor unit(현행 정본: ad_spend_ledger `amount BIGINT`) 또는 DECIMAL(현행 정본: subscription_ledger `unit_price DECIMAL(10,2)`) 택1 후 전 계층 일관 — ★Float 금지·혼용 금지**(4-5-3-1-5 §4.9·4-5-1-4 §33 계승). 부호 규약 명시(Accrual=+·Reversal=−)·**금액 0 Entry 허용 여부 명시**·통화별 minor unit exponent(KRW=0·USD=2) 선언.
+- **State(§42, 10)**: PENDING·**RESERVED**·ACCRUED·LOCKED(Holdback·선행설계 R2 §20d)·AVAILABLE·CLAIMED·SETTLING·SETTLED·PAID·REVERSED. **★현행 정본 재사용**: ad_spend_ledger `pending→charging→charged`(+`reconciling`)·**"미설정 시 원장은 'pending'으로 정직 기록(실청구 0)"**(BillingMethod.php:13)=**§4.11 미집행을 성공으로 위장 금지(287/288차 가짜녹색 근절 정합)**.
+- **Transition(§42b)**: **원자적 조건부 UPDATE + rowCount로만 전이**(선행설계 R2 §32·CouponRedeem 정본 계승)·전이 이력 Append-only·**단일 프로세스만 수행**("회수 자체도 원자적 상태전이로 단일 프로세스만 수행"·BillingMethod.php:549)·Terminal(PAID/REVERSED) 재전이 금지(4-5-3-1-4 §10).
+- **Amount(§43)**: **정수 minor unit(현행 정본: ad_spend_ledger `amount BIGINT`) 또는 DECIMAL(현행 정본: subscription_ledger `unit_price DECIMAL(10,2)`) 택1 후 전 계층 일관 — ★Float 금지·혼용 금지**(선행설계 R1 §4.9·4-5-1-4 §33 계승). 부호 규약 명시(Accrual=+·Reversal=−)·**금액 0 Entry 허용 여부 명시**·통화별 minor unit exponent(KRW=0·USD=2) 선언.
 
 ## 5. ★Idempotency (§44) · Settlement Point (§44b) · 선점 UNIQUE (§45) — BillingMethod 정본
 
 - **★Settlement Point(§44b)**: **"이 지점에서 얼마가 발생/지급되어야 하는가"를 결정하는 불변 좌표**(예: 테넌트·기간·프로그램·참여자·목표누적액). **현행 정본**: "정산지점(settlement point) → **결정적 orderId**"(BillingMethod.php:456-460).
-- **★Idempotency Key(§44)**: **Settlement Point의 결정적 해시** — **★`microtime`/난수/타임스탬프 금지**("★microtime 을 쓰면 안 된다: 같은 정산지점을 두 프로세스가 각자 다른 orderId 로 청구하면 Toss 가 중복을 걸러줄 수 없어 **카드에 두 번 긁힌다**. 같은 (테넌트·월·캠페인·목표누적액)은 **언제 몇 번 실행하든 같은 orderId**를 만들어야 하고, 그러면 Toss 가 **최후의 방어선**이 된다"·BillingMethod.php:456-460). **★Rebate Payout Key도 결정적이어야 외부 PG/은행이 최후 방어선 역할 가능(4-5-3-1-8 위임)**.
-- **★선점 UNIQUE(§45)**: **`UNIQUE(ledger, settlement_point)`** — **현행 정본**: `CREATE UNIQUE INDEX uq_asl_order ON ad_spend_ledger(tenant_id, order_id)`(:151/182·"같은 정산지점은 **단 한 행만** 존재 → 동시에 도는 크론/수동 optimize 가 같은 금액을 카드에 **두 번 청구할 수 없다**"). **★사전 SELECT 체크만으로 중복 방지 금지(TOCTOU·4-5-3-1-6 §32 계승)·3층 방어=①결정적 Key ②UNIQUE 선점 ③외부 원장 최후 방어선**.
+- **★Idempotency Key(§44)**: **Settlement Point의 결정적 해시** — **★`microtime`/난수/타임스탬프 금지**("★microtime 을 쓰면 안 된다: 같은 정산지점을 두 프로세스가 각자 다른 orderId 로 청구하면 Toss 가 중복을 걸러줄 수 없어 **카드에 두 번 긁힌다**. 같은 (테넌트·월·캠페인·목표누적액)은 **언제 몇 번 실행하든 같은 orderId**를 만들어야 하고, 그러면 Toss 가 **최후의 방어선**이 된다"·BillingMethod.php:456-460). **★Rebate Payout Key도 결정적이어야 외부 PG/은행이 최후 방어선 역할 가능(선행설계 R4 위임)**.
+- **★선점 UNIQUE(§45)**: **`UNIQUE(ledger, settlement_point)`** — **현행 정본**: `CREATE UNIQUE INDEX uq_asl_order ON ad_spend_ledger(tenant_id, order_id)`(:151/182·"같은 정산지점은 **단 한 행만** 존재 → 동시에 도는 크론/수동 optimize 가 같은 금액을 카드에 **두 번 청구할 수 없다**"). **★사전 SELECT 체크만으로 중복 방지 금지(TOCTOU·선행설계 R2 §32 계승)·3층 방어=①결정적 Key ②UNIQUE 선점 ③외부 원장 최후 방어선**.
 
 ## 6. Reservation (§46a) · ★Orphan Reclaim (§46) · Reversal (§47) · Immutability/Hash Chain (§49)
 

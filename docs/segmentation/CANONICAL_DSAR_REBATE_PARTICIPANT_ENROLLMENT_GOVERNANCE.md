@@ -1,10 +1,10 @@
 # CANONICAL DSAR — Rebate Participant & Enrollment Governance (Participant·Role·Enrollment·Registration·Verification·Status·Duplicate Guard·Reconciliation)
 
-> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-6 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> EPIC 06-A Rebate 실행계층 선행설계 R2 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 정본 쌍: [`CANONICAL_DSAR_REBATE_ELIGIBILITY_QUALIFICATION.md`](CANONICAL_DSAR_REBATE_ELIGIBILITY_QUALIFICATION.md)(Eligibility/Criteria/Qualification/Holdback/Maturity/Disqualification/Evaluation) + 본 문서(Participant/Role/Enrollment/Registration/Verification/Status/Duplicate/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_ELIGIBILITY_QUALIFICATION_ENROLLMENT.md`](../architecture/ADR_DSAR_REBATE_ELIGIBILITY_QUALIFICATION_ENROLLMENT.md).
-> 선행: Program Master(4-5-3-1-1 **§18/§19 Participant·Beneficiary·Claimant Scope·Merchant≠Seller·Vendor≠Supplier**)·Funding(4-5-3-1-3 **Sponsor≠Funder≠Payer**·Recipient Verification 부재)·Lifecycle(4-5-3-1-4 Grandfathering·in-flight)·Rule(4-5-3-1-5).
-> **범위**: 참여자 등록/식별/검증/상태만 — Accrual/Claim/Settlement/Payout 실행 아님(후속 4-5-3-1-7~9).
+> 선행: Program Master(4-5-3-1-1 **§18/§19 Participant·Beneficiary·Claimant Scope·Merchant≠Seller·Vendor≠Supplier**)·Funding(4-5-3-1-3 **Sponsor≠Funder≠Payer**·Recipient Verification 부재)·Lifecycle(4-5-3-1-4 Grandfathering·in-flight)·Rule(선행설계 R1).
+> **범위**: 참여자 등록/식별/검증/상태만 — Accrual/Claim/Settlement/Payout 실행 아님(후속 선행설계 R3~R5).
 
 ---
 
@@ -56,7 +56,7 @@ REBATE_PARTICIPANT·PARTICIPANT_ROLE·PARTICIPANT_IDENTITY_BINDING·ENROLLMENT·
 ## 5. Consent (§33) · Recipient Verification (§34) · Erasure (§35)
 
 - **Consent(§33)**: participant_consent_id·participant·**terms version reference·consent type·granted/withdrawn_at·evidence(IP/시각/방법)·language·withdrawal 처리**·evidence. Type(6): PROGRAM_TERMS·DATA_PROCESSING·TAX_REPORTING·PAYOUT_TERMS·MARKETING(**KEEP_SEPARATE — crm_channel_prefs/isMarketingSendAllowed 재사용·rebate consent와 혼용 금지**)·CUSTOM. **★Terms 개정 시 재동의 정책 필수(4-5-3-1-4 §24 UNFAVORABLE 변경=통지/Grandfathering 정합)**.
-- **Recipient Verification(§34)**: verification_id·participant·**verification_type·status·verified_at·expires_at·재검증 주기·document reference(★원문 저장 금지·Authorized Reference·4-5-3-1-3 §9 계승)·검증 기관·실패 사유**·evidence. Type(8): IDENTITY(KYC)·BUSINESS_REGISTRATION·TAX_ID·BANK_ACCOUNT·SANCTIONS_SCREENING·ADDRESS·AUTHORIZED_SIGNATORY·CUSTOM. **★부재→신설(4-5-3-1-1/1-3 확정)·★검증 미통과 참여자에 Payout 금지(fail-closed·실 지급은 4-5-3-1-8 후속)·검증 만료 시 재검증(1회 검증 영구 신뢰 금지·Eligibility §22a 정합)**.
+- **Recipient Verification(§34)**: verification_id·participant·**verification_type·status·verified_at·expires_at·재검증 주기·document reference(★원문 저장 금지·Authorized Reference·4-5-3-1-3 §9 계승)·검증 기관·실패 사유**·evidence. Type(8): IDENTITY(KYC)·BUSINESS_REGISTRATION·TAX_ID·BANK_ACCOUNT·SANCTIONS_SCREENING·ADDRESS·AUTHORIZED_SIGNATORY·CUSTOM. **★부재→신설(4-5-3-1-1/1-3 확정)·★검증 미통과 참여자에 Payout 금지(fail-closed·실 지급은 선행설계 R4 후속)·검증 만료 시 재검증(1회 검증 영구 신뢰 금지·Eligibility §22a 정합)**.
 - **Erasure(§35)**: DSAR 삭제/익명화 요청 시 **금전 원장(Accrual/Claim/Settlement/Payout)은 법정 보존기간 내 삭제 금지 → 참여자 PII만 익명화·원장은 pseudonymous reference 유지**(헌법 No-PII·4-5-3-1-4 Archive/Retention 정합). **★현행 참조**: Dsar가 **자식(journey_node_logs/sent) 선삭제 후 부모(journey_enrollments) 삭제**(Dsar.php:617-634)=**참조 무결성 순서 정본**. **★Rebate는 "삭제"가 아니라 "익명화+보존"이 기본(금전/세무 의무)·삭제 요청을 무조건 물리 삭제로 처리 금지**.
 
 ## 6. Duplicate Guard (§32) · Suspension (§36) · Reconciliation (§37) · Guard/Error (§38)

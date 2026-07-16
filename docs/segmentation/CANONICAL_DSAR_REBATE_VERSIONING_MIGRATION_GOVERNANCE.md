@@ -4,7 +4,7 @@
 > 정본 쌍: [`CANONICAL_DSAR_REBATE_PROGRAM_LIFECYCLE.md`](CANONICAL_DSAR_REBATE_PROGRAM_LIFECYCLE.md)(State/Transition/Approval/Effectiveness/Sunset/Grandfathering) + 본 문서(Version/Snapshot/Diff/Supersession/Migration/Backfill/Reconciliation/Guard).
 > ADR: [`../architecture/ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md`](../architecture/ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md).
 > 선행: Program Master(4-5-3-1-1 §6.8 위임)·Type/Classification(4-5-3-1-2 §Historical Classification 보존)·Funding(4-5-3-1-3 §4.9 Historical Agreement 보존·§33 Float 금지).
-> **범위**: Program/Version/Scope/Rule 참조의 버전·마이그레이션 거버넌스만 — Rule 계산/Claim/Settlement/Payout 실행 아님(후속 4-5-3-1-5~9).
+> **범위**: Program/Version/Scope/Rule 참조의 버전·마이그레이션 거버넌스만 — Rule 계산/Claim/Settlement/Payout 실행 아님(후속 선행설계 R1~R5).
 
 ---
 
