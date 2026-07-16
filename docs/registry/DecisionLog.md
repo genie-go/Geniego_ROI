@@ -30,6 +30,9 @@
 | **Provider 200≠Removed·Removal 후 Re-add 방지** | 289 | AdAdapters Add만·Remove/Reconcile 부재(SEG-H2/H5)·refresh 재생성(SEG-L4) | Removal 상태 세분화+Tombstone/Live Check·Reconciliation 신설 |
 | **Execution-time Live Validation=발송게이트 계약화(P0 원형)** | 289 | isMarketingSendAllowed 발송루프 게이트가 원형·무게이트 SEG-C1~C4 | 단계별 Recheck(예약/Queue/Provider 직전)·Fail-closed·SEG-C4 phone DNC=SMS_OPT_OUT Type |
 | **SEG-C4 phone DNC 실구현·SEG-H2 라이브세션 연기** | 289 | SEG-C4=DB-only(email 대칭 안전)·SEG-H2=외부 3-provider API 미검증 | C4 구현(sms_suppression+게이트, 커밋 407c1231872)·**H2 블라인드 지양→라이브 광고계정 검증세션(287차 죽은스켈레톤 교훈)** |
+| **EPIC06-A P3-3-3-1: 데이터 헌법 원칙의 런타임 강제화(재구현 금지)** | 289 | 헌법 Vol1~5/No-PII/Compliance/GdprConsent=원칙만·런타임 강제 부재 | Privacy Governance 로 확장·강제화·독립 Privacy Engine 금지·ADR_PRIVACY_PURPOSE_LIMITATION_GOVERNANCE |
+| **포괄 Purpose 금지·Consent+Processing Purpose 단일 Registry** | 289 | crm_channel_prefs 채널만·정식 Purpose Registry 부재·BUSINESS/MARKETING 포괄 | 구체 Purpose 강제·Consent Purpose(P3-3-1)+Processing Purpose 통합·Consumer PII Level(Full Profile 무차별 금지) |
+| **법률 적합성 코드 자동단정 금지** | 289 | Lawful Basis/Jurisdiction 자동확정 위험 | LEGAL_REVIEW_REQUIRED 상태·UNEXPLAINED/LEGACY_PRIVACY_DEFECT 전환차단 |
 
 ## 갱신 규칙
 방향/보류/기각/원복 등 결정 발생 시 append(근거·결과 포함). 삭제 금지(이력 보존).
