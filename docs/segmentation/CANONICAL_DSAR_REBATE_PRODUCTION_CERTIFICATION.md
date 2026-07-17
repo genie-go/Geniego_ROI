@@ -1,0 +1,175 @@
+# CANONICAL — DSAR/Rebate Production Certification & EPIC 06-A Closure
+
+> **EPIC 06-A · Part 3-3-3-3-3-3-3-3-4-5-3-1-9 (2/2) — 06-A 최종 문서**
+> **비파괴 설계 명세 · 코드변경 0**
+>
+> ⚠️ **스펙 미수령 — 자율 판단 설계**. 스펙 수령 시 본 문서가 양보한다.
+>
+> 위임 근거: `DSAR_REBATE_PROGRAM_LIFECYCLE_FUNCTION_REGRESSION_GATE.md`
+> — *"Legacy Equivalence·**Production Certification 은 Part 4-5-3-1-9**"*
+
+---
+
+## §1. 🔴 판정 — Production Certification 발급 불가
+
+| 기준 | 임계 | 현재 |
+|---|---|---|
+| **PC-1** Rebate 구현 | 존재 | ❌ **0** (9/9 grep 0) |
+| **PC-2** Lint 배선 | 100% | ❌ **0%** (1-7) |
+| **PC-3** Golden 보존목록 무결성 | 100% | ❌ **FAILED** (1-8: 팬텀 1 + stale 1) |
+| **PC-4** Legacy 분류 `is_effective` | 100% | ❌ **오분류 1** (1-9) |
+| **PC-5** `EquivalenceProof` | 통합 전 필수 | ❌ **미수립** |
+| **PC-6** 미이행 위임 | 0 | ❌ **1** (5-8 Legacy) |
+| **판정** | | 🔴 **NOT_CERTIFIED** |
+
+**인증서를 발급하지 않는다.** 1-7과 같은 이유다 — **인증할 구현이 없다.**
+
+**그리고 이것은 실패가 아니다.** 06-A는 **전방호환 설계 계약**이었고 **코드변경 0**이 원칙이었다.
+**9개 블록 전체가 그 원칙을 지켰다.** `NOT_CERTIFIED`는 **정직한 상태 보고**다.
+
+---
+
+## §2. 🔴 의존 사슬 — 9블록의 바닥에 1줄이 있다
+
+**1-9에서 전 블록을 이어보면 사슬이 드러난다:**
+
+```
+Production Certification (1-9)
+  └ 필요: EquivalenceProof (1-9)
+      └ 필요: Golden 확보 (1-8)
+          └ 필요: 보존 목록 무결성 (1-8)   ← 🔴 FAILED
+              └ 필요: 팬텀 제거 = guard 배선  ← 🔴 1줄
+              └ 필요: stale 정정 = 351 → 실측 ← 🔴 4벌 복제
+```
+
+> **06-A 9블록 · 설계 문서 200+ 편의 최종 인증이,
+> `.githooks/pre-commit`에 가드 호출 1줄이 없어서 막힌다.**
+>
+> **과장이 아니다.** 팬텀 보존 대상이 있으면 Golden이 공허하게 참이 되고,
+> 공허한 Golden으로는 EquivalenceProof를 세울 수 없고,
+> 증명 없이 Role 3계통을 통합하면 **286차 rank 맵 붕괴가 재현**된다.
+
+**이것이 1-9가 06-A에 남기는 가장 실용적인 결론이다:**
+**다음 승인 세션의 첫 작업은 Rebate 설계가 아니라 가드 1줄 배선과 351 4벌 정정이다.**
+
+---
+
+## §3. 엔티티 정의
+
+### E-01. `ProductionCertificationRun`
+
+`run_id` · **`commit_sha`** · `criteria_version` · `verdict` · `evidence` · **`uncertifiable_scope`**.
+
+**5-8/1-7 `CertificationRun` 동일 계보 — 재정의 금지.**
+
+### E-02. 🔴 `CertificationBlocker` — 무엇이 막는가
+
+`blocker_id` · `blocked_criteria` · **`root_cause`** · **`fix_size`** · `owner`.
+
+**`fix_size`를 필드로 두는 이유:** §2가 보여주듯 **막는 것이 거대하다고 착각하기 쉽다.**
+**실제 근원은 1줄이다.** 크기를 안 적으면 **"인증 불가"가 "손댈 수 없음"으로 읽힌다.**
+
+### E-03. `CertificationScope` — 부분 인증 명시
+
+**`certified` / `uncertifiable`** 병기 필수(1-7 E-03 동일 정본).
+**현재 `certified` = ∅.**
+
+### E-04~E-12 (요약)
+
+| ID | 엔티티 | 요지 |
+|---|---|---|
+| E-04 | `DeploymentGate` | 🔴 **배포는 사용자 명시 승인 후**(운영·데모 동반 · 메모리 `feedback_deploy_approval_mandatory`) |
+| E-05 | `SecurityReviewGate` | 인가 도메인 → **`/security-review` 필수**(5-1 §58) |
+| E-06 | `HeadlessVerification` | role별 전 메뉴 실검증(286차 act-as 하이재킹) |
+| E-07 | `ChangeGateBinding` | **CHANGE_GATE 5중 게이트** — 재정의 금지 |
+| E-08 | `CertificationEvidence` | 5-7 감사 정본 등재 |
+| E-09 | `CertificationExpiry` | **commit SHA 결속** — "작년 인증"은 증거 아님 |
+| E-10 | `EpicClosureRecord` | §4 |
+| E-11 | `CertificationGapLink` | **1-6 Gap 원장** 연결 |
+| E-12 | `PostCertificationMonitoring` | 인증 후 관측 |
+
+---
+
+## §4. 🔴 EPIC 06-A 종결 기록
+
+### 4-1. 9블록 전수
+
+| 블록 | 산출 | 코드변경 |
+|---|---|---|
+| **1-1** Master/Scope | Master Registry + Scope Governance + ADR | 0 |
+| **1-2** Type | Type/Business Model/Classification | 0 |
+| **1-3** Funding | Funding/Sponsor/Economic Responsibility | 0 |
+| **1-4** Lifecycle | Lifecycle + Versioning/Migration + **§53 49편** | 0 |
+| **1-5** Permission | **5-1~5-8 8블록** + §53 47편 | 0 |
+| **1-6** Coverage/Gap | Coverage Measurement + **Gap 원장 14건** | 0 |
+| **1-7** Lint | **Lint Registry 81 규칙** + Certification | 0 |
+| **1-8** Golden | Golden Registry + Regression Baseline | 0 |
+| **1-9** Legacy | **Legacy Equivalence + Production Certification** | 0 |
+| **선행설계** | R1~R5 (Rebate 실행계층) | 0 |
+
+**총 코드변경 0 · 비파괴 · 무후퇴.**
+
+### 4-2. 06-A가 발견한 것 — 설계보다 이것이 값지다
+
+**06-A는 Rebate를 설계했지만, 실제로 찾아낸 것은 기존 시스템의 결함이다.**
+
+| # | 발견 | 층 |
+|---|---|---|
+| 1 | 🔴 **고아 가드 1건이 3개 거버넌스 층을 오염**(Lint 미실행 → Golden 팬텀 → Legacy `VALIDATED` 오분류) | 5-8·1-8·1-9 |
+| 2 | 🔴 **`Mapping.php:212` 승인 중복 미제거** — 1인 2회로 정족수 충족 → **Maker-Checker 무효** | 5-3 |
+| 3 | 🔴 **stale 351이 5벌**(코드 주석 1 + §53 4) — 실측 458~498 · **회귀범위 ≈30% 누락** | 5-6·1-8·1-9 |
+| 4 | 🔴 **pre-commit 미강제**(CI 미실행 · 클론별 opt-in) — **B4 자격증명 차단이 opt-in** | 5-8 |
+| 5 | 🔴 **커버리지 분모 부재** — 요구 목록이 저장소에 없음 | 1-6 |
+| 6 | 🔴 **자기보고 52 vs 실측 47** | 1-6 |
+| 7 | 🔴 **9블록 중 2개만 Lint 영속** — 금전 근간 3블록 Lint 0 | 1-7 |
+| 8 | 🔴 **5-8이 위임 1건 누락** — 본 세션 자기 결함 | 1-9 |
+
+> **관통하는 하나의 패턴: "있다고 믿는 것이 없다."**
+> Rebate는 **없다고 알려진 채로 없어서 아무도 해치지 않았다.**
+> 반면 가드·Maker-Checker·pre-commit·351은 **있다고 믿긴 채로 없었다.**
+>
+> **1-6이 세운 "위험 = 운영영향 × 오신뢰"가 06-A 전체를 관통한다.**
+
+### 4-3. 자기 정정 (289차 누적 · 발견 즉시 기록)
+
+RP-001(파트 번호 임의 생성) · requirePro 주석 351→455 · R3 hash-chain "부재"→REAL ·
+설계 순환 참조(부재 기능 의존) · 5-2 grep FP 3건 · guard 배선 0 ·
+**pre-commit B1 `:21`→`:23`** · **5-8 Legacy 위임 누락** — **총 8건.**
+
+**되돌려 감춘 것은 없다.**
+
+---
+
+## §5. 06-A가 인증하지 못하는 것 (최종 정직 표기)
+
+1. **설계의 타당성** — 200+ 문서가 **옳은** 설계인지는 인증 대상이 아니다.
+   **틀린 설계도 완벽히 문서화될 수 있다.**
+2. **요구 충족 여부** — **분모가 없다**(1-6). **스펙은 채팅에만 있었고 컨텍스트는 소멸했다.**
+3. **미발견 결함** — 8건은 **발견된 것**이지 전부가 아니다. **미발견 수를 0으로 보고하지 않는다.**
+4. **Gap 14건의 등급** — 전부 `UNVERIFIED`. **PM 코드 재증명 전 P0 단정 금지.**
+5. **1-9 자신** — 스펙 미수령 · 요구 목록 저장소 부재.
+
+---
+
+## §6. 다음 승인 세션 권고 (우선순위)
+
+**Rebate 구현이 아니다. 순서는 이렇다:**
+
+| 순위 | 작업 | 크기 | 근거 |
+|---|---|---|---|
+| **1** | 🔴 `guard_headerless_getjson` **배선 + 분류 정정** | **1줄** | 3층 오염 근원(§4-2 #1) · **사슬의 바닥**(§2) |
+| **2** | 🔴 **351 5벌 정정**(방법 명시 · 값 복사 금지) | 문서 5 | 회귀범위 ≈30% 누락 |
+| **3** | 🔴 **`Mapping.php:212` PM 재증명** | 조사 | **Maker-Checker 무효 가능** |
+| **4** | 🟠 **B4 secret 차단 CI 승격** | 중 | 자격증명 opt-in 해소 |
+| **5** | 🟠 요구 목록 저장소 영속 | 중 | 커버리지 측정 가능화 |
+| **6** | 🟢 Rebate 구현 | 대 | **위 5건 후** |
+
+**1·2가 §2 사슬의 바닥이다. 이것 없이 6으로 가면 인증 불가 상태가 고착된다.**
+
+---
+
+## §7. 비파괴 확인
+
+코드 변경 **0** · §53 문서 **무수정** · **5-8 소급 수정 0** · 인증서 발급 **0** · e2e/CI/hook **무수정**.
+
+**EPIC 06-A 9블록 종결 · 총 코드변경 0.**
