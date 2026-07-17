@@ -1,0 +1,13 @@
+# DSAR — Version Status (§10c·13종)
+
+> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-4 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0** · v2.1
+> 통합 정본: [CANONICAL_DSAR_REBATE_PROGRAM_LIFECYCLE.md](CANONICAL_DSAR_REBATE_PROGRAM_LIFECYCLE.md) · [CANONICAL_DSAR_REBATE_VERSIONING_MIGRATION_GOVERNANCE.md](CANONICAL_DSAR_REBATE_VERSIONING_MIGRATION_GOVERNANCE.md) · ADR: [ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md](../architecture/ADR_DSAR_REBATE_PROGRAM_LIFECYCLE_VERSIONING_MIGRATION.md)
+> **실 엔진 구현=고객 Rebate 기능 도입 시 후속 승인 세션. 본 문서=계약 명세.**
+
+## Version Status (13)
+DRAFT · VALIDATION_PENDING · VALIDATED · REVIEW_PENDING · APPROVAL_PENDING · APPROVED · SCHEDULED · **ACTIVE** · SUPERSEDED · RETIRED · REJECTED · ROLLED_BACK · ARCHIVED · BLOCKED
+
+## 규칙
+- **동일 Program·동일 기간 ACTIVE Version 은 정확히 1개**(다중=Critical·VERSION_CONFLICT_POLICY).
+- **SUPERSEDED = 물리 삭제 대신 상태 마감 + 판정 제외** — 현행 정본 catalog_writeback_job(Catalog.php:1188·판정 제외 :1871-1873·**미처리 잡 삭제 금지 회귀** :1187).
+- SCHEDULED → effective_from 이전 신규 거래 적용 금지(§4.6).
