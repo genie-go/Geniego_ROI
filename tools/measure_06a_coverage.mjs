@@ -29,9 +29,35 @@ import { join } from 'node:path';
 const DIR = 'docs/segmentation';
 
 // 블록 → 문서 접두사. 신규 블록은 여기에만 추가하라(측정기 복제 금지).
+//
+// ★prefix 는 **배열**이다 — 블록마다 접두사가 하나라고 가정하지 마라.
+//   5-3-3-2 는 원문 §83 이 4계열로 명명했다(REPORTING_LINE / MANAGER / SUPERVISORY / 개별 타입).
+//   접두사 하나만 재면 **분모가 조용히 줄어든다** = 이 측정기가 막으려는 병 그 자체.
 const BLOCKS = {
-  '532':  { prefix: 'DSAR_APPROVAL_WORKFLOW_', label: '4-5-3-1-5-3-2 Approval Workflow Execution Engine' },
-  '5331': { prefix: 'DSAR_ORGANIZATION_',      label: '4-5-3-1-5-3-3-1 Organization Hierarchy & Graph' },
+  '532':  {
+    prefix: ['DSAR_APPROVAL_WORKFLOW_'],
+    label: '4-5-3-1-5-3-2 Approval Workflow Execution Engine',
+  },
+  '5331': {
+    prefix: ['DSAR_ORGANIZATION_'],
+    label: '4-5-3-1-5-3-3-1 Organization Hierarchy & Graph',
+  },
+  '5332': {
+    // ★원문 §83(85항목) 기준. DSAR_ORGANIZATION_MANAGER_BINDING 은 5-3-3-2 소속이나
+    //   5-3-3-1 의 DSAR_ORGANIZATION_ 접두와 충돌하므로 exact 로 지정한다(중복 계수 방지).
+    prefix: ['DSAR_REPORTING_LINE_', 'DSAR_MANAGER_', 'DSAR_SUPERVISORY_',
+             'DSAR_ACTING_MANAGER', 'DSAR_ADMINISTRATIVE_MANAGER', 'DSAR_FUNCTIONAL_MANAGER',
+             'DSAR_DIRECT_MANAGER', 'DSAR_DOTTED_LINE_MANAGER', 'DSAR_INTERIM_MANAGER',
+             'DSAR_TEMPORARY_MANAGER', 'DSAR_CO_MANAGER', 'DSAR_SUBJECT_MANAGER_BINDING',
+             'DSAR_POSITION_MANAGER_BINDING', 'DSAR_PROJECT_MANAGER_RELATIONSHIP',
+             'DSAR_PROGRAM_MANAGER_RELATIONSHIP', 'DSAR_REGIONAL_MANAGER_RELATIONSHIP',
+             'DSAR_COUNTRY_MANAGER_RELATIONSHIP', 'DSAR_BRAND_MANAGER_RELATIONSHIP',
+             'DSAR_COST_CENTER_MANAGER_RELATIONSHIP', 'DSAR_PROFIT_CENTER_MANAGER_RELATIONSHIP',
+             'DSAR_MISSING_MANAGER_POLICY', 'DSAR_PARENT_ORGANIZATION_MANAGER_FALLBACK',
+             'DSAR_HISTORICAL_MANAGER_RECONSTRUCTION'],
+    exact: ['DSAR_ORGANIZATION_MANAGER_BINDING.md'],
+    label: '4-5-3-1-5-3-3-2 Reporting Line & Manager Relationship',
+  },
 };
 
 const argOf = (name) => {
@@ -49,8 +75,15 @@ if (blockArg && !BLOCKS[blockArg]) {
   console.error(`오류: 미등록 블록 "${blockArg}". 등록된 블록 = ${Object.keys(BLOCKS).join(', ')}`);
   process.exit(2);
 }
-const PREFIX = prefixArg ?? BLOCKS[blockArg].prefix;
-const LABEL = blockArg ? BLOCKS[blockArg].label : `(임의 접두사 ${PREFIX})`;
+const PREFIXES = prefixArg ? [prefixArg] : BLOCKS[blockArg].prefix;
+const EXACT = blockArg ? (BLOCKS[blockArg].exact ?? []) : [];
+const LABEL = blockArg ? BLOCKS[blockArg].label : `(임의 접두사 ${prefixArg})`;
+const PREFIX = PREFIXES.join(' | ') + (EXACT.length ? ` + exact ${EXACT.length}` : '');
+// ★5-3-3-1(DSAR_ORGANIZATION_)과 5-3-3-2(DSAR_ORGANIZATION_MANAGER_BINDING)의 접두 충돌 차단.
+//   블록 5331 은 5-3-3-2 소속 파일을 제 분모에 넣으면 안 된다.
+const EXCLUDE = blockArg === '5331' ? ['DSAR_ORGANIZATION_MANAGER_BINDING.md'] : [];
+const matches = (f) =>
+  !EXCLUDE.includes(f) && (EXACT.includes(f) || PREFIXES.some(p => f.startsWith(p)));
 
 // 커버 판정 = 이것만. 나머지는 전부 미충족.
 const COVERS = new Set(['VALIDATED_LEGACY']);
@@ -77,7 +110,7 @@ const VOCAB = [
   'BLOCKED_SECURITY_RISK', 'BLOCKED_POLICY_DRIFT',
 ];
 
-const files = readdirSync(DIR).filter(f => f.startsWith(PREFIX) && f.endsWith('.md')).sort();
+const files = readdirSync(DIR).filter(f => f.endsWith('.md') && matches(f)).sort();
 
 const rows = [];
 const anomalies = [];

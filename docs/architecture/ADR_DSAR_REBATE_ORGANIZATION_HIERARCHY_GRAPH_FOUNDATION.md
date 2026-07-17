@@ -55,7 +55,15 @@
 
 ### D-5. ★`graph_node`/`graph_edge` = 구조는 쌍둥이나 **현 코드로는 조직 저장 불가**
 `Db.php:816-839`: `tenant_id` · `node_type`+`node_id` · `src_type`/`src_id`→`dst_type`/`dst_id` · `edge_weight` · `edge_label` · `meta_json` · **src/dst 양방향 인덱스**(`:838-839`) · `/v419/graph/*` **9라우트 실배선**(`routes.php:721-729`). Neo4j/Cypher/Gremlin/Neptune/Arango/JanusGraph/TinkerPop **grep 0** → **전용 그래프 DB 도입 불필요**.
-- 🔴 ★**결정적 제약**: `GraphScore.php:57-59` 가 `node_type` 을 **`['influencer','creative','sku','order']` 화이트리스트로 봉인**하고 위반 시 **422** → **조직 노드는 현 코드로 저장 자체가 불가** = `KEEP_SEPARATE_WITH_REASON` 의 근거. **스키마가 닮아도 게이트가 조직을 막는다.**
+- 🔴 ★**초판 논거 철회(289차 9회차 · 5-3-3-2 ⓒ 실측)**: 초판은 *"`GraphScore.php:57-59` 화이트리스트 422 → **조직 노드는 현 코드로 저장 자체가 불가** = **결정적** 근거"* 라 했다. **부분적으로 거짓이다.**
+  - ✅ `upsertNode`(`:44-82`)에만 화이트리스트가 있다(`:57-59` → `node_type='SUBJECT'` 422).
+  - 🔴 **`upsertEdge`(`:107-148`)에는 없다** — 검증은 `:117-119` **비어있지 않음**뿐이고 **`:126-133` 이 임의 타입 문자열로 `graph_node` 행을 자동 삽입**한다. → **`POST /v419/graph/edges` 에 `src_type=SUBJECT` 를 보내면 저장된다.** **게이트는 엔드포인트 하나에만 걸린 우회 가능한 것**이다.
+  - ★**자기모순 자인**: 초판은 이 우회로를 **ORG-O5 로 이미 기록해놓고도** D-5 에서 "결정적"이라는 단어를 그대로 뒀다. **관찰과 논증이 분리돼 있었다** — 발견을 기록만 하고 결론에 반영하지 않으면 소용없다.
+- ✅ **재접지된 `KEEP_SEPARATE_WITH_REASON` 근거 3종**(게이트 아님):
+  1. **선언된 타입 계약 4종**(`influencer`/`creative`/`sku`/`order`) — 마케팅 귀속 도메인
+  2. ★**판독자 전량이 4종에 하드와이어**(`GraphScore.php:193`~`:297`) → **조직 노드를 넣어도 읽는 코드가 없다**
+  3. **저장 계층이 §15/§16 을 못 담는다** — UNIQUE·인덱스 0 · 시점 컬럼 0
+- ⚠️ **파생 발견(등급 미부여 · 라이브 미검증)**: `:127` **`INSERT IGNORE` 는 UNIQUE 가 없어 무의미** → 엣지 upsert 마다 **중복 노드 행 누적**(엣지 자체는 `:138-148` SELECT-then-upsert 로 멱등이나 **노드 자동 upsert 는 멱등이 아니다**).
 - ⚠️ **`upsertEdge` 검증 비대칭**(PM 직접 확인 · **관찰 사실 · 등급 미부여**): `upsertNode` 는 화이트리스트 422 인데 `upsertEdge`(`:112-119`)는 `src_type`/`dst_type` **빈 값만 검사**하고 **양끝 노드를 `INSERT IGNORE` 로 자동 생성**(`:128-133`) → **화이트리스트 밖 노드가 엣지 경유로 유입**. 🔴 **조직 타입을 `upsertNode` 화이트리스트에 추가하는 순간 이 무검증 경로도 함께 열린다 → 재사용 결정 시 비대칭 해소가 선결.** (라이브 `SELECT DISTINCT node_type FROM graph_node` 확인 권장.)
 - ⚠️ ★**`graph_node` 는 인덱스도 UNIQUE 도 0**(PM 재확인 · `Db.php:816-825` = `id` PK · `tenant_id`/`node_type`/`node_id`/`label`/`meta_json`/`created_at` **뿐**). **`:838-839` 양방향 인덱스는 `graph_edge` 전용**(`idx_graph_edge_src`/`_dst`) → **ⓑ 브리핑의 "graph_node/graph_edge 양방향 인덱스"는 부정확**. Node 축 인덱스 선례 **없음** · `UNIQUE` 부재를 코드가 자인(`GraphScore.php:65-67` — 209차 MySQL 1064 500).
   - ⚠️ **파생 관찰(등급 미부여)**: `UNIQUE` 가 없는데 `upsertEdge:128-133` 이 `INSERT IGNORE`/`INSERT OR IGNORE` 로 노드를 자동 생성 → **무시할 충돌이 없어 중복제거가 무효**일 수 있다. 코드 정합 근거는 확실하나 **런타임 행 중복은 라이브 미검증**.
@@ -119,7 +127,13 @@ OIDC Authorization Code + id_token RS256/JWKS 검증 · SAML ds:Signature 검증
 
 ### D-12. Audit = **`pm_audit_log` 골격 + `menu_audit_log` 해시체인 합집합 확장** (★내 브리핑이 오염원이었던 지점)
 - 🔴 **"해시체인 없음"은 전역 명제로 쓰면 거짓.** **참인 것은 전역 `audit_log`(`actor·action·details_json·created_at` **4컬럼** · tenant 없음 · 해시체인 없음 — MySQL `Db.php:540-545`/SQLite `AdminGrowth.php:157-159`)에 한해서**다.
-- ★**해시체인 선례 실재**: `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) = **SHA-256 prev-chain**(생성 `:182-197` — payload 에 `'prev'`+`'ts'` → `hash('sha256',...)` · `lastHash()` `:214-219` · tamper-evident 주석 `:18`) · 마이그레이션 실재(`20260526_168_102_create_menu_audit_log.sql`).
+- 🔴 ★★**초판 정정 2건(289차 9회차 · 5-3-3-2 ⓒ 실측 · PM 재확인) — 내가 지목한 선례가 깨져 있었고, 진짜 선례를 놓쳤다.**
+  - **① `menu_audit_log.hash_chain` 은 "검증 불가능한 장식"이다.** preimage(`AdminMenu.php:183-196`)가 **`'ts' => date('c')`(`:195`)** 를 포함하는데 저장 컬럼은 **`created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`(`:129`)** → **행에서 preimage 를 재구성할 수 없다.** `AdminMenu.php` 에 **검증기 0**(`hash_equals`·`function verify` grep **0**). 생성만 하고 **아무도 검증할 수 없는 해시** → **§63/§70 선례로 삼으면 가짜 녹색을 상속한다.**
+  - **② 진짜 선례 = `backend/src/SecurityAudit.php`**(초판이 **언급조차 하지 않음**): `security_audit_log`(`:45-52`)에 **`tenant_id` 보유** · ★**해시 preimage 에 tenant 포함**(`:27` `hash('sha256', $prev.'|'.$tenant.'|'.$actor.'|'.$action.'|'.$dj.'|'.$now)`) · **`prev_hash` 컬럼**(`:51`) · ★**실동작 검증기 `verify()`(`:56-68`)** — `hash_equals`(`:64`) + `prev_hash` 연쇄 대조 + `broken_at` 반환 · **실 소비자**(`AdminGrowth.php:1429`) · 감사 실패 비차단(`:32` 가용성 우선).
+  - ∴ **§63 정본 선례 = `SecurityAudit`(알고리즘 **+ 스키마 + 검증기**) + `pm_audit_log`(diff_json·3인덱스·append-only)**. `menu_audit_log` 는 **선례가 아니라 반례**로 등재한다.
+  - ★**교훈**: 나는 "해시체인 없음"이라는 초판 오류를 **정정하면서 깨진 선례를 지목**했다. **정정도 검증 대상이다** — 이름(`hash_chain`)이 보이면 능력이 있다고 가정한 규칙 5 위반(**존재증명도 능력으로**)이며, "검증기가 있는가"를 묻지 않았다.
+  - ⚠️ **`SecurityAudit` 잠복 결함 2건**(신규 관찰 · **등급 미부여** · 라이브 미검증): ⓐ `lastHash():38`·`verify():59` 에 **tenant 술어 없음** → 체인이 **전역 단일**(테넌트별 체인 확장 시 `WHERE tenant_id=?` 필수) ⓑ `:31` 이 actor 를 `substr(...,0,190)` 로 저장하나 `:27` 해시는 **원본 전체** → **190자 초과 actor 에서 `verify()` 영구 실패**.
+- (초판 서술) `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) · 마이그레이션 `20260526_168_102_create_menu_audit_log.sql` 은 **실재하나 위 ①대로 검증 불가**.
 - ★**`pm_audit_log`** = `tenant_id NOT NULL`(migration `20260526_168_008:7`) + `entity` + `diff_json`(`:13`) + **3인덱스**(`:17-19`) + append-only 주석(`:2-3`).
 - 🔴 **그러나 선례는 알고리즘 수준이지 스키마 수준이 아니다**: ⓐ **`menu_audit_log` 에 `tenant_id` 가 없다** → **스키마 복제 금지 · 알고리즘만 이식** ⓑ **`lastHash()` 에 tenant 술어가 없다** → 테넌트별 체인 확장 시 **`WHERE tenant_id=?` 추가 필수**.
 - **중복 감사 스토어 신설 금지.** `journey_node_logs` 는 **tenant_id 보유**(`JourneyBuilder.php:69`)+조회 술어 실배선(`:248`) — 스키마 선례(단 마케팅 도메인 → 커버 금지).
