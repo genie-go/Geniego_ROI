@@ -268,3 +268,18 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **Gap 원장 14건**: DEFECT 4(**G-01 `Mapping.php:212` 승인 중복 미제거→1인 2회로 정족수 충족** · G-02 `Alerting.php:593` 정족수 없음 · G-03 `AdminMenu.php:52-54` fail-open(**주석이 의도 명시 — 결함 아닐 가능성 상당**) · G-04 무게이트 발송) · WIRING 2(G-05 guard 호출처 0 · G-06 pre-commit 미강제) · PARTIAL 4 · UNVERIFIED 4(G-13 분모부재 · G-14 52vs47) · ABSENT 1(G-15 Rebate 전체). **전부 `UNVERIFIED`/미수정 — PM 재증명 대상**.
 - **인용 검증**: `Mapping.php:212/214` · `Alerting.php:593` · `AdminMenu.php:52-54` · `PM_CHANGE_HISTORY.md:294` **4/4 일치**.
 - **자기 지적**: **COV-GAP-01 이 1-6 자신에게도 적용** — 1-6 스펙도 미수령 → **1-6 커버리지도 계산 불가**. **Gap 14건은 발견된 것이지 전부가 아니며 미발견 수를 0으로 보고하지 않음**.
+
+---
+
+## AE-289-12 — EPIC 06-A Part 4-5-3-1-7 (Lint Certification)
+
+- **스펙**: ⚠️ **미수령 — 자율 판단 설계**.
+- **RP-001 준수 + 5-8 중복 우려 해소**: ①`MASTER_REGISTRY:7`("…/**Lint**/Golden/Legacy") ②**선행 블록의 명시 위임** — `DSAR_REBATE_PROGRAM_LIFECYCLE_STATIC_LINT.md:7`("최소 Static Lint (20) — **전체 Certification 은 Part 4-5-3-1-7**") · `:14`("전체 Certification = **Part 4-5-3-1-7**"). → **5-8=Permission(1-5) 한정 · 1-7=06-A 전 블록 통합·인증. 중복 아님. 추정 아님**.
+- **산출**: `CANONICAL_DSAR_REBATE_LINT_RULE_REGISTRY.md`(E-01~E-12) · `CANONICAL_DSAR_REBATE_LINT_CERTIFICATION.md`(E-01~E-12·기준 L-1~L-7) · `ADR_DSAR_REBATE_LINT_RULE_REGISTRY_CERTIFICATION.md`. **코드 변경 0**.
+- **실측 통합 레지스트리**: 1-4 Lifecycle **Static 20 + Guard 21** · 5-1 Authorization **Static 17 + Guard 23** → **총 81(Static 37 + Guard 44) · 구현 0 · 배선 0 · 전부 `CONTRACT_ONLY`**.
+- **★최대 발견 LINT-GAP-01 — 9블록 중 2개만 Lint 영속**: `ls DSAR_*.md | grep -iE "static_lint|runtime_guard"` → **4**(LIFECYCLE 2 + AUTHORIZATION_FOUNDATION 2). **1-1 Master/Scope · 1-2 Type · 1-3 Funding · R1~R5 · 5-2~5-7 · 1-6 = Lint 0**. **81을 '많다'고 읽으면 안 됨 — 81은 2개 블록의 것이고 7개 블록은 0. 금전 계약 근간 3블록(Master/Scope·Type·Funding)에 Lint 규칙이 하나도 없음**.
+- **★판정 = 🔴 `NOT_READY` · 인증서 발급 0**: **인증이란 "규칙이 실제로 위반을 막는가"의 확인 — 구현 0이면 확인 대상이 없음**. 0개를 인증하면 **"인증 통과" 문자열만 남고 그게 가장 위험**(5-8 고아 가드가 정확히 그 형태). **구현 0은 실패가 아니라 설계 의도**(전방호환 계약·코드변경 0) — **"인증됨"으로 포장하지 않는 것이 1-7의 임무**.
+- **자율 판단**: ①**`impl_status` 3단계**(`CONTRACT_ONLY`/`IMPLEMENTED`/**`WIRED`**) — 합치면 고아 가드 재현. **"구현됨"은 "동작함"이 아님** ②🔴**L-2(고아 규칙) 임계 0 · 최시급** — **고아 규칙은 "규칙 없음"보다 나쁨**(규칙 없으면 아무도 안 믿지만 고아는 "있다"고 믿게 함). **현재 L-2=1** → **이 1건이 규칙 81건 계약보다 시급**. 1-6 결론과 동일 — **위험은 크기가 아니라 오신뢰** ③**`CertificationReadiness` 게이트 — 조건부/임시 인증 금지**(반드시 "인증됨"으로 인용됨). 데이터 헌법 V3 `READY/WARNING/BLOCKED`와 동일 철학 ④**`uncertifiable_blocks` 명시 필드** — 안 적으면 "1-7 통과"가 06-A 전체를 덮는 것으로 읽힘(**실제 2/9**) ⑤**규칙 재작성 0·참조만** — 5-8 규칙은 형식만 다르고 유효 → **정규화 편입**. `OrphanRuleDetector`=5-8 `GuardWiringRule` **동일 정본** · `LintRuleRatchet`=5-8 R0~R3 **동일 정본**. 재정의 금지 ⑥**미달은 1-6 Gap 원장 연결 — 별도 원장 금지**(원장 2벌=정본 소실) ⑦**중복 대조 `UNVERIFIED`** — 81 문면 대조 미수행 → **"중복 없음" 보고 안 함**.
+- **★D-10 — 1-6 D-3의 실증**: 1-6은 §53 요구목록 부재로 **커버리지 계산 불가**였으나 **Lint 는 분모(81)가 저장소에서 도출됨**(1-4·5-1이 §53로 영속). **같은 EPIC 안에서 규칙을 문서로 남긴 블록은 인증 가능, 남기지 않은 블록은 인증 불가 — 차이는 능력이 아니라 영속 여부**. LINT-GAP-01 이 그 대가.
+- **인용 검증**: 위임 문구 2개소(`:7`·`:14`) · 규칙 수 헤더 4/4(20/21/17/23) · 합계 81 검산 — **전부 일치**.
+- **1-7이 인증 못 하는 것**: 규칙 타당성(**틀린 규칙도 100% 배선 가능**) · 7개 블록(범위 밖) · **미작성 규칙(Lint 가 스스로 못 잡음 — 1-1/1-2/1-3 의 Lint 0 을 Lint 로 발견 불가 · 사람이 세야 했고 1-7이 세었다)** · **1-7 자신**(스펙 미수령 → 요구목록 저장소 부재 · COV-GAP-01 소급).
