@@ -1,0 +1,23 @@
+# DSAR — Policy Type (§21·17종)
+
+> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> 통합 정본: [CANONICAL_DSAR_AUTHORIZATION_FOUNDATION.md](CANONICAL_DSAR_AUTHORIZATION_FOUNDATION.md) · [CANONICAL_DSAR_AUTHORIZATION_POLICY_DECISION.md](CANONICAL_DSAR_AUTHORIZATION_POLICY_DECISION.md) · ADR: [ADR_DSAR_REBATE_PERMISSION_RBAC_ABAC_PBAC_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_PERMISSION_RBAC_ABAC_PBAC_FOUNDATION.md)
+> **★이 도메인은 부재가 아니라 존재·분산 — 통합이지 신설이 아니다.** 실 구현=후속 승인 세션.
+
+## Policy Type (17)
+ACCESS_CONTROL · DATA_ACCESS · **FINANCIAL_CONTROL** · **ENVIRONMENT_CONTROL** · **TENANT_ISOLATION** · **LEGAL_ENTITY_CONTROL** · PROVIDER_ACCESS · **CREDENTIAL_ACCESS** · FIELD_MASKING · EXPORT_CONTROL · RISK_BASED · TIME_BASED · LOCATION_BASED · INCIDENT_CONTROL · EMERGENCY_CONTROL · COMPOSITE · CUSTOM
+
+## 실측 매핑
+| Type | 현행 | 근거 |
+|---|---|---|
+| **TENANT_ISOLATION** | ✅ REAL(강력) | auth_tenant 주입 · authedTenant 64 · tenant_id=? RLS · IDOR 차단 |
+| ACCESS_CONTROL | △ 분산 | api_key 미들웨어 + 핸들러 self-auth |
+| FINANCIAL_CONTROL(플랜) | △ | PlanPolicy(기능키→최소플랜) |
+| **ENVIRONMENT_CONTROL** | ❌ 권한 분리 부재 | GENIE_ENV=데이터 격리용 |
+| **LEGAL_ENTITY_CONTROL** | ❌ 부재 | 1-1/1-3 확정 |
+| CREDENTIAL_ACCESS | △ | AES-256-GCM · no_credentials 게이트 |
+| FIELD_MASKING | △ 산재 | 3+ 곳 |
+| EMERGENCY_CONTROL | ❌ 부재 | Break Glass 부재(5-5) |
+
+## 규칙
+**TENANT_ISOLATION · ENVIRONMENT_CONTROL 은 Role 평가보다 먼저**(§32 평가 순서 ③④).

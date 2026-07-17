@@ -1,0 +1,16 @@
+# DSAR — Authorization Audit Event (§49·24종)
+
+> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> 통합 정본: [CANONICAL_DSAR_AUTHORIZATION_FOUNDATION.md](CANONICAL_DSAR_AUTHORIZATION_FOUNDATION.md) · [CANONICAL_DSAR_AUTHORIZATION_POLICY_DECISION.md](CANONICAL_DSAR_AUTHORIZATION_POLICY_DECISION.md) · ADR: [ADR_DSAR_REBATE_PERMISSION_RBAC_ABAC_PBAC_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_PERMISSION_RBAC_ABAC_PBAC_FOUNDATION.md)
+> **★이 도메인은 부재가 아니라 존재·분산 — 통합이지 신설이 아니다.** 실 구현=후속 승인 세션.
+
+## Audit Event (24)
+SUBJECT_REGISTERED · SUBJECT_DISABLED · RESOURCE_REGISTERED · ACTION_REGISTERED · PERMISSION_CREATED · PERMISSION_UPDATED · ROLE_CREATED · ROLE_UPDATED · ROLE_PERMISSION_BOUND · **ROLE_ASSIGNED** · **ROLE_REVOKED** · POLICY_CREATED · POLICY_VERSION_CREATED · POLICY_ACTIVATED · POLICY_ROLLED_BACK · **ACCESS_ALLOWED** · **ACCESS_DENIED** · CONDITIONAL_ACCESS_ALLOWED · STEP_UP_REQUIRED · FIELD_MASKING_APPLIED · EXPORT_RESTRICTED · **POLICY_CONFLICT_DETECTED** · **AUTHORIZATION_DRIFT_DETECTED** · MANUAL_REVIEW_REQUESTED
+
+## 현행 재사용
+**도메인별 audit_log 12파일**: `audit_log`(AdminGrowth.php:157) · `menu_audit_log`(AdminMenu.php:123) · `dsar_audit_log`(Dsar.php:213) · auth_audit_log 등 → **KEEP_SEPARATE**(스키마 상이 · 강제 통합 금지).
+
+## 규칙
+- **Audit 는 Append-only** · **Authorization Decision Audit 누락 = Critical Gap**(§43).
+- 이벤트에 **Credential · PII 미포함**.
+- 상세 Audit / Compliance / Access Review = **5-7**(본 블록은 Event 계약만).
