@@ -63,7 +63,10 @@
 - ✅ **교훈 채택**: 과거 append-only 로 동일 `(src,dst)` 중복행 누적 → `SUM(edge_weight)` 단조 팽창 → **랭킹 왜곡**(`:135-137` 자인). 현재는 멱등 upsert 로 수정됨(`:138-155`) → **"엣지 중복 = 집계 왜곡"** 을 Canonical Edge 규율로 승계.
 
 ### D-6. §52/§53 = **알고리즘은 충족 · 조직 적용은 미배선** (축 분리 필수)
-★**`PM/Dependencies::validateDependency`(`PM/Dependencies.php:79-100`)** = **반복형 DFS** + 명시적 `$visited` + **tenant 필터**(`:91` 매 홉) + **쓰기 전 차단**(`:32-34` → 422 `cycle_detected`) + self-loop 차단(`:29-31`). ★**`PM/Gantt`(`:104-125`)** = **Kahn 위상정렬** + `count($topo) !== count($taskMap)` 정석 판정 + 순환 시 **500이 아니라 부분결과+경고 degrade**. 저장 = `pm_task_dependencies` **엣지 리스트** · `UNIQUE(tenant,pred,succ,dep_type)` · 양방향 인덱스(migration `20260526_168_004:12-14`) · 배선 REAL.
+
+> ⚠️ **경로 표기 정정(289차 9회차 · 5-3-3-2 ⓑ 실측)**: 본 ADR 및 5-3-3-1 산출 문서군이 `PM/Dependencies.php`·`PM/Gantt.php`·`PM\Enterprise.php` 로 표기했으나 **실경로는 `backend/src/Handlers/PM/…`** 다(`backend/src/PM/` 는 **존재하지 않는다**). 줄번호는 정확. 5-3-3-2 조사 에이전트의 `Read` 가 **즉시 실패**해 발견됐다 — **문서 25편에 동일 표기가 전파**돼 있으므로 후속 세션은 접두를 확인하고 인용하라.
+
+★**`PM/Dependencies::validateDependency`(`backend/src/Handlers/PM/Dependencies.php:79-100`)** = **반복형 DFS** + 명시적 `$visited` + **tenant 필터**(`:91` 매 홉) + **쓰기 전 차단**(`:32-34` → 422 `cycle_detected`) + self-loop 차단(`:29-31`). ★**`PM/Gantt`(`:104-125`)** = **Kahn 위상정렬** + `count($topo) !== count($taskMap)` 정석 판정 + 순환 시 **500이 아니라 부분결과+경고 degrade**. 저장 = `pm_task_dependencies` **엣지 리스트** · `UNIQUE(tenant,pred,succ,dep_type)` · 양방향 인덱스(migration `20260526_168_004:12-14`) · 배선 REAL.
 - ✅ **`VALIDATED_LEGACY`(알고리즘) 6건** — 5-3-3-1 커버의 실질 전부. **재구현 금지 · 이 패턴 확장.**
 - 🔴 **"§52 는 충족됨"은 거짓** — **알고리즘 축 = 충족** ↔ **조직 적용 = 미배선·갭 실재**. 축을 섞으면 규율 9(대칭오류) 위반.
 - ★**정정 2건**(두 에이전트 독립 발견): ⓐ **`:84` `$depth < 10000` 은 깊이 캡이 아니라 방문 노드 예산**(`:97` `$depth++` 가 **pop 마다**) → §19/§52 Maximum Depth 는 **`PARTIAL`**. 진짜 깊이 캡 선례는 `AdminMenu:545`(조상 1홉씩 상향). ⓑ **Relationship Type Filter 미충족** — `dep_type` 을 보유하나 `:90-91` 이 술어에 넣지 않아 **전 타입 무차별 순회** → "Cycle 금지 **관계에서만**" 표현 불가.
@@ -109,7 +112,10 @@
 OIDC Authorization Code + id_token RS256/JWKS 검증 · SAML ds:Signature 검증(C14N+RSA-SHA256) · 어설션 리플레이 방어(`:56`) · SCIM 2.0 **Users CRUD** · KEK 회전. 라우트 `routes.php:915-932` + `$register` `:2383-2400` **양쪽 배선**.
 - 🔴 **IdP 커넥터 신설 = 두 번째 엔진 = 헌법 위반. `EnterpriseAuth` 확장 강제.**
 - **단 조직 구조는 전달되지 않는다**: **SCIM Groups = GET 전용**(`scimListGroups` `:417-423` · `routes.php:932` — Groups 는 GET 1개뿐, Users 는 CRUD 5개) → 내부 `team` 을 **투영해 내보낼 뿐 IdP→내부 인입 경로 없음**. `sso_group_role_map(tenant_id, group_name, role)`(`:70`·`:72`) 는 **그룹이 엔티티가 아니라 평문 문자열**(`group_name IN (?)` 단순 룩업 `:84`) — **부모-자식·중첩그룹·그룹ID 없음** → **수신하되 저장하지 않고 롤 1개로 즉시 소모.**
-- **HRIS/ERP = `ABSENT`(능력축 증명)**: `ChannelRegistry.php:12`,`:79` `group_type` 도메인 = **sales/marketing/logistics/pg/messaging** · `sync_kind` = commerce/ad/messaging/none + analytics(`:112`)·cs(`:116`)·esp(`:121`)·review(`:125`) → **`erp`·`finance`·`hr` 값이 열거에 없다.** 헌법 Vol2(`docs/DATA_SOURCE_ARCHITECTURE_CONSTITUTION.md:71`)가 ERP 를 12분류로 정의하나 **이름만 있고 커넥터·수집·정규화 어느 층도 없다.** migrations 전량·git log 전 이력 grep **0**.
+- **HRIS/ERP = `ABSENT`** — 헌법 Vol2(`docs/DATA_SOURCE_ARCHITECTURE_CONSTITUTION.md:71`)가 ERP 를 12분류로 정의하나 **이름만 있고 커넥터·수집·정규화 어느 층도 없다.** `hris`/`workday`/`sap`/`netsuite`/`dynamics`/`payroll` 소스 히트 0 · migrations 전량 0.
+  - 🔴 ★**초판 논증 철회(289차 9회차 · 5-3-3-2 ⓑ 실측이 정정)**: 초판은 *"`group_type` 도메인 = sales/marketing/logistics/pg/messaging · `sync_kind` = commerce/ad/… → `erp`·`hr` 값이 **열거에 없다**"* 를 능력축 증명으로 삼았다. **이 논증은 성립하지 않는다** — `ChannelRegistry.php:36`,`:38`(MySQL)/`:46`,`:47`(SQLite) 실측 = **`group_type VARCHAR(40)`·`sync_kind VARCHAR(20)` 자유 문자열 · ENUM/CHECK 없음** · `in_array` 화이트리스트 **전역 0** → **누구든 `group_type='hr'` 을 삽입할 수 있다.** 주석(`:12`·`:79`)이 나열한 값은 **열거가 아니라 관례**이며(게다가 실값 `support` 가 주석에 **누락된 stale**), **주석을 스키마 제약으로 읽은 것이 규칙 6(주석≠실효) 위반**이다.
+  - ✅ **재접지된 근거(능력축)**: 커넥터 **카탈로그 행 0** · **fetcher 0** · **정규화 테이블 0**. 결론(`ABSENT`)은 불변이나 **근거가 교체된다.**
+  - ★**교훈**: *"열거에 없다"* 는 **열거가 실재할 때만** 유효한 논증이다. **제약이 코드로 강제되는지 먼저 확인하라** — 결론이 맞아도 논증이 틀리면 다음 사람이 같은 형식으로 틀린 결론에 도달한다.
 
 ### D-12. Audit = **`pm_audit_log` 골격 + `menu_audit_log` 해시체인 합집합 확장** (★내 브리핑이 오염원이었던 지점)
 - 🔴 **"해시체인 없음"은 전역 명제로 쓰면 거짓.** **참인 것은 전역 `audit_log`(`actor·action·details_json·created_at` **4컬럼** · tenant 없음 · 해시체인 없음 — MySQL `Db.php:540-545`/SQLite `AdminGrowth.php:157-159`)에 한해서**다.
