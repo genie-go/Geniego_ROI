@@ -67,12 +67,19 @@ ABAC Context · Field Access Profile · Break Glass · Access Review · Prod/San
 
 **1-9의 임무는 분류를 정본화하는 것이다. 그러려면 분류가 먼저 옳아야 한다.**
 
-### 3-1. 🔴 **LEGACY-GAP-01 — `VALIDATED_LEGACY` 인데 검증된 적이 없다**
+### 3-1. ✅ **LEGACY-GAP-01 — `VALIDATED_LEGACY` 인데 검증된 적이 없다** — **289차 해소(분류가 참이 됨)**
 
-**5-1 §50 분류:**
+> **289차 정정(승인 세션):** **`VALIDATED_LEGACY` 분류가 이제 참이다** — `.githooks/pre-commit` **G15** 배선 +
+> **양방향 실증**(위반 stage→exit 1 차단 · 정상→통과 · 저장소 위반 0)으로 **실제 검증이 수행됐다**.
+> **"재사용 강제"도 이제 정당하다** — 아무것도 안 하는 파일이 아니라 **실제로 막는 가드**를 재사용하라는 명령이 됐다.
+> ⚠️ **단 분류표의 `(275차 인가 회귀 **CI** 가드)` 표기는 여전히 부정확** → **`pre-commit 가드(로컬)`** 로 읽어야 한다(§3-1 하단 정정표).
+> ★**이 건이 1-9가 요구한 `is_effective` 필드의 최초 실증 사례다** — `VALIDATED_LEGACY` 라는 분류만으로는
+> **"존재 확인"과 "실효 검증"을 구분할 수 없었고**, 두 상태(배선 0 / 배선 1)가 **같은 라벨을 달고 있었다**.
+
+**5-1 §50 분류(발견 시점 — 보존):**
 
 ```
-| tools/guard_headerless_getjson.mjs (275차 인가 회귀 CI 가드) | VALIDATED_LEGACY(Lint 기반) |
+| tools/guard_headerless_getjson.mjs (275차 인가 회귀 ~~CI 가드~~ → **pre-commit 가드(로컬)**·**289차 G15 배선**) | VALIDATED_LEGACY(Lint 기반) · **`is_effective=true`(289차부터)** |
 규칙: "VALIDATED_LEGACY 는 재사용 강제"
 ```
 
@@ -217,7 +224,7 @@ grep -rln "351" docs/segmentation/DSAR_AUTHORIZATION_*.md   → 4
 
 | ID | 항목 | 등급 |
 |---|---|---|
-| **MR-1-9-01** | 🔴 `guard_headerless_getjson` **분류 정정 + 배선** — 3층 오염 근원 | 🔴 **최시급** |
+| ~~**MR-1-9-01**~~ | ~~🔴 `guard_headerless_getjson` **분류 정정 + 배선** — 3층 오염 근원~~ → ✅ **289차 CLOSED** — G15 배선 + **4층 전부 정정**(5-8 §3-1 · 1-7 L-2 · 1-8 GOLDEN-GAP-01 · 1-9 LEGACY-GAP-01) | ✅ |
 | **MR-1-9-02** | 🔴 **351 4벌 정정**(방법 명시 · 값 복사 금지) | 🔴 |
 | **MR-1-9-03** | Role 3계통 · PEP 100+ 통합 — **`EquivalenceProof` 선행 필수** | 🟠 |
 | **MR-1-9-04** | `DelegationLedger` 도입 | 🟠 |

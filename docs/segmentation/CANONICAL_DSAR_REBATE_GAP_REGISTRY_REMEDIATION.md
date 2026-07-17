@@ -27,7 +27,7 @@
 | **DEFECT** | **있는데 잘못 동작** | `Mapping.php:212` 승인 중복 미제거 | 🔴 **높음** — **지금 운영에서 작동 중** |
 | **PARTIAL** | 있는데 일부만 | 감사 스키마 편차(5필드 vs 12필드+체인) | 🟠 |
 | **UNVERIFIED** | **모름** | 보고 52 vs 실측 47 | 🟠 **모름은 양호가 아니다** |
-| **WIRING** | 있는데 **연결 안 됨** | `guard_headerless_getjson` 호출처 0 | 🔴 **가짜녹색** |
+| **WIRING** | 있는데 **연결 안 됨** | ~~`guard_headerless_getjson` 호출처 0~~ → ✅ **289차 해소**(G15 배선). **분류 예시로는 유효**(현행 잔여 예시 = `action_request` **생산자 0** — G-02 `VACUOUS`) | 🔴 **가짜녹색** |
 
 ### 2-1. 🔴 **ABSENT를 DEFECT보다 위에 두면 안 된다**
 
@@ -117,7 +117,8 @@
 
 | ID | Gap | 근거 |
 |---|---|---|
-| **G-05** | `guard_headerless_getjson.mjs` **호출처 0** — 275차 이래 미실행 | 전수 grep 0 · 대조군 `pre-commit:175` 배선 REAL |
+| ~~**G-05**~~ ✅ **CLOSED(289차)** | ~~`guard_headerless_getjson.mjs` **호출처 0** — 275차 이래 미실행~~ → **`.githooks/pre-commit` G15 배선** | **양방향 실증**: 위반 stage→**hook exit 1 차단** · 정상 import→**G15 통과** · 저장소 **위반 0건**. 가드 파일 **무수정**(275차 원본이 처음부터 옳았음) |
+| **G-05b** | **G15 가 CI 에선 여전히 미실행** — 로컬 pre-commit 배선까지만. `core.hooksPath`=클론별 config · `--no-verify` 우회 | **G-06 과 동일 근본** → **병합 추적**(별도 해결 금지 — 한 번에 CI 승격) |
 | **G-06** | pre-commit **CI 미강제 · 클론별 opt-in · `--no-verify` 우회** → **B4(자격증명 차단)가 opt-in** | workflows grep 0 |
 
 ### 4-3. `PARTIAL`

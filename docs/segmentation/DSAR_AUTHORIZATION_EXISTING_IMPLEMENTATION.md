@@ -21,7 +21,7 @@
 | **Tenant Isolation**(agency 토큰 **서버바인딩 tenant 주입·위조불가**+최소권한 role) | **VALIDATED_LEGACY**(강력·재사용) | index.php:97-100 |
 | **`authedTenant`**(세션 테넌트 자체해석·**64 핸들러**) · `tenant_id=?` RLS 전역 | **VALIDATED_LEGACY** + **CONSOLIDATION_REQUIRED**(PEP 분산) | 64 핸들러 |
 | **action_request IDOR 차단**(타 테넌트 승인/거부 차단·208차 P0) + 승인 워크플로(decision/approvals_json/status) | **VALIDATED_LEGACY**(Approval 정본·재사용) | Alerting.php:545-546/578-582 |
-| **`tools/guard_headerless_getjson.mjs`**(275차 인가 회귀 CI 가드) | **VALIDATED_LEGACY**(Lint 기반) | 275차 |
+| **`tools/guard_headerless_getjson.mjs`**(275차 인가 회귀 ~~CI 가드~~ → **pre-commit 가드(로컬)**·**289차 G15 배선**) | **VALIDATED_LEGACY**(Lint 기반) · `is_effective=true`(289차부터) | 275차 신설 / **289차 배선** |
 | channel_credential **AES-256-GCM**(267차 fail-closed) · ChannelCreds 마스킹 · **`no_credentials` 게이트** | **VALIDATED_LEGACY**(Credential Access 기반) | 267차 · AdAdapters.php:19 |
 | EnterpriseAuth(SAML/OIDC/SCIM) · UserAuth 세션(genie_token) · **MFA(mfa_policy)** · OAuth.php | **KEEP_SEPARATE_WITH_REASON**(**인증 ≠ 인가**·§4.7) | — |
 | audit_log 12파일(도메인별) | **KEEP_SEPARATE_WITH_REASON**(스키마 상이) | AdminGrowth.php:157 · AdminMenu.php:123 · Dsar.php:213 |

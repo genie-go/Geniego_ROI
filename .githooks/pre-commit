@@ -191,6 +191,19 @@ if [ -n "$CRON_STAGED" ]; then
   fi
 fi
 
+# G15 — 헤더리스 getJson 인가 회귀 가드 (275차 신설 · 289차 배선)
+#   275차에 가드 파일은 만들었으나 호출처가 0이라 이래로 한 번도 실행되지 않았다.
+#   그 상태로 5-8/1-8/1-9 세 문서가 "CI 가드로 보호됨"을 전제했다 — 파일 존재가 검증을 대체한 사례.
+#   헤더리스 getJson 은 운영에서 401 fail-closed → 조용한 빈 화면으로 나타난다(237차·275차 2회 재발).
+HLGJ_STAGED=$(echo "$STAGED" | grep -E '^frontend/src/.*\.(jsx?|tsx?)$' || true)
+if [ -n "$HLGJ_STAGED" ]; then
+  if node tools/guard_headerless_getjson.mjs; then
+    ok "G15: 헤더리스 getJson 인가 회귀 정합"
+  else
+    fail "G15: 헤더리스 getJson 회귀 — 인증 엔드포인트가 401 로 조용히 빈 화면이 된다"
+  fi
+fi
+
 if [ "$FAIL" -ne 0 ]; then
   echo ""
   echo "Pre-commit blocked. Resolve issues or bypass with: git commit --no-verify (N-145-G)"

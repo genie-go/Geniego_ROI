@@ -106,7 +106,7 @@
 | Field Masking(AttributionEngine·ChannelCreds·UserAuth 산재) | **CONSOLIDATION_REQUIRED**(단일 Field Access Profile) | — |
 | Impersonation(UserAdmin 회원 대행) | **VALIDATED_LEGACY + 위험 이력**(286차 act-as tenant 하이재킹) → **5-4** | UserAdmin.php · routes.php |
 | channel_credential AES-256-GCM · ChannelCreds 마스킹 · `no_credentials` 게이트 | **VALIDATED_LEGACY**(Credential Access 기반) | 267차 · AdAdapters.php:19 |
-| `tools/guard_headerless_getjson.mjs`(275차 인가 회귀 CI 가드) | **VALIDATED_LEGACY**(Lint 기반) | 275차 |
+| `tools/guard_headerless_getjson.mjs`(275차 인가 회귀 ~~CI 가드~~ → **pre-commit 가드(로컬)**·**289차 G15 배선**) | **VALIDATED_LEGACY**(Lint 기반) · `is_effective=true`(289차부터) | 275차 신설 / **289차 배선** |
 | **중앙 PDP · Decision 기록 · Policy Version · Obligation · Conflict · Reconciliation · ABAC Context · Field Access Profile · Break Glass · Access Review · Production/Sandbox 권한 분리** | **NOT_APPLICABLE(부재→신설)** | grep 0 |
 
 **중복 감사(§51) 결과**: **여러 Role Registry=3**(team_role·api_key role·admin master/sub → **CONSOLIDATION_REQUIRED**) · **여러 Permission Registry=2**(acl_permission·scopes_json → **KEEP_SEPARATE**(인간 vs API_CLIENT)+Canonical 상위 통합) · **여러 Policy Store=1**(PlanPolicy) · **여러 Scope Model=2**(DATA_SCOPES 9 · tenant/plan → 통합) · **여러 PEP=100+**(미들웨어 1 + authedTenant 64 + plan gate 56 + master 5 → **★5-6 에서 통합**) · **여러 PDP=중앙 부재**(분산) · **여러 UI Permission Engine=1**(planMenuPolicy.js → **수동 동기화 위험**) · **여러 Field Masking Engine=3+**(**CONSOLIDATION_REQUIRED**) · Rebate 전용 중복 IAM=**0**(미착수·**신설 금지**) · ERP/CRM/Admin UI별 독립 권한 모델=0.

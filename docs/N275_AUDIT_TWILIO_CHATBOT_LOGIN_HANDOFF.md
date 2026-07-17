@@ -19,7 +19,12 @@
 
 ### P0 — 운영 기능 사망
 - **헤더리스 `getJson` 회귀** (237차 클래스 2차 재발): `DataAssets` / `DataTrustDashboard` / `AgencyAccess` / `RulesEditorV2` 4페이지가 Bearer 없이 세션 인증 EP 호출 → 핸들러 self-auth **401 fail-closed** → 운영에서 조용한 빈 화면. `getJsonAuth as getJson` 별칭으로 수정.
-  - **★근본원인 제거**: `tools/guard_headerless_getjson.mjs` 신설(CI 가드). 즉시 에이전트가 놓친 2건(`DashSystem` · `SystemMonitor` 죽은 import) 추가 검출.
+  - **★근본원인 제거**: `tools/guard_headerless_getjson.mjs` 신설(~~CI 가드~~ → **파일만 신설 · 배선 0**). 즉시 에이전트가 놓친 2건(`DashSystem` · `SystemMonitor` 죽은 import) 추가 검출.
+    > 🔴 **289차 정정 — "CI 가드"는 이 줄이 발원지다.** 275차는 **가드 파일을 만들었을 뿐 어디에도 배선하지 않았다**(호출처 0·5-8 실측).
+    > 그런데 이 서술이 **"CI 가드"로 기록되면서 이후 15개 문서가 이 표현을 인용·복제**했고, **아무도 배선을 확인하지 않았다**
+    > → **파일 생성이 "근본원인 제거"로 오독됨**. **틀린 라벨이 복제 수로 이긴 사례**(㉢ stale 351 과 동일 클래스).
+    > **289차에 `.githooks/pre-commit` G15 로 실제 배선 완료**(양방향 실증) — **이제야 275차의 이 주장이 참이 됐다**.
+    > **정확한 등급은 여전히 `pre-commit(로컬) 가드`이지 `CI 가드`가 아니다**(CI 승격=별건).
   - 라이브 실증: 5개 EP 전부 `노토큰 401 → 토큰 200`.
 
 ### P1
