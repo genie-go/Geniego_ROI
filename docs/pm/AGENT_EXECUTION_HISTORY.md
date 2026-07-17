@@ -151,6 +151,33 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 
 ---
 
+## AE-289-07 — EPIC 06-A Part 4-5-3-1-5-5 (Emergency Access·Break Glass·JIT·Time-Bound Privilege)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★스펙 미수령·자율 판단(사용자 명시 승인)** — 세부 자율임을 Canonical 2 + ADR 전부 명시 · **§요구 부재 → 완료 조건 판정 불가 · §53/§59 없음**.
+
+### ★핵심 실측
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| **Break Glass · Emergency Access · JIT** | ❌ **전부 부재(grep 0)** | `break_glass`/`emergency_access`/`jit_` |
+| **Impersonation 2h** | ✅ **REAL — JIT 의 실 원형**(4요소 중 **3개 보유**: 시간제한·감사·고지 / **부족=사유·승인**) | UserAdmin.php:493-499/525 |
+| **api_key expires_at** | ✅ REAL | Db.php:953 |
+| **MFA OTP 해시+만료** | ✅ REAL — `mfa_otp_hash` + `mfa_otp_expires` · `strtotime` 검증 | UserAuth.php:3418/3895/3908 |
+| **★SCIM 즉시 deprovision** | ✅ **REAL — 5-1 §43 Critical("Revoked Role 로 Session 지속")의 실 해소 사례** | **EnterpriseAuth.php:400/413** |
+| 강제 세션 종료 | ✅ REAL | UserAdmin.php:365 |
+| **Kill Switch(닫기)** | ✅ REAL | AutoCampaign.php:602-609(233차) |
+| Incident Registry | ❌ 부재(1-4와 일관) | — |
+
+### ★관찰 2건 (미확정·미수정)
+1. **Revocation 경로 불일치** — **SCIM 만 즉시 세션 삭제**(:400/413) · **일반 Role 변경·plan 강등에는 세션 무효화 미발견** → 5-1 §43 이 SCIM 외 경로에서 열려 있을 수 있음. **FP 규약상 P0 단정 금지**(권한 판정이 요청마다 DB 재조회면 무증상·`authedTenant` 요청시점 해석 맥락) → **5-6 판정**.
+2. **만료 세션 정리 Job 부재** — 만료는 조회 시점 검증 · `user_session` 만료 행 누적 가능. **기능 결함 아님·위생 이슈** → 5-7/운영 cron 후보.
+
+### 자율 판단
+①**JIT 신규 프레임워크 신설 금지 — Impersonation 패턴 일반화**(3/4 이미 보유·사유+승인만 추가) ②**★"이 저장소엔 권한을 여는 비상 경로가 없다 = 결함이 아니라 보수적 설계"** — 있는 건 **닫는 경로**(Kill Switch·Emergency Disable·SCIM deprovision·강제 종료)와 **인증 복구**(273차 접속키) ③**Break Glass 기본 OFF · 대안이 있으면 만들지 마라**(도입 3조건 제시) ④**방향 구별**(1-4 Emergency Disable=**닫기** / Break Glass=**열기** / 273차 접속키=**인증 복구·권한 상승 아님·동명이의 오탐 주의**) ⑤**Break Glass 중에도 Kill Switch 우선**(비상 권한이 비상 차단을 무력화 금지).
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
