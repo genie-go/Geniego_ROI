@@ -312,3 +312,27 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **판정 = 🔴 `NOT_CERTIFIED`**(PC-1~PC-6 전부 미달 · 인증서 발급 0). **실패가 아님** — 06-A=전방호환 설계 계약·코드변경 0 원칙을 **9블록이 전부 지킴**.
 - **인용 검증 5/5**: VALIDATED_LEGACY 재사용강제 규칙 원문 · 5-8 Legacy 언급 0 · 351 4벌 · 고아가드 호출처 0 · Rebate 0.
 - **비파괴**: 코드 0 · **§53 무수정**(351 4벌 · VALIDATED_LEGACY 오분류 **둘 다 안 고침** — 남의 블록 산출물 무단수정 금지) · **5-8 소급수정 0** · 인증서 0.
+
+
+---
+
+## AE-289-15 — EPIC 06-A Part 4-5-3-1-5-2 (Role·Organization·Tenant·Workspace·Scope) — **스펙 Version 1.0 수령분**
+
+- **스펙**: ✅ **수령**. 289차 초반 자율 설계본은 **명시한 약속대로 양보**(RP-002 등재) · **삭제 없이 참고 이력 보존**(무후퇴).
+- **RP-001 준수**: 로드맵(`MASTER_REGISTRY:7` 5=Permission) + **5-1 §59 ㊾ 명시 위임**("5-2 준비 완료 — 입력=Subject/Binding·Role Foundation·Scope Dimension 24·현행 DATA_SCOPES 9·Role 3계통 통합 과제").
+- **★D-1 — 1-6 COV-GAP-01 을 이 블록에서 해소**: 스펙 수령 즉시 **요구 목록을 저장소에 영속**(`REQ_06A_4_5_3_1_5_2_ROLE_ORG_SCOPE.md`) → **06-A 최초로 커버리지 실계산: 요구 57 · 산출 57 · 누락 0 · 100%**(측정방법 명시 · 1-8 MeasurementMethod 준수). **1-7 D-10의 실증** — "규칙을 문서로 남긴 블록은 인증 가능, 남기지 않은 블록은 불가능. **차이는 능력이 아니라 영속 여부**". **선행 블록 분모는 여전히 부재 → MR-1-6-01 유지**.
+- **산출(60편·코드변경 0)**: §53 **57편** + `CANONICAL_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE.md` + `ADR_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE_GOVERNANCE.md` + **요구 분모 1편**.
+- **★전수조사(스펙 §3) — 이 도메인은 부재가 아니라 존재·분산 → 신설이 아니라 통합**:
+  - **IdP Group Mapping REAL** — `sso_group_role_map`(tenant_id·group_name·role·UNIQUE uq_sgrm) `EnterpriseAuth.php:70/72` + `roleForGroups()`:78
+  - **SCIM REAL** — `sso_config`(scim_enabled·scim_token_hash·auto_provision·default_role):59 + `scimJson()`:35
+  - **Automatic Deprovisioning REAL** — `EnterpriseAuth.php:400` `active===0 → DELETE FROM user_session` **즉시 deprovision**
+  - **Brand Registry REAL** — `catalog_brand`(tenant_id·name·code·UNIQUE) `Catalog.php:151/161/353` · **285차**
+  - **Team REAL** `team`:145/168 · **Action 8/Scope 9/acl_permission REAL** :39/41/15 · **api_key Validity·Usage REAL**(expires_at·last_used_at·use_count) · **External 3체계 REAL**(AgencyPortal **매 요청 approved fail-closed** 272차 · PartnerPortal · SupplyChain) · **Tenant Isolation REAL**(agency 토큰 서버바인딩 위조불가 :97-100 · **192차 `/api` 별칭 차단** :562-575)
+  - **부재**: Workspace·Organization·Department·Legal Entity·Store·Cost Center·Country·Region Registry · Role Catalog/Version/Hierarchy/Composition/Custom/Request/Grant/Revocation/Scope Inheritance·Override·Exclusion·Conflict/Usage 원장/Orphan·Dormant 탐지/Reconciliation/HRIS/Cache
+- **★오탐 2건 제거**: ~~workspace~~ = **`WorkspaceState` → `tenant_kv` KV 저장소**(279차 감사 E-P1 · 조직 Registry 아님) · ~~business_unit~~ = **Trustpilot API 자격증명 필드**(`ChannelSync.php:2573-2577`). **1-6에서 grep REAL 히트 4중 3이 오탐이었던 전례 — 이름이 같다고 같은 것이 아니다.**
+- **★1-1 실측 오류 발견(미수정·인계)**: 1-1 `MASTER_REGISTRY` §0 이 **"Workspace/Brand/Store registry = 부재"**로 기재했으나 **Brand 는 REAL**(`catalog_brand`·285차). **Workspace·Store 는 부재가 맞음**. **1-1 문서 미수정** — 남의 블록 산출물(**1-8 D-10 준수**) → 인계.
+- **핵심 설계 판단**: ①🔴**Scope Dimension = 계약 24 ∪ 현행 고유 4 = 28**(합집합) — `campaign`·`product`·`warehouse`·`own` 은 **스펙 24에 없는 현행 고유 축**이며 **스펙에 없다고 버리면 1-9 최우선 명령(정상 접근 유지) 위반 · 즉시 회귀**. 5-1 §51 "기존 9종 의미 변경 금지" 계승 ②**Composite 기본값 INTERSECTION** — **UNION 이면 조용한 권한 확대**(사용자는 "역할을 합쳤다"고 생각하지 "권한을 늘렸다"고 생각하지 않음) ③**Standard Role 결합 금지 3원칙**(Program Manager ⊅ Finance·Payout / **Operator ≠ Approver 동일 Role** — 넣으면 **Maker-Checker 전제가 설계 단계에서 파괴** / **Access Admin + Finance 금지** — **권한 부여자가 스스로에게 지급 권한을 줌**). **기반 REAL**: ACTIONS 8에 approve·execute **이미 분리** ④**Role 3계통 통합은 `EquivalenceProof` 선행**(1-9) — **증명 없는 통합 = 286차 rank 맵 붕괴 재현 · 실측 이력** · **4번째 Role Registry 금지** ⑤**Critical Gap 대응 = Runtime Guard 차단(1차) + Access Review 등재(2차)**(5-7 순환참조 정정 계승 — **존재하지 않는 기능에 의존 금지**) ⑥🔴**`VALIDATED_LEGACY` 에 `is_effective` 요구**(1-9 LEGACY-GAP-01 — **"VALIDATED"가 거짓이었음 · 파일 존재가 검증을 대체**) ⑦**1-8 교훈 2건 회귀게이트 적용**: **팬텀 보존 대상 미등재**(실행 경로 확인된 것만) · **stale 수치 미복사**(requirePro 호출부에 숫자 대신 **측정 명령** 기재 — `CorrectionPropagation`).
+- **Lint/Guard 계약**: Static Lint **20** + Runtime Guard **22** → **1-7 레지스트리 누계 37→57 · 44→66**. **전부 `CONTRACT_ONLY`(구현 0)** → **1-7 판정 `NOT_READY` 불변**.
+- **관찰 4건(전부 `UNVERIFIED` · 본 세션 수정 0 · FP 레지스트리)**: **O-1** Group 제거 시 Role 유지 가능성(`sso_group_role_map` **removal behavior 부재** · IdP 그룹 삭제 시 매핑 행 잔존 · **실 동작 미검증**) · **O-2** Service Account 에 Human Role 부여 가능성(`api_key.role='admin'` 차단 장치 없음 · **그런 키 발급 여부 미조회**) · **O-3** Orphan Group Role(group_name **문자열** 저장 · **실 데이터 미조회**) · **O-4** 1-1 Brand "부재" 기재 오류.
+- **인용 검증 7/7 일치**: `sso_group_role_map`(6히트) · `roleForGroups()`:78 · `EnterpriseAuth.php:400` 즉시 deprovision · `catalog_brand`:151 · `TeamPermissions.php:39/41` · `scimJson()`:35 · `WorkspaceState`→`tenant_kv`:59.
+- **정직 표기**: 스펙 §65는 **41항목 전부 "구축되었다"**를 요구하나 산출은 **계약 명세(문서)까지**이며 **실 코드·테이블·Lint·Guard 0건**. **"구축 완료"가 아니라 "계약 명세 확정"**. **1-6 4축: Design 충족 · Implementation/Data/Verification 0%**. **회귀 0**(코드변경 자체가 0).

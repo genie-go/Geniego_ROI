@@ -1,0 +1,22 @@
+# DSAR — Standard Role (§8)
+
+> EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-2 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
+> 통합 정본: [CANONICAL_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE.md](CANONICAL_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE.md) · ADR: [ADR_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE_GOVERNANCE.md](../architecture/ADR_DSAR_REBATE_ROLE_ORGANIZATION_SCOPE_GOVERNANCE.md) · 요구 분모: [REQ_06A_4_5_3_1_5_2_ROLE_ORG_SCOPE.md](REQ_06A_4_5_3_1_5_2_ROLE_ORG_SCOPE.md)
+> **★이 도메인은 부재가 아니라 존재·분산 — 통합이지 신설이 아니다.** 실 구현=고객 Rebate 도입 시 후속 승인 세션. 본 문서=**계약 명세**.
+
+## 계약 — 최소 35 Standard Role
+**Read·Analysis(4)**: REBATE_VIEWER · REBATE_ANALYST · REBATE_REPORT_VIEWER · REBATE_READ_ONLY_ADMIN
+**Program(4)**: REBATE_PROGRAM_EDITOR · REBATE_PROGRAM_MANAGER · REBATE_PROGRAM_REVIEWER · REBATE_PROGRAM_APPROVER
+**Funding·Finance(5)**: REBATE_FUNDING_ANALYST · REBATE_FUNDING_MANAGER · REBATE_FINANCE_REVIEWER · REBATE_LIABILITY_ANALYST · REBATE_ACCOUNTING_OPERATOR
+**Claim(4)**: REBATE_CLAIM_INTAKE · REBATE_CLAIM_ANALYST · REBATE_CLAIM_REVIEWER · REBATE_CLAIM_APPROVER
+**Settlement·Payout(5)**: REBATE_SETTLEMENT_ANALYST · REBATE_SETTLEMENT_OPERATOR · REBATE_SETTLEMENT_APPROVER · REBATE_PAYOUT_OPERATOR · REBATE_PAYOUT_APPROVER
+**Governance(7)**: REBATE_AUDITOR · REBATE_COMPLIANCE_REVIEWER · REBATE_SECURITY_ADMIN · REBATE_ACCESS_ADMIN · REBATE_MIGRATION_OPERATOR · REBATE_INCIDENT_RESPONDER · REBATE_SUPPORT_AGENT
+**Administration(3)**: REBATE_WORKSPACE_ADMIN · REBATE_TENANT_ADMIN · REBATE_PLATFORM_ADMIN
+
+## 🔴 최소권한 결합 금지 (§8 말미·§66)
+- **Program Manager 가 Finance·Payout 권한을 자동 획득하지 않는다**(§0 질문 직답).
+- **Operator 와 Approver 를 같은 Role 에 넣지 않는다** — 넣으면 **Maker-Checker 전제가 설계 단계에서 파괴**된다(→5-4).
+- **Access Admin + Finance 결합 금지** — **권한 부여자가 스스로에게 지급 권한을 줄 수 있게 된다.**
+
+## 실측 — 기반 REAL
+현행 8 ACTIONS(`TeamPermissions.php:39`)에 **approve·execute 가 이미 분리 REAL** → **Approver/Operator 분리의 기반이 존재한다**(신설 아님·재사용).
