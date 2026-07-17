@@ -70,6 +70,33 @@ Rebate 엔진(1-1~1-4)은 **grep 0(부재)**이었으나 **Authorization 은 실
 
 ---
 
+## AE-289-04 — EPIC 06-A Part 4-5-3-1-5-2 (Role·Organization·Tenant·Workspace·Scope Governance)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★지시 성격 — 스펙 미수령·자율 판단(사용자 명시 승인)**: 사용자가 **상세 스펙 없이 진행**을 지시. 선행 스펙(5-1 §1)이 **파트 번호·파트명만** 명시했고 **§5~§60 요구·Entity 필드·분류 체계·§53 문서 목록·§59 보고 형식은 제공되지 않았다**.
+  - **RP-001 정합 확인**: 파트 번호·이름은 **추정 아님**(스펙 명시). **세부 계약은 자율 설계임을 전 산출물(Canonical 2 + ADR)에 명시**했다 — 추정을 정본처럼 표기하지 않음.
+  - **한계**: 스펙 §요구가 없으므로 **"완료 조건 판정 불가"** · **§53/§59 없음**(내가 정의한 산출 = Canonical 2 + ADR + 이력).
+  - **정본 스펙 수령 시 재정합 필요**.
+
+### ★실측 성과 — 1차 grep REAL 4건 중 3건이 오탐이었다
+| 항목 | 1차 grep | 정밀 확인 | 근거 |
+|---|---|---|---|
+| Workspace Registry | REAL | **오탐 — 부재** | `WorkspaceState`=**tenant_kv UI 상태 KV**("테넌트 격리 전용 tenant_kv 신설(중복 아님)"·WorkspaceState.php:10/59-61) |
+| Store Registry | REAL | **오탐 — 부재** | `influencer_store`=**인플루언서 스토어**(Influencer.php:38) |
+| Country/Region Registry | REAL | **오탐 — 부재** | `country`=tenant_business_profile/pixel_events **컬럼**(DataPlatform.php:72·PixelTracking.php:99) |
+| Organization Registry | REAL | **오탐 — 부재** | `organization_id` grep 0 |
+| **Tenant Registry** | REAL | **확정 REAL** | **`tenant_business_profile`**(company_name·**biz_reg_no**·industry·country·brand_name·DataPlatform.php:53/72·272차) |
+| **Team** | REAL | **확정 REAL** | **`team` 테이블**(TeamPermissions.php:145) · team_role 고정 3종 · `team_channel_mapping`(tenant_id+team·Db.php:712-717=**Team 은 Tenant 종속**) |
+
+### 주요 실측·판단
+- **Role Registry 자체가 부재** — Role 이 **3계통에 enum/상수/컬럼값으로 산재** · **Custom Role 부재**(`custom_role`/`role_code` grep 0·team_role 고정 3종) · Assignment 이력/승인/만료 전무.
+- **Legal Entity 부재 확정**(1-1·1-3·5-1 과 일관) · **`biz_reg_no` 가 있어도 Legal Entity 아님**(테넌트 프로필 ≠ 법인 회계 주체).
+- **자율 판단 2건**: ①**Scope 2계층 분리**(현행 DATA_SCOPES 9 는 조직축+데이터축 혼재 → Canonical 24 와 차원 상이 → 강제 병합 시 의미 손상) ②**team_role fail-open 판정**(의도적 가용성 보호로 보임 · 권장 해소=backfill 후 null=DENY · **미수정**).
+- **통합 시 회귀 고위험 3지점(실측)**: `requirePro` **호출부 351**(286차 rank 맵 붕괴 실사례) · `authedTenant` **64** · `requireMasterAdmin2` **5**.
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
