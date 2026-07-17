@@ -1,7 +1,9 @@
-# DSAR — Approval Execution Binding (§40·필드 19)
+# DSAR — Approval Execution Binding (§40·필드 **20**)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §40**
+> 🔴 **REQ 집계 불일치**: REQ §7은 필드 **19**로 고정하나 **원문 실측 20**. **원문이 정본** — 제목·본문을 20으로 정정한다.
 
 ## 0. 현행 실측 (file:line)
 
@@ -19,8 +21,34 @@
 
 ## 1. Execution Binding = **어떤 승인이 · 어떤 실행을 · 어디까지 허가했는가**의 영속 링크
 
-**필드 19** — 스펙 §40 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `19`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 필드 축 커버리지 주장 불가**.
+### 1.1 필수 필드 — **원문 전사 20** (§40)
+
+`APPROVAL_EXECUTION_BINDING` — 원문 정의: **승인 완료 후 실제 작업 실행과 연결한다.**
+
+| # | 필드(원문) | 현행 대조 (file:line) | 분류 |
+|---|---|---|---|
+| 1 | approval_execution_binding_id | `execution_binding` grep **0** | NOT_APPLICABLE |
+| 2 | approval_request_id | 실행이 근거 승인을 지목하는 링크 부재 — `Alerting::executeAction`은 `action_request.id`로 **자기 자신**을 읽을 뿐(`Alerting.php:612`) | NOT_APPLICABLE |
+| 3 | approval_case_id | Case 축 부재(§4.2) | NOT_APPLICABLE |
+| 4 | approval_item_id | Item 축 부재 — 현행은 전부 단일 레코드 1건 승인 | NOT_APPLICABLE |
+| 5 | approval_decision_id | Decision 테이블 부재(현행 `UPDATE SET status=?` 덮어쓰기) | NOT_APPLICABLE |
+| 6 | approved resource type | 부재 — `action_json` **JSON blob** 내부(`Db.php:592-600`)이며 대조 컬럼 아님 | NOT_APPLICABLE |
+| 7 | approved resource id | 동상 — 실행 시 blob에서 `campaign_ext_id` 등을 꺼내나(`Alerting.php:624`) **승인 시 고정된 값과 대조하지 않음** | NOT_APPLICABLE |
+| 8 | approved resource version | Resource Version 축 부재(§4.4 미충족) | NOT_APPLICABLE |
+| 9 | approved action | 부재 — `Alerting.php:625`가 blob의 `type`을 **실행 시점에** 해석. 승인된 action과 대조 불가 | NOT_APPLICABLE |
+| 10 | approved amount | 부재 — `Alerting.php:626` `daily_budget`을 blob에서 읽어 그대로 집행(`:634`). 승인 금액 상한 없음 | NOT_APPLICABLE |
+| 11 | approved currency | 부재 — 승인 통화 개념 없음. 재사용 후보 = `Connectors::fxToKrw`(`Connectors.php:1749` · 24통화 + `app_setting` 24h 캐시) | NOT_APPLICABLE(단 환산기는 VALIDATED_LEGACY) |
+| 12 | approved scope | 부재 | NOT_APPLICABLE |
+| 13 | approved environment | 부재 — 승인 도메인 environment 축 없음 | NOT_APPLICABLE |
+| 14 | valid_from | 부재 — 승인 유효기간 컬럼 없음(`Db.php:592-600` · `:623-636`) | NOT_APPLICABLE |
+| 15 | valid_to | 동상 | NOT_APPLICABLE |
+| 16 | maximum executions | 부재 — 실행 횟수 제한 개념 없음([Consumption 문서](DSAR_APPROVAL_CONSUMPTION.md) §0) | NOT_APPLICABLE |
+| 17 | execution service | 부재 — 실 집행자는 `AdAdapters`(`Alerting.php:631,634`)이나 **승인에 기록되지 않음** | NOT_APPLICABLE |
+| 18 | execution endpoint reference | 부재 | NOT_APPLICABLE |
+| 19 | status | 인접만 — `action_request.status`(`approved\|rejected\|executed\|failed\|approved_manual` · `Alerting.php:628,644`)는 **요청 상태**이지 Binding 상태 아님(축 상이) | KEEP_SEPARATE_WITH_REASON |
+| 20 | evidence | 부재([Evidence 문서](DSAR_APPROVAL_EVIDENCE.md) §0) | NOT_APPLICABLE |
+
+🔴 **필드 20/20 중 Binding 축으로 존재하는 것 0** — 커버리지 0/20. 19·11은 **인접 자산의 재사용 후보**일 뿐 Binding 구현이 아니다. 있다고 가정하고 배선 금지.
 
 영속된 요구(§0 Q22·Q23·§4.10·§61)에서 확정 가능한 구조 요구:
 - Binding은 **Decision ↔ 실행 사건**을 잇는다 — 실행은 **자기가 근거로 삼은 승인 id를 지목할 수 있어야** 한다.

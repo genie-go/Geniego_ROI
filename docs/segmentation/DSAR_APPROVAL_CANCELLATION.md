@@ -1,7 +1,10 @@
-# DSAR — Approval Cancellation (§37·필드 14·Type 10)
+# DSAR — Approval Cancellation (§37·필드 15·Type 10)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §37 — 원문 그대로 전사.
+> **분모 정합**: Cancellation Type — REQ 10 ↔ **원문 실측 10 일치**.
+> 🔴 **분모 불일치**: 필드 — **REQ 집계 14 ↔ 원문 실측 15 — 원문이 정본.** REQ §7 의 `14` 는 정정 대상.
 
 ## 0. 현행 실측 (file:line)
 
@@ -25,10 +28,42 @@ Withdrawal(§36)과의 분기점은 **주체**와 **시점 허용범위**다.
 | 시점 | Decision **전**만 | Decision **전·후 모두** |
 | 선례 | 없음 | **`agency_client_link.revoked_at`** |
 
-**필드 14 · Cancellation Type 10** — 스펙 §37 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `14`/`10`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 필드/Type 축 커버리지 주장 불가**.
+### 1-1. 스펙 §37 필수 필드 — 원문 전사 (실측 15)
 
-영속된 요구(§0 Q18·§4.8·§4.9·§61)에서 확정 가능한 구조 요구:
+`APPROVAL_CANCELLATION`
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_cancellation_id` | 9 | affected items |
+| 2 | `approval_request_id` | 10 | affected decisions |
+| 3 | `approval_case_id` | 11 | execution state |
+| 4 | cancellation type | 12 | cancellation effective at |
+| 5 | `cancelled_by` | 13 | notification result |
+| 6 | cancellation reason | 14 | `status` |
+| 7 | incident reference | 15 | `evidence` |
+| 8 | policy reference | | |
+
+> 🔴 **필드 원문 실측 15 ↔ REQ 집계 14 — 원문이 정본.** 숫자를 조용히 맞추지 않는다.
+
+원문 대조로 확정되는 축: **#7 incident reference · #8 policy reference · #13 notification result** 는 placeholder 시점에 없던 요구다.
+특히 **#10 affected decisions** 는 §1 판정("Cancellation 은 Decision 을 삭제하지 않는다 — 효력만 종료")을 **원문 필드로 뒷받침**한다.
+
+### 1-2. 스펙 §37 Cancellation Type — 원문 전사 (실측 10 · REQ 10 **일치**)
+
+| # | Cancellation Type | # | Cancellation Type |
+|---|---|---|---|
+| 1 | `SYSTEM` | 6 | `SECURITY_INCIDENT` |
+| 2 | `ADMINISTRATIVE` | 7 | `LEGAL_HOLD` |
+| 3 | `POLICY_CHANGE` | 8 | `PROGRAM_TERMINATION` |
+| 4 | `RESOURCE_DELETED` | 9 | `REQUESTER_REFERENCE` |
+| 5 | `DUPLICATE` | 10 | `OTHER` |
+
+**현행 커버리지 = 필드 15 중 0 · Type 10 중 0종.**
+단 §0 실측의 `agency_client_link` revoke 선례(`AgencyPortal.php:68,80`)는 원문 **#2 `ADMINISTRATIVE`** 에 해당하는 **단일 경로의 부분 구현**이며,
+`revoked_at` 보존 방식은 원문 **#12 cancellation effective at** 축의 **재사용 가능한 선례**다(승격 근거 유지 · 커버리지 산입은 불가 — 승인 도메인 밖).
+원문 **#9 `REQUESTER_REFERENCE`** 의 존재는 §36 Withdrawal 과의 분기(주체 축)가 **원문 설계임**을 확인해 준다.
+
+영속된 요구(§0 Q18·§4.8·§4.9·§61)에서 도출되는 구조 요구(전사 후에도 유지):
 - Cancellation은 **Append-only 사건**이다(§4.9) — `agency_client_link`가 `approved_at`을 **지우지 않고** `revoked_at`을 **추가**하는 방식이 정본 패턴.
 - Cancellation은 **Decision을 삭제하지 않는다** — 과거 승인이 있었다는 사실은 남고, 그 **효력만** 종료된다.
 - 취소 후 **실효는 즉시·fail-closed**여야 한다(`AgencyPortal.php:427` 매 요청 재검증 패턴 재사용).

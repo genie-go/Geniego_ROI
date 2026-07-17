@@ -41,14 +41,58 @@ Frontend: state 에 매핑 1회, 이후 참조 0 → 렌더 0 (Approvals.jsx:576
 | Workspace | 레지스트리 부재 — 실체는 `tenant_kv` KV(WorkspaceState.php:59) | **NOT_APPLICABLE(신설)** |
 | Organization · Legal Entity | **부재(grep 0)** | **NOT_APPLICABLE(신설)** |
 
-## 1. 스펙 §7 필수 필드 31개 전사 — **BLOCKED**
+## 1. 스펙 §7 `APPROVAL_REQUEST` 필수 필드 전사 — 원문 실측 **35개**
 
-**분류: `BLOCKED_SPEC_TEXT_UNAVAILABLE`**
+**전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §7**
 
-REQ 분모는 **"§7 Approval Request 필수 필드 = 31"** 이라는 **개수만** 영속한다. **31개 필드명은 저장소에 없다.**
-필드명 추측 생성 금지 — REQ §16(요구 날조 0) · REQ §9(351 사건). **해제 조건**: 스펙 §7 원문 수령.
+> 🔴 **REQ 집계 31 ↔ 원문 실측 35 — 원문이 정본.**
+> REQ `§7` 표의 *"§7 Approval Request 필수 필드 = **31**"* 은 **원문 나열과 4건 어긋난다**(원문 나열 실측 = 35).
+> **숫자를 조용히 맞추지 않는다**(289차 ② 351 사건 재현 방지). **REQ 집계 정정은 별도 승인 사항.**
 
-> ※ 위 §0 의 **부재 목록은 추측이 아니다** — 스펙이 요구할 항목의 예단이 아니라, **현행 두 테이블이 실제로 갖지 않은 컬럼의 실측 열거**다(각 항목 grep 0 확인).
+**현행 존재 여부는 §0 실측표에서만 인용**한다. §0 이 다루지 않는 필드는 §0 의 **"두 테이블 모두 부재(grep 0)"** 열거에 근거하며, 그 열거에도 없으면 **판정 유보**로 둔다.
+
+| # | 필수 필드 (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `approval_request_id` | **존재** — §0 `id` INT AI PK(양 테이블) · **CANONICAL_APPROVAL_REQUEST**(승격) |
+| 2 | `request_number` | ⚠️ **판정 유보** — §0 미열거(별도 실측 필요) |
+| 3 | `approval_domain_type` | **부재** — §0 "두 테이블 모두 부재" `domain_type` · **NOT_APPLICABLE(신설)** |
+| 4 | `request_type` | **부재** — §0 "두 테이블 모두 부재" `request_type` · **NOT_APPLICABLE(신설)** |
+| 5 | `tenant_id` | **존재** — §0 `tenant_id`(`action_request` 는 **후행 ALTER** Db.php:589 · 208차 P0 IDOR) · **VALIDATED_LEGACY** |
+| 6 | `workspace_id` | **부재** — §0-2 Workspace 레지스트리 부재(실체 = `tenant_kv` WorkspaceState.php:59) · **NOT_APPLICABLE(신설)** |
+| 7 | `organization_id` | **부재** — §0-2 Organization 부재(grep 0) · **NOT_APPLICABLE(신설)** |
+| 8 | `legal_entity_id` | **부재** — §0-2 Legal Entity 부재(grep 0) · **NOT_APPLICABLE(신설)** |
+| 9 | `country` | ⚠️ **판정 유보** — §0 미열거 |
+| 10 | `region` | ⚠️ **판정 유보** — §0 미열거 |
+| 11 | `environment` | **부재(레코드)** — §0-2 Environment = `Db::env()`(Db.php:46,57) **2값 분기 · 레지스트리 아님** · **LEGACY_ADAPTER** |
+| 12 | `requester_subject_id` | **부분** — §0 `requested_by`(`mapping_change_request` 만) · `action_request` **없음** · **MIGRATION_REQUIRED**(요청자 미기록) |
+| 13 | `requester_role_assignment_id` | ⚠️ **판정 유보** — §0 미열거 |
+| 14 | `requested_for_subject_id` | ⚠️ **판정 유보** — §0 미열거 |
+| 15 | `source_system` | ⚠️ **판정 유보** — §0 미열거 |
+| 16 | `source_channel` | ⚠️ **판정 유보** — §0 미열거 |
+| 17 | `business_resource_type` | **부재** — §0 `platform`·`field` 등이 **평면 인라인**(§9 분리 대상) · **MIGRATION_REQUIRED** |
+| 18 | `business_resource_id` | **부재** — §0 동일(인라인) · **MIGRATION_REQUIRED** |
+| 19 | `business_resource_version` | **부재** — §0 "두 테이블 모두 부재" `version` · **NOT_APPLICABLE(신설)** |
+| 20 | `requested_action` | **부재(명시 필드)** — §0 `action_json` **JSON 블롭**(§10 분리 대상) · **MIGRATION_REQUIRED** |
+| 21 | `requested_amount` | **부재** — §0 "두 테이블 모두 부재" `amount`/`currency` · **NOT_APPLICABLE(신설)** |
+| 22 | `requested_currency` | **부재** — §0 동일 · §0-2 Currency = `fxToKrw` **LEGACY_ADAPTER**(레코드 미기록) |
+| 23 | `requested_scope` | ⚠️ **판정 유보** — §0 미열거 |
+| 24 | `business_justification` | **부분** — §0 `note`(`mapping_change_request` 인라인 컬럼군) · **MIGRATION_REQUIRED** |
+| 25 | `urgency` | ⚠️ **판정 유보** — §0 미열거 |
+| 26 | `risk_reference` | ⚠️ **판정 유보** — §0 미열거 |
+| 27 | `policy_reference` | **부분** — §0 `policy_id`(`action_request` 만 · Requirement 출처 유일 흔적) · **LEGACY_ADAPTER** |
+| 28 | `authorization_decision_reference` | ⚠️ **판정 유보** — §0 미열거 |
+| 29 | `correlation_id` | **부재** — §0 "두 테이블 모두 부재" `correlation_id` · **NOT_APPLICABLE(신설)** |
+| 30 | `parent_request_id` | ⚠️ **판정 유보** — §0 미열거 |
+| 31 | `original_request_id` | ⚠️ **판정 유보** — §0 미열거 |
+| 32 | `submitted_at` | **존재(근사)** — §0 `created_at` VARCHAR(32)(양 테이블) · **VALIDATED_LEGACY**(제출시각과 생성시각 동일시 주의) |
+| 33 | `valid_until` | **부재** — §0 "두 테이블 모두 부재" `expires_at` · **NOT_APPLICABLE(신설)** |
+| 34 | `status` | **존재** — §0 `status`(`mapping` DEFAULT `'pending'` · `action` NOT NULL) · **VALIDATED_LEGACY** → §27 |
+| 35 | `evidence` | ⚠️ **판정 유보** — §0 미열거(§50 Evidence 축) |
+
+**전사 집계**: 원문 35 = **존재 4**(1·5·32·34) + **부분 3**(12·24·27) + **부재 8**(3·4·6·7·8·17·18·19·21·22·29·33 중 §0 근거분) + **판정 유보 13**.
+
+> ⚠️ **"판정 유보 13"을 부재로 단정하지 않는다.** §0 은 **스펙 §7 을 모르는 상태에서 작성**됐으므로 그 필드들을 측정 대상으로 삼지 않았다 — **미측정 ≠ 부재**. 유보 해제는 별도 실측 세션.
+> ※ §0 의 **부재 목록은 추측이 아니다** — 스펙 예단이 아니라 **현행 두 테이블이 실제로 갖지 않은 컬럼의 실측 열거**다(각 항목 grep 0 확인).
 
 ## 2. 규칙
 

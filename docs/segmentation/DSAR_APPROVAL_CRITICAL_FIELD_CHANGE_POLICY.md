@@ -2,7 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
-> **분모 정합**: 행 수 = REQ §7(스펙 §31 Critical Field 변경 목록 = 23). 스펙 원문 나열 **저장소 미영속** → `UNVERIFIED_TRANSCRIPTION`.
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §31 — 원문 그대로 전사.
+> 🔴 **분모 불일치**: **REQ 집계 23 ↔ 원문 실측 22 — 원문이 정본.** (REQ **과다** 집계.) REQ §7 의 `23` 은 정정 대상 — 숫자 임의 정합 금지.
 
 ## 0. 현행 실측 대조표 (file:line)
 
@@ -18,27 +19,43 @@
 | | `Alerting::executeAction` — `UPDATE ... SET status=?`(`Alerting.php:653`) · 전이·내용 검증 0 | **MIGRATION_REQUIRED** |
 | `SUPERSEDED` 상태 | 현행 4개 승인 테이블 **어디에도 없음**(`pending|approved|applied` / `pending|approved|rejected|executed|failed|approved_manual`) | **NOT_APPLICABLE(신설)** → §39 |
 
-> **🔴 판정 — 스펙 §31 요구 대비 0/23 충족.**
+> **🔴 판정 — 스펙 §31 요구 대비 0/22 충족**(원문 실측 22 기준 · 289차 표기 `0/23` 은 REQ 과다집계에 따른 것 · **충족 0 은 불변**).
 > 현행에서는 **금액을 10만원으로 승인받은 뒤 1억으로 고쳐도 그 승인이 그대로 소비된다.**
 > 막는 코드가 없다(감지 0 · 재승인 0 · 스냅샷 대조 0). Rebate 는 **금전 도메인**이므로 이 결함은 §45 Critical Gap 후보다.
 > ※ 단, `REBATE_*` 코드는 **전면 부재(grep 0)** 이므로 현재 **실피해 미도달**(P 등급 단정은 PM 코드 재증명 후).
 
-## 1. Critical Field (23) — 변경 시 기존 승인 **자동 재사용 차단**
+## 1. Critical Field (22) — 원문 전사
 
-| # | 필드 | # | 필드 |
+> 스펙 §31 원문 도입부: **"다음 변경은 기본적으로 기존 승인 재사용을 차단하거나 재승인을 요구한다."**
+
+원문 순서 그대로(좌 1~11 · 우 12~22):
+
+| # | Critical Field | # | Critical Field |
 |---|---|---|---|
-| 1 | `amount` | 13 | `discount_rate` |
-| 2 | `currency` | 14 | `effective_from` |
-| 3 | `payee_id` (수취인) | 15 | `effective_to` |
-| 4 | `payee_bank_account` | 16 | `contract_id` |
-| 5 | `legal_entity_id` | 17 | `program_id` |
-| 6 | `tenant_id` | 18 | `funding_source` |
-| 7 | `workspace_id` | 19 | `cost_center` |
-| 8 | `environment` (`Db::env()`) | 20 | `tax_treatment` / `vat_flag` |
-| 9 | `resource_id` | 21 | `item_count` (§15) |
-| 10 | `resource_type` | 22 | `total_amount` (Item 합계) |
-| 11 | `action_type` (§10) | 23 | `scope` (대상 범위) |
-| 12 | `rate` / `rebate_rate` | | |
+| 1 | Tenant | 12 | Funding Allocation |
+| 2 | Workspace | 13 | Contract |
+| 3 | Legal Entity | 14 | Settlement Destination |
+| 4 | Program | 15 | Payout Destination Reference |
+| 5 | Program Version | 16 | Provider Account |
+| 6 | Requested Action | 17 | Environment |
+| 7 | Amount | 18 | Effective Date |
+| 8 | Currency | 19 | Migration Source |
+| 9 | Beneficiary | 20 | Migration Target |
+| 10 | Claimant | 21 | Data Export Scope |
+| 11 | Funding Party | 22 | Sensitive Data Classification |
+
+### 1-1. 🔴 placeholder ↔ 원문 대조 — 자작 항목 폐기 기록
+
+289차 placeholder(23행)는 **DB 컬럼명으로 자작**했고 원문은 **업무 개념 목록**이다. 주요 상이:
+
+| placeholder(자작·폐기) | 원문 §31 | 성격 |
+|---|---|---|
+| `payee_id` · `payee_bank_account` | **Beneficiary**(#9) · **Payout Destination Reference**(#14) · **Settlement Destination**(#13) | 개념↔컬럼 혼동 · 원문이 **더 넓음** |
+| `rate`/`rebate_rate` · `discount_rate` · `cost_center` · `tax_treatment`/`vat_flag` · `item_count` · `total_amount` · `resource_id` · `resource_type` | **없음** | **자작**(원문 미포함) |
+| `effective_from` · `effective_to` | **Effective Date**(#17) 1축 | 축 분해 자작 |
+| — | **Program Version**(#5) · **Claimant**(#10) · **Funding Party**(#11) · **Funding Allocation**(#12) · **Provider Account**(#15) · **Migration Source/Target**(#18/#19) · **Data Export Scope**(#20) · **Sensitive Data Classification**(#21) | **원문에 있으나 placeholder 전면 누락** |
+
+⇒ **원문이 정본.** 특히 **Migration Source/Target · Data Export Scope · Sensitive Data Classification** 은 placeholder 에 없던 **DSAR·마이그레이션 축**으로, 본 EPIC(DSAR) 맥락에서 결정적이다. `rate`·`vat_flag` 등 자작 컬럼은 요구 분모에서 **폐기**한다(§6 Domain Type 별 확장은 별도 근거 필요).
 
 ## 2. 규칙
 

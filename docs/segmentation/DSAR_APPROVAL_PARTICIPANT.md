@@ -1,7 +1,9 @@
-# DSAR — Approval Participant (§19·필드 15)
+# DSAR — Approval Participant (§19·필드 16)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §19 — 원문 그대로 전사.
+> 🔴 **분모 불일치**: **REQ 집계 15 ↔ 원문 실측 16 — 원문이 정본.** 숫자를 맞추지 않고 불일치를 남긴다(289차 ② 351 사건 재발 방지). REQ §7 의 `15` 는 정정 대상.
 
 ## 0. 현행 실측 (file:line)
 
@@ -19,11 +21,28 @@
 스펙 §0 Q11(후보) 과 Q12(실제 결정자)는 **다른 질문**이다. Participant 는 **결정 전에** 확정되는 집합이며,
 Actor(§20)는 **결정 시점에** 그 집합에서 실현된 1인이다. `Actor ⊆ Participant` 가 성립해야 §61 "Participant↔Actor 구분" 게이트를 만족한다.
 
-**필드 15** — 스펙 §19 원문 항목명은 **저장소 미영속**(REQ 는 개수 `15` 만 고정 · 원문 나열 부재).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지 · 자기가 쓴 것을 요구로 삼는 사고).
-스펙 원문 §19 수령 시 본 절을 채운다. **현 시점 커버리지 주장 불가**(분모 항목명 부재).
+## 1-1. 스펙 §19 필수 필드 — 원문 전사 (실측 16)
 
-확정 가능한 구조적 요구는 다음뿐이다(스펙 §0/§61 에서 직접 도출):
+`APPROVAL_PARTICIPANT`
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_participant_id` | 9 | `legal_entity_id` |
+| 2 | `approval_case_id` | 10 | `scope` |
+| 3 | `approval_item_id` | 11 | `environment` |
+| 4 | `approval_requirement_id` | 12 | `valid_from` |
+| 5 | `participant_type` | 13 | `valid_to` |
+| 6 | `subject_id` | 14 | `active` 여부 |
+| 7 | `role_assignment_id` | 15 | `status` |
+| 8 | `organization_id` | 16 | `evidence` |
+
+> 🔴 **원문 실측 16 ↔ REQ 집계 15 — 원문이 정본.** 차이 1은 REQ 가 `evidence` 축을 누락한 것으로 보이나 **REQ 정정은 별도 판정** — 본 문서는 원문을 전사할 뿐 REQ 를 조용히 맞추지 않는다.
+
+**현행 커버리지 = 16 중 0.** §0 실측대로 `approval_participant` 자체가 grep 0 이므로 **필드 대조 대상이 존재하지 않는다**(부재 → 신설). 이는 부분 충족이 아니라 **전면 부재**다.
+
+## 1-2. 구조적 요구
+
+스펙 §0/§61 에서 직접 도출(전사 전에도 확정돼 있던 축 · 원문 수령 후에도 유지):
 - Participant 는 **Request/Case 단위**로 바인딩된다(§4.1 Resource 동일시 금지).
 - Participant 는 **Tenant·Workspace 스코프**를 갖는다(§61 Tenant 기록).
 - Participant 지정 **근거**는 Requirement Source(§18)를 참조한다 — 임의 지정 금지.

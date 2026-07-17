@@ -2,6 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §43**
+> ✅ **REQ 집계 일치**: 비교 대상 **19** · 필드 **14** — 원문 실측과 동일.
 
 ## 0. 현행 실측 (file:line)
 
@@ -17,8 +19,54 @@
 
 ## 1. Reconciliation = **여러 원천의 승인 상태를 대조해 불일치를 표면화**
 
-**비교 대상 19 · 필드 14** — 스펙 §43 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `19`/`14`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 비교대상/필드 축 커버리지 주장 불가**.
+### 1.1 비교 대상 — **원문 전사 19** (§43 "다음을 비교하라")
+
+| # | 비교 대상(원문) | 현행 대조 가능 여부 (file:line) |
+|---|---|---|
+| 1 | Source System Request vs Canonical Approval Request | 🔴 불가 — Canonical 축 부재. 원천 4계통 분산(`Db.php:592-600` · `:623-636` · `AdminGrowth.php:142-149` · `Catalog.php:2341-2364`) |
+| 2 | UI Status vs Backend Status | 🔴 **불일치 이미 실측** — 백엔드 `required_approvals => 2` 리터럴(`Alerting.php:562`) vs `decideAction` 1건 즉시 `approved`(`:589-591`). 프론트는 state 보관만·렌더 사용처 0(`Approvals.jsx:576`) |
+| 3 | API Status vs Case Status | 🔴 불가 — Case 축 부재 |
+| 4 | Approval Request Version vs Resource Version | 🔴 불가 — 양 축 모두 부재(§4.4 미충족) |
+| 5 | Approval Policy Version vs Runtime Policy | 🔴 불가 — Policy Version(§33) 부재 · `PlanPolicy` fail-open(`PlanPolicy.php:12`) |
+| 6 | Approval Participant Role vs Current Role | 🔴 불가 — Participant 축 부재 · Role Version 부재(§4.6 미충족) |
+| 7 | Decision Actor Scope vs Required Scope | 🔴 불가 — Required Scope 축 부재. `api_key.scopes_json`(`Db.php:942-955`)은 존재하나 승인 결정에 미조회 |
+| 8 | Decision Amount vs Requested Amount | 🔴 불가 — 승인 금액 컬럼 부재(blob 내부) |
+| 9 | Decision Currency vs Requested Currency | 🔴 불가 — 승인 통화 축 부재 |
+| 10 | Decision Resource Version vs Current Resource Version | 🔴 불가 — Version 축 부재 |
+| 11 | Approved Action vs Executed Action | 🔴 불가 — `Alerting.php:625`가 실행 시점 blob 해석. 승인 action 미고정 |
+| 12 | Approved Scope vs Executed Scope | 🔴 불가 — Scope 축 부재 |
+| 13 | Approval Consumption vs Business Execution | 🔴 불가 — Consumption 원장 부재([Consumption 문서](DSAR_APPROVAL_CONSUMPTION.md)) |
+| 14 | ERP Approval vs Internal Approval | 🔴 불가 — 외부 ERP 승인 상태 수집 경로 grep 0 |
+| 15 | Provider Approval vs Internal Approval | 🔴 불가 — Provider 승인 상태 수집 경로 grep 0 |
+| 16 | Notification State vs Approval State | 🔴 불가 — 승인 알림 상태 축 부재 |
+| 17 | Audit Event vs Decision | 🔴 불가 — Decision 테이블 부재. 감사 4곳은 **성공만** 기록([Audit Event 문서](DSAR_APPROVAL_AUDIT_EVENT.md) §1) |
+| 18 | Cancelled Request vs Active Execution | 🔴 불가 — Cancellation(§37) 축 부재 |
+| 19 | Revoked Approval vs Cached Execution Permission | 🔴 불가 — 승인 revoke 부재. 인접 선례만 = `agency_client_link.revoked_at`(`AgencyPortal.php:68,80` · 현행 유일 revoke 선례) |
+
+🔴 **19/19 전부 대조 불가** — 대조기가 없어서가 아니라 **대조할 양변이 없기 때문**이다. #2만 예외적으로 **양변이 존재해 불일치가 실측**된다.
+
+### 1.2 필수 필드 — **원문 전사 14** (§43)
+
+`APPROVAL_RECONCILIATION`
+
+| # | 필드(원문) | 현행 대조 | 분류 |
+|---|---|---|---|
+| 1 | approval_reconciliation_id | 부재(grep 0) | NOT_APPLICABLE |
+| 2 | approval request | 부재 | NOT_APPLICABLE |
+| 3 | approval case | Case 축 부재 | NOT_APPLICABLE |
+| 4 | approval item | Item 축 부재 | NOT_APPLICABLE |
+| 5 | comparison type | 부재 — 위 19종 열거형 미존재 | NOT_APPLICABLE |
+| 6 | source state | 부재 | NOT_APPLICABLE |
+| 7 | canonical state | 부재 — Canonical SSOT 자체 부재 | NOT_APPLICABLE |
+| 8 | difference | 부재 | NOT_APPLICABLE |
+| 9 | severity | 부재(승인 도메인) | NOT_APPLICABLE |
+| 10 | detected_at | 부재 | NOT_APPLICABLE |
+| 11 | resolved_at | 부재 | NOT_APPLICABLE |
+| 12 | resolution | 부재 | NOT_APPLICABLE |
+| 13 | status | 부재 — [Reconciliation Status 문서](DSAR_APPROVAL_RECONCILIATION_STATUS.md)(§44·22종) 참조 | NOT_APPLICABLE |
+| 14 | evidence | 부재 | NOT_APPLICABLE |
+
+🔴 **필드 14/14 전부 부재** — 커버리지 0/14.
 
 영속된 요구(§0 Q21·§61·§62 항목 39·40)에서 확정 가능한 구조 요구:
 - Reconciliation은 **탐지이지 교정이 아니다** — 불일치를 **자동으로 맞추면** 어느 쪽이 진실인지 잃는다. 산출은 **Mismatch 레코드**이며 교정은 별도 결정.

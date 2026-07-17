@@ -23,13 +23,61 @@
 - **승인 무결성 공백**: `required_approvals`(Mapping.php:288)로 정족수를 세지만, **정족수를 채운 그 시점의 `canonical_value` 가 무엇이었는지 기록이 없다** → 승인 후 값이 바뀌어도 status 는 `approved` 유지.
 - **§4.5 재승인 검토 불가**: 원본 변경 탐지의 전제(승인 시점 값)가 없어 **원리적으로 구현 불가** — Snapshot 이 선행 조건.
 
-## 1. 스펙 §8 필드 19 + Version Type 10 전사 — **BLOCKED**
+## 1. 스펙 §8 `APPROVAL_REQUEST_VERSION` 전사 — 필드 **21** · Version Type **10**
 
-**분류: `BLOCKED_SPEC_TEXT_UNAVAILABLE`**
+**전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §8**
 
-REQ 분모(§7 표)는 **"§8 Approval Request Version 필드 = 19"**, **"§8 Version Type = 10"** 이라는 **개수만** 영속한다. **19개 필드명·10종 Type 명은 저장소에 없다**(REQ 외 grep 0).
+> 🔴 **필드 축 — REQ 집계 19 ↔ 원문 실측 21 — 원문이 정본.**
+> REQ `§7` 표의 *"§8 Approval Request Version 필드 = **19**"* 는 **원문 나열과 2건 어긋난다**(원문 나열 실측 = 21).
+> ✅ **Version Type 축 — REQ 집계 10 ↔ 원문 실측 10 — 일치.**
+> **숫자를 조용히 맞추지 않는다**(289차 ② 351 사건 재현 방지). **REQ 집계 정정은 별도 승인 사항.**
 
-**추측 생성 금지** — REQ §16 **"요구 날조 0 · 스펙 원문 항목만 전사(轉寫)"** · REQ §9 **351 사건**. 지어낸 필드 목록으로 설계하면 **역산**(REQ §15). **해제 조건**: 스펙 §8 원문 수령 → 전사표로 교체(§0 은 그대로 유효).
+**§0 판정 = "Approval Request Version 은 부재가 아니라 개념 자체가 없음"**(버전·이력·스냅샷 3축 전부 grep 0) → 아래 **21개 필드 전부 부재**가 §0 정합 판정이다.
+
+### 1-1. 필수 필드 (원문 21)
+
+| # | 필드 (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `approval_request_version_id` | **부재** — §0 `version` 컬럼 grep 0(양 테이블 전 컬럼 확인) · **NOT_APPLICABLE(신설)** |
+| 2 | `approval_request_id` | **부재(FK)** — §0 Version 테이블 자체 부재. ※참조 대상 `id` 는 존재 |
+| 3 | `version_number` | **부재** — §0 `version`/`version_no` grep 0 · **NOT_APPLICABLE(신설)** |
+| 4 | `previous_version_id` | **부재** — §0 `version` 축 전무 · **NOT_APPLICABLE(신설)** |
+| 5 | `version_type` | **부재** — §0 "Version Type 열거형 **부재(grep 0)**" · **NOT_APPLICABLE(신설)** |
+| 6 | `change_summary` | **부재** — §0 변경 시 **전면 덮어쓰기**(이전 값 소실) · **★MIGRATION_REQUIRED** |
+| 7 | `changed_fields` | **부재** — §0 동일(덮어쓰기) · **★MIGRATION_REQUIRED** |
+| 8 | `amount_before` | **부재** — §0 금액축 자체 부재 · **NOT_APPLICABLE(신설)** |
+| 9 | `amount_after` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 10 | `currency_before` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 11 | `currency_after` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 12 | `scope_before` | **부재** — §0 미열거 · **NOT_APPLICABLE(신설)** |
+| 13 | `scope_after` | **부재** — §0 미열거 · **NOT_APPLICABLE(신설)** |
+| 14 | `resource_version_before` | **부재** — §0 Snapshot grep 0 → **승인 시점 값 재현 불가** · §4.4 상충 |
+| 15 | `resource_version_after` | **부재** — §0 동일 · §4.5 상충 |
+| 16 | `created_at` | **부재(Version 행)** — ※Request 행에는 `created_at` VARCHAR(32) 존재(Db.php:599,635) |
+| 17 | `created_by` | **부재(Version 행)** — ※Request 행에는 `requested_by`(mapping 만) 존재 |
+| 18 | `immutable_hash` | **부재** — §0 참조 선례 = `menu_audit_log` **해시체인**(AdminMenu.php:123-131) · **KEEP_SEPARATE_WITH_REASON**(도메인 상이 · **패턴 참조 대상**) |
+| 19 | `requires_reapproval` | **부재** — §0 "재승인 트리거 **부재(grep 0)**" · §4.5 상충 · **NOT_APPLICABLE(신설)** |
+| 20 | `status` | **부재(Version 행)** — ※Request 행 `status` 는 존재(§27) |
+| 21 | `evidence` | **부재** — §0 미열거(§50 Evidence 축) · **NOT_APPLICABLE(신설)** |
+
+### 1-2. Version Type (원문 10)
+
+**§0 실측: "Version Type 열거형 부재(grep 0)"** → **10종 전부 부재**.
+
+| # | Version Type (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `INITIAL` | **부재** — §0 Version Type 열거형 grep 0 |
+| 2 | `REQUESTER_EDIT` | **부재** — §0 동일 |
+| 3 | `SYSTEM_ENRICHMENT` | **부재** — §0 동일 |
+| 4 | `POLICY_ENRICHMENT` | **부재** — §0 동일 |
+| 5 | `CORRECTION` | **부재** — §0 동일 |
+| 6 | `RESUBMISSION` | **부재** — §0 동일 |
+| 7 | `REOPEN` | **부재** — §0 동일 |
+| 8 | `SUPERSESSION` | **부재** — §0 `superseded_by`/`supersedes` **grep 0** |
+| 9 | `MIGRATION` | **부재** — §0 동일 |
+| 10 | `EMERGENCY` | **부재** — §0 동일 |
+
+> **전사 집계**: 필드 21 + Version Type 10 = **31 항목 전부 부재**. §0 의 *"개념 자체가 없음"* 판정과 **정합**(모순 0).
 
 ## 2. 규칙
 

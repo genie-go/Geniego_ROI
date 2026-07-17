@@ -1,7 +1,10 @@
-# DSAR — Approval Reopen (§38·필드 14·Type 9)
+# DSAR — Approval Reopen (§38·필드 15·Type 9)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §38 — 원문 그대로 전사.
+> **분모 정합**: Reopen Type — REQ 9 ↔ **원문 실측 9 일치**.
+> 🔴 **분모 불일치**: 필드 — **REQ 집계 14 ↔ 원문 실측 15 — 원문이 정본.** REQ §7 의 `14` 는 정정 대상.
 
 ## 0. 현행 실측 (file:line)
 
@@ -24,10 +27,43 @@ Supersession(§39)과의 분기점은 **정체성 연속성**이다.
 | Version | 같은 계보의 후속 Version | 별개 요청 + 대체 링크 |
 | 과거 Decision | **효력 정지 · 기록 보존** | 옛 요청째로 superseded 마감 |
 
-**필드 14 · Reopen Type 9** — 스펙 §38 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `14`/`9`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 필드/Type 축 커버리지 주장 불가**.
+### 1-1. 스펙 §38 필수 필드 — 원문 전사 (실측 15)
 
-영속된 요구(§0 Q18·§4.5·§4.9·§61 "상태 전이 통제")에서 확정 가능한 구조 요구:
+`APPROVAL_REOPEN`
+
+원문 순서 그대로(좌 1~8 · 우 9~15):
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_reopen_id` | 9 | new case version |
+| 2 | original request | 10 | preserved decisions |
+| 3 | original case | 11 | invalidated decisions |
+| 4 | reopen type | 12 | new requirements |
+| 5 | reopen reason | 13 | reopened at |
+| 6 | requested by | 14 | `status` |
+| 7 | approved by reference | 15 | `evidence` |
+| 8 | new request version | | |
+
+> 🔴 **필드 원문 실측 15 ↔ REQ 집계 14 — 원문이 정본.** 숫자를 조용히 맞추지 않는다.
+
+**원문 대조로 확정**: **#10 preserved decisions ↔ #11 invalidated decisions 분리**는 §1 판정("과거 Decision 을 삭제하지 않고 효력만 정지")을 **원문 필드로 직접 뒷받침**한다 — 어떤 결정이 살아남고 어떤 것이 무효화됐는지를 **데이터로 남기라**는 요구다.
+**#7 approved by reference** = Reopen 자체가 **승인을 요하는 사건**임을 원문이 명시(임의 되살리기 금지 · §2 첫 규칙과 정합).
+**#8 new request version · #9 new case version** = Reopen 이 **같은 계보의 새 Version 을 낳는다**는 §1 대조표(정체성 연속성)를 뒷받침.
+
+### 1-2. 스펙 §38 Reopen Type — 원문 전사 (실측 9 · REQ 9 **일치**)
+
+| # | Reopen Type | # | Reopen Type |
+|---|---|---|---|
+| 1 | `CHANGES_SUBMITTED` | 6 | `APPEAL` |
+| 2 | `NEW_EVIDENCE` | 7 | `ADMINISTRATIVE` |
+| 3 | `CORRECTION` | 8 | `SYSTEM_RECOVERY` |
+| 4 | `POLICY_CHANGE` | 9 | `OTHER` |
+| 5 | `RESOURCE_CHANGE` | | |
+
+**현행 커버리지 = 필드 15 중 0 · Type 9 중 0종**(§0 실측 `reopen` 저장소 전체 grep 0 과 정합).
+원문 **#5 `RESOURCE_CHANGE`** 는 §4.5(승인 후 원본 변경 → 재승인) 의 Reopen 측 대응 축인데, §0 실측대로 **Critical Field 감지 자체가 부재**하여 **트리거 원천이 없다**.
+
+영속된 요구(§0 Q18·§4.5·§4.9·§61 "상태 전이 통제")에서 도출되는 구조 요구(전사 후에도 유지):
 - Reopen은 **Append-only 사건**이다(§4.9) — 과거 Decision을 **삭제하지 않고** 효력만 정지시킨다.
 - Reopen은 **허용 전이 목록(§29·22종)의 통제를 받는다** — 임의 상태 되돌리기는 Reopen이 아니라 **무결성 사고**다.
 - Reopen된 요청은 **Actor Authorization Snapshot(§21)을 재취득**해야 한다 — 과거 승인자의 권한이 지금도 유효하다고 가정할 수 없다(§4.6).

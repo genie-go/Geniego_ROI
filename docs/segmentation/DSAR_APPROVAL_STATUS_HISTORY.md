@@ -2,7 +2,7 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
-> **분모 정합**: 행 수 = REQ §7(스펙 §28 Status History 필드 = 12). 스펙 원문 나열 **저장소 미영속** → `UNVERIFIED_TRANSCRIPTION`.
+> **전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §28** — 원문 나열 실측 **12 필드**. ✅ REQ 집계 12 와 **개수 일치**.
 
 ## 0. 현행 실측 대조표 (file:line)
 
@@ -23,22 +23,46 @@
 > **현행은 전 4개 승인 테이블이 100% 직접 덮어쓰기** → **요구 미충족(0/4)**. `FeedTemplate` 조차 전이는 강제하되 이력은 남기지 않는다.
 > ⇒ **"누가·언제·무엇에서 무엇으로·왜" 바꿨는지 승인 도메인에서 재현 불가.**
 
-## 1. CANONICAL_APPROVAL_STATUS_HISTORY 필드 (12)
+## 1. 스펙 §28 `APPROVAL_STATUS_HISTORY` 필수 필드 전사 — 원문 실측 **12개**
 
-| # | 필드 | 비고 |
+**전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §28**
+
+> ✅ **REQ 집계 12 ↔ 원문 실측 12 — 개수 일치.**
+>
+> 🔴 **본 절 초판(`UNVERIFIED_TRANSCRIPTION`)의 항목명 일부는 원문과 어긋나 폐기됐다.**
+> 초판에만 있던 것: `status_history_id`·`tenant_id`·`subject_type`·`subject_id`·`from_status`·`to_status`·`transition_reason_code`·`actor_id`·`actor_type`·`decision_id`·`hash_chain`·`occurred_at`.
+> 원문에만 있는 것: `approval_status_history_id`·`entity_type`·`entity_id`·`previous_status`·`new_status`·`transition_type`·`actor`·`transition reason`·`effective_at`·`recorded_at`·`correlation id`·`evidence`.
+> ★**원문에는 `tenant_id`·`hash_chain`·`decision_id`·`actor_type` 이 없고, 초판에는 `transition_type`·`effective_at`/`recorded_at` 2시각 분리·`correlation id`·`evidence` 가 없었다.**
+> 개수(12)만 우연히 일치했을 뿐 **항목 구성은 다르다** — 개수 일치는 정합의 증거가 아니다(289차 ② 351 사건의 메커니즘).
+
+**원문 §28 말미 지시**: *"허용되지 않은 상태 전이를 Runtime Guard에서 차단하라."*
+**§0 실측: ★`status_history` grep 0 — Status History 테이블은 전면 부재. 현행 상태는 전부 제자리 덮어쓰기** → **12 필드 전부 부재**.
+
+| # | 필드 (원문) | 현행 존재 여부 — §0 실측 인용 |
 |---|---|---|
-| 1 | `status_history_id` | PK |
-| 2 | `tenant_id` | 격리 필수(`audit_log` 결함 교정) |
-| 3 | `subject_type` | `REQUEST` \| `CASE` \| `ITEM` |
-| 4 | `subject_id` | FK |
-| 5 | `from_status` | **NULL = 최초 생성** |
-| 6 | `to_status` | §27 |
-| 7 | `transition_reason_code` | §24 재사용 |
-| 8 | `actor_id` | **위조불가 서버해석**(`Mapping.php:36-53` 패턴 · `X-User-Email` 헤더 금지 — `Alerting.php:33-36` 재발 방지) |
-| 9 | `actor_type` | §20 Actor Type(8) |
-| 10 | `decision_id` | FK → §22 (있는 경우) |
-| 11 | `hash_chain` | **`menu_audit_log.hash_chain` 선례 확장**(`AdminMenu.php:123-131`) |
-| 12 | `occurred_at` | |
+| 1 | `approval_status_history_id` | **부재** — §0 "APPROVAL_STATUS_HISTORY **grep 0**" · **NOT_APPLICABLE(신설)** |
+| 2 | `entity_type` | **부재** — §0 History 테이블 자체 부재 · **NOT_APPLICABLE(신설)** |
+| 3 | `entity_id` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 4 | `previous_status` | **부재** — §0 "✘ **이전 상태 소실**"(`UPDATE ... SET status=?` Alerting.php:653 · Mapping/AdminGrowth/Catalog 전부 덮어쓰기) · **★MIGRATION_REQUIRED** · §4.9 상충 |
+| 5 | `new_status` | **부분** — ※현행 `status` 컬럼이 **현재값만** 보유(이력 아님). §0 판정: 4테이블 **100% 직접 덮어쓰기** · **MIGRATION_REQUIRED** |
+| 6 | `transition_type` | **부재** — §0 "`action_request` — **전이 검증 0**"(Alerting.php:653). ※인접 REAL: `FeedTemplate::transition` 순차 강제·역행 차단·`invalid_state` 409(FeedTemplate.php:248-285) · **CANONICAL_APPROVAL_TRANSITION_GUARD**(전이 강제만 승격 · **이력은 안 남김**) |
+| 7 | `actor` | **부분(신뢰 불가)** — ※`audit_log`(Db.php:540-546)에 `actor` 있음 · `Mapping::audit`(Mapping.php:60-63). §0 판정 **LEGACY_ADAPTER**(**History 대체물 아님**). ★`Alerting::actor`(:33-36)는 `X-User-Email` **위조 가능** |
+| 8 | `transition reason` | **부재** — §0 History 축 부재 · **NOT_APPLICABLE(신설)** |
+| 9 | `effective_at` | **부재** — §0 History 축 부재. ※`audit_log.created_at` 은 **기록시각**이며 **발효시각 아님**(2시각 미분리) · **NOT_APPLICABLE(신설)** |
+| 10 | `recorded_at` | **부분** — ※`audit_log.created_at`(Db.php:540-546) · **tenant_id 없음 · 해시체인 없음 · immutable 아님** · **LEGACY_ADAPTER** |
+| 11 | `correlation id` | **부재** — `correlation_id` grep 0 · **NOT_APPLICABLE(신설)** · §34 축 |
+| 12 | `evidence` | ⚠️ **판정 유보** — §0 미열거(§50 Evidence 축) |
+
+**전사 집계**: 원문 12 = **존재 0** + **부분 4**(5·7·10 · 6은 인접 REAL) + **부재 7** + **판정 유보 1**(12).
+
+### 1-1. ★원문에 **없는** 축 — `tenant_id` · `hash_chain`
+
+초판은 `tenant_id`(*"격리 필수 — `audit_log` 결함 교정"*)와 `hash_chain`(*"`menu_audit_log` 선례 확장"*)을 필드로 넣었다. **둘 다 스펙 §28 원문에는 없다.**
+
+> ⚠️ **그렇다고 §0 의 결함 판정이 취소되는 것은 아니다** — `audit_log` **tenant_id 없음 · 해시체인 없음 · immutable 아님**(**LEGACY_ADAPTER**)과 `menu_audit_log.hash_chain` **tamper-evident 재사용 선례**(AdminMenu.php:123-131,169-210)는 **§0 실측으로 유효하며 삭제하지 않는다**(무후퇴).
+> **다만 그 둘은 "스펙 §28 이 요구한 필드"가 아니라 "289차가 판단한 보강"** 이다 — **분모(원문)와 판단(설계)을 섞지 않는다**(REQ §16 요구 날조 0 · §15 역산 금지). 헌법상 **테넌트 격리 절대**는 별도 근거로 유지된다.
+
+> **§0 판정 재확인**: 스펙 §28 요구 대비 현행 **미충족 0/4**(전 4개 승인 테이블 100% 직접 덮어쓰기) — 전사 후에도 **모순 0**.
 
 ## 2. 규칙
 

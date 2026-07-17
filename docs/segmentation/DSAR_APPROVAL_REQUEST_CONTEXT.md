@@ -28,15 +28,55 @@
 
 `Alerting::actor`(:33-36)는 **클라이언트가 보낸 헤더를 그대로 신원으로 채택**한다. 289차 `Mapping::approve` G-01 복구는 정확히 이 문제를 고쳤다 — *"사람을 특정할 수 없으면 셀 수도 없다"*(Mapping.php:243-246 주석). **`Alerting` 계통은 미복구**이며, 정족수·자기승인·dedup 이 **전무**(Alerting.php:572-599)해 헤더 위조로 무한 승인이 성립한다. **단 생산자 부재(`INSERT INTO action_request` grep 0)로 도달 불가 = VACUOUS(P1)**.
 
-## 1. 스펙 §11 필드 23 전사 — **BLOCKED**
+## 1. 스펙 §11 `APPROVAL_REQUEST_CONTEXT` 필수 필드 전사 — 원문 실측 **24개**
 
-**분류: `BLOCKED_SPEC_TEXT_UNAVAILABLE`**
+**전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §11**
 
-REQ 분모(§7 표)는 **"§11 Approval Request Context 필드 = 23"** 이라는 **개수만** 영속한다. **23개 필드명은 저장소에 없다**(REQ 외 grep 0).
+> 🔴 **REQ 집계 23 ↔ 원문 실측 24 — 원문이 정본.**
+> REQ `§7` 표의 *"§11 Approval Request Context 필드 = **23**"* 은 **원문 나열과 1건 어긋난다**(원문 나열 실측 = 24).
+> **숫자를 조용히 맞추지 않는다**(289차 ② 351 사건 재현 방지). **REQ 집계 정정은 별도 승인 사항.**
 
-**추측 생성 금지** — REQ §16(요구 날조 0) · REQ §9(351 사건) · REQ §15(역산 금지). **해제 조건**: 스펙 §11 원문 수령 → 전사표로 교체.
+**§0 실측: Context 테이블/컬럼 부재(grep 0)** → 아래는 각 필드의 **대응 축이 현행 어딘가에 존재하는지**를 §0 에서만 인용한 것이다(Context 행 자체는 전 항목 부재).
 
-> ※ 위 §0 의 축은 **스펙 §11 필드 예단이 아니라**, REQ §4 §3.3(공통 비즈니스 기반 18)에 명시된 축을 **현행 코드에서 실측**한 결과다.
+| # | 필드 (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `approval_request_context_id` | **부재** — §0 "`approval_request_context` **없음**" · **NOT_APPLICABLE(신설)** |
+| 2 | `approval_request_id` | **부재(FK)** — §0 Context 테이블 자체 부재. ※참조 대상 Request `id` 는 존재 |
+| 3 | `request_time` | **존재(근사)** — §0 Timestamp: `created_at` VARCHAR(32)(Db.php:599,635) · 승인 시각은 `approvals_json` 내 `ts`(Mapping.php:286 · Alerting.php:592 `gmdate('c')`) · **VALIDATED_LEGACY** |
+| 4 | `timezone` | ⚠️ **판정 유보** — §0 미열거. ※인접: `gmdate('c')` = UTC 고정(타임존 축 아님) |
+| 5 | `source channel` | **부재** — §0 "Request Source(UI/API/system) **부재(grep 0)**" · **NOT_APPLICABLE(신설)** |
+| 6 | `source device reference` | **부재** — §0 "IP·User-Agent·Session·Device·Risk **부재(grep 0)** — 승인 레코드에 미기록" · **NOT_APPLICABLE(신설)** |
+| 7 | `source network zone` | **부재** — §0 동일(IP 축 미기록) · **NOT_APPLICABLE(신설)** |
+| 8 | `authentication assurance` | ⚠️ **판정 유보** — §0 미열거(§0-1 Actor 신원 축과 인접하나 별개) |
+| 9 | `MFA state` | ⚠️ **판정 유보** — §0 미열거 |
+| 10 | `session reference` | **부재** — §0 "Session **부재(grep 0)** — 승인 레코드에 미기록". ※§0 `Mapping::actorId`(:36-53)가 **UserAuth 세션에서 신원 도출**하나 **세션 참조를 레코드에 남기지 않음** · **NOT_APPLICABLE(신설)** |
+| 11 | `requester risk` | **부재** — §0 "Risk **부재(grep 0)**" · **NOT_APPLICABLE(신설)** |
+| 12 | `resource risk` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 13 | `transaction risk` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
+| 14 | `incident state` | **부재** — §0-Resource 실측: Incident 레지스트리 **부재(grep 0)** · **NOT_APPLICABLE(신설)** |
+| 15 | `financial amount` | **부재** — §0 승인 레코드에 금액축 미기록 · **NOT_APPLICABLE(신설)** |
+| 16 | `currency` | **부재(레코드)** — §0 Currency: `fxToKrw`(Connectors.php:1749) 24통화 하드코딩 + app_setting 캐시 · **승인 레코드에 currency 미기록** · **LEGACY_ADAPTER** |
+| 17 | `contract reference` | **부재** — §0 Program/Contract 축 부재(`REBATE_*` 전면 grep 0) · **NOT_APPLICABLE(전방호환)** |
+| 18 | `funding reference` | **부재** — §0 동일(`REBATE_*` grep 0) · **NOT_APPLICABLE(전방호환)** |
+| 19 | `provider reference` | ⚠️ **판정 유보** — §0 미열거. ※인접: `channel_registry`(ChannelRegistry.php:16) **tenant_id 없는 글로벌** |
+| 20 | `customer impact` | ⚠️ **판정 유보** — §0 미열거 |
+| 21 | `compliance impact` | ⚠️ **판정 유보** — §0 미열거 |
+| 22 | `accounting impact` | ⚠️ **판정 유보** — §0 미열거 |
+| 23 | `urgency` | ⚠️ **판정 유보** — §0 미열거 |
+| 24 | `evidence` | ⚠️ **판정 유보** — §0 미열거(§50 Evidence 축) |
+
+**전사 집계**: 원문 24 = **존재(근사) 1**(3 `request_time`) + **부재 13**(1·2·5·6·7·10·11·12·13·14·15·16·17·18 중 §0 근거분) + **판정 유보 9**(4·8·9·19·20·21·22·23·24).
+
+> ⚠️ **미측정 ≠ 부재.** §0 은 **스펙 §11 을 모르는 상태에서** REQ §4 §3.3(공통 비즈니스 기반 18) 축을 실측한 것이므로, 유보 9 는 **측정 대상이 아니었을 뿐**이다. 유보 해제는 별도 실측 세션.
+
+### 1-1. 원문 §11 이 요구하는 축 중 §0 가 이미 급소로 지목한 것
+
+§0-1 은 **Actor 신원**을 Context 의 급소로 지목한다 — 원문 §11 의 필드 **10 `session reference`** · **8 `authentication assurance`** · **9 `MFA state`** 가 정확히 그 축이다.
+
+- `Mapping::actorId`(:36-53) = **위조불가**(api_key 행 또는 UserAuth 세션에서만 도출 · 실패 시 null→403) · **VALIDATED_LEGACY**
+- `Alerting::actor`(:33-36) = **클라이언트 `X-User-Email` 헤더 / `?actor=` 쿼리 → 기본 `'unknown'`** **위조 가능** · **★MIGRATION_REQUIRED** · 단 생산자 부재로 **VACUOUS**(P1)
+
+⇒ 원문이 요구하는 인증 컨텍스트 3필드는 **현행 어느 승인 레코드에도 없다**. §0-1 판정과 **정합**(모순 0).
 
 ## 2. 규칙
 

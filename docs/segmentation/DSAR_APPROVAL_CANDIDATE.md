@@ -1,7 +1,9 @@
-# DSAR — Approval Candidate (§42·필드 22)
+# DSAR — Approval Candidate (§42·필드 **26**)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §42**
+> 🔴 **REQ 집계 불일치 — 본 문서 최대 격차**: REQ §7은 필드 **22**로 고정하나 **원문 실측 26**(4 누락). **원문이 정본** — 제목·본문을 26으로 정정한다.
 
 ## 0. 현행 실측 (file:line)
 
@@ -24,8 +26,40 @@
 
 `Actor ⊆ Candidate` 가 성립해야 §61 "Participant↔Actor 구분" 게이트를 만족한다.
 
-**필드 22** — 스펙 §42 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `22`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 필드 축 커버리지 주장 불가**.
+### 1.1 필수 필드 — **원문 전사 26** (§42)
+
+`APPROVAL_CANDIDATE`
+
+| # | 필드(원문) | 현행 대조 (file:line) | 분류 |
+|---|---|---|---|
+| 1 | candidate_id | `approval_candidate` grep **0** | NOT_APPLICABLE |
+| 2 | request_id | 후보↔요청 링크 부재 | NOT_APPLICABLE |
+| 3 | approval domain | Domain Type 축 부재(§6) | NOT_APPLICABLE |
+| 4 | requester | **부분 존재** — `mapping_change_request.requested_by`(`Db.php:623-636`) · `admin_growth_approval.requested_by`(`AdminGrowth.php:142-149`) | LEGACY_ADAPTER(요청 축 · 후보 축 아님) |
+| 5 | requested for | 부재 — 대리 요청(on-behalf) 개념 없음 | NOT_APPLICABLE |
+| 6 | resource | 부재(후보 축) | NOT_APPLICABLE |
+| 7 | resource version | Version 축 부재(§4.4) | NOT_APPLICABLE |
+| 8 | action | 부재(후보 축) | NOT_APPLICABLE |
+| 9 | amount | 부재 | NOT_APPLICABLE |
+| 10 | currency | 부재 | NOT_APPLICABLE |
+| 11 | tenant | **부분 존재** — `mapping_change_request.tenant_id` · `action_request.tenant_id`(ALTER `Db.php:589`). 🔴 `admin_growth_approval`은 **tenant_id 없음**(전역 · `AdminGrowth.php:142-149`) | CONSOLIDATION_REQUIRED |
+| 12 | workspace | 부재 — 실체는 `tenant_kv` KV(`WorkspaceState.php:59`)이며 **레지스트리 아님** | NOT_APPLICABLE |
+| 13 | legal entity | 부재(grep 0) | NOT_APPLICABLE |
+| 14 | environment | 부재 | NOT_APPLICABLE |
+| 15 | risk | 부재(승인 도메인 risk 축 grep 0) | NOT_APPLICABLE |
+| 16 | authorization decision | 부재 — 후보 산출을 인가 결정에 근거시키는 경로 없음 | NOT_APPLICABLE |
+| 17 | matched policies | 부재 — Policy Reference(§33) 축 부재. `PlanPolicy`는 🔴 **fail-open**(`PlanPolicy.php:12` 주석 자인) → 게이트 기반 부적격 | BLOCKED_POLICY_DRIFT |
+| 18 | generated requirements | 부재 — Requirement(§17)·Requirement Source(§18) 축 부재 | NOT_APPLICABLE |
+| 19 | candidate participants | 부재 — 재료(`TeamPermissions::ACTIONS['approve']` `TeamPermissions.php:39` · `acl_permission` · `team_role` · `api_key.role` `Db.php:942-955`)는 **존재하나 승인 경로에서 미조회** | CONSOLIDATION_REQUIRED |
+| 20 | resource snapshot | 부재(§30 · grep 0) | NOT_APPLICABLE |
+| 21 | context snapshot | 부재(§32 · grep 0) | NOT_APPLICABLE |
+| 22 | duplicate result | **부분 선례** — `AdminGrowth::createApproval`(`AdminGrowth.php:1289-1297` · 판정 `:1292`)이 동일 `ref_type/ref_id` pending 재사용 = **현행 유일한 승인측 중복 방지**. 단 **후보 축 아님** | LEGACY_ADAPTER(약한 dedup 선례) |
+| 23 | proposed case type | Case 축 부재(§4.2) | NOT_APPLICABLE |
+| 24 | proposed status | 부재(후보 축) | NOT_APPLICABLE |
+| 25 | manual review requirement | 부재 — 수동 검토 요구 플래그 grep 0 | NOT_APPLICABLE |
+| 26 | evidence | 부재([Evidence 문서](DSAR_APPROVAL_EVIDENCE.md) §0) | NOT_APPLICABLE |
+
+🔴 **필드 26/26 중 Candidate 축으로 존재하는 것 0** — 커버리지 0/26. 4·11·19·22는 **인접/재료**일 뿐 후보 산출 구현이 아니다. **재료가 있다는 것을 "후보 검사가 있다"로 읽지 말 것**(파일 존재 ≠ 배선 ≠ 실효).
 
 영속된 요구(§0 Q11·Q13·Q14·§4.6·§61)에서 확정 가능한 구조 요구:
 - Candidate 산출은 **Requirement Source(§18)를 근거로** 한다 — 임의 지정 금지(누가 왜 후보인지 재현 가능해야 §0 Q20 충족).

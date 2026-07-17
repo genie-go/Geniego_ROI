@@ -1,7 +1,9 @@
-# DSAR — Approval Actor Authorization Snapshot (§21·필드 21)
+# DSAR — Approval Actor Authorization Snapshot (§21·필드 22)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §21 — 원문 그대로 전사.
+> 🔴 **분모 불일치**: **REQ 집계 21 ↔ 원문 실측 22 — 원문이 정본.** REQ §7 의 `21` 은 정정 대상(숫자 임의 정합 금지).
 
 ## 0. 현행 실측 (file:line)
 
@@ -29,8 +31,30 @@
 2. 기록했더라도 `api_key.role`·`team_role` 은 **제자리 UPDATE 되는 가변 컬럼**이며 이력 테이블이 없다 → **사후 조회 시 현재값이 반환**된다.
 3. 따라서 "이 승인은 당시 유효한 권한으로 이뤄졌는가" 는 **재현 불가**. 승인 후 role 을 강등/승격하면 **과거 승인의 정당성이 소급 변조**된다(감사 관점 치명).
 
-**필드 21** — 스펙 §21 **원문 항목명 저장소 미영속**(REQ 는 개수 `21` 만 고정) → **UNVERIFIED**.
-항목명 창작 금지(REQ §15). **분모 항목명 없이 "21 중 N 충족" 주장 금지** — 현 시점 확정 가능한 것은 **위 3단의 불만족 사실**뿐이다.
+### 1-1. 스펙 §21 필수 필드 — 원문 전사 (실측 22)
+
+`APPROVAL_ACTOR_AUTHORIZATION_SNAPSHOT`
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `snapshot_id` | 12 | policy version |
+| 2 | `approval_actor_id` | 13 | tenant scope |
+| 3 | `approval_case_id` | 14 | workspace scope |
+| 4 | `approval_requirement_id` | 15 | legal entity scope |
+| 5 | `authorization_request_reference` | 16 | program scope |
+| 6 | `authorization_decision_reference` | 17 | environment scope |
+| 7 | role | 18 | financial threshold |
+| 8 | role version | 19 | field access profile |
+| 9 | assignment | 20 | `valid_at_decision_time` |
+| 10 | permission | 21 | `immutable_hash` |
+| 11 | policy | 22 | `evidence` |
+
+> 스펙 §21 원문 말미: **"승인자의 현재 권한으로 과거 승인을 재해석하지 마라."**
+
+> 🔴 **원문 실측 22 ↔ REQ 집계 21 — 원문이 정본.** 숫자를 조용히 맞추지 않는다.
+
+**현행 커버리지 = 22 중 0.** §0 실측과 정합: 스냅샷 엔티티 grep 0 이며, 나아가 **#8 role version · #12 policy version · #9 assignment 축이 부재**하여
+위 3단 판정대로 **원리적으로 구성 불가**다. 즉 "22 중 0" 은 미구현이 아니라 **선행 축 부재**의 결과다.
 
 ## 2. 규칙
 

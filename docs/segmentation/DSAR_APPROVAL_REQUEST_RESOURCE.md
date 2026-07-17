@@ -26,13 +26,62 @@
 | `app_user` · `api_key` | Db.php:1099 · Db.php:942-955(role/scopes_json) | **VALIDATED_LEGACY** |
 | Workspace · Organization · Legal Entity · Country/Region · Feature Flag · Incident · Task · Workflow | **전부 부재(grep 0)** — Workspace 실체는 `tenant_kv` KV(WorkspaceState.php:59) · Geo.php:19 는 IP→국가 **탐지**(레지스트리 아님) | **NOT_APPLICABLE(신설)** |
 
-## 1. 스펙 §9 필드 15 + Relationship Type 11 전사 — **BLOCKED**
+## 1. 스펙 §9 `APPROVAL_REQUEST_RESOURCE` 전사 — 필드 **15** · Relationship Type **11**
 
-**분류: `BLOCKED_SPEC_TEXT_UNAVAILABLE`**
+**전사 근거: [`SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md`](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §9**
 
-REQ 분모(§7 표)는 **"§9 Approval Request Resource 필드 = 15"**, **"§9 Relationship Type = 11"** 이라는 **개수만** 영속한다. **15개 필드명·11종 Type 명은 저장소에 없다**(REQ 외 grep 0).
+> ✅ **필드 축 — REQ 집계 15 ↔ 원문 실측 15 — 일치.**
+> ✅ **Relationship Type 축 — REQ 집계 11 ↔ 원문 실측 11 — 일치.**
 
-**추측 생성 금지** — REQ §16(요구 날조 0) · REQ §9(351 사건) · REQ §15(역산 금지). **해제 조건**: 스펙 §9 원문 수령 → 전사표로 교체(§0 유효).
+**원문 §9 서술**: *"하나의 요청이 하나 이상의 Resource를 참조할 수 있게 하라."*
+**§0 실측: Resource 분리 테이블 부재(grep 0) · Request 1:N Resource 구조 없음** → 아래 판정은 §0 에서만 인용.
+
+### 1-1. 필수 필드 (원문 15)
+
+| # | 필드 (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `approval_request_resource_id` | **부재** — §0 Resource 분리 테이블 grep 0 · **NOT_APPLICABLE(신설)** |
+| 2 | `approval_request_id` | **부재(FK)** — §0 Resource 테이블 자체 부재. ※참조 대상 Request `id` 는 존재 |
+| 3 | `resource_type` | **부재** — §0 "`resource_type` **부재(grep 0)** — 타입은 **테이블 소속**으로만 암묵 표현" · **NOT_APPLICABLE(신설)** |
+| 4 | `resource_id` | **부분** — §0 `admin_growth_approval.ref_id`·`ref_key`(AdminGrowth.php:144) = **유일한 명시적 Resource 참조** · **LEGACY_ADAPTER**(승격 후보) |
+| 5 | `resource_version` | **부재** — §0 "`resource_version`/drift 탐지 **부재(grep 0)**" → §4.5 승인 후 원본 변경 탐지 불가 · **NOT_APPLICABLE(신설)** |
+| 6 | `relationship_type` | **부재** — §0 "Relationship Type **부재(grep 0)** — primary/secondary/affected 등 관계 축 없음" · **NOT_APPLICABLE(신설)** |
+| 7 | `primary 여부` | **부재** — §0 동일(관계 축 전무) · **NOT_APPLICABLE(신설)** |
+| 8 | `tenant_id` | **존재(Request 측)** — §0-1 `channel_credential`·`app_user`/`api_key` **VALIDATED_LEGACY**. ※Resource 행 단위로는 **부재**(테이블 자체 부재) |
+| 9 | `workspace_id` | **부재** — §0-1 Workspace 부재(실체 = `tenant_kv` WorkspaceState.php:59) · **NOT_APPLICABLE(신설)** |
+| 10 | `legal_entity_id` | **부재** — §0-1 Legal Entity 부재(grep 0) · **NOT_APPLICABLE(신설)** |
+| 11 | `environment` | **부재(Resource 행)** — §0-1 Environment 레지스트리 부재 · **NOT_APPLICABLE(신설)** |
+| 12 | `data_classification` | ⚠️ **판정 유보** — §0 미열거(별도 실측 필요) |
+| 13 | `financial_sensitivity` | ⚠️ **판정 유보** — §0 미열거(별도 실측 필요) |
+| 14 | `status` | **부재(Resource 행)** — §0 Resource 테이블 자체 부재 · **NOT_APPLICABLE(신설)** |
+| 15 | `evidence` | ⚠️ **판정 유보** — §0 미열거(§50 Evidence 축) |
+
+### 1-2. Relationship Type (원문 11)
+
+**§0 실측: "Relationship Type 부재(grep 0)"** → **11종 전부 부재**.
+
+| # | Relationship Type (원문) | 현행 존재 여부 — §0 실측 인용 |
+|---|---|---|
+| 1 | `PRIMARY` | **부재** — §0 관계 축 grep 0 |
+| 2 | `AFFECTED` | **부재** — §0 동일 |
+| 3 | `DEPENDENCY` | **부재** — §0 동일 |
+| 4 | `FUNDING_SOURCE` | **부재** — §0 동일. ※§0 `REBATE_*` 대상 엔티티 자체가 코드에 0 |
+| 5 | `CONTRACT_SOURCE` | **부재** — §0 동일 |
+| 6 | `BENEFICIARY` | **부재** — §0 동일 |
+| 7 | `PROVIDER_ACCOUNT` | **부재(관계 축)** — ※§0-1 인접 실물 `channel_credential`(Db.php:976 · AES-256-GCM) **VALIDATED_LEGACY** — 단 관계 타입 아님(축 혼동 금지) |
+| 8 | `MIGRATION_SOURCE` | **부재** — §0 동일 |
+| 9 | `MIGRATION_TARGET` | **부재** — §0 동일 |
+| 10 | `SUPPORTING` | **부재** — §0 동일 |
+| 11 | `OTHER` | **부재** — §0 동일(확장 슬롯) |
+
+### 1-3. ★§4.1 위반의 실측 대응
+
+원문 §9 는 Resource 를 **Request 에서 분리**할 것을 요구한다. §0 실측은 그 정반대다:
+
+- `mapping_change_request` 는 Resource 를 **평면 컬럼으로 인라인**(`platform`·`field`·`raw_value`·`canonical_value` · Db.php:626-629) = **Request=Resource 동일시** · **★MIGRATION_REQUIRED**
+- `action_request` 는 Resource 를 **`action_json` JSON 블롭** 내부에 두고 런타임 **키 폴백 체인**으로 추출(Alerting.php:621-622) = **스키마 없음 · 계약 불명** · **MIGRATION_REQUIRED**
+
+⇒ **원문 15 필드 중 §0 근거로 "존재/부분" 인 것은 2개**(4 `resource_id` 부분 · 8 `tenant_id` Request 측)뿐이며, **판정 유보 3**(12·13·15), 나머지 **10 은 부재**다.
 
 ## 2. 규칙
 

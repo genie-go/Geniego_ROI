@@ -2,6 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §44**
+> ✅ **REQ 집계 일치**: 상태 **22** — 원문 실측과 동일.
 
 ## 0. 현행 실측 (file:line)
 
@@ -19,8 +21,38 @@
 
 Request Status가 **"이 요청은 지금 어디 있는가"**라면, Reconciliation Status는 **"원천들이 서로 맞는가"**다. 한 요청이 `approved`이면서 동시에 대조 결과는 `mismatch`일 수 있다 — **두 축은 동시에 성립**하므로 한 컬럼에 뭉치면 표현 불가.
 
-**상태 22종** — 스펙 §44 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `22`만 고정 · 원문 나열 부재).
-→ 분류 **UNVERIFIED**. 상태명을 **지어내지 않는다**(REQ §15 역산 금지 · 자기가 쓴 것을 요구로 삼는 사고). 스펙 원문 §44 수령 시 본 절을 채운다. **현 시점 상태 축 커버리지 주장 불가**.
+### 1.1 상태 열거형 — **원문 전사 22** (§44)
+
+| # | 상태(원문) | 대응 비교 대상(§43) | 현행 |
+|---|---|---|---|
+| 1 | MATCH | (전체 일치) | 부재 |
+| 2 | SOURCE_REQUEST_MISMATCH | #1 Source System Request | 부재 |
+| 3 | UI_BACKEND_STATUS_MISMATCH | #2 UI vs Backend | 🔴 **부재하나 조건은 이미 성립** — `Alerting.php:562` vs `:589-591` 실측(§0 드리프트 (a)) |
+| 4 | API_CASE_STATUS_MISMATCH | #3 API vs Case | 부재 |
+| 5 | REQUEST_RESOURCE_VERSION_MISMATCH | #4 | 부재 |
+| 6 | POLICY_VERSION_MISMATCH | #5 | 부재 |
+| 7 | PARTICIPANT_ROLE_MISMATCH | #6 | 부재 |
+| 8 | ACTOR_SCOPE_MISMATCH | #7 | 부재 |
+| 9 | DECISION_AMOUNT_MISMATCH | #8 | 부재 |
+| 10 | DECISION_CURRENCY_MISMATCH | #9 | 부재 |
+| 11 | DECISION_RESOURCE_VERSION_MISMATCH | #10 | 부재 |
+| 12 | EXECUTED_ACTION_MISMATCH | #11 | 부재 |
+| 13 | EXECUTED_SCOPE_MISMATCH | #12 | 부재 |
+| 14 | CONSUMPTION_EXECUTION_MISMATCH | #13 | 부재 |
+| 15 | ERP_APPROVAL_MISMATCH | #14 | 부재 |
+| 16 | PROVIDER_APPROVAL_MISMATCH | #15 | 부재 |
+| 17 | NOTIFICATION_STATE_MISMATCH | #16 | 부재 |
+| 18 | AUDIT_DECISION_MISMATCH | #17 | 부재 |
+| 19 | CANCELLED_REQUEST_EXECUTED | #18 | 부재 |
+| 20 | REVOKED_APPROVAL_STILL_USABLE | #19 | 부재 |
+| 21 | MANUAL_REVIEW | (수동 검토 회부) | 부재 |
+| 22 | BLOCKED | (대조 차단) | 부재 |
+
+🔴 **상태 22/22 전부 부재(grep 0)** — 커버리지 0/22. 열거형 자체가 없다.
+
+**★원문 실측이 확인해 준 것**: 22종 중 **20종(#2~#20 + #1)이 §43 비교 대상 19종과 1:1 대응**하고, 나머지 2종(#21 MANUAL_REVIEW · #22 BLOCKED)은 **대조 사건의 처리 경로**다. 즉 §44는 §43의 **결과 축**이지 독립 열거가 아니다 — 이 대응 관계는 원문 수령 전에는 **주장 불가**했던 것이며, 이제 원문으로 확정된다.
+
+**★"미수행" 상태값의 부재 — 원문 실측 결과**: 원문 22종에 **Unknown / NOT_RECONCILED에 해당하는 값이 없다**. 아래 §2 "Fail-closed 기본값"은 **원문 열거에 명시된 요구가 아니라 저장소 원칙에서 도출한 설계 판단**임을 명시한다(원문에 없는 것을 원문 요구로 승격 금지). 구현 시 미수행을 어떻게 표현할지는 **별도 스펙 확인 대상**이다.
 
 영속된 요구(§0 Q21·§61·§62 항목 40)에서 확정 가능한 구조 요구:
 - **미수행 ≠ 일치**(Unknown ≠ Match) — 대조한 적 없음을 "일치"로 표시하면 **가짜녹색**이다(288차 systemic 교훈 · Part 3-2 "Unknown ≠ Eligible" 선례와 동형).

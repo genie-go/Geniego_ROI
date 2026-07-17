@@ -2,6 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §51**
+> ✅ **REQ 집계 일치**: Event **26** — 원문 실측과 동일.
 
 ## 0. 현행 실측 — 승인 감사 이벤트 **전수 4곳** (file:line)
 
@@ -25,8 +27,43 @@
 
 ## 1. Audit Event = **승인 생애의 모든 상태 변화를 남기는 Append-only 사건 축**
 
-**Event 26종** — 스펙 §51 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `26`만 고정 · 원문 나열 부재).
-→ 분류 **UNVERIFIED**. 이벤트명을 **지어내지 않는다**(REQ §15 역산 금지 · 자기가 쓴 것을 요구로 삼는 사고). 스펙 원문 §51 수령 시 본 절을 채우고, **위 실측 4종과 매핑**한다. **현 시점 Event 축 커버리지 주장 불가**.
+### 1.1 지원 Event — **원문 전사 26** (§51) · 실측 4종 매핑
+
+`APPROVAL_AUDIT_EVENT`
+
+| # | Event(원문) | 현행 실측 매핑 (file:line) | 상태 |
+|---|---|---|---|
+| 1 | APPROVAL_REQUEST_CREATED | 🔴 **미기록** — `AdminGrowth::createApproval`(`AdminGrowth.php:1289-1297`)·`Catalog::approvalCreate`(`:2258-2277`) 모두 **생성 감사 없음** | 부재 |
+| 2 | APPROVAL_REQUEST_UPDATED | 미기록 | 부재 |
+| 3 | APPROVAL_REQUEST_SUBMITTED | 미기록(승인 도메인) · 인접 = `FeedTemplate::transition` `draft→submitted`(`FeedTemplate.php:248-285`) | 부재(축 상이) |
+| 4 | APPROVAL_REQUEST_VALIDATED | 미기록 | 부재 |
+| 5 | APPROVAL_REQUEST_REJECTED_BY_VALIDATION | 미기록 — 검증 거부 경로 감사 없음 | 부재 |
+| 6 | APPROVAL_CASE_CREATED | Case 축 부재 | 부재 |
+| 7 | APPROVAL_CASE_VERSION_CREATED | 부재 | 부재 |
+| 8 | APPROVAL_ITEM_CREATED | Item 축 부재 | 부재 |
+| 9 | APPROVAL_REQUIREMENT_GENERATED | Requirement 축 부재(§17) | 부재 |
+| 10 | APPROVAL_PARTICIPANT_ADDED | Participant 축 부재(§19) | 부재 |
+| 11 | APPROVAL_ACTOR_VALIDATED | 🔴 미기록 — `Mapping::actorId`(`Mapping.php:246-252`)가 **403 fail-closed 하나 감사 호출 없음** | 부재 |
+| 12 | **APPROVAL_DECISION_RECORDED** | ✅ **실측 3종 대응** — `action_decide`(`Alerting.php:597`) · `mapping_approve`(`Mapping.php:291`) · `approval.decide`(`AdminGrowth.php:1342`) | **존재**(어휘 3갈래) |
+| 13 | APPROVAL_CONDITION_ADDED | Conditional Approval(§25) 축 부재 | 부재 |
+| 14 | APPROVAL_OBLIGATION_ADDED | Obligation(§26) 축 부재 | 부재 |
+| 15 | APPROVAL_STATUS_CHANGED | 🔴 미기록(전용 이벤트) — 상태 변화는 #12 안에 `status` 값으로 **묻혀 있음**(`Mapping.php:291`) | 부재 |
+| 16 | APPROVAL_WITHDRAWAL_REQUESTED | Withdrawal(§36) 축 부재 | 부재 |
+| 17 | APPROVAL_WITHDRAWN | 부재 | 부재 |
+| 18 | APPROVAL_CANCELLED | Cancellation(§37) 축 부재 · 인접 revoke 선례 = `agency_client_link.revoked_at`(`AgencyPortal.php:80`) | 부재 |
+| 19 | APPROVAL_REOPENED | Reopen(§38) 축 부재 | 부재 |
+| 20 | APPROVAL_SUPERSEDED | 승인 도메인 부재 · 인접 = `catalog_writeback_job.status='superseded'`(`Catalog.php:1188`) **감사 이벤트 아님** | 부재 |
+| 21 | APPROVAL_EXECUTION_BOUND | Binding 축 부재(§40) | 부재 |
+| 22 | **APPROVAL_CONSUMED** | **부분** — `action_execute`(`Alerting.php:655`)가 집행 결과를 정직 기록(287차)하나 **소비 원장 아님**(§41 축 부재). `mapping_apply`(`Mapping.php:328`)도 동일 한계 | **부분**(축 상이) |
+| 23 | APPROVAL_EXECUTION_BLOCKED | 🔴 **미기록** — `Mapping::apply` `:309` 게이트가 **400 거부하나 감사 없음**. 차단 사건이 남지 않음 | 부재 |
+| 24 | APPROVAL_DUPLICATE_DETECTED | 🔴 미기록 — `Mapping.php:277-284` dedup 409 · `AdminGrowth.php:1292` pending 재사용 **둘 다 감사 없음** | 부재 |
+| 25 | APPROVAL_DRIFT_DETECTED | Reconciliation 축 부재(§43) | 부재 |
+| 26 | MANUAL_REVIEW_REQUESTED | 미기록 — 단 `approved_manual` **상태값**은 존재(`Alerting.php:628`) · 이벤트 아님 | 부재 |
+
+**대조 결과 — Event 26종 중 존재 1종(#12) · 부분 1종(#22) · 부재 24종. 실측 감사 호출부는 전수 4곳.**
+🔴 **#12는 3개 어휘로 분산**(`action_decide`/`mapping_approve` snake vs `approval.decide` dot) = 같은 사건이 세 이름. **1종 존재를 "정상"으로 읽지 말 것.**
+
+> **★원문 전사가 확정한 결함 — 차단 사건 미기록**: 원문 26종 중 **#5·#11·#23·#24 네 종이 "거부·차단" 이벤트**다. 현행 4개 감사는 **전부 성공 경로에만** 있고, `Mapping.php:250,263,270,282`의 403/409 응답과 `:309`의 400 응답에는 **audit 호출이 없다**. 즉 저장소는 **막기는 하되 막았다는 사실을 남기지 않는다** — §62 항목 22·34~38(차단 건수)은 **현행 코드로는 원리적으로 집계 불가**다.
 
 영속된 요구(§4.9·§61·§62 항목 21·22)에서 확정 가능한 구조 요구:
 - Audit Event는 **Append-only**(§4.9) — UPDATE/DELETE 금지. 선례: `pm_audit_log`는 **애플리케이션 차원에서 UPDATE/DELETE 거부**(마이그레이션 파일 `:1-3` 주석) → **패턴 재사용**.

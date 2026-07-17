@@ -1,7 +1,10 @@
-# DSAR — Approval Decision Reason (§24·Reason Code 28 · 필드 9)
+# DSAR — Approval Decision Reason (§24·Reason Code 28 · 필드 10)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §24 — 원문 그대로 전사.
+> **분모 정합**: Reason Code — REQ 28 ↔ **원문 실측 28 일치**.
+> 🔴 **분모 불일치**: 필드 — **REQ 집계 9 ↔ 원문 실측 10 — 원문이 정본.** REQ §7 의 `9` 는 정정 대상.
 
 ## 0. 현행 실측 (file:line)
 
@@ -16,13 +19,51 @@
 
 **핵심**: 현행은 **거부의 이유를 묻지도 저장하지도 않는다**. §0 Q20("결정 근거·Evidence 재현 가능한가") = **불가**.
 
-## 1. Reason Code 28 · 필드 9
+## 1. Reason Code 28 · 필드 10
 
-스펙 §24 의 **원문 항목명 저장소 미영속**(REQ 는 개수 `28`/`9` 만 고정 · 나열 부재) → **UNVERIFIED**.
-**28종 코드명 창작 금지**(REQ §15 역산 — 자작 코드표는 분모가 아니다). 스펙 §24 원문 수령 시 채운다.
+`APPROVAL_DECISION_REASON`
 
-확정 사실만:
-- 현행 Reason = **0종**(코드·자유문자열 **모두 미저장**). 28 대비 **전무**.
+### 1-1. Reason Code — 원문 전사 (실측 28 · REQ 28 **일치**)
+
+원문 순서 그대로(좌 1~14 · 우 15~28):
+
+| # | Reason Code | # | Reason Code |
+|---|---|---|---|
+| 1 | `BUSINESS_REQUIREMENT_MET` | 15 | `FUNDING_UNCONFIRMED` |
+| 2 | `FINANCIAL_REVIEW_PASSED` | 16 | `CONTRACT_INVALID` |
+| 3 | `LEGAL_REVIEW_PASSED` | 17 | `WRONG_LEGAL_ENTITY` |
+| 4 | `COMPLIANCE_REVIEW_PASSED` | 18 | `WRONG_TENANT` |
+| 5 | `RISK_ACCEPTABLE` | 19 | `WRONG_ENVIRONMENT` |
+| 6 | `EVIDENCE_SUFFICIENT` | 20 | `RISK_TOO_HIGH` |
+| 7 | `BUDGET_AVAILABLE` | 21 | `AMOUNT_EXCEEDS_LIMIT` |
+| 8 | `FUNDING_CONFIRMED` | 22 | `POLICY_VIOLATION` |
+| 9 | `CONTRACT_VALID` | 23 | `CONFLICT_OF_INTEREST_REFERENCE` |
+| 10 | `RESOURCE_SCOPE_VALID` | 24 | `RESOURCE_CHANGED` |
+| 11 | `AMOUNT_WITHIN_LIMIT` | 25 | `VERSION_CHANGED` |
+| 12 | `DUPLICATE_REQUEST` | 26 | `REQUEST_INCOMPLETE` |
+| 13 | `INSUFFICIENT_EVIDENCE` | 27 | `MANUAL_REVIEW_REQUIRED` |
+| 14 | `BUDGET_INSUFFICIENT` | 28 | `OTHER` |
+
+> **§24 Reason Code 구조 관찰**(원문에서 직접 도출 · 창작 아님): #1~#11 = **승인 사유**, #13~#27 = **거부/보류 사유**, #12 `DUPLICATE_REQUEST` = **Idempotency(§35) 연동 축**, #28 `OTHER` = 미분류.
+> 특히 **#24 `RESOURCE_CHANGED` · #25 `VERSION_CHANGED`** 는 §31 Critical Field 변경 정책의 **Reason 측 대응 축**이다.
+
+### 1-2. 필수 필드 — 원문 전사 (실측 10)
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_decision_reason_id` | 6 | policy reference |
+| 2 | `approval_decision_id` | 7 | evidence reference |
+| 3 | `reason_code` | 8 | customer visible 여부 |
+| 4 | reason category | 9 | internal only 여부 |
+| 5 | reason detail reference | 10 | `status` |
+
+> 스펙 §24 원문 말미: **"민감한 내부 Risk Signal 이나 개인정보를 고객 노출 Reason 에 포함하지 마라."**
+> → 본 문서 §2 규칙(내부/고객 분리)은 **창작이 아니라 원문 요구**임이 전사로 확인됨. **#8 customer visible · #9 internal only** 가 그 필드 축이다.
+
+> 🔴 **필드 원문 실측 10 ↔ REQ 집계 9 — 원문이 정본.** 숫자를 조용히 맞추지 않는다.
+
+확정 사실:
+- 현행 Reason = **0종**(코드·자유문자열 **모두 미저장**). 28 대비 **전무** · 필드 10 중 **0**.
 - **Reason 은 Decision 행의 종속 엔티티**(§22 Decision 과 1:N) — Decision 이 부재(Append-only 미구현)하므로
   **Reason 만 선행 구현 불가**. 순서: Decision 행 → Reason.
 

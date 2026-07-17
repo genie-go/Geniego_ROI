@@ -2,6 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §22 — 원문 그대로 전사.
+> **분모 정합**: REQ 집계 27 ↔ **원문 실측 27 — 일치**.
 
 ## 0. 현행 실측 (file:line)
 
@@ -28,8 +30,32 @@
 **판정**: 현행은 **결정의 결과만 알고 결정의 역사를 모른다**. `approvals_json` 누적(`Mapping.php:285`)이 유일한 Append 선례지만,
 JSON 배열은 **행 단위 제약(FK·UNIQUE·감사)이 걸리지 않아** Decision 정본이 될 수 없다 — **승격 대상이 아니라 마이그레이션 출발점**.
 
-**필드 27** — 스펙 §22 **원문 항목명 저장소 미영속**(REQ 는 개수 `27` 만 고정) → **UNVERIFIED**.
-항목명 창작 금지(REQ §15 역산). **"27 중 N" 수치 주장 금지** — 확정 가능한 것은 위 대조표의 구조적 불만족뿐.
+## 1-1. 스펙 §22 필수 필드 — 원문 전사 (실측 27 · REQ 27 **일치**)
+
+`APPROVAL_DECISION`
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_decision_id` | 15 | approved action |
+| 2 | `approval_case_id` | 16 | approved resource version |
+| 3 | `approval_item_id` | 17 | `valid_from` |
+| 4 | `approval_requirement_id` | 18 | `valid_to` |
+| 5 | `approval_actor_id` | 19 | `decision_sequence` |
+| 6 | `decision_type` | 20 | `supersedes_decision_id` |
+| 7 | `decision_effect` | 21 | `correction_of_decision_id` |
+| 8 | `decision_reason_code` | 22 | `reversal_of_decision_id` |
+| 9 | `decision_comment_reference` | 23 | `decided_at` |
+| 10 | condition references | 24 | `recorded_at` |
+| 11 | obligation references | 25 | `immutable_hash` |
+| 12 | approved amount | 26 | `status` |
+| 13 | approved currency | 27 | `evidence` |
+| 14 | approved scope | | |
+
+**현행 커버리지 = 27 중 1**(원문 대조 후 확정 · §0/위 대조표와 정합):
+- **#23 `decided_at`** — `approvals_json[].ts`(`Mapping.php:285`) **부분 충족**(JSON 배열 원소 · 행 필드 아님).
+- **#26 `status`** 는 현행에 존재하나 **Decision 행이 아니라 Request 행의 컬럼**이다 → **산입 불가**(§4.3 필요성↔결과 분리 위반이 그 이유).
+- **#19~22**(`decision_sequence`·supersedes·correction·reversal) = Append-only 계보 축 → **전부 부재**. 이것이 위 대조표 "결정의 역사를 모른다" 의 필드 수준 근거다.
+- **#25 `immutable_hash`** — 승인 도메인 부재. 단 `menu_audit_log.hash_chain`(`AdminMenu.php:123-131`)이 **재사용 가능한 유일 선례**(§2 규칙).
 
 ## 2. 규칙
 

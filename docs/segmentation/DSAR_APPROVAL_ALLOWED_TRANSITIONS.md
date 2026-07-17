@@ -2,8 +2,9 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
-> **분모 정합**: 행 수 = REQ §7(스펙 §29 Request 허용 전이 = 22). 스펙 원문 나열 **저장소 미영속** → `UNVERIFIED_TRANSCRIPTION`.
-> ⚠️ 상태명은 §27 Request Status(25) 정본 확정 시 재대조 필요(`DSAR_APPROVAL_REQUEST_STATUS.md` 미작성).
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §29 — 원문 그대로 전사.
+> **분모 정합**: REQ 집계 22 ↔ **원문 실측 22 — 개수 일치**.
+> 🔴 **단, 289차 placeholder 표의 상태명은 원문과 전면 상이했다**(예: `VALIDATING`→원문 `VALIDATION_PENDING` · `CHANGES_REQUESTED`→원문 `CHANGES_REQUIRED` · `EXECUTING`/`EXECUTED`/`RECONCILING`/`CLOSED` = **원문 §29 에 없음**). **개수만 우연히 일치했을 뿐 내용은 자작이었다** — 원문으로 전면 교체함(§1).
 
 ## 0. 현행 실측 대조표 (file:line)
 
@@ -28,38 +29,57 @@ if ((string)$r['status'] !== $from)
 
 > **판정: 전이 강제 = 6개 승인 경로 중 2개(FeedTemplate·Mapping)만.** 나머지는 **임의 상태 도약 가능**(예: `pending`→`executed` 직행 차단 수단 없음).
 
-## 1. CANONICAL 허용 전이 (22) — 화이트리스트
+## 1. Request 기본 허용 전이 (22) — 원문 전사
 
-| # | From → To | 조건 |
+> 스펙 §29 원문 도입부: **"최소 다음을 지원하라."** → 즉 이 22 는 **하한**이지 폐집합이 아니다(placeholder 표는 이를 "화이트리스트 22" 로 오독했음).
+
+| # | From → To |
+|---|---|
+| 1 | `DRAFT` → `SUBMITTED` |
+| 2 | `SUBMITTED` → `VALIDATION_PENDING` |
+| 3 | `VALIDATION_PENDING` → `VALIDATION_FAILED` |
+| 4 | `VALIDATION_PENDING` → `ACCEPTED` |
+| 5 | `ACCEPTED` → `CASE_CREATION_PENDING` |
+| 6 | `CASE_CREATION_PENDING` → `IN_REVIEW` |
+| 7 | `IN_REVIEW` → `APPROVAL_PENDING` |
+| 8 | `APPROVAL_PENDING` → `PARTIALLY_APPROVED` |
+| 9 | `APPROVAL_PENDING` → `APPROVED` |
+| 10 | `APPROVAL_PENDING` → `CONDITIONALLY_APPROVED` |
+| 11 | `APPROVAL_PENDING` → `REJECTED` |
+| 12 | `APPROVAL_PENDING` → `CHANGES_REQUIRED` |
+| 13 | `APPROVAL_PENDING` → `RETURNED` |
+| 14 | `SUBMITTED`·`IN_REVIEW`·`APPROVAL_PENDING` → `WITHDRAWAL_PENDING` |
+| 15 | `WITHDRAWAL_PENDING` → `WITHDRAWN` |
+| 16 | `OPEN` 상태 계열 → `CANCELLATION_PENDING` |
+| 17 | `CANCELLATION_PENDING` → `CANCELLED` |
+| 18 | 유효기간 경과 → `EXPIRED` |
+| 19 | `REJECTED`·`CHANGES_REQUIRED`·`RETURNED` → `REOPEN_PENDING` |
+| 20 | `REOPEN_PENDING` → `REOPENED` |
+| 21 | 기존 요청 → `SUPERSEDED` |
+| 22 | `APPROVED`·`CONDITIONALLY_APPROVED` → `COMPLETED` |
+
+### 1-1. 🔴 placeholder ↔ 원문 대조 — 자작 항목 폐기 기록 (무후퇴)
+
+289차 placeholder 표는 **개수(22)만 REQ 와 맞췄을 뿐 상태명·전이 내용이 원문과 달랐다**. 주요 상이:
+
+| placeholder(자작·폐기) | 원문 §29 | 성격 |
 |---|---|---|
-| 1 | `DRAFT` → `SUBMITTED` | 요청자 제출 |
-| 2 | `DRAFT` → `CANCELLED` | |
-| 3 | `SUBMITTED` → `VALIDATING` | |
-| 4 | `VALIDATING` → `VALIDATION_FAILED` | 요건 미충족(§17) |
-| 5 | `VALIDATING` → `PENDING` | 요건 충족 |
-| 6 | `VALIDATION_FAILED` → `DRAFT` | 보완 후 재제출 |
-| 7 | `PENDING` → `IN_REVIEW` | |
-| 8 | `PENDING` → `WITHDRAWN` | **요청자**만(§36) |
-| 9 | `PENDING` → `EXPIRED` | 기한 만료 |
-| 10 | `IN_REVIEW` → `APPROVED` | **정족수 충족**(`Mapping.php:288` 패턴) |
-| 11 | `IN_REVIEW` → `CONDITIONALLY_APPROVED` | §25 |
-| 12 | `IN_REVIEW` → `PARTIALLY_APPROVED` | §16 Item 일부 |
-| 13 | `IN_REVIEW` → `REJECTED` | §4.7 — 권한 Deny 아님 |
-| 14 | `IN_REVIEW` → `CHANGES_REQUESTED` | |
-| 15 | `CHANGES_REQUESTED` → `DRAFT` | 보완 |
-| 16 | `APPROVED` → `EXECUTING` | **Execution Binding**(§40) |
-| 17 | `CONDITIONALLY_APPROVED` → `EXECUTING` | 조건 충족 후 |
-| 18 | `EXECUTING` → `EXECUTED` | |
-| 19 | `EXECUTING` → `EXECUTION_FAILED` | |
-| 20 | `APPROVED` → `SUPERSEDED` | **Critical Field 변경**(§31) · 신 Version |
-| 21 | `EXECUTED` → `RECONCILING` | §43 |
-| 22 | `RECONCILING` → `CLOSED` | 종결 |
+| `SUBMITTED`→`VALIDATING` | `SUBMITTED`→`VALIDATION_PENDING` | **상태명 오기** |
+| `VALIDATING`→`PENDING` | `VALIDATION_PENDING`→`ACCEPTED` | 오기 + **`ACCEPTED`/`CASE_CREATION_PENDING` 단계 누락** |
+| `IN_REVIEW`→`APPROVED` 직행 | `IN_REVIEW`→`APPROVAL_PENDING`→`APPROVED` | **중간 상태 누락** |
+| `CHANGES_REQUESTED` | `CHANGES_REQUIRED` | 상태명 오기 |
+| `PENDING`→`WITHDRAWN` 직행 | →`WITHDRAWAL_PENDING`→`WITHDRAWN` | **2단계 요구 누락** |
+| `DRAFT`→`CANCELLED` 직행 | `OPEN` 계열→`CANCELLATION_PENDING`→`CANCELLED` | **2단계 요구 누락** |
+| `EXECUTING`·`EXECUTED`·`EXECUTION_FAILED`·`RECONCILING`·`CLOSED` | **원문 §29 에 없음** | **자작 상태**(집행 축은 §40/§43 소관) |
+| — | `REOPEN_PENDING`→`REOPENED`(§38) · `COMPLETED` | **원문에 있으나 placeholder 누락** |
+
+⇒ **원문이 정본.** 위 자작 상태·전이는 본 문서의 요구 분모에서 **폐기**한다. 단 §0 현행 실측·판정은 **그대로 유효**(상태명과 무관한 코드 실측이므로).
 
 ## 2. 규칙
 
-- **화이트리스트 외 전이는 전부 `409 invalid_state`**(Deny-by-default). 위 표에 없으면 **금지**다.
-- **역행 금지**: `APPROVED`→`PENDING`, `EXECUTED`→`APPROVED`, 종결상태(`CLOSED`/`WITHDRAWN`/`CANCELLED`/`EXPIRED`/`SUPERSEDED`)에서의 이탈 전이 **없음**.
-- **`APPROVED`→`EXECUTED` 직행 금지** — 반드시 `EXECUTING` 경유(집행 실패 관측 가능성 확보). 현행 `Alerting.php:653` 은 이를 보장하지 않는다.
+- **원문 22 는 하한(최소)** — 이를 만족하는 화이트리스트를 구성하고, **목록 외 전이는 `409 invalid_state`**(Deny-by-default). 확장은 가능하나 **축소 금지**(무후퇴).
+- **역행 금지**: 종결상태(`WITHDRAWN`/`CANCELLED`/`EXPIRED`/`SUPERSEDED`/`COMPLETED`)에서의 이탈 전이 **없음**. `REJECTED`·`CHANGES_REQUIRED`·`RETURNED` 로부터의 복귀는 **`REOPEN_PENDING` 경유만**(원문 #19·#20) — 직접 되돌리기 아님.
+- **`PENDING`류 → 종결 직행 금지** — 원문은 Withdrawal·Cancellation 모두 **`*_PENDING` 2단계**를 요구한다(#14~#17). 현행 `Alerting.php:653` 의 `UPDATE ... SET status=?` 직접 덮어쓰기는 이 2단계를 **원천 위반**한다.
 - **구현은 `FeedTemplate.php:248-285` 확장** — 별도 State Machine 라이브러리/엔진 도입 금지(중복 신설 금지 · Golden Rule = Extend).
 - **모든 전이는 History INSERT 를 동반**(§28) — `UPDATE status` 단독 금지.
 - **코드변경 0**.

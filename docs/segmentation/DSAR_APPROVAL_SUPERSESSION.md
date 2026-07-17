@@ -1,7 +1,9 @@
-# DSAR — Approval Supersession (§39·필드 13·Type 9)
+# DSAR — Approval Supersession (§39·필드 **14**·Type 9)
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §39**
+> 🔴 **REQ 집계 불일치**: REQ §7은 필드 **13**으로 고정하나 **원문 실측 14**. **원문이 정본** — 제목·본문을 14로 정정한다. Type 9는 일치.
 
 ## 0. 현행 실측 (file:line)
 
@@ -17,8 +19,48 @@
 
 ## 1. Supersession = **새 Request/Version이 옛 것의 효력을 종료시키는 링크**
 
-**필드 13 · Supersession Type 9** — 스펙 §39 원문 항목명은 **저장소 미영속**(REQ §7은 개수 `13`/`9`만 고정).
-→ 분류 **UNVERIFIED**. 항목명을 **지어내지 않는다**(REQ §15 역산 금지). 원문 수령 시 채운다. **현 시점 필드/Type 축 커버리지 주장 불가**.
+### 1.1 필수 필드 — **원문 전사 14** (§39)
+
+`APPROVAL_SUPERSESSION`
+
+| # | 필드(원문) | 현행 대조 | 분류 |
+|---|---|---|---|
+| 1 | approval_supersession_id | 부재(grep 0) | NOT_APPLICABLE |
+| 2 | predecessor request | 부재 — 승인 테이블에 대체 링크 컬럼 없음(`Db.php:592-600` · `:623-636`) | NOT_APPLICABLE |
+| 3 | predecessor case | 부재 — Case 축 자체가 없음(§4.2) | NOT_APPLICABLE |
+| 4 | successor request | 부재 | NOT_APPLICABLE |
+| 5 | successor case | 부재 | NOT_APPLICABLE |
+| 6 | supersession type | 부재 — 아래 Type 9 열거형 미존재 | NOT_APPLICABLE |
+| 7 | reason | 부재(승인 도메인) | NOT_APPLICABLE |
+| 8 | carried decisions | 부재 — 승인 이전(carry) 개념 grep 0 | NOT_APPLICABLE |
+| 9 | invalidated decisions | 부재 — Decision 테이블 자체가 없음(현행은 `UPDATE SET status=?` 덮어쓰기) | NOT_APPLICABLE |
+| 10 | carried evidence | 부재 — Evidence 축 부재([Evidence 문서](DSAR_APPROVAL_EVIDENCE.md) §0) | NOT_APPLICABLE |
+| 11 | new resource version | 부재 — Resource Version 축 부재(§4.4 미충족) | NOT_APPLICABLE |
+| 12 | effective_at | 부재 | NOT_APPLICABLE |
+| 13 | status | 인접 선례만 — `catalog_writeback_job.status='superseded'`(`Catalog.php:1188`)는 **잡 상태**이지 Supersession 레코드 상태 아님 | LEGACY_ADAPTER(패턴만) |
+| 14 | evidence | 부재 | NOT_APPLICABLE |
+
+🔴 **필드 14/14 전부 `NOT_APPLICABLE`(부재→신설)** — 커버리지 0/14. 있다고 가정하고 배선 금지.
+
+### 1.2 Supersession Type — **원문 전사 9** (§39)
+
+| # | Type(원문) | 현행 대조 |
+|---|---|---|
+| 1 | NEW_VERSION | 부재(grep 0) — Version 축 자체 부재 |
+| 2 | MATERIAL_CHANGE | 부재 — Critical Field(§31) 판정 축 부재 |
+| 3 | CORRECTION | 부재 |
+| 4 | CONSOLIDATION | 부재 |
+| 5 | SPLIT | 부재 |
+| 6 | POLICY_REEVALUATION | 부재 — Policy Version(§33) 부재 |
+| 7 | MIGRATION | 부재 |
+| 8 | EMERGENCY_REPLACEMENT | 부재 |
+| 9 | OTHER | 부재 |
+
+🔴 **Type 9/9 전부 부재** — 열거형 미존재. `catalog_writeback_job`의 `superseded`는 **단일 사유 미분류 상태값**이므로 위 9종 중 어느 것에도 대응시키지 않는다(축 혼합 금지).
+
+### 1.3 원문 규칙 (§39 말미 · 전사)
+
+> **Material Change가 있으면 기존 Approval Decision을 자동 이전하지 않는다.**
 
 영속된 요구(§0 Q19·§4.4·§4.5·§4.8·§4.9)에서 확정 가능한 구조 요구:
 - Supersession은 **방향성 링크**다 — `superseded`(옛) → `superseding`(새) 양방향 추적 가능해야 §0 Q19에 답할 수 있다.

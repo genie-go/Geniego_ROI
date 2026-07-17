@@ -2,6 +2,8 @@
 
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §23 — 원문 그대로 전사.
+> **분모 정합**: REQ 집계 12 ↔ **원문 실측 12 — 일치**.
 
 ## 0. 현행 실측 (file:line)
 
@@ -18,13 +20,25 @@
 
 ## 1. Decision Effect 12종
 
-스펙 §23 의 **12종 원문 항목명은 저장소 미영속**(REQ 는 개수 `12` 만 고정 · 나열 부재) → **UNVERIFIED**.
-**항목명 창작 금지**(REQ §15 역산). 5-2 의 `DSAR_AUTHORIZATION_DECISION_EFFECT.md`(9종)는 **다른 도메인의 다른 열거형**이므로
-**그 이름을 본 문서로 전용하지 않는다**(Authorization Effect ≠ Approval Effect · §4.7 Deny ≠ Rejection).
+스펙 §23 **원문 전사**(실측 12 · REQ 집계 12 와 **일치**):
 
-확정 사실만:
-- 현행 실측 효과 = **암묵 1종**(승인 → 즉시 상태전이 + 일부 경로는 즉시 집행). Conditional·유예·부분승인 **전무**.
-- **12 대비 커버리지 주장 금지**(분모 항목명 부재).
+| # | Effect | # | Effect |
+|---|---|---|---|
+| 1 | `APPROVED` | 7 | `BLOCKED` |
+| 2 | `REJECTED` | 8 | `CANCELLED` |
+| 3 | `CONDITIONALLY_APPROVED` | 9 | `EXPIRED` |
+| 4 | `CHANGES_REQUIRED` | 10 | `SUPERSEDED` |
+| 5 | `RETURNED` | 11 | `REVERSED` |
+| 6 | `NO_DECISION` | 12 | `ERROR` |
+
+> 5-2 의 `DSAR_AUTHORIZATION_DECISION_EFFECT.md`(9종)는 **다른 도메인의 다른 열거형**이다 — 원문 대조 결과 **항목명·개수 모두 상이**하며,
+> 본 문서로 **전용하지 않는다**(Authorization Effect ≠ Approval Effect · §4.7 Deny ≠ Rejection). 전사 후에도 이 분리는 유지된다.
+
+**현행 커버리지 = 12 중 2종**(원문 수령으로 매핑 확정):
+- **#1 `APPROVED`** ← `Mapping::approve:287` 정족수 충족 시 즉시 `approved` · `AdminGrowth:1321`.
+- **#2 `REJECTED`** ← `Alerting::decideAction:593` · `AdminGrowth:1321`.
+- **#3~12 = 10종 부재.** 효과가 **데이터가 아니라 코드 분기**(§0 핵심)이므로 Effect 축 자체가 없다.
+- 특히 **#6 `NO_DECISION` · #7 `BLOCKED` · #12 `ERROR`** 부재 = 결정 실패/미결을 표현할 값이 없어 **`rejected` 로 뭉개진다**(§4.8 위배 · WITHDRAWAL 문서 §0 과 동형).
 
 ## 2. 규칙
 

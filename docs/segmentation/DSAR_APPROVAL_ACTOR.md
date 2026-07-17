@@ -3,6 +3,8 @@
 > EPIC 06-A Part 3-3-3-3-3-3-3-3-4-5-3-1-5-3-1 · 289차(2026-07-17) · **비파괴 설계 명세 — 코드변경 0**
 > 요구 분모: [REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md](REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) · ADR: [ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md](../architecture/ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md)
 > **★이 도메인은 부재가 아니다 — 정본 패턴이 289차에 이미 존재한다(Mapping). 문제는 미전파다.**
+> **전사 근거**: [SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md](SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md) §20 — 원문 그대로 전사.
+> **분모 정합**: REQ 집계 필드 22 · Actor Type 8 ↔ **원문 실측 22 / 8 — 양축 일치**.
 
 ## 0. 현행 실측 (file:line)
 
@@ -22,10 +24,47 @@
 
 ## 1. Actor = 실제 결정을 내린 위조불가 신원
 
-**필드 22 · Actor Type 8종** — 스펙 §20 **원문 항목명 저장소 미영속**(REQ 는 개수만 고정) → **UNVERIFIED**.
-항목명 창작 금지(REQ §15 역산). 다만 스펙 §20 의 **서술 요구 1건은 명시적**이므로 대비 판정한다:
+### 1-1. 스펙 §20 필수 필드 — 원문 전사 (실측 22 · REQ 22 **일치**)
 
-> 스펙 §20: **"고위험 Human Approval 을 Service Account 가 대신 결정하지 못하게 하라"**
+`APPROVAL_ACTOR` — 실제 Decision 을 내리거나 Approval Event 를 수행한 Actor 를 기록한다.
+
+| # | 필드 | # | 필드 |
+|---|---|---|---|
+| 1 | `approval_actor_id` | 12 | `acting_assignment_id` |
+| 2 | `subject_id` | 13 | `acting_scope` |
+| 3 | `actor_type` | 14 | authentication assurance |
+| 4 | `canonical_identity_id` | 15 | MFA state |
+| 5 | `tenant_id` | 16 | session reference |
+| 6 | `workspace_id` | 17 | device reference |
+| 7 | `organization_id` | 18 | network zone |
+| 8 | `legal_entity_id` | 19 | risk reference |
+| 9 | `environment` | 20 | `acted_at` |
+| 10 | `acting_role_id` | 21 | `status` |
+| 11 | `acting_role_version_id` | 22 | `evidence` |
+
+**현행 커버리지 = 22 중 2**(원문 대조 후 확정):
+- **#2 `subject_id`** — `Mapping::actorId`(`Mapping.php:36-53`) 가 `apikey:{id}`/`user:{email}` 로 **위조불가 도출**(부분 충족 · 정규화된 식별자 아님).
+- **#20 `acted_at`** — `approvals_json[].ts`(`Mapping.php:285`) 로 기록.
+- 나머지 20 축(#3 `actor_type` · #4 `canonical_identity_id` · #10~13 acting_role/assignment/scope · #14~19 assurance/MFA/session/device/network/risk · #22 evidence 등) = **grep 0 부재**.
+- #5 `tenant_id` 는 `mapping_change_request` 행에는 있으나(`Db.php:623-636`) **Actor 축의 필드가 아님** → 산입 불가.
+
+### 1-2. 서술 요구 대비 판정
+
+스펙 §20 의 **서술 요구 1건은 원문에 명시**돼 있다:
+
+> 스펙 §20 원문: **"고위험 Human Approval 을 Service Account 가 대신 결정하지 못하게 한다."**
+
+### 1-3. 스펙 §20 Actor Type — 원문 전사 (실측 8 · REQ 8 **일치**)
+
+| # | Actor Type | # | Actor Type |
+|---|---|---|---|
+| 1 | `HUMAN` | 5 | `POLICY_ENGINE` |
+| 2 | `SERVICE_ACCOUNT` | 6 | `EXTERNAL_PARTY` |
+| 3 | `SYSTEM` | 7 | `EMERGENCY_OPERATOR_REFERENCE` |
+| 4 | `AUTOMATION` | 8 | `OTHER` |
+
+**현행 커버리지 = 8 중 0종 (열거형 부재).** 단 `Mapping.php:41,47,49` 의 접두 문자열은 원문 **#1 `HUMAN`**(`user:`)과
+**#2 `SERVICE_ACCOUNT`**(`apikey:`)에 **의미상 대응하는 재료**가 이미 있음을 보인다 — **재료는 있고 열거형·게이트가 없다**.
 
 **현행 대비 판정 = 불만족.** 근거: actor_type 구분이 없어 `apikey:{id}`(서비스 계정)와 `user:{email}`(사람)이
 `Mapping::approve` 에서 **동등하게 정족수 1로 계수**된다(`:285-287`). 즉 API 키 2개로 Maker-Checker 충족 가능.

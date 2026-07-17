@@ -336,3 +336,45 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **관찰 4건(전부 `UNVERIFIED` · 본 세션 수정 0 · FP 레지스트리)**: **O-1** Group 제거 시 Role 유지 가능성(`sso_group_role_map` **removal behavior 부재** · IdP 그룹 삭제 시 매핑 행 잔존 · **실 동작 미검증**) · **O-2** Service Account 에 Human Role 부여 가능성(`api_key.role='admin'` 차단 장치 없음 · **그런 키 발급 여부 미조회**) · **O-3** Orphan Group Role(group_name **문자열** 저장 · **실 데이터 미조회**) · **O-4** 1-1 Brand "부재" 기재 오류.
 - **인용 검증 7/7 일치**: `sso_group_role_map`(6히트) · `roleForGroups()`:78 · `EnterpriseAuth.php:400` 즉시 deprovision · `catalog_brand`:151 · `TeamPermissions.php:39/41` · `scimJson()`:35 · `WorkspaceState`→`tenant_kv`:59.
 - **정직 표기**: 스펙 §65는 **41항목 전부 "구축되었다"**를 요구하나 산출은 **계약 명세(문서)까지**이며 **실 코드·테이블·Lint·Guard 0건**. **"구축 완료"가 아니라 "계약 명세 확정"**. **1-6 4축: Design 충족 · Implementation/Data/Verification 0%**. **회귀 0**(코드변경 자체가 0).
+
+## AE-289-16 — EPIC 06-A Part 4-5-3-1-5-3-1 (Approval Foundation & Canonical Approval Entity) — **스펙 Version 1.0 수령분 · Approval Engine 10블록 중 1번째**
+
+- **위임**: 사용자 지시 "설계 계약만 진행, Alerting 수정은 별도 세션". 인계서가 대기하던 **5-3 스펙 수령**(10블록 분할 확정).
+- **절차 이행**: ⓐ분모 영속(설계 착수 **전** · 별도 커밋 `a532fd21975`) → ⓑ§3 전수조사(Explore 2) → ⓒ산출(병렬 5+3) → ⓓCanonical+ADR → ⓔ인용 검증 → ⓕ커버리지.
+- **산출**: `SPEC_..._VERBATIM.md`(스펙 전문 원문) + `REQ_..._APPROVAL_FOUNDATION.md`(축 집계) + **DSAR 54편** + `ADR_DSAR_REBATE_APPROVAL_FOUNDATION.md` + PM 3편. **코드변경 0**(`git status --porcelain backend/ frontend/` = 빈 결과).
+
+### 🔴 AE-289-16-A — **자기 오류: 개수는 분모가 아니다** (에이전트 5개가 독립 지적)
+
+- **경위**: ⓐ에서 REQ 초판을 만들며 **"수령 즉시 영속" 완료로 판단**. 그러나 그 파일은 **개수만** 담았다(`"§6 Domain Type = 31"`). **항목명은 저장소에 없었고 스펙 원문은 여전히 채팅에만** 있었다.
+- **발견**: 산출 에이전트 **5개 전부가 독립적으로 정지** — *"전사할 원문이 저장소에 없다. 지어내면 REQ §16(요구 날조 0)·⑤ §1-1(역산 금지) 위반이고 커버리지가 정의상 100%가 된다"*. **지적이 옳았다.**
+- **근본**: **"31 종"은 무엇이 31 종인지 모르면 검증도 반증도 불가능**하다 — **289차 ②의 `351`이 정확히 그런 값**(측정 명령 없이 박힌 숫자 → 복제 → 정본화). **개수만 적는 것은 351 사건을 요구 목록에서 재현하는 것.**
+- **정정**: `SPEC_06A_4_5_3_1_5_3_1_VERBATIM.md` 신설(**스펙 전문 §0~§64 원문 영속**) → 이것이 `source_persisted=true`의 실체. REQ 는 **축 정의·집계로 격하**.
+- ★**교훈**: **분모 영속은 "적었는가"가 아니라 "재현·반증 가능한가"로 판정**해야 한다. **ⓐ를 했다고 믿은 순간에도 COV-GAP-01은 절반만 해소돼 있었다.**
+- ★**1-7 D-10 재실증**: 이 오류를 **에이전트가 잡았다** — 규칙(요구 날조 0·역산 금지)이 **문서로 영속돼 있었기 때문**이다. **차이는 능력이 아니라 영속 여부.**
+
+### 전수조사 실측 (§3 · 부재증명 포함)
+
+- 🔴 **`REBATE_*` 코드 0줄**(backend·frontend **0 file / 0 occurrence**) — 문서 35편에만 존재. **승인 대상 엔티티 자체가 없다** → 본 블록 = **전방호환 계약**.
+- **선행조건 89항목 대부분 부재**: Workspace(실체=`tenant_kv` KV·WorkspaceState.php:59) · Organization · Department · Legal Entity · Country/Region(Geo.php:19는 IP→국가 탐지) · Feature Flag · Incident · Task · **Workflow**(BPMN/Temporal/Camunda/Flowable/Zeebe/StepFunctions backend/src grep 0) · `AUTHORIZATION_*` 명명 엔티티.
+- **REAL**: `channel_registry`(ChannelRegistry.php:16,29 · **tenant_id 없는 글로벌**) · `channel_credential`(Db.php:976) · `fxToKrw`(Connectors.php:1749 · 24통화) · `audit_log`(Db.php:540-546 · **tenant_id·해시체인 없음**) · `api_key` RBAC(Db.php:942-955).
+- **함정 2**: `acl_permission`(TeamPermissions.php:152,169)은 **`menu_key`=프론트 경로 = 메뉴 게이팅**(레코드 권한 아님) · **`PlanPolicy` fail-open**(PlanPolicy.php:12 주석 자인) → 승인 게이트 기반 부적격.
+
+### ★핵심 판단 — "중복 4벌"이 아니라 "1 REAL + 3 미달"
+
+- **`mapping_change_request`만 REAL**: 정족수 컬럼(`required_approvals` Db.php:623-636) + 집행(`count>=required`) + 위조불가 신원(`Mapping::actorId`:36-53) + 자기승인 403 + dedup 409 + pending 게이트 + `apply` 실행 전 게이트(:309). **전부 289차 ③에서 복구된 것.**
+- **나머지 3은 승인처럼 보이는 것**: `action_request`(정족수 **컬럼 없음** · `Alerting:562` 리터럴 `2` = 장식 · 1회→approved) · `admin_growth_approval`(**tenant_id 없음** · 전역 조회 · 결정 경로도 격리 없음 AdminGrowth.php:1324 `WHERE id=?`) · `catalog_writeback_approval`(**고아** · 읽는 코드 0).
+- → **통합 방향 = 신설이 아니라 `Mapping::approve`+`actorId` 공용 추출 후 흡수**. **4번째 Foundation 신설 금지**(AL-19). **`EquivalenceProof` 선행 없이 통합 금지**(286차 rank 맵 붕괴 재현).
+
+### 신규 결함 (재증명 완료 · **본 세션 미수정** · 별도 승인 세션)
+
+- 🔴 **MR-5-3-1-01 `Alerting::executeAction` 승인 우회**: `:612`가 `status`를 SELECT하고 **어디서도 판독 안 함**(죽은 읽기) → `pending`·`rejected`도 `AdAdapters::pause`(:631)/`updateBudget`(:634) **실집행**. **287차 가짜집행 수정의 부작용**(실집행을 붙이며 게이트를 안 붙임). **`INSERT INTO action_request` grep 0 → 생산자 전무 → `VACUOUS`**. ★**순서 의존성이 본 블록의 실질 산출**: **게이트(①) → 생산자 배선(②)**. 뒤집히면 **승인 우회 즉시 활성**(289차 G-01이 운영 api_key 0 시점에 수정된 것과 동일 논리 — **잠복은 노출 전에 고치는 게 가장 싸다**).
+- 🟠 **MR-5-3-1-05 actor_type 부재**: `apikey:`/`user:`가 **정족수에 동등 계수** → **API 키 2개로 Maker-Checker 충족 가능**(스펙 §20 "Service Account 대리결정 금지" 미충족).
+- **에이전트 실측 정정 2건**: ① `required_approvals` 프론트 "grep 0"이 아니라 **`Approvals.jsx:576`에 매핑되나 참조 0**(dead field) — 결론(장식)은 동일하나 표현 정정 ② `withdraw`/`supersede`/`consumption`은 전역 grep 0이 아니라 **타 도메인 hit 존재**(GdprConsent 동의철회 · `catalog_writeback_job.status='superseded'` Catalog.php:1188 · `wms_lot_consumptions` FEFO) → **"승인 도메인 부재"로 한정 서술** · Catalog supersede는 **패턴 선례로 인용**.
+
+### 정직 표기
+
+- 스펙 §63은 **40항목 전부 "구축되었다"**를 요구하나 산출은 **계약 명세(문서)**이며 **실 코드·테이블·Lint·Guard 0건**. → **"구축 완료"가 아니라 "계약 명세 확정"**.
+- **1-6 4축**: Design 충족 · **Implementation/Data/Verification 0%**. **회귀 0**(코드변경 자체가 0).
+- **Static Lint 19 + Runtime Guard 30 = 전부 `CONTRACT_ONLY`**(구현 0·배선 0) → **"승인 Lint/Guard가 있다"고 서술 금지**(289차 ① `guard_headerless_getjson` 교훈: **파일 존재 ≠ 배선 ≠ 실효**).
+- **회귀게이트 보존 목록에 `is_effective=false` 5건 등재 금지** 명시(1-8 GOLDEN-GAP-01 재현 방지): `Alerting` 게이트/정족수 · `catalog_writeback_approval` 고아 · `TeamPermissions['approve']`(호출부 0) · 팬텀 승인 라우트 6개 — **실행 안 되는 건 회귀할 수 없다**.
+- **06-A 판정 `NOT_CERTIFIED` 불변**.
