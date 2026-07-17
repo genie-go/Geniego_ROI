@@ -208,6 +208,32 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 
 ---
 
+## AE-289-09 — EPIC 06-A Part 4-5-3-1-5-7 (Authorization Audit·Evidence·Compliance·Access Review)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★스펙 미수령·자율 판단(사용자 명시 승인)** — 세부 자율임을 Canonical 2 + ADR 전부 명시 · **§요구 부재 → 완료 조건 판정 불가 · §53/§59 없음**.
+
+### ★최대 발견 — tamper-evident 감사가 이미 REAL
+**`menu_audit_log`**(N-152-A): **`hash_chain CHAR(64)`** + old_value/new_value JSON + changed_by + **changed_by_role** + reason + ip_address + user_agent + request_id(AdminMenu.php:123-131) · 주석 "모든 mutation 에 audit_log 기록 + **hash_chain (tamper-evident)**"(:18) · **직전 해시 조회로 실 체인 계산**(:216). **SIEM 도 REAL** — LEEF 2.0 + RFC 5424 Syslog(Compliance.php:225/238·282차).
+
+### ★기술 정밀화·정정 2건 (자기 정정)
+| 항목 | 기존 기술 | 정정 |
+|---|---|---|
+| **선행설계 R3 §49 "hash-chain Ledger 부재→신설"** | 부재 | **hash-chain 패턴은 REAL**(menu_audit_log) · **금전 원장에만 부재** → **"신설"이 아니라 "menu_audit_log 패턴을 금전 원장으로 확장"** |
+| **5-1~5-6 "Access Review 차단"** | Critical Gap 대응으로 전 블록이 인용 | **★Access Review 는 부재(grep 0)** — **존재하지 않는 기능에 의존한 설계 순환** → **"Runtime Guard 차단(1차) + Access Review 등재(2차)"로 정정** |
+
+### 관찰 2건 (미확정·미수정)
+①**`audit_log` 에 tenant_id 부재**(AdminGrowth.php:158) — 멀티테넌트 감사 조회 시 테넌트 격리 불가 · 플랫폼 전용이면 의도일 수 있음 · **PM 재증명 전 P0 단정 금지**. ②**감사 스키마 편차**(audit_log 5필드 vs menu_audit_log 12필드+체인) — 원인이 "도메인 요구"가 아니라 **"구현 시점·투자 차이"로 보임** → **KEEP_SEPARATE 유지 + menu_audit_log 를 표준으로 승격**(하향 평준화 금지).
+
+### 5-5 위임 판정 (자율)
+**만료 세션 정리 Job 부재 = 위생 이슈 · 기능 결함 아님**(만료는 조회 시점 검증 → 보안 영향 없음). 부작용 = 테이블 비대·Review 노이즈. **권장=기존 cron 인프라 재사용**(예약 드레인 워커·shelf_rank_cron·media_gc_cron 선례).
+
+### 자율 판단
+①**Decision 감사 볼륨 정책** — 1,448 라우트 × 전 요청은 폭증 → **ALLOW 샘플링 / ★DENY 전량(샘플링 금지·공격 탐지 불가) / 고위험 전량 / CONDITIONAL·STEP_UP·MASKING 전량** ②**hash chain 한계 정직** — append-only 무결성만 주고 **전량 삭제는 못 막음** → **SIEM 외부 반출과 병행해야 실효** ③**Dormant 는 api_key `last_used_at`/`use_count` 재사용**(새 필드 불필요·단 인간 Subject 엔 부재) ④**Review REVOKE 는 실 회수까지 확인**(Review 가 REVOKE 했는데 권한 잔존 = Review 무의미).
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
