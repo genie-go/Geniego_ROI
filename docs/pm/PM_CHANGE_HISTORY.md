@@ -523,3 +523,29 @@ Gap 원장 14건 **재발견 금지**(등재됨). 잔여 로드맵 = **1-7 Lint 
 
 ### 완료 기준(다음 개발자)
 81 규칙 **재작성 금지**(참조·정규화만). `OrphanRuleDetector`/`LintRuleRatchet` = **5-8 동일 정본 · 재정의 금지**. 미달은 **1-6 Gap 원장 연결 · 별도 원장 금지**. 잔여 = **1-8 Golden / 1-9 Legacy**(**추정 금지 · 로드맵 재확인**).
+
+---
+
+## 289차 — EPIC 06-A Part 4-5-3-1-8 (Golden Dataset)
+
+### 범위
+Golden Dataset 통합 정본 + 회귀 기준선. ⚠️**스펙 미수령 — 자율 판단**. **RP-001 준수** — 로드맵 슬롯 확인. ⚠️**1-7과 달리 위임 없음**(`grep "4-5-3-1-8"` → **0**) — 근거는 로드맵 슬롯뿐. **숨기지 않고 기록**.
+
+### 산출 (비파괴 · **코드변경 0**)
+- `docs/segmentation/CANONICAL_DSAR_REBATE_GOLDEN_DATASET_REGISTRY.md`
+- `docs/segmentation/CANONICAL_DSAR_REBATE_REGRESSION_BASELINE_CERTIFICATION.md`
+- `docs/architecture/ADR_DSAR_REBATE_GOLDEN_DATASET_REGRESSION_BASELINE.md`
+
+### ★분리 판정
+**Rebate Golden = `NOT_APPLICABLE`**(구현 0) · **Preservation Golden = `PARTIAL`**(**e2e 3계층 REAL·GATE 5** — "없음" 보고 시 266차·281차 자산 부정 = **무후퇴 위반**) · **보존 목록 무결성 = 🔴`FAILED`**. **Golden 은 두 종류 — Rebate 는 불가능하나 Preservation 은 지금 가능**.
+
+### ★결함 3건 (보존 목록 자체 검증)
+1. 🔴 **팬텀 보존대상** — 5-1 회귀게이트 보존 목록에 **`guard_headerless_getjson`(호출처 0)** 포함. **실행 안 되는 건 회귀 못 함 → 회귀 0 검증이 공허하게 참**. **5-8 고아가드의 2차 피해**.
+2. 🔴 **"실측" 351이 코드 주석** — 출처 `UserAuth.php:329`(286차). 289차 실측 **458~498** → **회귀범위 ≈30% 누락**. **5-6 정정이 5-1 §53 에 미전파**.
+3. 🔴 **방법 없는 수치는 골든 아님** — grep 3개가 **498/467/458 · 셋 다 옳음**. **재현 불가 기준선은 골든이 아니라 스냅샷**. **351이 3개 차수를 살아남은 이유**.
+
+### 테스트/검증
+설계 문서만 — 코드 **무수정** · **§53 문서도 무수정**(**351도 안 고침** — 남의 블록 산출물을 측정 블록이 말없이 고치면 측정/수정 경계 붕괴). 인용 **5/5 일치**.
+
+### 완료 기준(다음 개발자)
+**순서 엄수**: 팬텀제거(guard 배선) → stale 정정(방법 명시) → `MeasurementMethod` 도입 → Preservation 골든 작성 → Rebate 골든. **1·2 건너뛰면 골든이 팬텀·stale 을 정본으로 굳힘**. 러너 **신설 금지**(e2e 확장). 잔여 = **1-9 Legacy Equivalence(06-A 마지막)** — ✅**위임 명시됨**(1-4 회귀게이트 "Legacy Equivalence·Production Certification 은 Part 4-5-3-1-9" · 5-1 "Legacy Equivalence 최우선").
