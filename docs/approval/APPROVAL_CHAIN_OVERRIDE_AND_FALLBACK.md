@@ -147,7 +147,7 @@
 | 37 | Explicit Approval Reference | 명시 승인 참조 0 | ABSENT |
 | 38 | Reason | 사유 0 | ABSENT |
 | 39 | Expiration | 만료 0. 인접 = `UserAdmin::impersonate:472` 2h(대행열람) | ABSENT |
-| 40 | Audit | ★정본 선례 = `SecurityAudit.php:27`(tenant 포함 sha256) + `:45-52` DDL(`prev_hash`/`hash_chain`) + `verify():56-68` `hash_equals` **검증기 실재**. 🔴`menu_audit_log.hash_chain`(`AdminMenu.php:195` vs `:129`) 은 **재구성 불가한 장식** — 선례 인용 금지 | LEGACY_ADAPTER |
+| 40 | Audit | ★정본 선례 = `SecurityAudit.php:27`(tenant 포함 sha256) + `:45-52` DDL(`prev_hash`/`hash_chain`) + `verify():56-68` `hash_equals` **검증기 실재**. 🔴`menu_audit_log.hash_chain` 은 **재구성 불가한 장식** — 선례 인용 금지. 막히는 축은 **`ts` 하나**로 preimage 의 `date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT)이다(★근거 정정 — `prev` 는 `lastHash():216` 으로 재구성 가능) | LEGACY_ADAPTER |
 | 41 | Snapshot | 스냅샷 선례 = `menu_defaults.snapshot_data`(`AdminMenu.php:119-120`) · `pm_baseline.snapshot_json`(`PM/Enterprise.php:360` — ★`captured_at` 은 DB 컬럼 아니라 **JSON 키**) · **Chain 도메인 0** | ABSENT |
 | 42 | Authorization Check | 🔴🔴 권한 축 2벌 분열(`index.php:554` `$roleRank` ↔ `team_role`) **매핑 0** · 🔴`acl_permission.approve` 는 `ACTIONS:39` 실재·`seedOrg:711` 시드되나 **승인 가부 판독자 0** = 완전한 장식 | ABSENT |
 | 43 | Separation of Duties Reference | ★`Mapping.php:268-271` **자기승인 403** + `:278-283` 승인자 dedup = **레포 유일 SoD 실집행**. ⚠️`apply:296-299` 는 `actorId` 아닌 `actor()` 사용 → **집행단계 승인자=집행자 차단 없음** · 4경로 중 1곳뿐(`AdminGrowth:1292` 는 **요청 dedup**이지 승인자 dedup 아님) | LEGACY_ADAPTER |

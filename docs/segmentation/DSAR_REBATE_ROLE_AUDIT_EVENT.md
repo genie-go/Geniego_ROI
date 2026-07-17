@@ -18,7 +18,8 @@ audit_log **12파일 스키마 편차**(5필드 vs 12필드+체인)는 **KEEP_SE
 **Role Audit 은 `menu_audit_log` 패턴을 따른다** — 신설 아님.
 
 ## 🔴 hash-chain 한계 정직 표기
-append-only 무결성은 주지만 **전량 삭제·테이블 교체는 못 막는다** → **SIEM 외부 반출과 병행해야 실효**.
+**초판 정정 — 한계가 더 크다.** 초판은 *"append-only 무결성은 주지만 전량 삭제·테이블 교체는 못 막는다"* 라 적었으나, **`menu_audit_log` 는 append-only 무결성조차 주지 못한다**: 체인 연결은 실재하나(`AdminMenu.php:194` prev + `lastHash():216`) preimage 의 `'ts'=>date('c')`(`:195`)가 **INSERT 컬럼 목록(`:199-203`)에 `created_at` 이 없어 저장되지 않는다**(`:129` DB DEFAULT 가 채움) → **preimage 재구성 불가 = 행 단위 변조조차 탐지 불가**. 검증기도 없다(`hash_equals` 레포 24히트 중 AdminMenu **0건**). ★**"체인이 있다"가 "변조를 탐지할 수 있다"를 보증하지 않는다** — SIEM 병행 이전에 **체인 자체가 장식**이다.
+검증까지 갖춘 실 정본 = **`SecurityAudit`**(`:27` tenant 포함 해시 · `:29-31` `created_at` 명시 저장 · **`verify():56-68`** `hash_equals`+prev 교차검증).
 
 ## 분류
-`menu_audit_log`·SIEM = **VALIDATED_LEGACY(표준 승격·재사용 강제)** · Role Event 27 = **NOT_APPLICABLE → 확장**.
+`menu_audit_log` **필드 축**(old_value/new_value/changed_by/changed_by_role/reason/ip_address/user_agent/request_id)·SIEM = **VALIDATED_LEGACY(표준 승격 · 🔴`tenant_id` 부재 보강 조건부)** · ⚠️`menu_audit_log` **`hash_chain` 축 = `PARTIAL`**(연결 실재·검증 영구 불가 → **재사용 강제 아님**, 해시체인은 `SecurityAudit` 이식) · Role Event 27 = **NOT_APPLICABLE → 확장**.

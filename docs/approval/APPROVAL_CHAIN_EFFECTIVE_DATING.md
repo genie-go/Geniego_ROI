@@ -113,7 +113,7 @@
 
 ### C-48-3 · 감사 정본 선례 = `SecurityAudit`
 - 재사용 대상: `backend/src/SecurityAudit.php:27`(`hash('sha256', $prev.'|'.$tenant.'|'.$actor.'|'.$action.'|'.$dj.'|'.$now)` — **tenant 포함**) · `:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`) · **`verify():56-68`** — `:64` `hash_equals` 로 preimage 재계산 검증.
-- 🔴 **`menu_audit_log.hash_chain` 인용 금지 — 검증 불가능한 장식**: preimage 가 `'ts'=>date('c')`(`AdminMenu.php:195`)인데 저장 컬럼은 `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`(`:129`) → **재구성 불가** · `hash_equals` 검증기 **부재**(전역 24히트 중 `AdminMenu` 0건).
+- 🔴 **`menu_audit_log.hash_chain` 인용 금지 — 검증 불가능한 장식**(★근거 정정 · 289차 10회차 ⓔ): **막히는 축은 `ts` 하나**다 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 어디에도 저장되지 않는다**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) → **재구성 불가** · `hash_equals` 검증기 **부재**(전역 24히트 중 `AdminMenu` 0건). (`prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급 → 재구성 가능 · `prev_hash` 컬럼 부재는 결함이 아니다.)
 
 ## 3. 미결·선행조건
 

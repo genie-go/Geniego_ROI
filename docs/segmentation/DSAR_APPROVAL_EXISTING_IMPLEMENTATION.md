@@ -40,7 +40,7 @@
 | 항목 | 분류 | 근거 |
 |---|---|---|
 | `api_key` RBAC(`role`·`scopes_json`·SHA-256 `key_hash`) + 미들웨어 주입(`auth_key`/`auth_role`/`auth_tenant`) | **VALIDATED_LEGACY**(★Actor 신뢰근원) | Db.php:942-955 · index.php:591-593 |
-| `menu_audit_log.hash_chain CHAR(64)` | **VALIDATED_LEGACY**(★해시체인 **유일** 선례 → Evidence 재사용) | AdminMenu.php:123-131 |
+| `menu_audit_log.hash_chain CHAR(64)` | **`PARTIAL`** — 🔴**"유일 선례" 거짓**(`SecurityAudit` 실재) · 🔴**"tamper-evident" 거짓**: 체인 연결만 실재(`:194`+`lastHash():216`) · preimage `'ts'=>date('c')`(`:195`)가 **INSERT 컬럼(`:199-203`)에 `created_at` 부재**로 미저장(`:129` DB DEFAULT) → **검증 영구 불가** · 검증기 0. **재사용 대상 아님 — 이식할 정본은 `SecurityAudit::verify():56-68`** | AdminMenu.php:123-131 · :194-203 · SecurityAudit.php:27/29-31/56-68 |
 | `dedup_key` + `uq_{table}_dedup` UNIQUE · `Paddle.php:343` `notification_id` UNIQUE | **VALIDATED_LEGACY**(Idempotency 선례 → 확장) | Db.php:257-281 · :1023,1034 · Paddle.php:343 |
 | `channel_credential` AES-256-GCM · `no_credentials` 게이트 | **VALIDATED_LEGACY**(Evidence 자격증명 금지 기반) | Db.php:976 · 267차 |
 | `fxToKrw`(24통화 + `app_setting` 24h 캐시) | **VALIDATED_LEGACY**(다통화 합산 차단 기반) | Connectors.php:1749 |

@@ -58,7 +58,7 @@
 | **`REBATE_ROLE_ASSIGNMENT_SCOPE`** | **VALIDATED_LEGACY** — DATA_SCOPES 9(**의미 변경 금지**) |
 | **`REBATE_ROLE_DEPROVISIONING`** | 🔴 **VALIDATED_LEGACY** — `EnterpriseAuth.php:400` **패턴 정본** |
 | **`REBATE_SERVICE_ACCOUNT_ROLE_PROFILE`** | **VALIDATED_LEGACY + CONSOLIDATION_REQUIRED** — `api_key`(Type 승격 필요) |
-| **`REBATE_ROLE_AUDIT_EVENT`** | **VALIDATED_LEGACY** — `menu_audit_log`(**hash_chain**) 표준 승격 |
+| **`REBATE_ROLE_AUDIT_EVENT`** | **VALIDATED_LEGACY** — `menu_audit_log` **필드 축**(old_value/new_value/changed_by_role/reason/ip/ua/request_id) 표준 승격(🔴`tenant_id` 부재 보강 조건부) · ⚠️**`hash_chain` 은 제외 = `PARTIAL`**(preimage `ts`(`AdminMenu.php:195`) 미저장 → 검증 영구 불가 · 검증기 0). 해시체인 정본 = `SecurityAudit::verify():56-68` |
 
 ---
 

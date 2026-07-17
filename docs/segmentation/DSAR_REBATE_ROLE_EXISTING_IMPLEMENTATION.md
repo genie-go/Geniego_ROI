@@ -26,7 +26,7 @@
 | **action_request 승인워크플로**(approvals_json·**required_approvals DEFAULT 2**·IDOR 차단 208차) | **VALIDATED_LEGACY**(Approval 정본·**중복 승인엔진 금지**) | Db.php:592-600/634 · Alerting.php:545-546 |
 | **AgencyPortal**(매 요청 approved 재검증 **fail-closed**) | 🔴 **VALIDATED_LEGACY**(외부 Role 참조 구현·272차) | AgencyPortal |
 | **PartnerPortal**(supplier/logistics/warehouse 서브계정) · **SupplyChain**(sc_suppliers↔wms_suppliers) | **VALIDATED_LEGACY**(External User 기반) | PartnerPortal · SupplyChain |
-| **menu_audit_log**(**hash_chain CHAR(64)**·changed_by_role·request_id) + SIEM LEEF/RFC5424 | **VALIDATED_LEGACY**(감사 표준·**상향 승격**) | AdminMenu.php:123-131/216 · Compliance.php:225 |
+| **menu_audit_log**(**필드 축**: changed_by_role·request_id·old_value/new_value/reason/ip_address/user_agent) + SIEM LEEF/RFC5424 | **VALIDATED_LEGACY**(**필드·SIEM 축 한정** — 🔴`tenant_id` 부재 보강 조건부) · ⚠️**`hash_chain` 은 이 승격에서 제외**: 체인 연결은 실재(`:194`+`:216`)하나 preimage `'ts'`(`:195`) 미저장(INSERT 컬럼 `:199-203` 에 `created_at` 없음 · `:129` DB DEFAULT) → **검증 영구 불가 · 검증기 0** = `PARTIAL`. 해시체인 이식 정본은 **`SecurityAudit::verify():56-68`** | AdminMenu.php:123-131/194-203/216 · Compliance.php:225 · SecurityAudit.php:56-68 |
 | **`Db::envLabel()`**(GENIE_ENV) | **VALIDATED_LEGACY**(Environment Scope SSOT·**`Db::env()` 사용 금지**·278차 트랩) | Db.php |
 | **PlanPolicy**(RANK·기능키→최소플랜) | **VALIDATED_LEGACY** + **MIGRATION_REQUIRED**(프론트 `planMenuPolicy.js` **수동 동기화**) | PlanPolicy.php:14/19-24/41 |
 | **Field Masking**(AttributionEngine·ChannelCreds·UserAuth **산재**) | **CONSOLIDATION_REQUIRED**(단일 Field Access Profile) | 3+곳 |

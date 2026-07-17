@@ -84,7 +84,7 @@ Snapshot 재사용 시 동일해야 하는 값 10.
 | `SecurityAudit`(`SecurityAudit.php:27`, `:45-52`, `:56-68`) | **tenant 포함 preimage** · `prev_hash`+`hash_chain` 이원 · **`verify()` 검증기 동반**(`:64` `hash_equals`) · `created_at` 을 **애플리케이션이 명시 기록**(`$now = gmdate(...)`)하여 preimage 재구성 가능 | `:31` 감사 실패 비차단(`catch` 무음) — 스냅샷은 **fail-closed** 여야 함 |
 
 ### C-49-4 · 🔴 `menu_audit_log.hash_chain` 인용 금지
-검증 불가능한 장식이다. preimage 가 `'ts'=>date('c')`(`AdminMenu.php:195`)인데 저장은 `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`(`:129`) → **DB 가 채운 값과 preimage 값이 다르므로 재구성 불가** · `hash_equals` 전역 24히트 중 `AdminMenu` **0건**(검증기 없음). **감사 정본 선례 = `SecurityAudit` 단독.**
+검증 불가능한 장식이다. ★**근거 정정**(289차 10회차 ⓔ) — **체인 연결(`prev`)은 정상이다**: `lastHash():216` 이 직전 행의 `hash_chain` 컬럼을 읽어 `:194` `'prev'` 로 투입하므로 **별도 `prev_hash` 컬럼 없이도 정당한 체이닝**이며 재구성 가능하다. **막히는 것은 `ts` 하나** — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) **어디에도 저장되지 않는다** → 형식 차이 이전에 **값 자체가 소실 → 재구성 불가** · `hash_equals` 전역 24히트 중 `AdminMenu` **0건**(검증기 없음). **두 구현을 가르는 것은 오직 preimage 타임스탬프를 저장하는가**이며, **감사 정본 선례 = `SecurityAudit` 단독**(`$now` 를 INSERT 에 명시 전달 → `:51` `created_at VARCHAR(32)`).
 
 ### C-50-1 · 정규화 구조 (원문 §50 코드블록 원문)
 ```text

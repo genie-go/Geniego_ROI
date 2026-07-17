@@ -124,7 +124,7 @@ Template 계층은 **이름도 능력도 없다**. 유일한 인접물이 `Journ
 ### 2.6 `immutable_hash`(§12 #15) — 검증기를 같은 커밋에 넣어라
 
 - ✅ **정본 선례 = `SecurityAudit`**: preimage 구성요소가 전부 저장 컬럼(`:27`) → `verify():56-68` 이 `hash_equals` 로 재계산 가능.
-- 🔴 **반례 = `menu_audit_log.hash_chain` — 인용 금지**: preimage `'ts'=>date('c')`(`AdminMenu.php:195`) vs 저장 `created_at … DEFAULT CURRENT_TIMESTAMP`(`:129`) → **재구성 불가** · `hash_equals` grep **0**. **검증 불가능한 장식**이다.
+- 🔴 **반례 = `menu_audit_log.hash_chain` — 인용 금지**(★근거 정정 · 289차 10회차 ⓔ): **막히는 축은 `ts` 하나**다 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 어디에도 저장되지 않는다**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) → **재구성 불가** · `hash_equals` grep **0**(`AdminMenu` 내). **검증 불가능한 장식**이다. (`prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급 → **재구성 가능**하며 `prev_hash` 컬럼 부재는 결함이 아니다 — 초판의 *"preimage 2요소 모두 미저장"* 서술은 **틀렸다**.)
 - → **계약**: 검증기 없는 `immutable_hash` 컬럼은 §61 을 만족하지 않는다. preimage 는 전부 저장 컬럼으로 구성하라.
 
 ---

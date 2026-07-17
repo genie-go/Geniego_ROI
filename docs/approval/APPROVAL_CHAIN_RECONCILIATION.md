@@ -94,7 +94,7 @@
 `APPROVAL_CHAIN_RECONCILIATION` 은 §53 표 #1~#24 **24 비교를 빠짐없이** 수행한다. 일부만 비교하고 `MATCH` 로 결론내는 것을 금지한다(규칙 6 — "불일치 없음" ≠ "정합").
 
 ### C-53-2 · `source component` ↔ `canonical component` 이원 보존
-차이(`difference`)만 저장하지 말고 **비교 양변을 모두** 보존하라. 근거 — `menu_audit_log` 의 실패 모드: preimage 가 `'ts'=>date('c')`(`AdminMenu.php:195`)인데 저장은 `created_at DEFAULT CURRENT_TIMESTAMP`(`:129`) → 양변 재구성 불가 → **검증 불가능한 장식**이 되었다. 감사 정본 선례는 `SecurityAudit`(`SecurityAudit.php:27` tenant 포함 preimage · `:45-52` DDL · **`verify():56-68`** `:64` `hash_equals` · `created_at` 을 애플리케이션이 명시 기록하여 재구성 가능).
+차이(`difference`)만 저장하지 말고 **비교 양변을 모두** 보존하라. 근거 — `menu_audit_log` 의 실패 모드(★근거 정정 · 289차 10회차 ⓔ): 실패한 축은 **`ts` 하나뿐**이다. preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) **어디에도 저장되지 않아** 양변 재구성 불가 → **검증 불가능한 장식**이 되었다. (반면 `prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급하므로 재구성 가능 — *"`prev_hash` 컬럼 부재"* 를 근거로 든 초판 서술은 **틀렸다**.) **단 한 축의 미저장이 비교 양변 전체를 무효화한다** — 이 문서의 교훈은 그대로 성립한다. 감사 정본 선례는 `SecurityAudit`(`SecurityAudit.php:27` tenant 포함 preimage · `:45-52` DDL · **`verify():56-68`** `:64` `hash_equals` · `created_at` 을 애플리케이션이 명시 기록하여 재구성 가능).
 
 ### C-54-1 · 26 상태는 **선언된 열거**여야 한다 (§54 의 실질)
 규칙 8 — *"열거에 없다"는 열거가 실재할 때만 유효*. 따라서 §54 는 `ENUM`/`CHECK`/`in_array` 중 하나로 **코드·스키마가 강제**해야 한다.

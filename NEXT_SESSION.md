@@ -1,5 +1,121 @@
-> **최신 인계서(289차·연속 8회차)**: **5-3-2 ⓐⓑ 완료(전수조사에서 ★내 예측이 뒤집힘) + 5-3-3-1 스펙 선영속**. 커밋 **push 완료**(feat/n236·**master 미접촉**·코드변경 0).
+> **최신 인계서(289차·연속 10회차)**: **5-3-3-3 완결(ⓐ~ⓕ·커버리지 0.00%) + ⓔ 인용검증(부분) + 5-3-3-4 스펙 선영속**. 커밋 push 완료(feat/n236·**master 미접촉**·**코드 변경 0**).
 >
+> ## ★커버리지 현황 (ⓔ 정정 반영 · 측정기 산출 · 손으로 쓴 값 아님)
+> | 블록 | 편수 | 분모 | cover | ⓔ 전 |
+> |---|---|---|---|---|
+> | 5-3-2 | 84 | 1408 | **50 (3.55%)** | 51 |
+> | 5-3-3-1 | 70 | 1427 | **17 (1.19%)** | 18 |
+> | 5-3-3-2 | 81 | 1546 | **9 (0.58%)** | 9 |
+> | **5-3-3-3** | **16** | **1817** | **0 (0.00%)** | — |
+>
+> **분모 4개 전부 불변 · 분자만 감소**(= 정정이 표를 건드리지 않았다는 증거). `node tools/measure_06a_coverage.mjs --block=<532|5331|5332|5333>`
+>
+> ## ★다음 우선순위 (이 순서대로)
+>
+> **1순위 — ⓔ 인용검증 완료**(10회차에 착수·**부분 완료 상태로 종료**). `menu_audit_log` 오염 = **116편**(내 초기 추정 "~60편"은 **과소**). 분류: `docs/approval/` 14편 = **전부 반례(정상)** · `docs/segmentation`+`architecture` 96편 중 **반례/정정 동반 29 · ★무비판 인용 67**. 규율 = `scratchpad/N289_E_CITATION_FIX.md`(세션 종료 시 소실 — **아래 §확정사실로 재작성 가능**).
+>
+> **✅ 10회차에 완료된 분**: 이번 세션 자기오염 **16편**(`docs/approval/` 14 + `ADR_APPROVAL_CHAIN_CANONICAL_SOURCE`(D-18 ⓐ) + `ADR_APPROVAL_CHAIN_VERSIONING`(D-3)) — **근거만 교체·판정 전건 무변·cover 0→0·분모 1817 불변**(측정기 재확인). ⚠️내 배정은 architecture 5편이었으나 **실 오염은 2편**뿐이었다(나머지 3편의 `AdminMenu` 인용은 `wouldCycle` 깊이캡·`audit_log`(≠`menu_audit_log`) 건) — **지시받았다고 억지로 고치지 않은 판단이 옳다**.
+>
+> **✅ cover 재판정도 완료**(분자 계상분): **532 51→50 · 5331 18→17 · 5332 9→9**(분모 4개 전부 불변 = 표 미접촉 증거). `DSAR_APPROVAL_WORKFLOW_VERSION:46`(`immutable_hash`) · `DSAR_ORGANIZATION_HIERARCHY_EVIDENCE:95`(`immutable hash`) → **`VALIDATED_LEGACY`→`LEGACY_ADAPTER`**(선례를 `SecurityAudit` 로 교체 후 재질의 → **감사 로그 체인 ≠ 엔티티 버전 immutable_hash** → 도메인 상이 → 이식 가능이지 재사용 강제 아님). 비계상 16건도 `PARTIAL` 격하(**`NAME_ONLY` 아님** — `:194`+`:216` 로 **체인 연결은 실재**하므로 "이름뿐"은 과소).
+>
+> **🔴 내 주장이 또 과장이었다**: *"21행이 분자에 계상"* → **실제 5건**. 측정기는 **`## 1. 원문 전사` 절의 번호행만** 센다. 나머지 16건은 §0 실측표·산문·요약절이라 **분자와 무관**했다(거짓 인용이므로 정정은 함). **★분자 계상 여부를 먼저 확인하고 규모를 말하라.**
+>
+> **🔴 남은 분(1순위 본체)**:
+> ① **동일 오염 2편**(배정 밖이라 미처리): **`docs/segmentation/DSAR_MANAGER_RELATIONSHIP_SNAPSHOT.md:47,53`**(🔴**비교표의 축 자체가 "prev_hash 컬럼"** — 축을 **"preimage 타임스탬프 저장 여부"**로 바꿔야 한다) · **`docs/architecture/ADR_DSAR_REBATE_REPORTING_LINE_MANAGER_RELATIONSHIP.md:104`**.
+> ② **무비판 인용 잔여** — *"알고리즘만 이식"*·*"이식 선례"* 류(**이식할 검증 알고리즘 자체가 없다**). `grep -rl "menu_audit_log" docs/segmentation docs/architecture --include=*.md` 후 **분자 계상 여부부터** 판별하라.
+> ③ ★**신규 발견 — `schema_migrations.checksum` 선례도 약하다**: 문서들이 *"검증 `Migrate.php:63-64`"* 라 인용하나 **`:63-64` 는 검증이 아니라 INSERT**다(`hash_equals` 0). 단 **checksum·preimage(디스크의 마이그레이션 파일)가 남아 재계산은 가능** → `menu_audit_log`(재계산 자체가 불가)와 **층위가 다른 결함**. **구분해 서술하라.**
+> ④ ★**10회차 재량 지점 2건 재검토**(에이전트 자진 신고): `DSAR_ORGANIZATION_HIERARCHY_API_CONTRACT:120`(`45 Audit`) · `_EVIDENCE:97`(`33 audit reference`) 를 **`VALIDATED_LEGACY` 유지**했다. 근거 = 두 행의 판정을 지탱하는 다리가 **`pm_audit_log`(tenant+entity+diff_json)**이라 `hash_chain` 을 빼도 무너지지 않는다. **"menu_audit_log 인용 = 무조건 격하"로 밀면 분자를 과소하게 만드는 반대 방향 오류**가 된다. 재량이 과했다면 이 2건이 −2 후보(→ 5331 = 15).
+>
+> **2순위 — 5-3-3-4 Approval Authority Matrix**. **스펙 원문 선영속 완료** = `docs/segmentation/SPEC_06A_4_5_3_1_5_3_3_4_VERBATIM.md`(§0~§90 · **착수 전 필독 헤더에 10회차 실측 전량 주입**). **ⓑ 전수조사부터.**
+> - **★§79 가 다시 per-entity(`docs/segmentation/DSAR_*` 88편)로 돌아갔다** — 5-3-3-3 §71 의 *"Entity·Enum별 문서를 무조건 각각 생성하지 마라"*(통합 16편)와 **정반대**. **블록마다 산출 형태가 다르다 — 앞 블록 패턴을 관성으로 적용하면 즉시 위반.** 매 블록 §산출문서 조항을 **원문에서 직접 읽어라.** 실측: `DSAR_APPROVAL_AUTHORITY_*` **0편** · `*AUTHORITY*` **0편**(88편 중 실재 0).
+> - **★§3.1 선행조건이 5-3-3-3 산출물인데 그것은 커버리지 0.00% 의 계약 명세다** — `docs/approval/` 16편은 **실 코드·테이블 0건**. **문서 존재를 구현 존재로 계산하면 역산.** §3.1 대부분은 `CONTRACT_ONLY`/`BLOCKED_PREREQUISITE` 가 정직한 판정.
+> - **★이 블록이 미리 답을 아는 축**(전부 스펙 헤더에 실측 기록): §3.4 `Existing Hardcoded Amount Condition` = **`Catalog:1016`+`:1103-1105` 실재하나 Route 없음** · §4.1 Manager = **Resolver 자체가 ABSENT·`parent_user_id` 재사용 불가** · §4.2 Role = **권한 축 2벌 분열·매핑 0** · §26/§27 **환율은 저장 계층부터 부재**(세율과 부재 깊이가 다르다 — 균질화 금지) · §57 **`version` 6컬럼 전부 하드코딩 태그** · §59 **집행 수단 없음 + `AgencyPortal` `revoked_at=NULL` 정면 반례** · §76 **무효화할 캐시가 없다** · §77 **러너 0**
+> - 🔴**`limit` 단독 grep 은 무의미할 것**(SQL LIMIT·rate limit·plan limit 다수) — **`approval_limit`/`spending_limit`/`amount_threshold` 복합어로만** 물어라(5-3-3-3 의 `route` 교훈)
+>
+> **3순위 — 사용자 결정 대기**: ①**브랜치 보호+required check** ②**별도 승인세션(코드 변경)** — 아래 §실 결함 ③5-3-3-5~ 스펙 대기(자율 금지·RP-002).
+>
+> ## 🔴 10회차 최대 교훈 — **내 결론의 근거도 재실증 대상이다**
+>
+> ⓔ 를 돌리다 **내가 4개 ADR·규율·문서 19편에 실어 배포한 근거가 반쯤 틀린 것**을 발견했다. 어떤 문서가 인용한 `SELECT hash_chain … ORDER BY id DESC LIMIT 1`(`AdminMenu.php:216`) 한 줄이 내 논거를 반증했다.
+>
+> ### ★확정 사실 (정의부 Read 로 재증명 — 이대로 인용하라)
+> | | `menu_audit_log`(`AdminMenu.php`) | `security_audit_log`(`SecurityAudit.php`) |
+> |---|---|---|
+> | prev | ✅**재구성 가능** — `lastHash():216` 이 **직전 행 `hash_chain`** 을 읽어 `:194` `'prev'` 로 투입. **별도 prev_hash 컬럼 불필요한 정당한 체이닝** | `:25`→`:38`(없으면 `'GENESIS'` `:39`) · **`prev_hash` 컬럼에도 저장**(`:29-31`) |
+> | **ts** | 🔴**영구 소실** — `:195` `'ts'=>date('c')` 가 preimage 에 들어가나 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없다** → `:129` **DB DEFAULT** 가 채움 | ✅ `:24` `$now=gmdate(…)` 를 **INSERT 에 명시적으로 넘겨**(`:31`) `created_at`(`:51` **VARCHAR(32)·DB DEFAULT 아님**)에 저장 |
+> | 검증기 | 🔴**없음** — `hash_equals` 레포 24히트 중 **AdminMenu 0건** | ✅ **`verify():56-68`** — `:63` 이 `$r['created_at']` 로 재계산 · `:64` `hash_equals` + **prev_hash 교차검증** |
+> | tenant | 🔴 DDL(`:123-131`)에 **없음** | ✅ `:27` **해시에 tenant 포함** |
+>
+> ★**두 구현을 가르는 것은 오직 하나 — preimage 의 타임스탬프를 저장하는가.**
+> 🔴 **내가 쓴 "prev_hash 컬럼이 없어 preimage 2요소가 모두 미저장" 은 틀렸다.** 판정(**검증 불가능한 장식**)과 정본(**`SecurityAudit`**)은 유지되나 **근거가 다르다**. `menu_audit_log.hash_chain` 을 *"tamper-evident 정본·재사용 강제·이식 선례"* 로 인용하는 것은 **거짓** — **"체인이 있다"가 "변조를 탐지할 수 있다"를 보증하지 않는다.**
+>
+> ### 왜 틀렸나 (재발 방지)
+> **DDL 만 보고 `lastHash()` 정의부를 읽지 않은 채 "prev_hash 컬럼 없음" → "체인 불가능" 으로 건너뛰었다 = DDL 에서 능력을 추론.** 같은 세션의 `Gantt` Kahn 오독("Kahn 있으니 도달성도 되겠지" = 이름에서 능력 추론)과 **동일 부류**. → **규칙 3 확장: "주석을 근거로 삼지 마라"에 더해 — 내 결론의 근거도 재실증 대상이다.**
+> ★이것이 289차 ② "351 사건"(틀린 값이 정본에 자리잡으면 복제 수로 이긴다)의 재현이나, **복제가 한 세션 안에서 일어나 조기 발견**됐다.
+>
+> ## 5-3-3-3 완결 — 커버리지 **0/1817 = 0.00%** (커밋 `32850fc5ac7`)
+>
+> | 블록 | 편수 | 분모 | cover | |
+> |---|---|---|---|---|
+> | 5-3-2 | 84 | 1408 | 51 (3.62%) | ★ⓔ 정정 시 하락 예정 |
+> | 5-3-3-1 | 70 | 1427 | 18 (1.26%) | ★동일 |
+> | 5-3-3-2 | 81 | 1546 | 9 (0.58%) | ★동일 |
+> | **5-3-3-3** | **16** | **1817** | **0 (0.00%)** | 최초 0 |
+>
+> **정본 = 측정기**(`node tools/measure_06a_coverage.mjs --block=<532\|5331\|5332\|5333>`). **손으로 쓴 값 금지.**
+> 산출: `docs/approval/` **16편**(§71 통합 지시 준수) + ADR **4편 신설**(`docs/architecture/ADR_APPROVAL_CHAIN_CANONICAL_SOURCE`·`_ROUTE_DAG`·`_VERSIONING`·`_COMPILATION`) + 기존 ADR 확장(`ADR_DSAR_REBATE_APPROVAL_WORKFLOW_EXECUTION_ENGINE` **D-19 신설 · D-5 정정**).
+>
+> ### ★§70 Step 2 확정 — **Canonical DAG SoT = 셋 다 아니다** (재조사 금지)
+> §72-18(*"Workflow Engine 과 별도 Route SoT 금지"*)·§6(*"범용 DAG 를 제공한다면"*) **양쪽 전건 거짓 → 금지 미발동 → `APPROVAL_ROUTE_*` 신규 SoT 가 정합**.
+> - `JourneyBuilder` — 정의계층 공백(`createJourney:135`/`updateJourney:153-154` 무검증 `json_encode` · `:512` 주석이 acyclicity 미검증 **자인**) · **엣지 id 부재**(`:126` 시드에 `id` 키 없음 → `:789`,`:796` `from`+`when` 매칭) · `customer_id` 하드 전제(`:551`,`:556`,`:822`)
+> - `graph_node`/`graph_edge` — **DAG 아닌 그래프 스토어**(`upsertEdge:107-148` acyclicity 0) · 순회기 0(`GraphScore:193~297` 하드코딩 3-hop) · 내부 생산자 0(**VACUOUS 미배제**). ⚠️단 **`graph_edge` 는 id 를 가진다**(`Db.php:827`) — "엣지 id 없음"은 **`journeys.edges` JSON 한정**
+> - `pm_task_dependencies` — **검증기이지 엔진 아님**(노드타입 0·조건 0·실행기 0)
+> - ★**D-1(JourneyBuilder 확장)은 뒤집히지 않았다** — 실행과 정의는 다른 질문이고 D-3 이 이미 신설을 예고했다.
+>
+> ### ★신설 금지 · 확장 3건 (위반 시 §63 중복)
+> ①**§39 DAG 검증** = `backend/src/Handlers/PM/Dependencies.php:79-100`(DFS·`$visited`·**tenant 매 홉 `:91`**·**쓰기 전 422 차단 `:32-34`**) + `PM/Gantt.php:104-122`(Kahn). 🔴**경로 = `backend/src/Handlers/PM/…`. `backend/src/PM/` 는 없다**(5-3-3-1 문서 25편 오표기) 🔴**스키마 복제 금지**(`:90-91` `dep_type` 술어 부재 동반 이식) 🔴`:32-34` 가 **422 조기반환하여 `:48` auditLog 미도달**(순환 탐지 시 감사 0 — 복제 금지)
+> ②**§25 조건식** = `RuleEngine`(`:24`·화이트리스트 `OPS:33`·`compare:433-439`·**`eval` 미사용**) = Part 2 Canonical DSL ADR 확장
+> ③**§14/§30 금액 임계** = `Catalog.php:1016` `HIGH_VALUE_KRW=5000000.0` + `:1103-1105` → Amount Band 로 **승격 후 상수 은퇴**
+>
+> ## ★PM 앵커 정정 9건 (실측이 브리핑을 이김 — 다음 세션은 아래를 정본으로)
+> 1. 🔴**`Gantt` Kahn ≠ 도달성·고립 판정** — `:108` 이 indeg 0 노드를 **전부** 큐에 넣어 **고아도 `$topo` 포함** → `:119` 는 **순환 전용**(변수명 `$hasCycle`). **브리핑 따랐으면 `LEGACY_ADAPTER` 3건 과대계상.** 도달성·고립·START 단일성 = **신규 구현**
+> 2. 🔴**`nextNode` 위치 폴백 "제거" → 조건부 제거** — `:809` `if($hasLabeled) return ''` 는 **라벨 그래프만** · **`:811-812` 무라벨 레거시에 존치**(`:810` 주석 자인) · `:814` 분기 없으면 첫 후보 → **§22 `BLOCK_ON_NO_MATCH` 는 조건부로만 확립 · §72-10 위반이 레포에 살아 있다**
+> 3. ⚠️**`split` "가중 확률" → 결정론** — `pickWeighted:725-734` = `(($seed*2654435761)+1)%100000` enrollId 해시(주석 `:610-611` 자인) → **§4.7 "Chain Selection 결정론" 선례로 승격**. 🔴단 `:729` `if($total<=0) return $keys[0]` 첫 키 폴백 복제 금지
+> 4. **엔티티 `version` 3컬럼 → 최소 6** (+`risk_prediction.model_version` `Db.php:463` · `normalizer_version` `Db.php:1088` · `agent_version` `WmsCctv.php:160`). 결론 불변(전부 하드코딩 태그·계보 0)
+> 5. **전이 가드 4곳 → 최소 8곳**(`FeedTemplate:239`,`:258`,`:285`·`CustomerAI:469`·`Dsar:555`·`AdminGrowth:1327`·`LiveCommerce:530`·`Mapping:264`) / **`SET status=` 155건 → 128건·42파일**. 결론 불변(**합법 전이 집합 선언 0**)
+> 6. **§43 Overlay 7단계 → 8단계**
+> 7. 🔴**`ORGANIZATION_* 18종` 은 5-3-3-2 §3.1 분모** — 5-3-3-3 §3.1 = **12**. 18 을 쓰면 **6건 날조**
+> 8. **`PlanPolicy` fail-open 위치** — `:12` 는 **주석**이고 본체는 fail-secure(`minPlanFor:49` `?? 'pro'`). **실 지점 = `UserAuth::requireFeaturePlan:72`**(`$plan===null||'admin'||'demo'` → 통과 · docblock `:60` 자인)
+> 9. 🔴**`menu_audit_log` prev 논거**(위 §확정사실)
+> ★**내 육안 계수가 이번 세션에만 4번 틀렸다**(§3.4 15→14 · §3.5 46→48 · ORGANIZATION 18→12 · §43 7→8). **분모는 반드시 `node tools/measure_spec_denominator.mjs <파일> --sec=N` 으로 재라.**
+>
+> ## ★신규 실 결함 (별도 승인세션 · 10회차는 코드 변경 0 · P0 미부여)
+> - 🔴**`data_scope` 개인(member) 범위가 강제 경로에 도달 못 함**(PM 재증명 완료): `subjectScope:218` 은 `subject_type=?` **엄격 일치** · **강제 경로 `effectiveScope:253` 이 `'user'` 로 조회**하나 **쓰기는 `'member'`(`:653`)/`'team'`(`:584`,`:743`) — `'user'` 쓰기 전수 0** → **영구 0행** → `:254` team 폴백 → 팀 미배정이면 `:256` **무제한**. `getMemberPermissions:609` 가 `'member'` 로 되돌려주어 **화면상 정상(가짜 녹색)**. ⚠️**팀 범위는 정상** — "ABAC 전면 무력화"가 아니라 **개인 단위만 죽음**. 정적 실측 · 프론트/수동SQL 경로 미배제
+> - 🔴**`Catalog::approveQueue:2350`** — **ids 미지정 시 테넌트 전체 `pending_approval` 일괄 승인**(기본 동작이 전량 승인) + **감사 0**(클래스에 audit 함수 부재) + `:2343` **행위자 미판독**(`requirePro` 플랜 게이트뿐)
+> - 🔴**정책 게이트 우회** — `approvalCreate:2259` 가 **`evaluatePolicy` 를 호출조차 않고** 클라이언트 `type` 수용 · `evaluatePolicy` 산출 `approval_type` 을 `logJob:2247` 이 **미저장**(`:2252` 응답에만)
+> - 🔴**`action_request`** — `Db.php:592-600` 에 **`requested_by`·`required_approvals` 컬럼 자체가 없다** → 자기승인 차단 **구조적 불가** · `Alerting:562` 는 **순수 응답 장식**
+> - 🔴**`Alerting::audit:28-31`** — `audit_log(actor,action,details_json,created_at)` **4컬럼 · `tenant_id` 없음** → 승인 감사 **테넌트 귀속 불가**
+> - 🔴**`enroll:198`** `$startNode = $nodes[0]['id'] ?? 'trigger_1'` — **START 부재가 리터럴 폴백으로 은폐**
+> - 🔴🔴**`docs/IMPLEMENTATION_STATUS.md:130` 이 *"Approvals 실집행(가짜 로컬→실 Alerting action_request)"* 을 완료로 기록 — 거짓**(`INSERT INTO action_request` 전수 0 → **영원히 빈 테이블을 읽는다**). **§72-25 위반이 구현이력 정본에 실재.** 운영규칙상 **매 감사 전 주입하는 정본**이라 파급이 크다 → **인용 금지 · 정정은 별도 승인세션**. 288차 "보류=action_request 생산자" 메모와 정합
+> - ⚠️**"eval 0 이니 임의 코드 실행 불가"는 거짓** — `WmsCctv.php:563-564` `shell_exec` · `:635` `proc_open(['/bin/sh','-c',$cmd])` **실재**, 차단 게이트 0(**우연한 부재**)
+>
+> ## 측정기 자기결함 (9회차와 **동종 재발**)
+> **`BLOCKED_PREREQUISITE` 를 규율(에이전트 지시서)에만 추가하고 측정기 `VOCAB` 에 넣지 않아 67행이 NO_VOCAB 으로 오분류**됐다. ★**어휘를 지시서에만 추가하면 그 판정은 조용히 증발한다 — 규율과 VOCAB 을 항상 함께 갱신하라**(측정기 주석에 명기). + `DIR` 상수 고정 → **블록별 `dir` 파라미터화**(5333=`docs/approval`) · **회귀 0 확인**(532/5331/5332 값 불변).
+>
+> ## 분모 특례 (ⓔ 오탐 방지 — 반드시 읽어라)
+> - **§23·§43 은 불릿 0 이나 요구 실재**(산문 명령형·코드블록) → **행 수가 분모를 초과하는 것이 정상**. 1817 = 섹션 불릿합 1804 + §23 특례 3 + §43 특례 10(두 측정기 독립 일치)
+> - ★**반대로 §13/§15 산문·§64 코드블록 9엔티티는 행 추가 금지** — **이미 다른 섹션 분모에 있어 이중계상**된다(§64 의 9엔티티 = §9/§10/§13/§15/§21/§22/§30/§31/§38/§49 의 요약 색인). **두 에이전트가 독립적으로 같은 규칙에 수렴**했다
+>
+> ## 원문 자체의 모순 (5-3-3-3 · ⓓ 미결)
+> ①**§9 `workflow definition reference` 무조건 필수 vs §6 조건부** → 참조 대상 부재 → **nullable 확장점으로 보존·항상 NULL**(채우면 `IMPLEMENTATION_STATUS:130` 식 가짜 완료) ②**§49 필드 필수 vs 산문 "5-3-3-11 이연"** → **참조 컬럼만 두고 이연**이 유일 정합 ③**§46 요청측 `resolution_time_basis` 필드가 원문에 없다**(14필드 전부 저장측) ④**§10 만 상태 16종 열거 · §11/§12/§14/§16/§19 는 `status` 필수인데 허용값 미열거** → **§10 복사 = 날조** ⑤**§64 무결성 수단 2종 양쪽 부재** — `FOREIGN KEY` 레포 전체 **1건**(`migrations/20260526_168_101:21` self-FK) · **`Db::sql()` SQLite 분기(`:205-234`)가 FK 절을 물리 제거** · JSON Schema 라이브러리 `composer.json:6-13` 부재 → **Typed JSON 배제 · Adjacency List 채택** ⑥**§69 는 테스트 러너 존재를 전제하나 러너 0**(PHPUnit·`npm test` 없음) — 원문에 "러너를 세우라"가 없다 → **별도 계상**
+>
+> ## grep 오염 레지스트리 신규 10건 (누적본은 memory 참조)
+> `route`→**SPA URL**(`menu_tree.route`·`routes.php`) — **`route` 단독 grep 무의미, `approval_route`/`route_id` 로만 물어라** · `chain_id`→**챗봇 안내 문자열**(`GeniegoKnowledge.php:430` 유일) · `stage`/`sc_stages`→**물류 마일스톤 체크리스트**(`SupplyChain.php:50-54`,`:193-199` · `sort_order` = **INSERT 시 배열 인덱스 `$i`**) · `override`→**스칼라 선행순위**(`Mmm:381-382`·`OrderHub:1274`) · `source_priority`→**데이터소스 Trust**(`DataPlatform:65`,`:184`) · `while($parent[$x]!==$x)`→**Union-Find 경로압축**(`CRM.php:608` · 조직 무관) · `workspace`→**테넌트 KV**(`WorkspaceState.php:25`) · `country_code`→**TikTok 리포트 차원**(`Connectors:2044`,`:2071`)·**IP Geo**(`Geo.php:106`) · `correlation_id`→**Walmart `WM_QOS.CORRELATION_ID` 6건**(`ChannelSync`) · `template_code`/`template_name`→**카카오 알림톡 사전승인 템플릿**(`KakaoChannel:47`,`:150-161`) · `template_id`→**발송 템플릿 FK**(`Line:186`·`EmailMarketing:56`)
+>
+> ## ★CI 기술 정정 (내 CLAUDE.md 기반 서술이 낡았다 — 유리한 방향)
+> `deploy.yml:37-75` 에 **`verify` job GATE 1~5**(팬텀 정적자산 · 라우트 등록 정합+PHP 구문 · rules-of-hooks+no-undef · 빌드 · E2E)가 있고 **`deploy` 가 `needs: verify`**(`:79`). → **§56 Static Lint 는 신규 CI 불필요 — 기존 verify job 에 GATE 추가**. 🔴단 **CI 배포는 inert**(시크릿 미등록 → 빌드까지만) → **"CI 통과 = 배포됨"은 거짓**.
+>
+
 > ## ★다음 우선순위 (이 순서대로 진행)
 >
 > **1순위 — 5-3-2 본작업 이어서**(ⓒ부터). **ⓐ스펙 원문 영속 완료**(`SPEC_06A_4_5_3_1_5_3_2_VERBATIM.md` §0~§85) · **ⓑ§3.4 전수조사 완료**(아래 결과 필독). **다음 = ⓒDSAR 85편(§75 나열·현재 3편) → ⓓ`ADR_DSAR_REBATE_APPROVAL_WORKFLOW_EXECUTION_ENGINE.md` → ⓔ인용검증 → ⓕ커버리지 실계산**.

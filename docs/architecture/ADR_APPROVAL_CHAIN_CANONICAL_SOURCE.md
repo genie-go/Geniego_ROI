@@ -185,8 +185,13 @@ PHPUnit 스위트 없음 · `npm test` 없음. 실재 = `tools/e2e/smoke.mjs`(47
 
 ## D-18. 감사·보안 선례를 틀리게 인용하지 마라 (2건)
 
-**ⓐ `menu_audit_log.hash_chain` = 검증 불가능한 장식.** DDL(`AdminMenu.php:123-131`)에 **`prev_hash` 컬럼 자체가 없고 `tenant_id` 도 없다**. preimage 는 `'ts'=>date('c')`(`:195`)인데 저장은 `created_at DEFAULT CURRENT_TIMESTAMP`(`:129`) → **preimage 2요소가 모두 미저장 → 재구성 불가**. `hash_equals` 는 레포 24히트지만 **`AdminMenu` 엔 0건 = 검증기 없음**.
-→ ★**감사 정본 선례 = `backend/src/SecurityAudit.php`**: `:27` **tenant 포함 해시** · `:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`) · **`verify():56-68` `hash_equals` 실 검증기**.
+**ⓐ `menu_audit_log.hash_chain` = 검증 불가능한 장식.** ★**PM 초판 근거 정정**(289차 10회차 ⓔ · 정의부 재실측) — 초판은 *"`prev_hash` 컬럼 자체가 없어 preimage 2요소(`prev`·`ts`)가 모두 미저장 → 재구성 불가"* 라고 썼으나 **그 근거는 틀렸다. 이 문단이 정정 후 정본이다.**
+- ✅ **체인 연결(`prev`)은 실재하며 재구성 가능하다** — `lastHash():216` 이 `SELECT hash_chain ... ORDER BY id DESC LIMIT 1` 로 **직전 행의 `hash_chain` 컬럼**을 읽어 `:194` `'prev'` 로 투입한다. **별도 `prev_hash` 컬럼이 필요 없는 정당한 체이닝**이며 그 부재는 결함이 아니다.
+- 🔴 **막히는 것은 `ts` 하나뿐이다** — `:195` `'ts'=>date('c')` 가 preimage 에 들어가나 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없다**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) → 그 값은 **어디에도 저장되지 않는다**. 형식(ISO8601 vs DATETIME) 차이 이전에 **값 자체가 소실**되므로 **preimage 재구성은 영구 불가**하다.
+- 🔴 `hash_equals` 는 레포 24히트지만 **`AdminMenu` 엔 0건 = 검증기 없음**. `tenant_id` 컬럼 부재(DDL `:123-131`)도 **사실이며 유효한 반례 근거**다.
+- ∴ **판정 무변** — "체인이 있다"가 "변조를 탐지할 수 있다"를 보증하지 않는다. **검증 불가능한 장식**이다.
+→ ★**감사 정본 선례 = `backend/src/SecurityAudit.php`**: `:27` **tenant 포함 해시** · `:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`) · **`verify():56-68` `hash_equals` 실 검증기**(`:64` 는 `prev_hash` 교차검증까지 수행).
+→ ★**두 구현을 가르는 것은 오직 "preimage 타임스탬프를 저장하는가"** — `SecurityAudit:31` 은 `$now` 를 **INSERT 에 명시적으로 넘겨** `created_at`(`:51` `VARCHAR(32)` · **DB DEFAULT 아님**)에 저장하므로 `verify():63` 이 **같은 값**으로 재계산한다. `AdminMenu` 는 그 한 축을 DB DEFAULT 에 맡겨 잃었다.
 → 🔴289차 문서 ~60편이 `menu_audit_log` 를 잘못 인용했다 — **ⓔ 정정 대상**.
 → ⚠️추가 실측: `Alerting::audit:28-31` 의 INSERT 는 `audit_log(actor,action,details_json,created_at)` **4컬럼 — `tenant_id` 없음** → **Alerting 승인 감사는 테넌트 귀속 불가**.
 

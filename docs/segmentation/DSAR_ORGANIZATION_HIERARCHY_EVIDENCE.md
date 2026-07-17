@@ -42,9 +42,9 @@
 | reconciliation reference | Reconciliation **0** · ★집행 수단도 없음(`ensureTables` 는 **백필을 하지 않는다**) | `ABSENT` |
 | effective_at | 위 effective period 와 동일 | `ABSENT` |
 | recorded_at | `created_at` 관례 보편 · `pm_baseline.captured_at`(`PM\Enterprise.php:62`) | `PARTIAL`(관례만) |
-| immutable hash | ★**선례 실재**: `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) · `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) SHA-256 prev-chain(생성 `:182-197`·`lastHash():214-219`) | ★`VALIDATED_LEGACY`(패턴) — **조직 도메인엔 미적용** |
+| immutable hash | ⚠️**선례 격하(2건 모두 검증기 부재)**: ① `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) — checksum 은 저장되고 preimage(마이그레이션 파일)가 디스크에 남아 **재계산은 가능**하나 🔴**검증기 없음**(`:63-64` 는 **검증이 아니라 INSERT** — 초판 오인용 정정 · `hash_equals` 0) ② `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) — 체인 연결은 실재(`:194` prev + `lastHash():216`)하나 🔴**검증 영구 불가**: preimage 의 `'ts'=>date('c')`(`:195`)가 **INSERT 컬럼 목록(`:199-203`)에 `created_at` 부재**로 미저장(`:129` DB DEFAULT). ★검증까지 갖춘 실 정본 = `SecurityAudit`(`verify():56-68`)이나 **감사 로그 체인 ≠ 엔티티 버전 immutable_hash**(도메인 상이) | `LEGACY_ADAPTER`(알고리즘 이식 가능 · **조직 도메인 미적용** · 재사용 강제 아님) |
 | lineage | Lineage 엔티티 조직 도메인 **0** · 헌법 Vol3 부록이 Lineage 를 정의하나 조직 축 미구현 | `ABSENT` |
-| audit reference | ★**3계층 실재**: `menu_audit_log`(해시체인) · `pm_audit_log`(tenant+entity+diff_json+3인덱스, migration `20260526_168_008:5-20`) · 전역 `audit_log`(4컬럼·tenant 없음 `Db.php:540-545`/`AdminGrowth.php:157-159`) | `VALIDATED_LEGACY`(패턴 · 상세는 §63 문서) |
+| audit reference | ★**3계층 실재**: `menu_audit_log`(**필드 선례로서 유효** — old_value/new_value/changed_by/changed_by_role/reason/ip_address/user_agent/request_id · 🔴단 `tenant_id` 부재(`AdminMenu.php:123-131`) · ⚠️`hash_chain` 은 **검증 불가한 장식**이므로 tamper-evident 근거로 인용 금지) · `pm_audit_log`(tenant+entity+diff_json+3인덱스, migration `20260526_168_008:5-20`) · 전역 `audit_log`(4컬럼·tenant 없음 `Db.php:540-545`/`AdminGrowth.php:157-159`) | `VALIDATED_LEGACY`(**필드·저장 계층 패턴** — 해시체인 아님 · 상세는 §63 문서) |
 
 ### 금지 저장 축 실측
 
@@ -92,9 +92,9 @@
 | 28 | reconciliation reference | 부재 · 집행 수단도 없음 | `NOT_APPLICABLE` |
 | 29 | effective_at | ★as-of 술어 전역 0건 | `NOT_APPLICABLE` |
 | 30 | recorded_at | `created_at`·`captured_at` 관례 | `PARTIAL` |
-| 31 | immutable hash | ★`schema_migrations.checksum`·`menu_audit_log.hash_chain` 선례 | `VALIDATED_LEGACY`(패턴 · 조직 미적용) |
+| 31 | immutable hash | ⚠️**선례 격하**: `schema_migrations.checksum`(재계산 가능하나 **검증기 0** · `:63-64` 는 INSERT) · `menu_audit_log.hash_chain`(**검증 영구 불가** — preimage `ts`(`:195`) 미저장 · INSERT 컬럼 `:199-203` 에 `created_at` 없음) · 검증 정본 `SecurityAudit::verify():56-68` 은 **도메인 상이**(감사 로그 체인) | `LEGACY_ADAPTER`(알고리즘 이식 · 조직 미적용) |
 | 32 | lineage | 부재 | `NOT_APPLICABLE` |
-| 33 | audit reference | ★`menu_audit_log`/`pm_audit_log` 선례 | `VALIDATED_LEGACY`(패턴 · 조직 미적용) |
+| 33 | audit reference | ★`menu_audit_log`(**풍부한 필드** 선례로 유효 · 🔴`tenant_id` 부재 · ⚠️`hash_chain` 은 검증 불가 = 인용 금지)/`pm_audit_log`(tenant+entity+diff_json) 선례 | `VALIDATED_LEGACY`(**필드·저장 패턴** · 조직 미적용) |
 
 **실측 개수: 33 / 33 전사.** ★**원문 목록은 `evidence id` 로 시작해 `audit reference` 로 끝난다 — 끝에 `evidence` 항목이 없으며, 없는 것을 추가하지 않았다.**
 

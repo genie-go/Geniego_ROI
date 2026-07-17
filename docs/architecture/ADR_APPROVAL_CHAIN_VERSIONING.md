@@ -36,10 +36,12 @@
 
 ★**정본**: `backend/src/SecurityAudit.php` — `:27` `hash('sha256', $prev.'|'.$tenant.'|'.$actor.'|'.$action.'|'.$dj.'|'.$now)` **tenant 포함** · `:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`) · **`verify():56-68` `hash_equals` 실 검증기**. 보조 = `schema_migrations.checksum`(`Migrate.php:50`).
 
-🔴 **`menu_audit_log.hash_chain` 은 검증 불가능한 장식이다 — 인용 금지**:
-- DDL(`AdminMenu.php:123-131`)에 **`prev_hash` 컬럼 자체가 없고 `tenant_id` 도 없다**.
-- preimage 는 `'ts'=>date('c')`(`:195`)인데 저장은 `created_at DEFAULT CURRENT_TIMESTAMP`(`:129`) → **preimage 2요소가 모두 미저장 → 재구성 불가**.
-- `hash_equals` 는 레포 24히트지만 **`AdminMenu` 엔 0건** = **검증기 없음**.
+🔴 **`menu_audit_log.hash_chain` 은 검증 불가능한 장식이다 — 인용 금지**
+★**PM 초판 근거 정정**(289차 10회차 ⓔ · 정의부 재실측): 초판은 *"`prev_hash` 컬럼 자체가 없어 preimage 2요소가 모두 미저장"* 이라 썼으나 **틀렸다. 아래가 정정 후 정본이며 판정은 무변이다.**
+- ✅ **`prev` 는 재구성 가능하다** — `lastHash():216` 이 **직전 행의 `hash_chain` 컬럼**을 읽어 `:194` `'prev'` 로 투입한다. **별도 `prev_hash` 컬럼이 필요 없는 정당한 체이닝**이며 그 부재는 결함이 아니다.
+- 🔴 **막히는 것은 `ts` 하나뿐** — `:195` `'ts'=>date('c')` 가 preimage 에 들어가나 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) 그 값이 **어디에도 저장되지 않는다** → 형식 차이 이전에 **값 자체 소실 → preimage 재구성 영구 불가**.
+- 🔴 `hash_equals` 는 레포 24히트지만 **`AdminMenu` 엔 0건** = **검증기 없음**. `tenant_id` 컬럼 부재(DDL `:123-131`)도 **사실**이다.
+- ★**두 구현을 가르는 것은 오직 "preimage 타임스탬프를 저장하는가"** — `SecurityAudit:31` 은 `$now` 를 **INSERT 에 명시 전달**해 `created_at`(`:51` `VARCHAR(32)` · **DB DEFAULT 아님**)에 저장 → `verify():63` 이 **같은 값**으로 재계산하고 `:64` 가 `hash_equals` + `prev_hash` **교차검증**까지 한다.
 
 → 🔴**289차 문서 ~60편이 이것을 잘못 인용했다 — ⓔ 정정 대상.** `hash_chain` 이라는 **이름이 능력을 보증하지 않는다**(규칙 2).
 

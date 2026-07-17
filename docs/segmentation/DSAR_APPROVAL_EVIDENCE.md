@@ -13,7 +13,7 @@
 | 현행 승인 감사 저장소 | `audit_log` `Db.php:540-546` — `id, actor, action, details_json, created_at` | **MIGRATION_REQUIRED**(아래 결함 2건) |
 | 🔴 그 한계 ① **tenant_id 없음** | `Db.php:540-546` 실측 — 승인 감사가 **테넌트 격리 밖**에 쌓인다. 테넌트별 증거 조회·DSAR 응답·격리 감사 **원리적 불가** | **MIGRATION_REQUIRED** |
 | 🔴 그 한계 ② **해시체인 없음** | 같은 스키마 실측 — **tamper-evident 아님**. 증거가 사후 수정돼도 **탐지 불가** → §0 Q20 "재현 가능"을 만족 못 함 | **MIGRATION_REQUIRED** |
-| **★해시체인 선례** | `menu_audit_log.hash_chain CHAR(64)` `Handlers/AdminMenu.php:123-131`(+ 생성 `:166-206`) — **저장소 내 유일**한 tamper-evident 감사(N-152-A) | **★VALIDATED_LEGACY**(재사용 근거·패턴 승격) |
+| **★해시체인 선례** | 🔴**초판 2중 오류 정정**: ① **"저장소 내 유일"이 거짓** — `SecurityAudit`(`security_audit_log`)이 별도 실재한다 ② **"tamper-evident"가 거짓** — `menu_audit_log` 는 체인 연결만 실재(`AdminMenu.php:194`+`lastHash():216`)하고 preimage 의 `'ts'=>date('c')`(`:195`)가 **INSERT 컬럼 목록(`:199-203`)에 `created_at` 부재**로 미저장(`:129` DB DEFAULT) → **재계산·검증 영구 불가** · 검증기 0(`hash_equals` AdminMenu **0건**). ★**실 정본 = `SecurityAudit`** — `:27` tenant 포함 해시 · `:29-31` `prev_hash`+`created_at` **명시 저장**(`:51` `created_at VARCHAR(32)`, DB DEFAULT 아님) · **`verify():56-68`** `hash_equals`+prev 교차검증 | **`PARTIAL`**(연결 실재·검증 부재) — **재사용 근거 아님 · 이식할 선례는 `SecurityAudit`** |
 | Snapshot 기반 재현 | Resource Snapshot(§30)·Context Snapshot(§32) **전부 부재**(grep 0) — 승인 당시 데이터가 보존되지 않아 **재현 불가**(§4.4 미충족) | **NOT_APPLICABLE** |
 | 첨부·문서 증거 | 승인 도메인 attachment **부재**(grep 0) | **NOT_APPLICABLE** |
 
@@ -59,7 +59,7 @@
 | 30 | correlation reference | 부재(§34 · grep 0) | NOT_APPLICABLE |
 | 31 | effective_at | 부재 | NOT_APPLICABLE |
 | 32 | recorded_at | **존재** — `audit_log.created_at`(`Db.php:540-546`) | VALIDATED_LEGACY |
-| 33 | result hash | 🔴 **부재 — `audit_log`에 해시 없음**(tamper-evident 아님). ★선례 = `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:123-131` · 생성 `:166-206`) — **저장소 유일** | **MIGRATION_REQUIRED**(§0 한계 ② · 선례는 ★VALIDATED_LEGACY) |
+| 33 | result hash | 🔴 **부재 — `audit_log`에 해시 없음**(tamper-evident 아님). ★**선례 교체**: `menu_audit_log.hash_chain` 은 **"저장소 유일"도 tamper-evident 도 아니다**(preimage `ts`(`:195`) 미저장 — INSERT 컬럼 `:199-203` 에 `created_at` 없음 · 검증기 0) → **이식할 선례 = `SecurityAudit`**(`:27` tenant 포함 해시 · `:29-31` `created_at` 명시 저장 · **`verify():56-68`**) | **MIGRATION_REQUIRED**(§0 한계 ② · 선례 = `SecurityAudit`, `menu_audit_log` 아님) |
 | 34 | lineage | 부재(승인 도메인) | NOT_APPLICABLE |
 | 35 | audit reference | **부분** — 증거가 곧 `audit_log`이며 **분리된 참조 관계가 없음**(증거 축과 감사 축 미분화) | CONSOLIDATION_REQUIRED |
 

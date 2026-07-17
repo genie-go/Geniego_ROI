@@ -9,7 +9,7 @@
 |---|---|---|
 | `workflow_version` | **grep 0** | `NOT_APPLICABLE`(부재 → 신설) |
 | 승인 도메인 버전 개념 | **전무**(§52 §4) — Request/Case/Definition 어디에도 version 컬럼 없음 | **구조적 부재** |
-| `immutable_hash` | 해시체인 선례 = `menu_audit_log.hash_chain CHAR(64)`(AdminMenu.php:123-131) **유일** | `VALIDATED_LEGACY`(재사용 대상) |
+| `immutable_hash` | 🔴**선례 정정**: `menu_audit_log.hash_chain` 은 **유일이 아니며 검증 불가** — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`)가 **INSERT 컬럼 목록(`:199-203`)에 `created_at` 부재**로 미저장(`:129` DB DEFAULT 가 채움) → 재계산 불가 · 검증기 0(`hash_equals` 레포 24히트 중 AdminMenu **0건**). ★**실 정본 = `SecurityAudit`**(`:27` tenant 포함 해시 · `:29-31` `prev_hash`+`created_at` **명시 저장** · **`verify():56-68`** `hash_equals`+prev 교차검증). 단 `SecurityAudit` 은 **감사 로그의 해시체인**이지 **엔티티 버전의 immutable_hash 가 아니다**(도메인 상이) | `LEGACY_ADAPTER`(알고리즘 이식 가능 · 도메인 상이로 재사용 강제 아님) |
 | `approved_by` | `mapping_change_request.approvals_json` + `required_approvals INT DEFAULT 2`(Db.php:623-636) · `Mapping::approve`(Mapping.php:238-294) | `VALIDATED_LEGACY`(정족수 승인 원형) |
 | `reviewed_by` | **부재** — Review 와 Approval 미분화 | `NOT_APPLICABLE` |
 | `effective_from`/`to` | 승인계 부재. 유사물 = `agency_client_link.approved_at`/`revoked_at`(AgencyPortal.php:80) | `LEGACY_ADAPTER` |
@@ -43,7 +43,7 @@
 | 18 | reviewed_by | **부재** — Review/Approval 미분화 | `NOT_APPLICABLE` |
 | 19 | approved_by | `approvals_json` + `decided_by`(AdminGrowth.php:142-149) | `MIGRATION_REQUIRED`(2형태 분산) |
 | 20 | activated_at | 부재 | `NOT_APPLICABLE` |
-| 21 | immutable_hash | `menu_audit_log.hash_chain`(AdminMenu.php:123-131) 유일 선례 | `VALIDATED_LEGACY`(확장) |
+| 21 | immutable_hash | 🔴**선례 교체**: `menu_audit_log.hash_chain` 은 **검증 영구 불가**(preimage `ts`(`AdminMenu.php:195`) 미저장 — INSERT 컬럼 `:199-203` 에 `created_at` 없음 · 검증기 0) → 선례 자격 없음. ★실 정본 = `SecurityAudit`(`verify():56-68` `hash_equals`+prev 교차검증). 단 **감사 로그 체인 ≠ 엔티티 버전 immutable_hash**(도메인 상이) | `LEGACY_ADAPTER`(알고리즘 이식 대상) |
 | 22 | migration compatibility | 부재 | `NOT_APPLICABLE` |
 | 23 | backward compatibility | 부재 | `NOT_APPLICABLE` |
 | 24 | production certification reference | 부재 | `NOT_APPLICABLE` |

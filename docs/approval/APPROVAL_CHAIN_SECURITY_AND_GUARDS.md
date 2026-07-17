@@ -289,7 +289,7 @@ CI 실측 정본 = `.github/workflows/deploy.yml` — `verify` job(`:37-75`) **G
 원문 `APPROVAL_CHAIN_AUDIT_EVENT` — 지원 Event 36종. 전량 grep **0**.
 
 **★감사 정본 선례 = `backend/src/SecurityAudit.php`** — `:27` `hash('sha256', $prev.'|'.$tenant.'|'.$actor.'|'.$action.'|'.$dj.'|'.$now)` **tenant 포함 해시** · `:48-51` DDL(`tenant_id`/`prev_hash`/`hash_chain`/`created_at VARCHAR(32)`) · **`verify():56-68` 이 `:63` preimage 재계산 + `:64` `hash_equals`** → **재구성 가능 + 검증기 실재**.
-🔴🔴**`menu_audit_log.hash_chain` 은 감사 선례로 인용 금지 — 검증 불가능한 장식이다**: preimage 가 `'ts'=>date('c')`·`'prev'=>$prevHash`(`AdminMenu.php:186-197`)를 포함하나 저장은 `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`(`:129`)이고 **DDL(`:123-131`)에 `prev_hash` 컬럼조차 없다** → **preimage 재구성 물리적 불가** · **`hash_equals` 검증기 0** · **`tenant_id` 컬럼 0**.
+🔴🔴**`menu_audit_log.hash_chain` 은 감사 선례로 인용 금지 — 검증 불가능한 장식이다**(★근거 정정 — 289차 10회차 ⓔ): **체인 연결(`prev`)은 실재하고 재구성 가능하다** — `lastHash():216` 이 직전 행의 **`hash_chain` 컬럼**을 읽어 `:194` `'prev'` 로 투입하므로 **별도 `prev_hash` 컬럼이 필요 없는 정당한 체이닝**이다(초판의 *"`prev_hash` 컬럼 부재 → preimage 2요소 모두 미저장"* 서술은 **틀렸다**). **막히는 것은 `ts` 하나** — `:195` `'ts'=>date('c')` 가 preimage 에 들어가나 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) **그 값이 어디에도 저장되지 않는다** → 형식 차이 이전에 **값 자체가 소실** → **preimage 재구성 불가** · **`hash_equals` 검증기 0**(`AdminMenu` 내) · **`tenant_id` 컬럼 0**(DDL `:123-131`).
 
 | # | 원문 항목 | 현행 실측 (file:line) | 판정 |
 |---|---|---|---|
@@ -346,7 +346,7 @@ CI 실측 정본 = `.github/workflows/deploy.yml` — `verify` job(`:37-75`) **G
 | 6 | Retroactive Correction 강화 Authorization | 소급 정정 경로 0 · `ensureTables` DDL 전용(백필 0) · `backend/migrations/` `20260527_172_002` 정지 | ABSENT |
 | 7 | Chain Activation Separation of Duties Reference | SoD 실선례 = `Mapping.php:268-271` 자기승인 403 — **4경로 중 1곳뿐** · 🔴`action_request` 는 `requested_by` 컬럼 부재(`Db.php:592-600`)로 **자기승인 차단 구조적 불가** · `AdminGrowth:1324-1331` 은 `requested_by`/`decided_by` 양쪽 있는데 **비교 코드 0** · Chain Activation 축 0 | ABSENT |
 | 8 | Active Version 수정 차단 | optimistic lock `version` 전역 0 · `menu_defaults.version` = 리터럴 `'baseline'`(`AdminMenu.php:309`) · `updateJourney:153-154` 무검증 덮어쓰기 | ABSENT |
-| 9 | Evidence·Snapshot 변조 차단 | 선례 = `SecurityAudit.php:27` tenant 포함 해시 + `:64` `hash_equals` 검증기(**정본**) · 🔴`menu_audit_log`(`AdminMenu.php:123-131`,`:195`)는 preimage 재구성 불가·검증기 0 = 장식 · Chain Evidence·Snapshot 0 | ABSENT |
+| 9 | Evidence·Snapshot 변조 차단 | 선례 = `SecurityAudit.php:27` tenant 포함 해시 + `:64` `hash_equals` 검증기(**정본**) · 🔴`menu_audit_log` 는 preimage 의 `ts`(`AdminMenu.php:195`)가 **INSERT 컬럼 목록(`:199-203`)에 없어 미저장**(`:129` DB DEFAULT) → 재구성 불가 · 검증기 0 = 장식(단 `prev` 는 `lastHash():216` 으로 재구성 가능 — 근거 정정) · Chain Evidence·Snapshot 0 | ABSENT |
 | 10 | Unsafe Expression 차단 | `RuleEngine.php:24`·`OPS:33` 화이트리스트 + `compare:433-439` switch(`eval` 미사용) = 유일 선례이나 **승인 도메인 미적용** · 표현식 린트/CI 게이트 0 | ABSENT |
 | 11 | Arbitrary Code Execution 차단 | `eval(`/`create_function`/`system(`/`passthru` `backend/src` **0** — 단 **차단 게이트 0**(CI 5게이트에 없음) 이라 우연한 부재(규칙 7) · 🔴`WmsCctv.php:563-564` `shell_exec`·`:635` `proc_open(['/bin/sh','-c',$cmd],…)` 실재 | ABSENT |
 | 12 | Fixed Subject Reference 최소화 | 최소화 정책·검사기 0 · 🔴반례 = `UserAuth::createTeamMember:1225-1227` parent=owner **하드고정**(주석 자인) · `EnterpriseAuth::provisionUser:502` 동일 | ABSENT |
@@ -365,7 +365,7 @@ CI 실측 정본 = `.github/workflows/deploy.yml` — `verify` job(`:37-75`) **G
 
 ### C-1. 감사 선례는 `SecurityAudit` 하나다
 - `APPROVAL_CHAIN_AUDIT_EVENT`(§61) 의 해시체인은 **`backend/src/SecurityAudit.php` 를 확장**한다. 필수 계승: ① preimage 에 **tenant 포함**(`:27`) ② 시각을 **애플리케이션이 산출해 컬럼에 저장**(`:24` `gmdate` → `:51` `created_at VARCHAR(32)`) — DB `DEFAULT CURRENT_TIMESTAMP` 금지 ③ **`prev_hash` 컬럼 저장**(`:51`) ④ **`verify()` 검증기 동봉**(`:56-68` · `hash_equals` `:64`).
-- **`menu_audit_log` 패턴 복제 금지**: preimage 에 `'ts'`/`'prev'` 를 넣고 컬럼으로는 저장하지 않으면(`AdminMenu.php:186-197` vs `:123-131`) 해시는 영원히 재계산 불가한 장식이 된다. 289차 문서 다수가 이를 선례로 오인용했다 — ⓔ 정정 대상.
+- **`menu_audit_log` 패턴 복제 금지**(★근거 정정): 문제는 `'prev'` 가 아니다 — `'prev'` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어오므로 **재구성 가능**하다. **문제는 `'ts'` 하나** — preimage 에 `date('c')`(`:195`)를 넣고 **INSERT 컬럼 목록(`:199-203`)에서 `created_at` 을 빠뜨려 DB DEFAULT(`:129`)에 맡기면**, preimage 의 시각 값이 **어디에도 남지 않아** 해시는 영원히 재계산 불가한 장식이 된다. 289차 문서 다수가 이를 선례로 오인용했다 — ⓔ 정정 대상.
 - `SecurityAudit::log:32` 의 best-effort(감사 실패가 원 액션 비차단)는 **가용성 선택**이다. §68-14 *"Audit Event 강제"* 를 만족하려면 승인 경로에서는 **감사 실패 = 승인 실패(fail-closed)** 로 계약을 뒤집어야 한다. 이 반전은 별도 승인세션 사안.
 
 ### C-2. 에러 반환과 감사 기록의 순서 (§58 × §61)
@@ -480,7 +480,7 @@ CI 실재 = `.github/workflows/deploy.yml` `verify` job(`:37-75`) GATE 1~5, `dep
 | 4 | *"strict fail-closed `:585`"* | 정확하나 **기본 OFF** — `getenv('GENIE_STRICT_AUTH') === '1'` 일 때만 발동(주석 `:584` *"기본 OFF 이므로 정상 흐름 무회귀"* 자인). 즉 **무-테넌트 키 거부는 옵트인**이며 운영 활성화 여부는 미확인. | §68-1 을 REAL 이 아니라 **PARTIAL** 로 판정한 근거 중 하나. |
 | 5 | *"`eval`/`create_function`/`system` backend/src 0"* | **문자 그대로는 정확**(`passthru` 도 0). **그러나** `WmsCctv.php:563-564` `shell_exec` · `:635` `proc_open(['/bin/sh','-c',$cmd],…)` 실재. | §68-11 *"Arbitrary Code Execution 차단"* 을 REAL 로 올릴 수 없는 이유. 앵커의 3함수 열거만 보고 "차단 REAL"로 결론내면 오판. |
 | 6 | *"`hash_equals` grep 0(검증기 없음)"* (menu_audit_log 문맥) | **문맥 한정으로 정확** — `AdminMenu.php` 내 `hash_equals` 0 확인. 레포 전역으로는 20+ 히트(웹훅 서명·토큰 비교 등)이므로 **범위를 명시하지 않고 인용하면 오독된다**. | 인용 시 "AdminMenu 내" 명시 필요. |
-| 7 | *"`menu_audit_log` preimage 재구성 불가(`ts` 불일치)"* | **정확하고, 더 심하다** — DDL(`:123-131`)에 **`prev_hash` 컬럼 자체가 없다**(`hash_chain` 만). preimage(`:194` `'prev'=>$prevHash`)의 두 요소(`prev`·`ts`)가 **모두** 저장되지 않는다. `tenant_id` 컬럼도 없다. | 앵커 결론 강화. |
+| 7 | *"`menu_audit_log` preimage 재구성 불가(`ts` 불일치)"* | **결론은 정확하나 초판 근거는 틀렸다**(289차 10회차 ⓔ 재실측) — *"`prev_hash` 컬럼이 없어 preimage 2요소(`prev`·`ts`)가 모두 미저장"* 은 **오류**다. `prev`(`:194`)는 `lastHash():216` 이 **직전 행 `hash_chain` 컬럼**을 읽어 공급하므로 **재구성 가능** — 별도 `prev_hash` 컬럼이 없는 것은 결함이 아니라 **정당한 체이닝**이다. **미저장은 `ts` 하나뿐**: `:195` `'ts'=>date('c')` 가 preimage 에 들어가나 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어**(`:129` DB DEFAULT 가 채움) **값 자체가 소실**된다 → 그 한 축만으로 재구성 불가가 성립한다. `tenant_id` 컬럼 부재(DDL `:123-131`)는 **사실이며 유효**. | **결론 유지 · 근거 정정**(이 행이 정본). |
 | 8 | *"`Alerting` 감사 = `:597`,`:655`"* | 정확. **추가 발견** — `Alerting::audit:28-31` 의 INSERT 는 `audit_log(actor,action,details_json,created_at)` **4컬럼**으로 **`tenant_id` 가 없다** → Alerting 승인 감사는 테넌트 귀속 불가. | §60-2 `tenant` · §68-1 판정에 반영. |
 | 9 | *"`seedOrg:711` 이 실제 시드"*(acl_permission.approve) | 정확하나 **1개소가 아니라 5개소** — `TeamPermissions.php:708`(마케팅팀)·`:711`(영업팀)·`:714`(대기업영업팀)·`:716`(물류팀)·`:717`(재무팀). 판독자 0 이라는 결론은 무변. | 인용 정밀화. |
 | 10 | *"`data_scope` `'user'` 로 쓰는 코드 0"* | **재실증 확인** — `replaceScope` 호출처 4곳 전부 `'team'`(`:584`,`:743`) 또는 `'member'`(`:653`) · `subjectScope` 호출처 중 `'user'` 는 **강제 경로 `:253` 단 하나**. `getMemberPermissions:609` 는 `'member'` 로 읽어 되돌려줌(가짜 녹색) 확인. | 앵커 정확. 본 문서 범위(§55~§61,§68) 밖이나 §68-1/§68-15 배경으로 유효. |

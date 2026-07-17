@@ -130,7 +130,7 @@
 |---|---|---|---|
 | 60 | Chain Snapshot 생성 | 부재. 스냅샷 선례는 `menu_defaults.snapshot_data`(`AdminMenu.php:119-120`) · `pm_baseline.snapshot_json`(`PM/Enterprise.php:360`)이나 Chain 도메인 0(`snapshot` 최다 히트 = **CCTV JPEG** `routes.php:271`) | ABSENT |
 | 61 | Snapshot 조회 | 부재 | ABSENT |
-| 62 | Snapshot Hash 검증 | 부재. 검증기 정본 선례 = `backend/src/SecurityAudit.php:56-68` `verify()` `hash_equals`(+ tenant 포함 해시 `:27` · DDL `:45-52`). 🔴 `menu_audit_log.hash_chain` 은 인용 금지 — preimage `'ts'=>date('c')`(`AdminMenu.php:195`) vs 저장 `created_at ... DEFAULT CURRENT_TIMESTAMP`(`:129`) → 재구성 불가 | ABSENT |
+| 62 | Snapshot Hash 검증 | 부재. 검증기 정본 선례 = `backend/src/SecurityAudit.php:56-68` `verify()` `hash_equals`(+ tenant 포함 해시 `:27` · DDL `:45-52`). 🔴 `menu_audit_log.hash_chain` 은 인용 금지 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT) → 재구성 불가(★근거 정정 — `prev` 는 `lastHash():216` 으로 재구성 가능) | ABSENT |
 | 63 | Historical Reconstruction | 부재. 🔴 `ensureTables` 자가치유는 **테이블 생성만 하고 데이터 변환·백필을 하지 않는다** · `backend/migrations/` **21파일 · `20260527_172_002` 정지** · approval/chain/route 마이그레이션 0 | ABSENT |
 | 64 | Reconciliation 실행 | 부재 | ABSENT |
 | 65 | Drift 조회 | 부재 | ABSENT |
@@ -297,7 +297,7 @@
 - 🔴 `JourneyBuilder::nextNode:811-812` — 무라벨 위치 폴백(286차 실장애). **§22 `BLOCK_ON_NO_MATCH` 는 "확립된 의미론"이 아니라 조건부로만 확립** — Approval 이식 시 폴백 분기 절대 복제 금지.
 - 🔴 `pickWeighted:729` `if ($total<=0) return $keys[0]` 첫 키 폴백. 단 `pickWeighted:725-734` 의 **결정론적 해시 분배**는 §4.7 "Chain Selection 은 결정론적" 의 선례로 승격 가능.
 
-**C-65-5 (Evidence 최소 형태).** 현행 3종(`Mapping:285` 2키 · `Alerting:591` 3키 · `AdminGrowth` 2컬럼)은 **전부 승인시점 권한/역할/플랜 미보존** → as-of 재구성 불가. Chain API 는 **Actor Authorization Snapshot** 을 Evidence 에 포함해야 한다. 해시 검증 정본 선례 = `SecurityAudit.php:27`,`:45-52`,`:56-68`(`hash_equals`). 🔴 `menu_audit_log.hash_chain`(`AdminMenu.php:195` vs `:129`)은 **재구성 불가한 장식** — 인용 금지.
+**C-65-5 (Evidence 최소 형태).** 현행 3종(`Mapping:285` 2키 · `Alerting:591` 3키 · `AdminGrowth` 2컬럼)은 **전부 승인시점 권한/역할/플랜 미보존** → as-of 재구성 불가. Chain API 는 **Actor Authorization Snapshot** 을 Evidence 에 포함해야 한다. 해시 검증 정본 선례 = `SecurityAudit.php:27`,`:45-52`,`:56-68`(`hash_equals`). 🔴 `menu_audit_log.hash_chain` 은 **재구성 불가한 장식** — 인용 금지. ★근거 정정(289차 10회차 ⓔ): 막히는 축은 **`ts` 하나**로, preimage 의 `date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT)이다. `prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급하므로 **재구성 가능**하다.
 
 **C-65-6 (Rate Limit).** `index.php:515-549` 를 확장하되 🔴 `:550` fail-open 을 **승인 경로에 복제 금지**(§67-36 과 동일 원칙).
 

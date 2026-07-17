@@ -191,7 +191,7 @@
 ### C-5. `evidence` = Actor Authorization Snapshot (as-of 재구성 가능)
 현행 3형태 전부 미달: `Mapping.php:285` `["user"=>$actor,"ts"=>gmdate('c')]` 2키 · `Alerting:591` `{actor,decision,ts}` 3키(형태 상이) · `AdminGrowth` `decided_by`/`decided_at` 2컬럼. **어느 것도 승인시점 권한/역할/플랜을 보존하지 않는다.**
 → Stage/Level `evidence` 는 **승인 시점의 Actor 권한 스냅샷**을 포함해야 as-of 질의가 성립한다.
-→ 감사 정본 선례 = **`backend/src/SecurityAudit.php`**(`:27` tenant 포함 해시 · `:45-52` DDL `tenant_id`/`prev_hash`/`hash_chain` · **`verify():56-68` `hash_equals` 검증기**). 🔴`menu_audit_log.hash_chain` 을 선례로 인용하지 마라 — preimage `'ts'=>date('c')`(`AdminMenu.php:195`) vs 저장 `created_at DEFAULT CURRENT_TIMESTAMP`(`:129`) → 재구성 불가 · `hash_equals` grep 0.
+→ 감사 정본 선례 = **`backend/src/SecurityAudit.php`**(`:27` tenant 포함 해시 · `:45-52` DDL `tenant_id`/`prev_hash`/`hash_chain` · **`verify():56-68` `hash_equals` 검증기**). 🔴`menu_audit_log.hash_chain` 을 선례로 인용하지 마라 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT) → 재구성 불가 · `hash_equals` grep 0(`AdminMenu` 내). ★근거 정정(289차 10회차 ⓔ) — `prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급하므로 재구성 가능하며 `prev_hash` 컬럼 부재는 결함이 아니다. **두 구현을 가르는 것은 preimage 타임스탬프의 저장 여부 하나뿐**(`SecurityAudit:31` 은 `$now` 를 INSERT 에 명시 전달 → `:51` `created_at VARCHAR(32)` · `verify():63` 이 같은 값으로 재계산).
 
 ### C-6. `entry condition reference` 의 fail 방향은 마케팅과 반대다
 `RuleEngine`(`backend/src/Handlers/RuleEngine.php:24` · 화이트리스트 `OPS:33` · `compare:433-439` · `eval` 미사용)이 §15/§17-7 조건 표현식의 **기존 선례**이며 **Part 2 Canonical DSL ADR(`docs/architecture/ADR_CANONICAL_SEGMENT_DSL*`)의 확장**이다 — 신규 엔진 금지.

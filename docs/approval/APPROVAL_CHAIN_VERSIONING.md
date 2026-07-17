@@ -168,7 +168,7 @@
 ### 2.4 `immutable_hash` — 선례는 하나뿐이며 반례도 하나 있다
 
 - ✅ **정본 선례 = `SecurityAudit`**: `backend/src/SecurityAudit.php:27`(prev + **tenant** + actor + action + details + now → SHA-256) · `:45-52` DDL(`prev_hash CHAR(64)`, `hash_chain CHAR(64)`) · **`verify():56-68` 이 `hash_equals` 로 전 행 재계산**(`:64`). preimage 구성요소가 전부 저장 컬럼이라 **재구성 가능** → 검증기가 성립한다.
-- 🔴 **반례 = `menu_audit_log.hash_chain` — 인용 금지**: preimage 가 `'ts'=>date('c')`(`AdminMenu.php:195`)인데 저장은 `created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`(`:129`) → **preimage 재구성 불가** · `hash_equals` grep **0**(검증기 없음). **검증 불가능한 장식**이다.
+- 🔴 **반례 = `menu_audit_log.hash_chain` — 인용 금지**(★근거 정정 · 289차 10회차 ⓔ): **막히는 축은 `ts` 하나**다 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 어디에도 저장되지 않는다**(`:129` DB `DEFAULT CURRENT_TIMESTAMP` 가 채움) → **preimage 재구성 불가** · `hash_equals` grep **0**(`AdminMenu` 내 · 검증기 없음). **검증 불가능한 장식**이다. (`prev` 는 `lastHash():216` 이 직전 행 `hash_chain` 을 읽어 공급하므로 **재구성 가능** — `prev_hash` 컬럼 부재는 결함이 아니라 정당한 체이닝이다.)
 - → **계약**: `immutable_hash` 의 preimage 는 **전부 저장 컬럼**으로 구성하고, **`verify()` 검증기를 같은 커밋에 함께 넣어라**. 검증기 없는 해시 컬럼은 §61 을 만족하지 않는다(2.4 반례가 그 증거).
 
 ### 2.5 `structure hash` / `route hash` — 구조 동일성의 정의를 먼저 고정하라

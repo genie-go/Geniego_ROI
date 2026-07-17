@@ -47,7 +47,7 @@
 | Idempotency | **`idempotency_key` grep 0.** 자연키 선점 3패턴만: `claimSendOnce`(`JourneyBuilder.php:672`) · `notification_id` UNIQUE(Paddle) · `uq_rve_dedup`(`Db.php:1017-1034`) | `NOT_APPLICABLE`(**신규**) |
 | Optimistic Lock | **`version` optimistic lock grep 0**(5-3-2 확정 재실증). 동시성 = **조건부 UPDATE+rowCount CAS** — **SQLite 폴백 호환이 명시적 설계 제약** | `NOT_APPLICABLE` — 🔴 **`version` 락 도입 = 제약 위반** |
 | Effective Date Validation | 🔴 **`WHERE effective_from <= :as_of` 술어 backend/src 전역 0건.** 유일 effective date = `kr_fee_rule.effective_from`(`Db.php:898`) · **읽기 전부 최신승** | `NOT_APPLICABLE`(**신규**) |
-| Audit | **3계층 병존** — ★`menu_audit_log.hash_chain`(`AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) SHA-256 prev-chain **실구현** · `pm_audit_log`(tenant+entity+diff_json+3인덱스 `20260526_168_008`) · 전역 `audit_log`(`actor·action·details_json·created_at` **4컬럼·tenant 없음·해시체인 없음** — MySQL `Db.php:540-545`/SQLite `AdminGrowth.php:157-159`) | `VALIDATED_LEGACY`(**패턴 확장**) |
+| Audit | **3계층 병존** — ⚠️`menu_audit_log.hash_chain`(`AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) SHA-256 prev-chain 은 **체인 연결만 실구현 · 검증 영구 불가**(preimage `'ts'`(`:195`)가 INSERT 컬럼 `:199-203` 에 `created_at` 부재로 미저장 · 검증기 0) → **tamper-evident 근거로 인용 금지** · ✅`pm_audit_log`(tenant+entity+diff_json+3인덱스 `20260526_168_008`) = **저장 계층 실 선례** · 전역 `audit_log`(`actor·action·details_json·created_at` **4컬럼·tenant 없음·해시체인 없음** — MySQL `Db.php:540-545`/SQLite `AdminGrowth.php:157-159`) · ★검증 가능한 해시체인 정본 = `SecurityAudit::verify():56-68` | `VALIDATED_LEGACY`(**저장 계층 패턴 확장 — `pm_audit_log` 축 · 해시체인 축 아님**) |
 | Evidence | 조직 evidence 축 **0** | `NOT_APPLICABLE` |
 | Rate Limit | ★**전역 REAL**(ⓑ 미기재 — 아래 §0.5) | `VALIDATED_LEGACY` |
 | Pagination | **표준 계약 없음** — `LIMIT 500` 하드코딩(`GraphScore::listNodes:90-95`) · `offset`(`OrderHub.php:74`) 등 **핸들러별 임의** | `PARTIAL` |
@@ -105,7 +105,7 @@
 | | **Snapshot** | | |
 | 33 | Approval용 Organization Snapshot 생성 | 부재. ★선례 = `menu_defaults`(`AdminMenu.php:120`·생성 `:308`) · `pm_baseline`(`PM\Enterprise.php:55`·`:360-364`) | `CONTRACT_ONLY` + `VALIDATED_LEGACY`(**패턴**) |
 | 34 | Snapshot 조회 | 부재. `menu_defaults` 복원 = `:584-590`(**최신 1건만**) | `CONTRACT_ONLY` + `LEGACY_ADAPTER` |
-| 35 | Snapshot Hash 검증 | 부재 — **`menu_defaults` 에 immutable_hash 없음**. ★선례 = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·검증 `:63-64`·`:145`/`:151`) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`) | `CONTRACT_ONLY` + `VALIDATED_LEGACY`(**패턴**) |
+| 35 | Snapshot Hash 검증 | 부재 — **`menu_defaults` 에 immutable_hash 없음**. ⚠️**선례 격하**: `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) 은 **재계산 가능하나 검증기 없음**(🔴초판이 "검증 `:63-64`" 라 적었으나 `:63-64` 는 **INSERT** 다 · `hash_equals` 0) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`) 은 **검증 영구 불가**(preimage `ts`(`:195`) 미저장) → **둘 다 "Hash 검증" 선례 아님**. ★검증 실재 정본 = `SecurityAudit::verify():56-68` | `CONTRACT_ONLY` + `LEGACY_ADAPTER`(**알고리즘 이식** · 검증 선례는 `SecurityAudit`) |
 | | **Reconciliation** | | |
 | 36 | Source별 비교 | 부재 — 소스 1개 | `CONTRACT_ONLY` |
 | 37 | Drift 목록 | 부재 | `CONTRACT_ONLY` |
@@ -117,7 +117,7 @@
 | 42 | Idempotency | **`idempotency_key` grep 0.** 자연키 선점 3패턴(`claimSendOnce` `JourneyBuilder.php:672` 최정합 · Paddle `notification_id` UNIQUE · `uq_rve_dedup` `Db.php:1017-1034`) | `CONTRACT_ONLY`(**신규** — 패턴은 `claimSendOnce` 채택) |
 | 43 | Optimistic Lock | **grep 0.** 🔴 **`version` 락·분산락·`GET_LOCK` 도입 금지** — SQLite 폴백 호환 제약. **조건부 UPDATE+rowCount CAS 채택** | `CONTRACT_ONLY` — **CAS 로 구현** |
 | 44 | Effective Date Validation | 🔴 **전역 0건**(`WHERE effective_from <= :as_of`). `effective_to` 없음 → **폐구간 모델 신규** | `CONTRACT_ONLY`(**순수 신규**) |
-| 45 | Audit | **REAL · 3계층** — `menu_audit_log.hash_chain`(`AdminMenu.php:128`) · `pm_audit_log`(`20260526_168_008`) · 전역 `audit_log`(**4컬럼·tenant 없음·해시체인 없음** `Db.php:540-545`). 🔴 **"해시체인 없음"을 전역 명제로 인용하면 오염 — 참인 것은 전역 `audit_log` 에 한해서다** | `VALIDATED_LEGACY`(**`menu_audit_log`/`pm_audit_log` 패턴 확장 — 신설 금지**) |
+| 45 | Audit | **REAL · 3계층** — `menu_audit_log`(**필드 축 유효** · ⚠️`hash_chain` 은 **연결만 실재·검증 영구 불가**(`:195` preimage `ts` 미저장·검증기 0) = tamper-evident 아님 · 🔴`tenant_id` 부재) · ✅`pm_audit_log`(tenant+entity+diff_json `20260526_168_008`) = **저장 계층 선례** · 전역 `audit_log`(**4컬럼·tenant 없음·해시체인 없음** `Db.php:540-545`). 🔴 **"해시체인 없음"을 전역 명제로 인용하면 오염 — 참인 것은 전역 `audit_log` 에 한해서다**(단 `menu_audit_log` 의 체인도 **검증 불가한 장식**이므로 반대 방향 과장도 금지) | `VALIDATED_LEGACY`(**저장 계층 = `pm_audit_log`/`menu_audit_log` 필드 패턴 확장 — 신설 금지 · 해시체인은 `SecurityAudit` 이식**) |
 | 46 | Evidence | 조직 evidence 축 **0** | `CONTRACT_ONLY` |
 | 47 | Rate Limit | ★**REAL**(ⓑ 미기재·본 문서 정정) — `index.php:508-545` `api_rate_limit` · 1200 req/min 기본 · 양방언 upsert · 자가치유 · fail-open · `Retry-After`. ⚠️ **대상 = `api_key` 프로그래매틱 트래픽만**(주석 `:509`) — **세션 경로 미도달** | `VALIDATED_LEGACY` — 🔴 **신설 금지** · ⚠️ **세션 노출 시 공백 명시** |
 | 48 | Pagination | **표준 계약 없음** — `LIMIT 500` 하드코딩(`GraphScore::listNodes:90-95`) · `offset`(`OrderHub.php:74`) · 핸들러별 임의 | `PARTIAL` — **조직 API 는 명시적 계약 필요** |

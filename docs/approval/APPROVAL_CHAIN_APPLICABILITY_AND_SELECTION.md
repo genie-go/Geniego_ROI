@@ -282,7 +282,7 @@ Specificity 계산 코드가 **전무**하다. 아래 18개 차원은 "가중치
 | 21 | resolution status | Resolution 부재(아래 #26-33) | ABSENT |
 | 22 | resolved_at | 상동 | ABSENT |
 | 23 | resolver version | Resolver 부재 | ABSENT |
-| 24 | immutable_hash | 🔴 **감사 정본 선례=`SecurityAudit.php:27`(tenant 포함 해시)·`:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`)·`:56-68` `verify()` `hash_equals` 검증기** + `schema_migrations.checksum`(`Migrate.php:50`) — Chain 도메인 0. ★`menu_audit_log.hash_chain` 을 선례로 인용하지 마라(preimage `'ts'=>date('c')` `AdminMenu.php:195` vs 저장 `created_at DEFAULT CURRENT_TIMESTAMP` `:129` → **재구성 불가** · `hash_equals` grep 0) | ABSENT |
+| 24 | immutable_hash | 🔴 **감사 정본 선례=`SecurityAudit.php:27`(tenant 포함 해시)·`:45-52` DDL(`tenant_id`/`prev_hash`/`hash_chain`)·`:56-68` `verify()` `hash_equals` 검증기** + `schema_migrations.checksum`(`Migrate.php:50`) — Chain 도메인 0. ★`menu_audit_log.hash_chain` 을 선례로 인용하지 마라 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT) → **재구성 불가** · `hash_equals` grep 0(`AdminMenu` 내). ★근거 정정 — `prev` 는 `lastHash():216` 으로 재구성 가능(`prev_hash` 컬럼 부재는 결함 아님) | ABSENT |
 | 25 | evidence | Evidence 축 0 | ABSENT |
 | 26 | RESOLVED | Resolution status 열거 0 | ABSENT |
 | 27 | RESOLVED_WITH_WARNINGS | 상동 | ABSENT |

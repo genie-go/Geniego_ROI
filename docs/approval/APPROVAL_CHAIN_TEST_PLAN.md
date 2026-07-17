@@ -91,7 +91,7 @@
 | 54 | Unauthorized Override | 테스트 0 · 대상 0 | ABSENT |
 | 55 | Unauthorized Retroactive Correction | 테스트 0 · Retroactive 수단 0(`ensureTables` 는 백필 0) | ABSENT |
 | 56 | Active Version 변조 | 테스트 0 · 대상 0 | ABSENT |
-| 57 | Snapshot 변조 | 테스트 0 · 대상 0. 변조 검증기 정본 선례 = `SecurityAudit.php:56-68`(`hash_equals`) — 🔴 `menu_audit_log.hash_chain` 은 preimage `'ts'=>date('c')`(`AdminMenu.php:195`) vs 저장 `created_at ... DEFAULT CURRENT_TIMESTAMP`(`:129`) → **재구성 불가한 장식** · `hash_equals` grep 0 | ABSENT |
+| 57 | Snapshot 변조 | 테스트 0 · 대상 0. 변조 검증기 정본 선례 = `SecurityAudit.php:56-68`(`hash_equals`) — 🔴 `menu_audit_log.hash_chain` 은 preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT 가 채움) → **재구성 불가한 장식** · `hash_equals` grep 0(`AdminMenu` 내). ★근거 정정 — `prev` 는 `lastHash():216` 으로 재구성 가능하며 `prev_hash` 컬럼 부재는 결함이 아니다 | ABSENT |
 | 58 | Unsafe Expression Injection | 테스트 0. ⚠️ 현행 표면은 좁다 — `RuleEngine.php:24` 연산자 화이트리스트(`OPS:33` · `compare:433-439`) · **`eval` 미사용** · `eval`/`create_function`/`system` `backend/src` **0**. 그러나 이를 검증하는 테스트 0 | ABSENT |
 | 59 | Fixed Subject 권한 상승 | 테스트 0. 🔴 관련 실결함 실재 — `data_scope` 개인(member) 범위가 강제 경로에 도달 못함(`TeamPermissions::effectiveScope:253` 이 `'user'` 조회 · 쓰기는 `'member'` `:653` → 영구 0행 → `:256` **null(무제한)**) · `subject_type` 열거 강제 없음(`replacePerms:325`/`replaceScope:337` 무검증 인자) | ABSENT |
 | 60 | Chain을 통한 Authority 자동 상승 방지 | 테스트 0 · 대상 0. 🔴 선결 미결 — `$roleRank`(`backend/public/index.php:554`) ↔ `team_role` 매핑 코드 전수 0 · `acl_permission.approve`(`TeamPermissions::ACTIONS:39` · `seedOrg:711` 시드)를 읽어 승인 가부를 판정하는 코드 0 | ABSENT |

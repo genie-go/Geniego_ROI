@@ -105,7 +105,7 @@
 | 34 | Missing Actor Policy Reference 유효 | `MISSING_MANAGER_POLICY` 형태 유사물 = `UserAuth:1226-1227`(정책 아니라 **평면화 하드코딩**) · `TeamPermissions:444` `if(!empty(...))` **표시 생략**뿐 | ABSENT |
 | 35 | Fallback Route 종료 가능 | Fallback 축 0 · 종료 검증 0 | ABSENT |
 | 36 | Active Version Immutable | 불변 버전 0 — `menu_defaults.version` = 리터럴 `'baseline'`(`AdminMenu.php:309`) · optimistic lock `version` **0** | ABSENT |
-| 37 | Structure Hash 유효 | 구조 해시 부재. 🔴`menu_audit_log.hash_chain` 을 선례로 인용 금지 — preimage `'ts'=>date('c')`(`AdminMenu.php:195`) vs 저장 `created_at ... DEFAULT CURRENT_TIMESTAMP`(`:129`) → **재구성 불가** · `hash_equals` grep 0 | ABSENT |
+| 37 | Structure Hash 유효 | 구조 해시 부재. 🔴`menu_audit_log.hash_chain` 을 선례로 인용 금지 — preimage 의 `'ts'=>date('c')`(`AdminMenu.php:195`) 가 **`:199-203` INSERT 컬럼 목록에 `created_at` 이 없어 미저장**(`:129` DB DEFAULT) → **재구성 불가** · `hash_equals` grep 0(`AdminMenu` 내). ★근거 정정 — `prev` 는 `lastHash():216` 으로 재구성 가능 | ABSENT |
 | 38 | Compilation 성공 | §38 전항 부재 → 성공 판정 대상 없음 | ABSENT |
 
 > 원문: *"Validation 결과에는 Error·Warning·Affected Component를 저장하라."* (1925) — 산문 1건, 분모 외. §2 계약에 반영.
@@ -132,7 +132,7 @@
 1. **스키마 복제 금지** — `Dependencies:90-91` 는 순회 SELECT 에 **`dep_type` 술어가 없다**. 알고리즘만 가져오고 스키마·술어는 Chain 도메인에서 새로 정의하라.
 2. **`Dependencies:32-34` 는 422 조기반환하여 `:48` `auditLog` 에 미도달** → **순환 탐지 시 감사 이벤트가 없다**. Chain Validation 은 **실패도 감사한다**(§38 `error count`·§39 Error 저장 요구와 정합).
 3. **`AdminMenu::wouldCycle:540-555` 를 선례로 쓰지 마라** — `$visited` 없음 · tenant_id 없음(`:107-118`).
-4. **`menu_audit_log.hash_chain` 을 해시 선례로 쓰지 마라** — 검증 불가능한 장식. 정본은 `SecurityAudit`.
+4. **`menu_audit_log.hash_chain` 을 해시 선례로 쓰지 마라** — 검증 불가능한 장식(막히는 축 = preimage 의 `ts` 미저장 하나 · `AdminMenu.php:195` vs `:199-203`). 정본은 `SecurityAudit`(`$now` 를 `created_at` 에 명시 저장).
 
 ### C-3. Compiled Artifact 는 Source 를 대체하지 않는다 (원문 1876)
 Source Definition 테이블과 Compilation 테이블은 **분리 보관**하고, Compilation 은 `source structure hash` 로 Source 를 참조만 한다. 컴파일 실패가 Source 를 훼손해서는 안 된다.
