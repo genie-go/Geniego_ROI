@@ -1,3 +1,77 @@
+> **최신 인계서(289차·연속 8회차)**: **5-3-2 ⓐⓑ 완료(전수조사에서 ★내 예측이 뒤집힘) + 5-3-3-1 스펙 선영속**. 커밋 **push 완료**(feat/n236·**master 미접촉**·코드변경 0).
+>
+> ## ★다음 우선순위 (이 순서대로 진행)
+>
+> **1순위 — 5-3-2 본작업 이어서**(ⓒ부터). **ⓐ스펙 원문 영속 완료**(`SPEC_06A_4_5_3_1_5_3_2_VERBATIM.md` §0~§85) · **ⓑ§3.4 전수조사 완료**(아래 결과 필독). **다음 = ⓒDSAR 85편(§75 나열·현재 3편) → ⓓ`ADR_DSAR_REBATE_APPROVAL_WORKFLOW_EXECUTION_ENGINE.md` → ⓔ인용검증 → ⓕ커버리지 실계산**.
+>
+> **2순위 — 5-3-3-1 Organization Hierarchy**(스펙 원문 **선영속 완료** = `SPEC_06A_4_5_3_1_5_3_3_1_ORG_HIERARCHY_VERBATIM.md` §0~§82 + 5-3-3 **14블록 분할표**). ⓑ부터 시작.
+>
+> **3순위 — 사용자 결정 대기 3건**: ①**브랜치 보호 + required check**(G-06b·**없으면 CI 가드는 탐지일 뿐 예방 아님**) ②**Alerting 승인 우회 수정 세션**(★순서 절대: **executeAction 게이트 → action_request 생산자 배선**) ③**소멸형 블록 원 스펙 제공**(⑤ 잔여·사용자만 보유).
+>
+> **4순위 — 5-3-3-2~14 · 5-3-4~5-3-10 스펙 대기**(자율 금지·RP-002).
+>
+> ## 🔴 5-3-2 전수조사 — ★내 예측이 틀렸다 (다음 세션 필독)
+>
+> **7회차에 나는 "워크플로 엔진 자체가 부재 → 5-3-2도 전방호환 계약"으로 예측**했다. **틀렸다.**
+> BPMN/Temporal/Camunda/Zeebe grep 0 은 맞으나, **그 입도에서 멈춘 판단이었다**.
+>
+> ★**`JourneyBuilder` = 레포 유일의 실 Flow 실행 엔진**(`Handlers/JourneyBuilder.php:498-700+` `advanceEnrollment`):
+> **노드 13종**(trigger·email·kakao·sms·push·webhook·nba·decision·**delay**(:527)·**wait**(:548 date|event|**timeout** 분기)·condition(:600)·split(:610)·exit·attr·goal) ·
+> **원자적 claim**(:411-418 조건부 UPDATE 선점) · **순회 멱등**(`claimSendOnce(enrollment_id,node_id)` :672 — 커밋 전 크래시 시 재발송 차단·277차) ·
+> **순환 감지**(:512 한 패스 내 재방문 중단 · ★주석이 "작성자 JSON에 acyclicity 검증 없음" 자인 = **런타임 방어만**) ·
+> **노드 감사**(`journey_node_logs` :50,:69) · **cron 배선 REAL**(`journey_cron.php:29-35` */5 · `install_crontab.sh` 정본 등재).
+> → 5-3-2 요구 실행 프리미티브 중 **`approval` 노드 하나만 결번**(grep 0 · `JourneyBuilder.php`·`JourneyBuilderConstants.js` 양쪽).
+>
+> ★**설계 함의 = 실행 엔진 신설 금지 · `JourneyBuilder` 확장이 유일 합리해.** 신규 엔진은 위 전부의 순수 중복이다.
+> 🔴**최대 설계 리스크**: JourneyBuilder 는 **마케팅 여정 도메인**(`crm_customers`/`journey_enrollments` 가 실행 컨텍스트 · **`customer_id` 필수** :554). 비-고객 승인(예산·가격·배포)을 태우려면 **enrollment 컨텍스트 일반화가 선결**.
+>
+> ## 5-3-2 전수조사 실측 (ⓑ 완료분 — ⓒ의 입력)
+>
+> **잡/큐 REAL 7종**(전용 브로커 부재 · **스케줄링=OS cron 단일 수단** · 러너 37종은 얇은 어댑터): `omni_outbox`(Omnichannel.php:74-93 · **outbox 이름·의미 모두 유일**) · `catalog_writeback_job`(Catalog.php:75-84) · `channel_shipment_job`(ChannelSync.php:5960) · `catalog_sync_job`(:248) · `ad_delivery_dlq`(AdAdapters.php:1127) · `webhook_delivery`/`webhook_endpoint`(OpenPlatform.php:81-105) · `raw_vendor_event`(Db.php:1017-1034 · `uq_rve_dedup` UNIQUE). `writeback_job`(Db.php:519)=레거시 유물.
+>
+> ★**동시성 = 레포 최고 성숙 자산**: `Omnichannel::claimBatch`(:394-423 — **stale lease 900s 회수 → `SELECT..FOR UPDATE SKIP LOCKED`+claim_id → 조건부 UPDATE 폴백**) · `claimConditional`(:427-447 SQLite/MySQL<8용 2단 폴백) · **조건부 UPDATE+rowCount CAS 4곳 확립**(Catalog:1683 · ChannelSync:6136-6153 stale 600s 회수 · JourneyBuilder:411). 🔴**optimistic lock(`version`)·분산락·`GET_LOCK` 전부 grep 0** — **SQLite 폴백 호환이 명시적 설계 제약** → **5-3-2가 다른 동시성 모델 도입 시 제약 위반**. `flock`은 `stock_sync_cron.php:54` 유일.
+>
+> **Retry/DLQ**: `AdAdapters::retryDeliveryDlq`(:1187-1228 · maxAttempts 5 · `600*2^n` **86400s 캡**) · `OpenPlatform`(:466-471 `min(60,2^n)`분) · `Omnichannel`(:365 attempts<3 · **백오프 없음**) → 🔴**백오프 3공식 병존** → 신설분은 **AdAdapters:1221 공식 채택 권고**. **DLQ 테이블은 `ad_delivery_dlq` 1개뿐**(나머지는 원 테이블 `status='failed'` 잔류). ★**defer≠실패 규율**(Omnichannel:349,362 quiet_hours/sto_defer는 attempts 미증가) · **honest pending**(ChannelSync:6173·Catalog:1712 어댑터 부재 시 재시도 미소모).
+>
+> **Callback**: Paddle 서명 HMAC(:1073)+**멱등**(`notification_id` UNIQUE → **`processed=1`일 때만 skip**, `processed=0`은 재처리 허용·272차) · **테넌트 검증 부재**(`paddle_events`에 tenant_id 없음 :99) · 범용 인바운드 `Webhooks.php:22-27`=**opt-in**(시크릿 미설정 벤더는 수신 허용+`verified=false`) · 아웃바운드 `OpenPlatform.php:373` Stripe식 서명 + **SSRF 방어**(전달 직전 DNS 재검증 :414-424).
+>
+> **Timer/Wait = DB 컬럼 + cron 폴링**(타이머 서비스·지연큐 부재): `journey_enrollments.resume_at`/`wait_until`(:80-82 · 206차 delay + 255차 이벤트 절대기한 **분리 설계**) · `sms_campaigns.scheduled_at`+`runScheduledQueue`(SmsMarketing.php:367 · **ISO8601 문자열 사전식 비교**) · kakao/email 대칭.
+>
+> **Event**: `OpenPlatform::emit`(:311-328 화이트리스트 · 구독 0이면 no-op · **예외 절대 미전파** :325)=**웹훅 발신 전용**. 🔴**범용 이벤트 버스·in-process dispatcher·구독 기전 grep 0** — 내부는 전부 직접 static 호출.
+>
+> **Notification**: `notification_channel` SSOT(Alerting.php:911 slack/generic webhook/email + `min_severity`) + **폴백 체인**(:471-497 · 282차 "알림 통지 죽음" 수정분) = **완비**. 🔴**승인 이벤트↔통지 배선만 0** → **신설 금지·배선만**. ⚠️282차 트랩 주의(정책은 slack.enabled만 보고 URL은 다른 테이블 → 무발송).
+>
+> 🔴**상태머신 = 없다**: `UPDATE ... SET status=` **155건 / 44파일**(Wms10·ChannelSync10·EmailMarketing10·JourneyBuilder10·Catalog9·LiveCommerce9…). **전이 규칙 선언 0** — 전부 호출 지점 인라인. 전이 가드는 **4곳뿐**(`FeedTemplate::transition`:248-285 · `Mapping::apply`:309 · `Catalog::approveQueue`:2341 · `AdminGrowth::launch`:1155).
+>
+> **Sub-workflow 부재**(`sub_journey`/`call_activity` 등 grep 0). **워크플로 정의 테이블**(`workflow_*`/`flow_*`/`wf_*`) **grep 0**.
+>
+> ## ★5-3-2 설계 결론 (ⓒ~ⓕ가 따를 것)
+>
+> 1. **Flow 실행 엔진 = 신설 금지** → `JourneyBuilder` **`approval` 노드 추가** + **`wait` event-mode 재폴링 패턴(:565-570) 재사용**. 단 **enrollment 컨텍스트 일반화 선결**.
+> 2. **승인 정의(Definition) = 신설 불가피** — 현행 4종 전부 "누가·몇 명·어떤 순서"가 **코드 상수**(Mapping INSERT `2` 리터럴 :209 · Alerting 응답 `2` 하드코딩 :562 · AdminGrowth 단일결재 암묵). 정의 테이블·step·조건부 라우팅·역할 바인딩 **전부 부재**.
+> 3. **정족수·Maker-Checker = 신설 금지** → **`Mapping.php:245-290` 5단 규율을 공용 트레이트/서비스로 추출**(위조불가 신원 fail-closed → 자기승인 차단 → 승인자 dedup → 비-pending 409 → 정족수). **재작성 시 289차 G-01이 닫은 우회로(익명 2회=정족수)를 다시 연다.** **신규 작성이 아니라 위치 이동.**
+> 4. **`action_request` = 흡수 대상이지 재사용 자산 아님** — 생산자 grep 0 = **한 번도 채워진 적 없음**(backup 덤프도 빈 테이블). `listActionRequests`는 `required_approvals:2` 응답하나 `decideAction`은 1명에 approved = **계약 위반 이미 존재**. 유일 실자산 = `executeAction` 액추에이터 배선(:620-650). → **첫 생산자로 배선하거나 폐기 후 디스패치만 회수**. **현 상태 방치 = 가짜 정족수 잔존.**
+> 5. **실행 인프라 = 신설 금지·통일 필요**(조건부 UPDATE+rowCount 채택).
+> 6. **알림 = 신설 금지·배선만**(`Alerting::dispatch` 재사용).
+> 7. **멱등 = 5-3-2가 채울 결번**(`idempotency_key` grep 0) → 현행 3패턴 중 **`claimSendOnce` 자연키 선점 마커**가 승인 결정에 가장 정합.
+>
+> ## 289차 7~8회차 산출 (커밋 13건 · 전부 push)
+>
+> **①**guard 배선(G15·양방향 실증·4층 정정) **②**stale 351 → **값 제거 후 측정기+SSOT** **③**G-01 P1 수정 **+ 운영/데모 배포 완료**(데모 E2E: 자기승인 403·재승인 409·정족수 실집계) **④**B4/G15 CI 승격(`repo-guards`·규칙 SSOT `tools/scan_secrets.sh`) **⑤**분모 원장(**MR-1-6-01 자율 완료 불가 확정**·역산 금지 명문화) **5-3-1 완결**(산출 문서 58/58·전사 잔여 0).
+>
+> ## 🔴 반복 교훈 (매 블록 적용)
+>
+> **개수는 분모가 아니다** → **개수마저 25축 틀렸다**(필드 19축 전부 끝의 `evidence` 누락 = **일관된 편향**) → ★**개수가 맞아도 항목명이 날조였다**(`REQUIREMENT_TYPE` 20/20 개수 일치인데 **축 자체가 다름**). **결론: 분모 검증은 개수가 아니라 항목명 원문 대조.**
+> ★**그리고 8회차엔 "부재"라는 내 판단 자체가 틀렸다**(JourneyBuilder). **BPMN grep 0 을 "워크플로 엔진 부재"로 확대 해석**했다 — **부재증명은 이름이 아니라 능력으로 하라.**
+>
+> ## 환경·정직 표기
+>
+> **PHP 8.1.34 로컬 설치**(운영 동일 버전 · 새 터미널부터 인식 · 세션 내 `export PATH="$PATH:/c/Users/Master/AppData/Local/Microsoft/WinGet/Packages/PHP.PHP.8.1_Microsoft.Winget.Source_8wekyb3d8bbwe"`). 훅 G11 가짜녹색(`[skip] php 미설치` → ✅) 해소.
+> **오탐 주의 고정**: `pause()` 킬스위치 면제=**279차 D-P1 의도된 설계** · `ClaudeAI.php` "killswitch 내장" **주석은 실효와 불일치**.
+> ★**5-3-3 스펙 §1은 `5-3-2`를 "완료"로 표기하나 저장소 실측은 계약 문서 3편** — **스펙의 진행 표기 ≠ 저장소 실측**.
+> **06-A `NOT_CERTIFIED` 불변** · **5-3-1은 "구축 완료"가 아니라 "계약 명세 확정"**(실 코드·테이블·Lint·Guard **0건** · Lint 19+Guard 30 전부 `CONTRACT_ONLY`). `/security-review` **미실행**(origin/HEAD→origin/main 공통 조상 없음·저장소 특성).
+>
+
 > **최신 인계서(289차·연속 7회차)**: **★승인 세션 ①~⑤ 실행(코드 최초 변경 · G-01 운영+데모 배포 완료) + 5-3-1 스펙 블록 완결(58/58) + 5-3-2 스펙 원문 선영속**. 커밋 **push 완료**(feat/n236·2b02242653f→**dea64774e6c**·master 미접촉).
 >
 > ## ★다음 우선순위 (이 순서대로 진행)
