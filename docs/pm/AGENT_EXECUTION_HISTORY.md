@@ -97,6 +97,33 @@ Rebate 엔진(1-1~1-4)은 **grep 0(부재)**이었으나 **Authorization 은 실
 
 ---
 
+## AE-289-05 — EPIC 06-A Part 4-5-3-1-5-3 (Approval Workflow·Multi-Level·Risk-Based Decision)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★지시 성격 — 스펙 미수령·자율 판단(사용자 명시 승인)**: 상세 스펙 미제공(파트 번호·이름만 5-1 §1 명시). **세부 계약은 자율 설계임을 Canonical 2 + ADR 전부에 명시**. **§요구 부재 → 완료 조건 판정 불가 · §53/§59 없음**. 정본 스펙 수령 시 재정합.
+
+### ★자기 오판 2건 (정밀 확인으로 정정)
+| 오판 | 1차 근거 | 정밀 확인 | 정정 |
+|---|---|---|---|
+| **"Multi-level/quorum 부재"** | `quorum`/`approval_level` grep 0 | **`mapping_change_request.required_approvals INT NOT NULL DEFAULT 2`**(Db.php:634) + `count($approvals) >= required_approvals ? approved : pending`(Mapping.php:214) | **REAL(정족수 정본)** — 키워드 1차 grep 을 결론으로 삼은 오류 |
+| **"Risk-based 승인 REAL"** | `risk_score` 히트(CustomerAI) | **CustomerAI 의 이탈 예측(churn_prob)** — 승인 위험과 무관 | **오탐 → 부재 확정** |
+
+**교훈(5-2 오탐 3건과 동일 클래스)**: **1차 키워드 grep 결과를 결론으로 삼지 말 것 — 반드시 실체 확인**.
+
+### ★최대 발견 (미확정 관찰·미수정)
+**`Mapping::approve()` 에 중복 승인·자기 승인 방지 부재**(전체 확인·Mapping.php:196-216):
+1. `$approvals[] = ["user"=>$actor, "ts"=>gmdate('c')];`(:212) — **동일 actor dedup 없음** → 한 사람이 2회 호출 시 `required_approvals` DEFAULT 2 를 **혼자 충족 → approved**(:214).
+2. `requested_by`(:167 기록)와 `$actor` **미비교** → **요청자 본인 승인 가능**.
+- **FP 규약상 PM 코드 재증명 전 P0 단정 금지**. 실 영향 판정 필요 = approve 엔드포인트 호출 권한 · `mapping_change_request` 실 운영 사용 여부 · `self::actor()` 해석. **비파괴·미수정** → **MIGRATION_REQUIRED · 5-4 판정 대상**.
+
+### 실측 요약
+- **REAL**: `required_approvals` 정족수 · action_request/mapping_change_request 2계통 · **승인 후 실 집행+정직 상태**(287차 executed/failed/approved_manual) · IDOR 차단(208차) · PriceOpt human-in-loop **`pending_approval`**(239차·PriceOpt.php:1586) · **enforceBudgetCaps 97%**(Threshold 정본·284차) · AnomalyDetection · MFA(mfa_policy).
+- **부재**: Approval Level(역할별 단계) · required_roles · distinct_approver · exclude_requester · 만료/SLA · 철회 · 위임 · Maker-Checker · SoD · Risk Model · Threshold Policy · Auto-Approval Policy · Risk↔required_approvals 연동.
+- **자율 판단 2건**: ①**Quorum ≠ Level**(count 만으로 단계/역할 대체 불가) ②**자동 승인 ≠ 자동 집행**(287/288차 fake-looks-real 재발 방지).
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
