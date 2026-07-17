@@ -104,8 +104,8 @@
 
 | ID | Gap | 근거 | proof |
 |---|---|---|---|
-| **G-01** | **승인 중복 미제거** — 동일 actor 2회 → 정족수 충족 → **Maker-Checker 무효** | `Mapping.php:212` (`$approvals[] = [...]` 무조건 append) · `:214` (`count >= required_approvals`) | `UNVERIFIED` — **실호출 경로·UI 제약 미확인** |
-| **G-02** | **승인 정족수 없음** — 1인 approve → `approved` | `Alerting.php:593` | `UNVERIFIED` |
+| **G-01** | 🔴 **PM 재증명 완료 → `PROVEN` · P1** — **원인 정정: "중복 미제거"가 아니라 행위자 신원 부재**. `actor()` 가 **클라이언트 헤더 `X-User-Email`** 을 읽고(`Mapping.php:22-25`) **프론트는 그 헤더를 안 보냄**(grep 0) → **실 경로에서 actor 는 항상 `'unknown'`** → 1인 2회로 `count>=2` 충족 → **정족수 2 하드코딩**(`:167-168`)이 **1인으로 완주**. `audit_log.actor='unknown'`. **완화**: 무인증 아님(analyst+ 필요) · **UI 소비처 0** · 금전 아님(매핑 정규화) → **P0 아님** | `Mapping.php:22-25/167-168/212/214` · `routes.php:459/461` · 상세=[`PROOF_G01_G02_APPROVAL_QUORUM_REPROOF.md`](PROOF_G01_G02_APPROVAL_QUORUM_REPROOF.md) | **`PROVEN`** |
+| **G-02** | 🔴 **PM 재증명 완료 → `PROVEN`(코드) · verdict `VACUOUS`(위험)** — **정족수를 아예 읽지 않음**(1인 approve → approved). `required_approvals` 유일 히트는 **`:562` 응답 직렬화**("2인 필요"라고 **알리기만** 함 = 표시≠실제·가짜녹색). **단 `INSERT INTO action_request` = 0 → 생산자 전무 → 도달 불가**(287차 "죽은 스켈레톤" 유효). **생산자 배선 시 즉시 P1** | `Alerting.php:562/591-593` · `Db.php:634` · 생산자 grep 0 | **`PROVEN`·`VACUOUS`** |
 | **G-03** | **fail-open** — `team_role` 미설정 → **owner 부여** | `AdminMenu.php:52-54` (주석에 의도 명시 — **레거시 단독회원 호환**) | `UNVERIFIED` — **의도일 가능성 높음** |
 | **G-04** | **무게이트 발송** — `/sms/send`·`/whatsapp/send`·`sendOne`·`/sms/broadcast`·phone DNC 부재 | 06-A Part 2 | `UNVERIFIED` |
 
