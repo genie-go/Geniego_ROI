@@ -19,9 +19,42 @@ final class Mapping {
         return ($t !== null && $t !== '') ? $t : 'demo';
     }
 
+    /**
+     * [289차 G-01 P1] 행위자 신원 — **서버 인증 컨텍스트에서만** 도출한다(위조불가). 미확인 시 null.
+     *
+     * 종전: `$request->getHeaderLine('X-User-Email')` — **클라이언트가 보내는 헤더를 그대로 신뢰**했다.
+     *   ㉠ 헤더값만 바꾸면 다른 승인자가 된다 → **actor 별 dedup 은 actor 가 신뢰 가능할 때만 성립**하므로
+     *      중복 제거만 넣는 것은 무의미했다(재증명 전 최초 진단이 틀렸던 지점).
+     *   ㉡ 더 나쁨: **프론트는 이 헤더를 아예 보내지 않았다**(전수 grep 0) → 실경로에서 actor 는 **항상 'unknown'**
+     *      → 한 사람이 두 번 눌러도 서로 다른 승인으로 집계돼 **정족수 2 충족**(스푸핑조차 불필요)
+     *      → `audit_log.actor='unknown'` 으로 **누가 승인했는지 감사로 알 수 없었다**.
+     *   근거: docs/segmentation/PROOF_G01_G02_APPROVAL_QUORUM_REPROOF.md
+     *
+     * 정본 패턴은 이 클래스에 이미 있었다 — 바로 위 `tenantId()` 가 미들웨어 `auth_tenant`(위조불가)를 쓴다.
+     *   `actor` 만 클라이언트 헤더를 읽고 있었다.
+     */
+    private static function actorId(Request $request): ?string {
+        // ① API 키 경로 — /v418 은 미들웨어가 Bearer api_key 를 요구한다(index.php bypass 미등재).
+        //    auth_key = api_key 행(위조불가·서버 조회). 키 신원이 이 경로의 실 행위자다.
+        $k = $request->getAttribute('auth_key');
+        if (is_array($k) && isset($k['id']) && (int)$k['id'] > 0) {
+            return 'apikey:' . (int)$k['id'];
+        }
+        // ② 세션 사용자 경로(/api 별칭 등) — user_session JOIN app_user 로 서버측 도출.
+        $u = UserAuth::authedUser($request);
+        if (is_array($u)) {
+            $email = trim((string)($u['email'] ?? ''));
+            if ($email !== '') return 'user:' . $email;
+            $uid = (int)($u['id'] ?? 0);
+            if ($uid > 0) return 'user:#' . $uid;
+        }
+        // ③ 신원 미확인 → 승인 경로는 fail-closed(호출측이 403). 'unknown' 으로 얼버무리지 않는다.
+        return null;
+    }
+
+    /** 감사 표기용 — 미확인이어도 로그는 남긴다(무회귀). 승인 판정에는 쓰지 말 것(→ actorId()). */
     private static function actor(Request $request): string {
-        $a = $request->getHeaderLine('X-User-Email');
-        return $a !== '' ? $a : 'unknown';
+        return self::actorId($request) ?? 'unknown';
     }
 
     private static function audit(PDO $pdo, string $actor, string $action, array $details): void {
@@ -146,7 +179,16 @@ final class Mapping {
     public static function propose(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $tenant = self::tenantId($request);
-        $actor = self::actor($request);
+
+        // [289차 G-01] 제안자도 위조불가 신원이어야 한다 — 이 값이 approve() 의 자기승인 차단 기준(requested_by)이다.
+        //   종전엔 제안자·승인자가 **같은 클라이언트 헤더**에서 나왔으므로, 자기승인 차단을 넣어도
+        //   헤더만 바꿔 우회할 수 있었다. 양쪽을 같은 신뢰 소스로 올려야 차단이 성립한다.
+        $actor = self::actorId($request);
+        if ($actor === null) {
+            $response->getBody()->write(json_encode(["detail"=>"requester identity unresolved"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
+
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
 
@@ -196,8 +238,16 @@ final class Mapping {
     public static function approve(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
         $tenant = self::tenantId($request);
-        $actor = self::actor($request);
         $id = (int)($args["req_id"] ?? 0);
+
+        // [289차 G-01] ★행위자 미확인이면 승인 불가(fail-closed).
+        //   종전엔 'unknown' 으로 진행돼 **익명 승인 2회 = 정족수 충족**이었다. Maker-Checker 는
+        //   "서로 다른 두 사람"을 전제하므로, 사람을 특정할 수 없으면 셀 수도 없다.
+        $actor = self::actorId($request);
+        if ($actor === null) {
+            $response->getBody()->write(json_encode(["detail"=>"approver identity unresolved"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
 
         $row = $pdo->prepare("SELECT * FROM mapping_change_request WHERE id=? AND tenant_id=?");
         $row->execute([$id,$tenant]);
@@ -207,8 +257,31 @@ final class Mapping {
             return $response->withStatus(404)->withHeader('Content-Type','application/json');
         }
 
+        // [289차 G-01] 이미 처리된 건에 승인 누적 금지(approved 재승인·applied 후 승인).
+        $curStatus = (string)($r["status"] ?? "");
+        if ($curStatus !== "pending") {
+            $response->getBody()->write(json_encode(["detail"=>"proposal is not pending (status={$curStatus})"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(409)->withHeader('Content-Type','application/json');
+        }
+
+        // [289차 G-01] ★자기 승인 차단 — 제안자==승인자면 Maker-Checker 가 성립하지 않는다.
+        if ((string)($r["requested_by"] ?? "") === $actor) {
+            $response->getBody()->write(json_encode(["detail"=>"self-approval is not allowed (maker-checker)"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
+
         $approvals = $r["approvals_json"] ? json_decode($r["approvals_json"], true) : [];
         if (!is_array($approvals)) $approvals = [];
+
+        // [289차 G-01] ★동일 행위자 재승인 차단(dedup) — 한 사람이 두 번 눌러 정족수를 채우던 경로.
+        //   ※ 이 dedup 은 위 actorId() 가 위조불가일 때만 의미가 있다(그래서 actor 수정이 선행).
+        foreach ($approvals as $a) {
+            if (is_array($a) && (string)($a["user"] ?? "") === $actor) {
+                $response->getBody()->write(json_encode(["detail"=>"already approved by this approver"], JSON_UNESCAPED_UNICODE));
+                return $response->withStatus(409)->withHeader('Content-Type','application/json');
+            }
+        }
+
         $approvals[] = ["user"=>$actor, "ts"=>gmdate('c')];
 
         $status = count($approvals) >= (int)$r["required_approvals"] ? "approved" : "pending";
