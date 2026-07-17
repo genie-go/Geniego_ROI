@@ -100,7 +100,7 @@
 | **PlanPolicy**(RANK · 기능키→최소플랜) | **CANONICAL_AUTHORIZATION_POLICY**(기반·재사용) · **★UI 수동 동기화=MIGRATION_REQUIRED**(5-6) | PlanPolicy.php:14/19-24/41 |
 | **Tenant isolation**(auth_tenant 주입·authedTenant 64·tenant_id=? RLS·IDOR 차단) | **VALIDATED_LEGACY**(재사용·강력) | index.php:97-100 · Alerting.php:580-582 |
 | requireMasterAdmin2(5) / requireSubAdminMenu | **CONSOLIDATION_REQUIRED**(admin Role 3계통 중 1) | 286차 |
-| requirePro / requirePlan(**호출부 351**) | **VALIDATED_LEGACY + CONSOLIDATION_REQUIRED** | UserAuth.php:327-345 |
+| requirePro / requirePlan(호출부 = **실측 필수**: `node tools/measure_authz_surface.mjs` · ~~351~~ **289차 stale 확인**) | **VALIDATED_LEGACY + CONSOLIDATION_REQUIRED** | UserAuth.php:327-345 · [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md) |
 | **team_role fail-open**(미설정=owner) | **★MIGRATION_REQUIRED**(§4.1 Deny-by-default 상충 · **PM 재증명 전 P0 단정 금지** · 5-2 판정) | AdminMenu.php:52-54 |
 | EnterpriseAuth(SAML/OIDC/SCIM) · UserAuth 세션 · MFA(mfa_policy) · OAuth.php | **KEEP_SEPARATE_WITH_REASON**(**인증≠인가**·§4.7) | — |
 | Field Masking(AttributionEngine·ChannelCreds·UserAuth 산재) | **CONSOLIDATION_REQUIRED**(단일 Field Access Profile) | — |

@@ -199,7 +199,7 @@ backend/src/Handlers/UserAuth.php:329
 | ID | 항목 | 등급 |
 |---|---|---|
 | **MR-1-8-01** | 🔴 **팬텀 보존 대상** — guard 배선(MR-1-7-05) **선행 필요** | 🔴 |
-| **MR-1-8-02** | 🔴 **5-1 §53 회귀게이트 `351` → 실측 정정**(방법 명시 필수) | 🔴 |
+| ~~**MR-1-8-02**~~ | ~~🔴 **5-1 §53 회귀게이트 `351` → 실측 정정**(방법 명시 필수)~~ → ✅ **289차 ② CLOSED** — 회귀게이트(`DSAR_AUTHORIZATION_FUNCTION_REGRESSION_GATE.md:19`)의 **값을 제거하고 측정 명령으로 대체**(`node tools/measure_authz_surface.mjs` · [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md)) — **1-8의 "방법 명시 필수" 요구를 값이 아니라 도구로 이행** | ✅ |
 | **MR-1-8-03** | `MeasurementMethod` 도입 — 명령 없는 수치 채택 금지 | 🟠 |
 | **MR-1-8-04** | Preservation Golden 케이스 작성(**지금 가능**) | 🟠 |
 | **MR-1-8-05** | Rebate Golden | 🟢 **불가**(구현 0) — Rebate 도입 시 |

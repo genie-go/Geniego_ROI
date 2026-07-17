@@ -17,7 +17,7 @@
 | **scope 게이트**(`admin:keys`/`write:*`/`write:ingest`) + **★192차 `/api` 별칭 권한상승 차단** | **VALIDATED_LEGACY**(재사용·**영구 규칙: 신규 게이트도 `/api` 변형 동시 매칭**) | index.php:562-575 |
 | **admin master/sub**(requireMasterAdmin2 5핸들러 · requireSubAdminMenu) | **CANONICAL_AUTHORIZATION_ROLE**(3/3) · **CONSOLIDATION_REQUIRED** | 286차 |
 | **PlanPolicy**(`const RANK` · 기능키→최소 요구 플랜 · `rank()`) | **CANONICAL_AUTHORIZATION_POLICY**(기반·재사용) | PlanPolicy.php:19-24/41 |
-| **requirePro / requirePlan**(호출부 **351**) | **VALIDATED_LEGACY** + **CONSOLIDATION_REQUIRED** | UserAuth.php:327-345 |
+| **requirePro / requirePlan**(호출부 = **실측 필수**: `node tools/measure_authz_surface.mjs` · ~~351~~ **289차 stale 확인**) | **VALIDATED_LEGACY** + **CONSOLIDATION_REQUIRED** | UserAuth.php:327-345 · [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md) |
 | **Tenant Isolation**(agency 토큰 **서버바인딩 tenant 주입·위조불가**+최소권한 role) | **VALIDATED_LEGACY**(강력·재사용) | index.php:97-100 |
 | **`authedTenant`**(세션 테넌트 자체해석·**64 핸들러**) · `tenant_id=?` RLS 전역 | **VALIDATED_LEGACY** + **CONSOLIDATION_REQUIRED**(PEP 분산) | 64 핸들러 |
 | **action_request IDOR 차단**(타 테넌트 승인/거부 차단·208차 P0) + 승인 워크플로(decision/approvals_json/status) | **VALIDATED_LEGACY**(Approval 정본·재사용) | Alerting.php:545-546/578-582 |

@@ -103,5 +103,5 @@ AUTHORIZATION_SUBJECT · SUBJECT_BINDING · RESOURCE · RESOURCE_TYPE · ACTION 
 | **team_role**(owner/manager/member) | 메뉴 | **8동작**(view/create/update/delete/approve/export/execute/manage) | tenant_id | **부재** | **부재** | **부재** | acl_permission | TeamPermissions.php:15/17/39 |
 | **api_key role**(viewer/connector/analyst/admin) | API 경로 | HTTP method + **scopes**(admin:keys·write:*·write:ingest) | tenant_id(주입) | **부재** | **부재** | **부재** | rank/scope 게이트 | index.php:554-575 |
 | **admin master/sub** | admin 메뉴 | 부여/요금/DB/쿠폰 | 전역 | **부재** | **부재** | **부재** | requireMasterAdmin2/requireSubAdminMenu | 286차 |
-| **plan gate** | 기능키 | requirePro/requirePlan(**호출부 351**) | tenant | **부재** | 데모 면제 | **부재** | PlanPolicy::RANK | UserAuth.php:327-345 · PlanPolicy.php:19-24 |
+| **plan gate** | 기능키 | requirePro/requirePlan(호출부 = **실측**: `node tools/measure_authz_surface.mjs` · ~~351~~ **289차 stale**) | tenant | **부재** | 데모 면제 | **부재** | PlanPolicy::RANK | UserAuth.php:327-345 · PlanPolicy.php:19-24 · [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md) |
 | (DATA_SCOPES 9종) | — | — | company/brand/team/campaign/product/channel/warehouse/partner/own | — | — | — | — | TeamPermissions.php:41 |

@@ -326,7 +326,11 @@ final class UserAuth
      */
     public static function requirePro(ServerRequestInterface $req, ResponseInterface $res): ?ResponseInterface
     {
-        // [현 차수] ★'유료(starter+)' 게이트로 유지 — 기존 351개 호출부의 실효 동작(무료/데모 차단·유료 통과)을 보존한다.
+        // [현 차수] ★'유료(starter+)' 게이트로 유지 — 기존 전 호출부의 실효 동작(무료/데모 차단·유료 통과)을 보존한다.
+        //   ★289차: 종전 이 줄에 있던 "351개 호출부"는 측정 명령 없이 박힌 값이었고, 문서 15편으로 복제돼
+        //   3개 차수를 살아남았다(실측 시 ~100 적음 → 회귀 범위 ≈30% 누락). 값을 다시 박으면 같은 일이 반복되므로
+        //   수치를 제거한다. 호출부 수가 필요하면 실측하라: node tools/measure_authz_surface.mjs
+        //   (방법·정의·인용 규칙 = docs/segmentation/AUTHZ_SURFACE_MEASUREMENT_SSOT.md)
         //   종전엔 rank 맵이 starter=growth=pro=1 로 붕괴돼 requirePro 가 사실상 'starter+' 였다. rank 맵을 정상
         //   5단계로 고치면서 requirePro 의미를 'starter' 로 명시해 무회귀. 진짜 Pro 전용 기능은 각 핸들러가
         //   requirePlan(...,'pro') 로 별도 강제한다(WMS·라이브커머스·공급망·수요예측·룰엔진 등).

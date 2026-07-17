@@ -152,6 +152,19 @@ grep -rln "351" docs/segmentation/DSAR_AUTHORIZATION_*.md   → 4
 
 **실측(방법 명시)**: A=498 · B=467 · C=458. **어느 방법으로도 351보다 100 이상 많다.**
 
+> ### ★289차 ② 정정 — **이 글롭이 6편을 놓쳤다**
+>
+> 위 `grep -rln "351" docs/segmentation/DSAR_AUTHORIZATION_*.md → 4` 는
+> **`CANONICAL_DSAR_AUTHORIZATION_*.md` 6편을 통째로 제외한다**(접두사 `CANONICAL_`).
+> 289차 재측정: **351 주장 = 코드 1 + 문서 약 15편**(ADR 5 · CANONICAL 6 포함) → **"4벌"은 과소측정**.
+>
+> **1-9는 stale 값의 위험을 정확히 진단하면서, 그 위험의 크기를 자기 글롭 때문에 과소평가했다.**
+> **`measurement_method` 는 값에만 필요한 게 아니라 "개수 주장"에도 필요하다** — 이 줄이 그 증거다.
+>
+> **또한 위 실측값(498/467/458)도 이미 낡았다** — 289차 재측정은 **500/466/450 · 호출부 448**.
+> **정정값조차 stale 이 된다** → **289차는 값을 고치는 대신 값을 제거하고 측정 명령으로 대체**했다:
+> `node tools/measure_authz_surface.mjs` · [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md)
+
 ---
 
 ## §4. 엔티티 정의
@@ -225,7 +238,8 @@ grep -rln "351" docs/segmentation/DSAR_AUTHORIZATION_*.md   → 4
 | ID | 항목 | 등급 |
 |---|---|---|
 | ~~**MR-1-9-01**~~ | ~~🔴 `guard_headerless_getjson` **분류 정정 + 배선** — 3층 오염 근원~~ → ✅ **289차 CLOSED** — G15 배선 + **4층 전부 정정**(5-8 §3-1 · 1-7 L-2 · 1-8 GOLDEN-GAP-01 · 1-9 LEGACY-GAP-01) | ✅ |
-| **MR-1-9-02** | 🔴 **351 4벌 정정**(방법 명시 · 값 복사 금지) | 🔴 |
+| ~~**MR-1-9-02**~~ | ~~🔴 **351 4벌 정정**(방법 명시 · 값 복사 금지)~~ → ✅ **289차 ② CLOSED** — **값을 고치지 않고 값을 제거**했다: `tools/measure_authz_surface.mjs`(측정기) + [측정 SSOT](./AUTHZ_SURFACE_MEASUREMENT_SSOT.md) 신설 · **발원지(UserAuth.php 주석) + 정본 분류표 3편 + 회귀게이트** 정정 | ✅ |
+| **MR-289-02a** | 🟠 잔여 §53·ADR **약 11편의 `351` 인용** → SSOT 포인터 교체(**인용 시 재측정 규칙(SSOT §4)으로 이미 무해화**) | 🟠 |
 | **MR-1-9-03** | Role 3계통 · PEP 100+ 통합 — **`EquivalenceProof` 선행 필수** | 🟠 |
 | **MR-1-9-04** | `DelegationLedger` 도입 | 🟠 |
 
