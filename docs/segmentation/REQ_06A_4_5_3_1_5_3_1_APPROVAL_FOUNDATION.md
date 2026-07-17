@@ -180,25 +180,25 @@ APPROVAL_CANDIDATE · APPROVAL_EVIDENCE · APPROVAL_AUDIT_EVENT
 
 | 스펙 § | 대상 | 항목 수 |
 |---|---|---|
-| §6 | Approval Domain Type | **31** |
-| §7 | Approval Request 필수 필드 | **31** |
+| §6 | Approval Domain Type | ~~31~~ → **32** 🔴 |
+| §7 | Approval Request 필수 필드 | ~~31~~ → **35** 🔴 |
 | §7 | Request Type | **24** |
-| §8 | Approval Request Version 필드 | **19** |
+| §8 | Approval Request Version 필드 | ~~19~~ → **21** 🔴 |
 | §8 | Version Type | **10** |
 | §9 | Approval Request Resource 필드 | **15** |
 | §9 | Relationship Type | **11** |
 | §10 | Approval Request Action 필드 | **15** |
-| §11 | Approval Request Context 필드 | **23** |
-| §12 | Approval Case 필드 | **26** |
+| §11 | Approval Request Context 필드 | ~~23~~ → **24** 🔴 |
+| §12 | Approval Case 필드 | ~~26~~ → **28** 🔴 |
 | §13 | Case↔Request 관계 (지원 6 · 금지 5) | **11** |
-| §14 | Approval Case Version 필드 | **15** |
-| §15 | Approval Item 필드 | **25** |
+| §14 | Approval Case Version 필드 | ~~15~~ → **16** 🔴 |
+| §15 | Approval Item 필드 | ~~25~~ → **24** 🔴 (REQ 과다) |
 | §15 | Item Type | **14** |
 | §16 | Item 처리 방식 (지원 10 · 차단 5) | **15** |
-| §17 | Approval Requirement 필드 | **25** |
+| §17 | Approval Requirement 필드 | ~~25~~ → **26** 🔴 |
 | §17 | Requirement Type | **20** |
 | §18 | Requirement Source Type | **16** |
-| §18 | Requirement Source 필드 | **9** |
+| §18 | Requirement Source 필드 | ~~9~~ → **10** 🔴 |
 | §19 | Participant Type | **15** |
 | §19 | Participant 필드 | **15** |
 | §20 | Approval Actor 필드 | **22** |
@@ -212,7 +212,7 @@ APPROVAL_CANDIDATE · APPROVAL_EVIDENCE · APPROVAL_AUDIT_EVENT
 | §25 | Decision Condition 종류 | **17** |
 | §25 | Decision Condition 필드 | **11** |
 | §26 | Decision Obligation | **16** |
-| §27 | Request Status | **25** |
+| §27 | Request Status | ~~25~~ → **26** 🔴 |
 | §27 | Case Status | **22** |
 | §28 | Status History 필드 | **12** |
 | §29 | Request 허용 전이 | **22** |

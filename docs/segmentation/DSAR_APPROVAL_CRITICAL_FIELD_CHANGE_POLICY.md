@@ -50,10 +50,10 @@
 
 | placeholder(자작·폐기) | 원문 §31 | 성격 |
 |---|---|---|
-| `payee_id` · `payee_bank_account` | **Beneficiary**(#9) · **Payout Destination Reference**(#14) · **Settlement Destination**(#13) | 개념↔컬럼 혼동 · 원문이 **더 넓음** |
+| `payee_id` · `payee_bank_account` | **Beneficiary**(#9) · **Settlement Destination**(#14) · **Payout Destination Reference**(#15) | 개념↔컬럼 혼동 · 원문이 **더 넓음** |
 | `rate`/`rebate_rate` · `discount_rate` · `cost_center` · `tax_treatment`/`vat_flag` · `item_count` · `total_amount` · `resource_id` · `resource_type` | **없음** | **자작**(원문 미포함) |
-| `effective_from` · `effective_to` | **Effective Date**(#17) 1축 | 축 분해 자작 |
-| — | **Program Version**(#5) · **Claimant**(#10) · **Funding Party**(#11) · **Funding Allocation**(#12) · **Provider Account**(#15) · **Migration Source/Target**(#18/#19) · **Data Export Scope**(#20) · **Sensitive Data Classification**(#21) | **원문에 있으나 placeholder 전면 누락** |
+| `effective_from` · `effective_to` | **Effective Date**(#18) 1축 | 축 분해 자작 |
+| — | **Program Version**(#5) · **Claimant**(#10) · **Funding Party**(#11) · **Funding Allocation**(#12) · **Provider Account**(#16) · **Migration Source/Target**(#19/#20) · **Data Export Scope**(#21) · **Sensitive Data Classification**(#22) | **원문에 있으나 placeholder 전면 누락** |
 
 ⇒ **원문이 정본.** 특히 **Migration Source/Target · Data Export Scope · Sensitive Data Classification** 은 placeholder 에 없던 **DSAR·마이그레이션 축**으로, 본 EPIC(DSAR) 맥락에서 결정적이다. `rate`·`vat_flag` 등 자작 컬럼은 요구 분모에서 **폐기**한다(§6 Domain Type 별 확장은 별도 근거 필요).
 
