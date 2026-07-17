@@ -240,3 +240,17 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **실측 정정**: 정본 로드맵은 전 세션 산출물 `CANONICAL_DSAR_REBATE_PROGRAM_MASTER_REGISTRY.md:7` 에 이미 존재 — **1-2 Type / 1-3 Funding / 1-4 Lifecycle / 1-5 Permission / 1-6 Coverage / 1-7 Lint / 1-8 Golden / 1-9 Legacy**. 실제 진척 = **1-1~1-4(4/9)**.
 - **조치**: 5개 문서쌍을 **선행설계 R1~R5** 로 재표기(내용·실측 근거는 유효) · PM 이력 오보고 정정 · **RP-001** 등재(재발방지: 후속 파트 착수 전 Part 1 §범위 필독 · 파트 번호 추정 부여 금지). 커밋 d65e61296aa.
 - **산출**: R1(Rule/Tier/Calculation) · R2(Eligibility/Enrollment) · R3(Accrual/Ledger/Balance) · R4(Claim/Settlement/Payout) · R5(Recovery/Clawback/Dispute) — 각 Canonical 2종 + ADR. **전부 비파괴·코드변경 0**.
+
+---
+
+## AE-289-10 — EPIC 06-A Part 4-5-3-1-5-8 (Permission 8/8 · 1-5 종결)
+
+- **스펙**: ⚠️ **미수령 — 자율 판단 설계**. 스펙 수령 시 산출물이 양보.
+- **산출**: `CANONICAL_DSAR_AUTHORIZATION_STATIC_LINT_RUNTIME_GUARD.md`(E-01~E-12) · `CANONICAL_DSAR_AUTHORIZATION_GOLDEN_DATASET_CERTIFICATION.md`(E-01~E-12) · `ADR_DSAR_REBATE_AUTHORIZATION_LINT_GUARD_CERTIFICATION.md`. **코드 변경 0**.
+- **실측 REAL**: CI **GATE 1~5**(`deploy.yml:45` 팬텀자산 / `:48` 라우트+php -l / `:53` rules-of-hooks+no-undef / `:59` 빌드 / `:64` **E2E 스모크(데모 대상)**) · `security-scan.yml:51/56` npm audit+CodeQL · pre-commit **B1~B4**(`:23` .bak / _quarantine / NEXT_SESSION 크기 / **secret-shaped**) · `guard_channel_writeback` 배선 **REAL**(`pre-commit:175`) · `baseline.json`(**sacred_sha**·267차) · e2e 3계층(`package.json:4-6` smoke/render/scenarios·266차).
+- **★결함 3건(코드 증명)**: ①🔴 **GUARD-GAP-01 `tools/guard_headerless_getjson.mjs` 호출처 0** — 파일 실재(275차)하나 `.github/`·`.githooks/`·`package.json` 전수 grep **히트 0** = **단 한 번도 자동 실행 안 됨**. 대조군 `guard_channel_writeback`은 `pre-commit:175` 배선 REAL → **배선 가능했는데 이것만 누락**. **인계서의 "REAL" 기록은 파일 실재만 본 서술 → 5-8이 정정**. ②🟠 **GUARD-GAP-02 pre-commit 강제 아님** — CI 미실행(grep 0) + `core.hooksPath`는 **클론별 로컬 config**(새 클론/CI runner는 B1~B4 전부 미실행) + `--no-verify` 우회 명시 → **B4(자격증명 유출 차단)가 opt-in**. ③🟠 **GUARD-GAP-03 권한 Lint/Guard 전무** — bypass list(143조건) 한 줄 추가 = 무인증 공개인데 검사 없음(**279차 무인증 db_restore 경로**).
+- **자율 판단**: ①**신설 금지·GATE 확장**(게이트 2벌=정본 소실=288차 가짜녹색 재발) ②**`GuardWiringRule` 메타가드** — 교훈은 "가드 추가"가 아니라 **"가드 배선을 아무도 검사 안 함"** → `tools/guard_*.mjs` 호출처 0 = BLOCK ③**Ratchet**(R0측정→R1 baseline 동결→**R2 신규위반만 BLOCK**→R3 감축) — 즉시 BLOCK 하면 레거시로 마비→**개발자가 Lint를 끔** ④🔴**DENY 우선** — ALLOW는 기능테스트가 커버, **권한의 존재이유는 DENY이고 정상사용 중 실행 안 되므로 명시검증 없이는 영원히 미검증** → **DENY ≥ ALLOW** · `expected_reason` 필수(엉뚱한 이유 DENY=초록인데 고장). 5-7 "ALLOW샘플링·DENY전량"과 동일 원리 ⑤**라우트 자동도출**(281차 `render.mjs` 119라우트 패턴) — 손으로 나열=**신규 라우트 영원히 누락** ⑥**C-1~C-4=100% 완화불가**(99% 막고 1% 뚫리면 그 1%로 전부 뚫림) **단 C-7 Lint Coverage 임계 미설정** — 임계 세우면 **측정가능 규칙만 쓰는 왜곡** ⑦**인증은 커밋 SHA 결속**("작년에 인증"은 증거 아님) ⑧**배선 1줄도 본 세션 수정 안 함**(코드변경 0).
+- **정직 표기(인증 못 하는 것)**: 규칙 자체 타당성(설계가 틀리면 **틀린 대로 100% 통과**) · 미설계 영역 · **GATE 5는 데모 대상**(ABAC 실데이터 의존 시 운영과 상이 가능) · RP-001류 절차결함(**절차는 절차로 막음**).
+- **인용 검증**: 5건 중 **1건 오차 자기정정**(pre-commit B1 `:21`→**`:23`**).
+- **1-5 종결**: 5-1~5-8 **총 코드변경 0**. 관통 판정 = Authorization은 **부재 아닌 존재·분산** → 결론 일관되게 **신설 아닌 통합**. **자기정정 6건**(RP-001 · requirePro 주석351→실측455 · R3 hash-chain "부재"→**REAL**(menu_audit_log) · 설계 순환참조 · 5-2 grep FP 3건 · guard 배선 0).
+- **인계 MIGRATION_REQUIRED 누적 12건** — 전부 승인 세션 대상. **본 세션 수정 0**(FP 레지스트리: PM 코드 재증명 전 P0 단정 금지).

@@ -436,3 +436,32 @@ docs/segmentation/{SEGMENTATION_PLATFORM_INVENTORY,SEGMENT_RISK_REGISTER,SEGMENT
 
 ### 완료 기준(다음 개발자)
 docs/data/DATA_ARCHITECTURE.md 의 "구현됨" 재구현 금지. 대행사·데이터소스·품질·계보는 배선 완료·배포됨.
+
+---
+
+## 289차 — EPIC 06-A Part 4-5-3-1-5-8 (Authorization Lint/Guard/Golden/Certification · **Permission 1-5 종결**)
+
+### 범위
+Part 1-5(Permission) **마지막 블록 8/8**. 5-1~5-7 권한 **규칙**에 **강제 장치**를 부여하고 1-5를 종결. ⚠️**스펙 미수령 — 자율 판단 설계**.
+
+### 산출 (비파괴 · **코드변경 0**)
+- `docs/segmentation/CANONICAL_DSAR_AUTHORIZATION_STATIC_LINT_RUNTIME_GUARD.md`
+- `docs/segmentation/CANONICAL_DSAR_AUTHORIZATION_GOLDEN_DATASET_CERTIFICATION.md`
+- `docs/architecture/ADR_DSAR_REBATE_AUTHORIZATION_LINT_GUARD_CERTIFICATION.md`
+
+### 핵심 판정
+**게이트 뼈대는 이미 REAL이고 강력** → **신설이 아니라 GATE 확장**(Golden Rule). CI **GATE 1~5** + security-scan(npm audit·CodeQL) + pre-commit **B1~B4** + `baseline.json`(sacred_sha) + e2e 3계층.
+
+### ★결함 3건 (실측 증명)
+1. 🔴 **고아 가드** — `tools/guard_headerless_getjson.mjs` **호출처 0**. 파일은 실재(275차)하나 **CI·hook·package.json 어디서도 실행 안 됨** → headless getJson 회귀 **무방비**. 대조군 `guard_channel_writeback`은 `pre-commit:175` 배선 REAL. **가드 자신이 가짜녹색**인 사례.
+2. 🟠 **pre-commit 미강제** — CI에서 미실행 + `core.hooksPath` **클론별 opt-in** + `--no-verify` 우회 → **B4(자격증명 유출 차단)가 협조하는 개발자에게만 작동**.
+3. 🟠 **권한 Lint 0** — bypass list(143조건) 한 줄 = 무인증 공개인데 검사 없음(279차 무인증 db_restore 경로).
+
+### 테스트/검증
+설계 문서만 — 코드·CI·hook **무수정**. 인용 5건 실측 검증(**1건 자기정정**: pre-commit B1 `:21`→`:23`).
+
+### 리스크/잔여
+**MIGRATION_REQUIRED 누적 12건**(무게이트 발송 P0후보 · `Mapping.php:212` 승인 중복제거 없음 → **1인 2회로 정족수 충족** · `Alerting.php:593` 정족수 없음 · `AdminMenu.php:52-54` fail-open · 금전원장 hash-chain · **guard 배선 1줄** 등). **전부 승인 세션 대상 · 본 세션 수정 0**(FP 레지스트리 — **PM 코드 재증명 전 P0 단정 금지**).
+
+### 완료 기준(다음 개발자)
+5-1~5-8 산출물 **재설계 금지**. 잔여 로드맵 = **1-6 Coverage / 1-7 Lint Certification / 1-8 Golden / 1-9 Legacy**. ⚠️**1-7·1-8은 5-8과 주제 중복** — 5-8은 **Permission 한정**, 1-7·1-8은 **06-A 전체**로 보이나 **추정 금지 · 착수 전 로드맵(`CANONICAL_DSAR_REBATE_PROGRAM_MASTER_REGISTRY.md:7`) 재확인 필수**(RP-001 재발방지).
