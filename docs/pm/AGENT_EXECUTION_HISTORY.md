@@ -178,6 +178,36 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 
 ---
 
+## AE-289-08 — EPIC 06-A Part 4-5-3-1-5-6 (Runtime Authorization·API/UI Enforcement·PDP Infrastructure)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★스펙 미수령·자율 판단(사용자 명시 승인)** — 세부 자율임을 Canonical 2 + ADR 전부 명시 · **§요구 부재 → 완료 조건 판정 불가 · §53/§59 없음**.
+
+### ★분산 규모 수치 확정 (실측)
+| 축 | 실측 |
+|---|---|
+| 라우트 총수 | **1,448**(routes.php) |
+| PEP ① 미들웨어 | **1개소 · bypass 조건 143 / index.php 667 라인** |
+| PEP ② `authedTenant` | **64 핸들러** |
+| PEP ③ `requirePro`/`requirePlan` | **56 핸들러 · 호출부 465(정의부 제외 455)** |
+| PEP ④ `requireMasterAdmin2` | **5 핸들러** |
+| 중앙 PDP · Cache · PEP/Bypass Registry · Coverage · Drift 탐지 | **전부 부재** |
+
+### ★자기 인용 정정 (중요)
+**`requirePro` 호출부는 351 이 아니라 455 다** — 5-1~5-5 에서 인용한 "호출부 351" 은 **코드 주석 값**(UserAuth.php:329·**286차 시점**)이었고 **현재 실측은 465(정의부 제외 455)**. **주석 작성 후 100+ 증가** → **★"PEP 분산이 계속 심화 중"** 이라는 신호(5-1 §51 이 경고한 "PEP 를 101번째로 추가"가 실제 진행 중). **주석 인용을 실측으로 오인한 오류** — 앞선 파트 표기를 본 블록에서 정정.
+
+### ★5-5 위임 판정 (자율·위험도 하향)
+5-5 가 "Revocation 경로 불일치(SCIM 만 즉시 세션 삭제)"를 Critical 후보로 넘겼으나 — **본 블록 실측: Authorization Cache 부재 + 판정이 요청마다 DB 재조회**(authedTenant·requirePlan) → **Role/plan 변경은 다음 요청부터 즉시 반영** → **"Revoked 권한 접근 지속" 위험은 설계상 낮음**. **★단 캐시를 도입하는 순간 실재화** · 계정 비활성화 시엔 SCIM 처럼 세션 삭제 필요. **PM 재증명 전 확정 금지**.
+
+### 자율 판단 4건
+①**PDP 3단계 점진 통합** — **Adapter 위임**(기존 게이트 내부에서 PDP 호출·동작 동일=회귀 0) → PEP Registry 전수 매핑 → 신규만 직결 · **기존 455 호출부 불변**(286차 rank 붕괴가 의미 변경 위험을 증명) ②**Bypass 핵심 필드 = `self_auth_mechanism`**(bypass 143 은 "무인증"이 아니라 "다른 수단 위임" · 이 값이 비면 진짜 무인증=Critical) ③**UI/API 드리프트 두 방향의 위험이 다르다**(UI차단·API허용=**CRITICAL 잠복** / UI허용·API거부=HIGH 즉시발견 · **286차 rank 붕괴는 전자**) ④**UI Projection 3방식**(런타임 투영 권장이나 planMenuPolicy.js 가 "fallback 정본" 역할을 겸해(:6) 선해소 필요 → **CI 대조 가드가 현실적 1단계**·275차 선례).
+
+### ★권한 소스 2개가 이미 2번 사고
+백엔드 `PlanPolicy` ↔ 프론트 `frontend/src/auth/planMenuPolicy.js`(`MENU_MIN_PLAN` :25·`PLAN_TIER_RANK` :91)가 **수동 동기화**(주석 :14). 사고 = **286차 rank 맵 붕괴** · **275차 헤더리스 getJson 401 회귀 2차 재발**(→ CI 가드로 클래스 제거). → **★신설 권장 `guard_plan_policy_drift.mjs`**(275차 가드와 동일 클래스 확장) · **"양쪽 동시 갱신"을 사람에게 의존 금지**.
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
