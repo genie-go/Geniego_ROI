@@ -41,13 +41,14 @@ if echo "$STAGED" | grep -qx 'NEXT_SESSION.md'; then
   fi
 fi
 
-# B4 — secret-shaped patterns in staged diff (excluding .githooks/ self + lockfiles)
-SECRETS=$(git diff --cached -U0 -- ':!.githooks/' ':!*lock.json' ':!*.lock' | grep -E '^\+' | grep -iE \
-  '(password\s*=\s*["'\''][^"'\'']{4,}|api[_-]?key\s*=\s*["'\''][^"'\'']{8,}|BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY|aws_secret_access_key|-----BEGIN CERTIFICATE-----)' \
-  || true)
-if [ -n "$SECRETS" ]; then
+# B4 — secret-shaped patterns in staged diff
+#   [289차 ④] 규칙을 tools/scan_secrets.sh 로 이관(SSOT). CI(security-scan.yml)가 **같은 스크립트**를 호출한다.
+#   종전엔 정규식이 이 파일에만 있었고 pre-commit 은 로컬 opt-in(hooksPath=클론별 · --no-verify 우회)이라
+#   B4 가 사실상 opt-in 이었다. 정규식을 CI 에 복사하면 규칙이 두 벌로 갈라져 따로 낡으므로(289차 ② '351 5벌'과
+#   같은 클래스) 호출처를 하나로 둔다. 규칙 변경은 tools/scan_secrets.sh 한 곳만 고치면 양쪽에 반영된다.
+#   ★출력은 값을 마스킹한다 — 유출을 잡는 도구가 로그로 유출하면 안 된다.
+if ! bash tools/scan_secrets.sh --staged; then
   fail "B4: secret-shaped lines added to staging"
-  echo "$SECRETS" | head -5 | sed 's/^/   /'
 fi
 
 # G2 — Sacred SHA check (ja.js, zh.js)

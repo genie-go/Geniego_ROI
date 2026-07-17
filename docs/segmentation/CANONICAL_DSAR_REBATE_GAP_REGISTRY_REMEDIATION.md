@@ -118,8 +118,9 @@
 | ID | Gap | 근거 |
 |---|---|---|
 | ~~**G-05**~~ ✅ **CLOSED(289차)** | ~~`guard_headerless_getjson.mjs` **호출처 0** — 275차 이래 미실행~~ → **`.githooks/pre-commit` G15 배선** | **양방향 실증**: 위반 stage→**hook exit 1 차단** · 정상 import→**G15 통과** · 저장소 **위반 0건**. 가드 파일 **무수정**(275차 원본이 처음부터 옳았음) |
-| **G-05b** | **G15 가 CI 에선 여전히 미실행** — 로컬 pre-commit 배선까지만. `core.hooksPath`=클론별 config · `--no-verify` 우회 | **G-06 과 동일 근본** → **병합 추적**(별도 해결 금지 — 한 번에 CI 승격) |
-| **G-06** | pre-commit **CI 미강제 · 클론별 opt-in · `--no-verify` 우회** → **B4(자격증명 차단)가 opt-in** | workflows grep 0 |
+| ~~**G-05b**~~ 🟡 **부분 해소(289차 ④)** | ~~**G15 가 CI 에선 여전히 미실행**~~ → **`security-scan.yml` `repo-guards` 잡에서 실행**(차단 게이트·`continue-on-error` 없음) | **잔여 = 브랜치 보호 부재**(아래 G-06b) |
+| ~~**G-06**~~ 🟡 **부분 해소(289차 ④)** | ~~pre-commit **CI 미강제** → **B4 가 opt-in**~~ → **B4 규칙을 `tools/scan_secrets.sh` 로 SSOT 이관** 후 **훅·CI 양쪽이 같은 스크립트 호출** · CI `repo-guards` 에서 커밋범위 스캔 | **양방향 실증**: 시크릿 stage → 차단(값 마스킹 확인) · 정상 → 통과 · `--range`/all-zero SHA 폴백 검증 |
+| **G-06b** | 🔴 **탐지≠예방** — 브랜치 보호·required check **부재** → master **직 push 시 `repo-guards` 실패가 배포를 막지 못하고 사후 통보만** 한다(`deploy.yml` 은 독립 트리거). `--no-verify` 도 여전히 유효 | **GitHub 저장소 설정 = 코드로 해결 불가 · 사용자 결정사항**. ★**"CI 가드 있음 = 안전"으로 읽으면 275차 오독의 재현** |
 
 ### 4-3. `PARTIAL`
 
