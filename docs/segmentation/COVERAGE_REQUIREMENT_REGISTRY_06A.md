@@ -69,7 +69,9 @@ grep -rln "스펙 미수령\|위임도 스펙도 없다" docs/segmentation/   # 
 | **1-4** (선행 Canonical) | — | ⚠️ `UNVERIFIED` | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
 | **1-5 / 5-1** Permission Foundation·Policy Decision | AUTHORIZATION_FOUNDATION · POLICY_DECISION | ✅ 존재(`"스펙 요구(§6 Canonical Entity)"` · `"§6 스펙 명시"` 인용) · **원문 소멸** | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
 | **★5-2** Role·Org·Tenant·Workspace·Scope | ROLE_ORGANIZATION_SCOPE | ✅ **스펙 v1.0 수령**(289차) | ✅ **true** → [`REQ_06A_4_5_3_1_5_2_ROLE_ORG_SCOPE.md`](./REQ_06A_4_5_3_1_5_2_ROLE_ORG_SCOPE.md) | ✅ **영속됨(축별로 다름 — §2-2)** | ✅ **계산 가능** — 289차 보고 **§53 축 57/57 = 100%** |
-| **5-3** Approval·Risk | APPROVAL_WORKFLOW · RISK_BASED_DECISION | ❌ **미수령 — 자율본** | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
+| ~~**5-3**~~ **5-3(자율본)** | APPROVAL_WORKFLOW · RISK_BASED_DECISION | ❌ 미수령 — 자율본 → **289차 스펙 도착으로 양보**(RP-002 · 삭제 없이 보존) | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` — **분모 없이 만든 설계**(측정 대상 아님) |
+| **★5-3-1** Approval Foundation & Canonical Approval Entity | (본 블록 산출) | ✅ **스펙 v1.0 수령**(289차) — Approval Engine **10블록 분할 중 1번째** | ✅ **true** → [`REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md`](./REQ_06A_4_5_3_1_5_3_1_APPROVAL_FOUNDATION.md) | ✅ **영속됨(축별 — REQ §14)** | **측정 가능** — 산출 문서 축 **58** |
+| **5-3-2 ~ 5-3-10** Approval Engine 후속 9블록 | 미착수 | ⏳ **스펙 대기** — 10블록 분할 확정(5-3-1 스펙 §1) | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` — **아직 요구가 없다**(부재형 §3-(b)) |
 | **5-4** Maker-Checker·SoD·Delegation | MAKER_CHECKER_SOD · DELEGATION_IMPERSONATION | ❌ **미수령 — 자율본** | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
 | **5-5** JIT·Break Glass | JIT_TIME_BOUND_PRIVILEGE · EMERGENCY_BREAK_GLASS | ❌ **미수령 — 자율본** | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
 | **5-6** Runtime Enforcement·UI/API | RUNTIME_ENFORCEMENT · UI_API_CONSISTENCY | ❌ **미수령 — 자율본** | 🔴 **false** | 부재 | 🔴 `NOT_COMPUTABLE` |
@@ -105,10 +107,15 @@ grep -rln "스펙 미수령\|위임도 스펙도 없다" docs/segmentation/   # 
 
 | 항목 | 값 |
 |---|---|
-| 블록 총수(원장 등재) | **16** |
-| `source_persisted = true` | **1** (5-2) |
-| 🔴 `NOT_COMPUTABLE` | **15** |
-| **06-A 전체 커버리지** | 🔴 **`NOT_COMPUTABLE`** — 15/16 블록의 분모 부재 |
+| 블록 총수(원장 등재) | **18** (289차 5-3 스펙 수령으로 5-3-1 · 5-3-2~10 행 추가) |
+| `source_persisted = true` | **2** (5-2 · **5-3-1**) |
+| 🔴 `NOT_COMPUTABLE` | **16** |
+| **06-A 전체 커버리지** | 🔴 **`NOT_COMPUTABLE`** — 대다수 블록의 분모 부재 |
+
+> **289차 갱신**: 5-3 스펙 v1.0 수령 → **절차 ⓐ대로 설계 착수 전에 분모 영속** → `source_persisted` **1 → 2**.
+> ★**이것이 §4 절차의 두 번째 실증**이다. 5-2 는 "스펙이 도착해서" 가능했고,
+> **5-3-1 은 "도착 즉시, 설계 전에 적어서" 가능**했다 — **분모는 발견하는 게 아니라 지키는 순서에서 나온다.**
+> ⚠️ **`2/18` 을 커버리지로 적지 말 것**(§2-1 경고와 동일 — 그건 분모 보유 비율이다).
 
 > **06-A 전체 커버리지를 "6.25%(1/16)" 로 적지 말 것.** 그건 **블록 중 분모가 있는 비율**이지
 > **커버리지가 아니다**(1-6 E-01: **축 혼합 금지**). 커버리지는 **요구 대비 산출**이며,
