@@ -254,3 +254,17 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **인용 검증**: 5건 중 **1건 오차 자기정정**(pre-commit B1 `:21`→**`:23`**).
 - **1-5 종결**: 5-1~5-8 **총 코드변경 0**. 관통 판정 = Authorization은 **부재 아닌 존재·분산** → 결론 일관되게 **신설 아닌 통합**. **자기정정 6건**(RP-001 · requirePro 주석351→실측455 · R3 hash-chain "부재"→**REAL**(menu_audit_log) · 설계 순환참조 · 5-2 grep FP 3건 · guard 배선 0).
 - **인계 MIGRATION_REQUIRED 누적 12건** — 전부 승인 세션 대상. **본 세션 수정 0**(FP 레지스트리: PM 코드 재증명 전 P0 단정 금지).
+
+---
+
+## AE-289-11 — EPIC 06-A Part 4-5-3-1-6 (Coverage + Gap)
+
+- **스펙**: ⚠️ **미수령 — 자율 판단 설계**.
+- **RP-001 준수**: 착수 전 로드맵 확인 — `CANONICAL_DSAR_REBATE_PROGRAM_MASTER_REGISTRY.md:7`("후속 4-5-3-1-2~9 …/**Coverage**/Lint/Golden/Legacy") + 동 §1(후속 블록 엔티티 **`COVERAGE·GAP`** 명시) → **1-6 = Coverage + Gap 확정. 추정 아님**.
+- **산출**: `CANONICAL_DSAR_REBATE_COVERAGE_MEASUREMENT.md`(E-01~E-12) · `CANONICAL_DSAR_REBATE_GAP_REGISTRY_REMEDIATION.md`(E-01~E-12 + **Gap 원장 14건**) · `ADR_DSAR_REBATE_COVERAGE_GAP_REGISTRY.md`. **코드 변경 0**.
+- **재측정(선행문서 미인용)**: Rebate 부재 **직접 재증명** — `rebate`·`scan-back`·`scanback`·`bill-back`·`billback`·`ship-and-debit`·`MDF`·`co-op`·`coop` **9/9 `backend/src/` 히트 0** → **1-1 판정 유효**. 설계 산출 실측: CANONICAL_DSAR_* **90** · §53 **101**(REBATE 54 + AUTHORIZATION 47) · ADR_DSAR_* **39**.
+- **★발견 2건**: ①🔴 **COV-GAP-01 분모 부재** — `grep "§53"` on 5-1 Canonical 2종 = **0**. **요구 목록이 저장소에 없음**(스펙은 채팅에만 존재·컨텍스트 소멸) → **커버리지 원리적 계산 불가**. ②🔴 **COV-GAP-02 자기보고 불일치** — `PM_CHANGE_HISTORY.md:294` "§53 산출 문서 52종 신설" ↔ 실측 `ls DSAR_AUTHORIZATION_*.md` **47**(`git ls-files` 동일 47 = **유실 아님**). 대조군 **REBATE 측은 보고 49 ↔ 실측 49 일치** → 집계는 가능했고 AUTHORIZATION 만 어긋남. **(a)5건 누락 / (b)과대집계 판별 불가**(COV-GAP-01 의존) → **`UNVERIFIED`**.
+- **자율 판단**: ①🔴**4축 분리·종합 % 금지**(Design/Implementation/Data/Verification) — 06-A는 **설계 두껍고 구현 0%**, 합치면 "설계 100%"가 "완료 100%"로 읽힘 = **288차 가짜녹색 문서판** ②**측정 블록은 측정 대상 자기보고를 인용하지 않음**(1-1 "부재" 직접 재grep) ③🔴**`source_persisted=false` 요구는 분모 제외** — **세션 컨텍스트는 저장소가 아님**(06-A 소급 시 현 분모 대부분 무효) ④🔴**우선순위 = 운영영향 × 오신뢰(Gap 크기 아님)** — **ABSENT(Rebate 전체)가 최대 Gap이자 최하위**(없는 기능은 오작동 안 함) · **`Mapping.php:212`가 원장 최상위**(운영 중 + **Maker-Checker 가 있다고 믿는 상태로 없음**) · **오신뢰가 결정 인자 — 믿음이 있는 곳에서만 사고가 남** ⑤**`UNVERIFIED` 등재하되 등급 부여 금지**("모르면 P0"도 "모르면 무시"도 틀림) ⑥**`GapAging`** — 등재가 면죄부 되지 않게(방치 = 진짜 실패) ⑦**측정 인프라 신설 금지** — `baseline.json`(기준선 동결) · **`render.mjs` 119라우트 자동도출**(**분모 자동산출 선례 — 06-A가 정확히 이걸 안 해서 D-3/D-4 발생**) 확장.
+- **Gap 원장 14건**: DEFECT 4(**G-01 `Mapping.php:212` 승인 중복 미제거→1인 2회로 정족수 충족** · G-02 `Alerting.php:593` 정족수 없음 · G-03 `AdminMenu.php:52-54` fail-open(**주석이 의도 명시 — 결함 아닐 가능성 상당**) · G-04 무게이트 발송) · WIRING 2(G-05 guard 호출처 0 · G-06 pre-commit 미강제) · PARTIAL 4 · UNVERIFIED 4(G-13 분모부재 · G-14 52vs47) · ABSENT 1(G-15 Rebate 전체). **전부 `UNVERIFIED`/미수정 — PM 재증명 대상**.
+- **인용 검증**: `Mapping.php:212/214` · `Alerting.php:593` · `AdminMenu.php:52-54` · `PM_CHANGE_HISTORY.md:294` **4/4 일치**.
+- **자기 지적**: **COV-GAP-01 이 1-6 자신에게도 적용** — 1-6 스펙도 미수령 → **1-6 커버리지도 계산 불가**. **Gap 14건은 발견된 것이지 전부가 아니며 미발견 수를 0으로 보고하지 않음**.
