@@ -37,15 +37,25 @@ BPMN/Temporal/Camunda/Flowable/Zeebe/StepFunctions `backend/src` **grep 0** 은 
 ### D-4. 정족수·Maker-Checker = **신설 금지 · 위치 이동**
 `Mapping.php:245-290` 5단 규율(위조불가 신원 fail-closed `actorId` → 자기승인 403 → 승인자 dedup 409 → 비-pending 409 → 정족수)을 **공용 트레이트/서비스로 추출**. **재작성 시 289차 G-01이 닫은 우회로(익명 2회 = 정족수)를 다시 연다.** **신규 작성이 아니라 위치 이동이다.** `EquivalenceProof` 선행 없이 통합 금지(286차 rank 맵 붕괴 재현).
 
-### D-5. 승인 지형 = **"중복 4벌"이 아니라 "1 REAL + 3 미달"**
+### D-5. 승인 지형 = **"중복 4벌"이 아니라 ~~"1 REAL + 3 미달"~~ → ★"2 REAL + 2 미달"** (289차 10회차 정정)
+
+> 🔴🔴 **초판 정정 — 이 표의 4번째 행이 틀렸다.** 초판은 **테이블 `catalog_writeback_approval`** 을 보고 "고아"라 판정했으나, **승인 능력은 그 테이블이 아니라 `catalog_writeback_job.status='pending_approval'` 경로에 살아 있다.** **테이블은 죽었고 능력은 살아 있다** — 289차 5-3-3-2 에서 최초 발견, **5-3-3-3 ⓑ §3.3 이 정의부 Read 로 독립 재확인**.
+>
+> **왜 무거운 오류인가**: D-5 는 사실 기술이 아니라 **"어느 쪽으로 통합할 것인가"의 근거**다. 분모가 1이냐 2냐에 따라 통합 방향이 달라진다. 그리고 틀린 값이 정본에 자리잡으면 이후 인용이 전부 그것을 복제한다(289차 ② "351 사건" 패턴).
+
 | 구현 | 판정 | 근거 |
 |---|---|---|
-| `mapping_change_request` | **REAL** | 정족수·위조불가 신원·자기승인 차단·dedup·상태 게이트 전부(`Mapping.php:238-294`) |
-| `action_request` | **VACUOUS** | `INSERT INTO action_request` **grep 0 = 생산자 전무** · 정족수 **컬럼 없음** · `Alerting:562` 리터럴 2 = 장식 · `listActionRequests`는 `required_approvals:2` 응답하나 `decideAction`은 **1명에 approved = 계약 위반 이미 존재** |
-| `admin_growth_approval` | **BLOCKED_CROSS_TENANT** | DDL(`AdminGrowth.php:142-149`)에 **`tenant_id` 컬럼 없음** · 조회 전역(:641·:1306) · 결정 무격리(:1324 `WHERE id=?`) |
-| `catalog_writeback_approval` | **고아** | 읽는 코드 0 |
+| `mapping_change_request` | **REAL** | 4중 방어 정의부 확인 — 위조불가 신원 fail-closed(`Mapping.php:246-250`) · 자기승인 403(`:268-271`) · 승인자 dedup(`:278-283`) · **정족수 `:287`(레포 유일 실집행)**. ⚠️**단 집행 `apply:296-299` 는 `actorId` 가 아니라 `actor()`(`:299`) 사용** → 집행 단계는 신원 fail-closed 가 아니며 **승인자=집행자 차단이 없다** |
+| ★**`catalog_writeback_job` status=`pending_approval`** | ★**REAL** (초판 누락) | 정책게이트 `evaluatePolicy`(`:2247`) → `approvalCreate:2275` → `approveQueue:2341`(tenant 스코프 `:2350`) → **집행 `processWritebackQueue:2362`**. 282차 근본수정으로 실배선. 🔴**단 `:2343` 은 행위자를 읽지 않고**(`requirePro` 플랜 게이트뿐) · **감사 0**(클래스에 audit 함수 부재) · 🔴**`:2350` ids 미지정 시 테넌트 전체 일괄 승인** |
+| `action_request` | **VACUOUS** | `INSERT INTO action_request` **grep 0 = 생산자 전무** · 정족수 **컬럼 없음** · `Alerting:562` 리터럴 2 = 장식 · `listActionRequests`는 `required_approvals:2` 응답하나 `decideAction`은 **1명에 approved = 계약 위반 이미 존재**. ★추가 실측: **`requested_by` 컬럼도 없다**(`Db.php:592-600`) → **자기승인 차단이 구조적으로 불가능** |
+| `admin_growth_approval` | **BLOCKED_CROSS_TENANT** | DDL(`AdminGrowth.php:142-149`)에 **`tenant_id` 컬럼 없음** · 조회 전역(:641·:1306) · 결정 무격리(:1324 `WHERE id=?`). ★추가: `requested_by`·`decided_by` **양쪽 있는데 비교 코드 0**(`:1324-1331`) |
+| ~~`catalog_writeback_approval`~~ | **고아 테이블**(승인 경로 아님) | CREATE 2회(`Catalog.php:86`,`:126`) + **자인 주석 `:2269-2272`** 뿐 · INSERT/SELECT **0**. ★**이것은 4번째 승인 경로가 아니라 위 2번째 경로의 사용되지 않는 잔해다** — 별개 항목으로 세면 안 된다 |
 
 > 🔴 **미달을 "중복"이라 부르면 통합 결과가 자동으로 "기능 유지"로 위장된다.** 통합 = 신설이 아니라 **`Mapping::approve`+`actorId` 공용 추출 후 흡수**. **4번째 Foundation 신설 금지(AL-19).**
+>
+> ★**정정 후에도 "중복이 아니라 부재"라는 결론은 강화된다**: 스키마 4종이 **전부 다르고**(`required_approvals` 는 `Mapping` 에만 · `requested_by` 는 `action_request` 에 없음 · `tenant_id` 는 `admin_growth` 에 없음) 의미론도 4종이다. **어느 쪽으로 통합해도 한쪽은 후퇴 아니면 신설이다.**
+>
+> ★**5번째 승인 축이 초판에 누락됐다**: `app_user.agent_mode`(`'recommend'|'approval'|'auto'`) — `AdAdapters::agentMode:42-49`(owner 행 판독) → `canAutoExecute:55` · `AutoCampaign:349`,`:1239` **실소비**. **워크플로가 아니라 자동집행을 억제하는 이진 게이트**이므로 통합 대상은 아니나, "승인 지형"을 셀 때 빠뜨리지 마라.
 
 ### D-6. ★**순서 절대** — `executeAction` 상태 게이트 → `action_request` 생산자 배선
 `Alerting::executeAction`(`Alerting.php:601-660`)은 `:612` 에서 `status` 를 **SELECT 하고 어디서도 판독하지 않는다**(죽은 읽기) → `pending`·`rejected` 도 `AdAdapters::pause`(:631)/`updateBudget`(:634) **실집행**. 287차 가짜집행 수정의 부작용(실집행을 붙이며 게이트 미부착). **현재 VACUOUS(생산자 0)이나 생산자 배선 시 즉시 활성.**
@@ -126,6 +136,51 @@ BPMN/Temporal/Camunda/Flowable/Zeebe/StepFunctions `backend/src` **grep 0** 은 
 
 ### D-18. 외부 Workflow Engine = **전제 미성립** → §73 17/17 `CONTRACT_ONLY`
 BPMN/Temporal/Camunda/Flowable/Zeebe/StepFunctions grep 0 · **전용 브로커 부재** · **스케줄링 = OS cron 단일 수단**(앱 내 cron 표현식 파서 grep 0 → `CRON_REFERENCE` 를 "OS cron 이 있으니 커버"로 계산 금지 — **구동 수단 ≠ 선언 타입**) · SQLite 폴백 제약. 외부 엔진 도입 시에도 **Canonical 계약 생략 금지**(§73 말미).
+
+---
+
+## D-19. ★**Approval Chain ↔ Workflow Engine 경계 확정** (289차 10회차 · 5-3-3-3 §70 Step 2 · §72-18)
+
+> **왜 여기 쓰는가** — 5-3-3-3 §71 은 `ADR_APPROVAL_CHAIN_WORKFLOW_BOUNDARY.md` **신설**을 지정했다. **신설하지 않는다.** 그 질문(*"Approval Chain 은 어디서 끝나고 Workflow Engine 은 어디서 시작하나"*)은 **D-1·D-3·D-18 이 이미 답한 질문**이며, 별도 문서를 만들면 **같은 질문에 대한 두 번째 결정 거처**가 생겨 둘이 갈라지는 순간 정본을 알 수 없게 된다. 근거 = 5-3-3-3 §71 자신: *"기존 동일 목적 문서가 있으면 새로 중복 생성하지 말고 통합하라."*
+> **다른 4편**(`CANONICAL_SOURCE`·`ROUTE_DAG`·`VERSIONING`·`COMPILATION`)은 **새 질문에 답하므로 신설했다** — `docs/architecture/` 에 있다.
+
+### 경계
+
+| 축 | 담당 | 결정 |
+|---|---|---|
+| **Flow 실행**(노드 순회·타이머·claim·멱등·cron) | **`JourneyBuilder` 확장** | **D-1 유지** — 5-3-3-3 ⓑ 가 이 결정을 **뒤집지 않았다**. 실행 프리미티브 중 `approval` 노드 하나만 결번. **선결 = D-2**(enrollment 컨텍스트 일반화 · 미이행 시 `BLOCKED_MIGRATION_RISK`) |
+| **Chain·Route 정의**(무엇을·누가·어떤 순서로) | **신규 Canonical SoT** | **D-3("정의 = 신설 불가피") 확정**. 상세 = [`ADR_APPROVAL_CHAIN_CANONICAL_SOURCE.md`](ADR_APPROVAL_CHAIN_CANONICAL_SOURCE.md) D-1 |
+
+**두 결정은 모순되지 않는다** — 실행과 정의는 다른 질문이고, D-3 이 이미 신설을 예고했다.
+
+### §72-18 은 발동하지 않는다 (5-3-3-3 ⓑ 부재증명)
+
+5-3-3-3 §72-18(*"Workflow Engine 과 별도 Route Source of Truth 를 만들지 마라"*)과 §6(*"기존 Workflow Definition 이 **범용 DAG 를 제공한다면**"*)은 **양쪽 다 전건이 거짓**이다. 후보 3종 전부 탈락:
+- **`JourneyBuilder`** — **정의 계층이 비어 있다**(`createJourney:135`/`updateJourney:153-154` 무검증 `json_encode` · `:512` 주석이 acyclicity 미검증 자인) · **`journeys.edges` JSON 에 엣지 id 가 없다**(`:126` 시드에 `id` 키 부재 → `:789`,`:796` 이 `from`+`when` 매칭) · **`customer_id` 하드 전제**(`:551`,`:556`,`:822`) · version/effective 0.
+- **`graph_node`/`graph_edge`** — **DAG 가 아니라 그래프 스토어**(`upsertEdge:107-148` acyclicity 검사 없음) · **순회기 0**(`GraphScore:193~297` 하드코딩 3-hop) · 판독자 4종 하드와이어 · **내부 생산자 0(VACUOUS 미배제)**.
+- **`pm_task_dependencies`** — **DAG "검증기"이지 "엔진"이 아님**(노드 타입 0·조건 0·실행기 0) · 도메인 = PM 일정 의존.
+
+∴ **`APPROVAL_ROUTE_*` 신규 SoT 구축은 §72-18 위반이 아니다.** 🔴**재조사 금지** — 뒤집으려면 위 3후보의 정의부 실측을 반증하라.
+
+### D-1 을 이행할 때의 추가 제약 (5-3-3-3 ⓑ 신규 실측)
+
+1. 🔴 **`JourneyBuilder` 의 정의 저장 방식을 Approval 로 답습하지 마라.** 무검증 JSON 저장이 §39 검증 38항목이 걸릴 자리를 통째로 없앴다. Approval Route 는 **Relational Adjacency List + 쓰기 전 검증**.
+2. 🔴 **§72-10 계열 위반 4건이 `JourneyBuilder` 에 살아 있다** — `nextNode:811-812`(무라벨 위치 폴백 존치 · `:810` 주석 자인) · `:814`(분기 없으면 첫 후보) · `pickWeighted:729`(첫 키 폴백) · `enroll:198`(`$nodes[0]['id'] ?? 'trigger_1'` = 위치+리터럴 폴백). **286차 실 오발송 장애가 이 계열**(주석 `:801-803`). **`approval` 노드 추가 시 이 분기들을 상속하지 마라.**
+   - ★**초판 브리핑 정정**: *"286차가 위치 폴백을 제거"* 는 **부분 오류** — `:809` `if ($hasLabeled) return ''` 는 **라벨 그래프에만** 적용된다. **§22 `BLOCK_ON_NO_MATCH` 는 조건부로만 확립됐다.**
+3. 🔴 **§72-11 위반도 실재** — `nextNode:799` **첫 일치 즉시 return** → 다중 일치 무탐지·무기록.
+4. ⚠️ **`split` 은 확률이 아니라 결정론이다**(`pickWeighted:725-734` = enrollId 해시 기반 · 주석 `:610-611` 자인). 결론(배타 택일 · parallel fork 아님)은 유효하고 **§4.7 "Chain Selection 은 결정론적"의 선례로 승격**된다.
+5. 🔴 **`evalCondition` 의 fail 방향을 이식하지 마라**(정의 `:818` · `:844` `?? null` · `:850` `if ($a===null) return false`) — 마케팅에선 안전하나 **승인에선 미추적 신호가 곧 우회**다.
+
+### 커버리지 (측정기 산출 · 손으로 박은 값 아님)
+
+| 블록 | 편수 | 분모 | cover |
+|---|---|---|---|
+| 5-3-2(이 ADR) | 84 | 1408 | 51 (3.62%) |
+| 5-3-3-1 | 70 | 1427 | 18 (1.26%) |
+| 5-3-3-2 | 81 | 1546 | 9 (0.58%) |
+| **5-3-3-3** | **16** | **1817** | **0 (0.00%)** |
+
+**네 블록 연속 단조 감소이며 5-3-3-3 에서 처음으로 정확히 0이다.** 우연이 아니라 방향이 있다 — 실행 엔진(5-3-2)엔 `JourneyBuilder` 라는 인접 자산이 있었고, 조직·보고라인으로 갈수록 인접 자산이 사라지다가, **Chain 정의에 이르러선 하나도 없다.**
 
 ---
 

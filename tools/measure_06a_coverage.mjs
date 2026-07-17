@@ -26,7 +26,11 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DIR = 'docs/segmentation';
+// ★블록마다 문서 거처가 다르다 — 디렉터리를 상수로 고정하지 마라.
+//   5-3-2/5-3-3-1/5-3-3-2 = docs/segmentation (per-entity 산출)
+//   5-3-3-3 = docs/approval (원문 §71 이 "Entity·Enum별 문서를 무조건 각각 생성하지 마라" +
+//             `docs/approval/` 16편 통합을 지정. 앞 블록 패턴을 적용하면 §71 위반이다.)
+const DEFAULT_DIR = 'docs/segmentation';
 
 // 블록 → 문서 접두사. 신규 블록은 여기에만 추가하라(측정기 복제 금지).
 //
@@ -58,6 +62,15 @@ const BLOCKS = {
     exact: ['DSAR_ORGANIZATION_MANAGER_BINDING.md'],
     label: '4-5-3-1-5-3-3-2 Reporting Line & Manager Relationship',
   },
+  '5333': {
+    // ★원문 §71 = 21편(docs/approval/ 16 + ADR 5). ADR 5편은 docs/architecture/ 로 통합했고
+    //   (§71 자신의 "기존 동일 목적 문서가 있으면 통합하라" + ADR 정본 83편이 이미 거기 있음)
+    //   ADR 은 결정 문서이지 원문 전사가 아니므로 커버리지 분모에 넣지 않는다.
+    //   따라서 이 블록의 측정 대상 = docs/approval/ 16편뿐이다.
+    dir: 'docs/approval',
+    prefix: ['APPROVAL_', 'HIERARCHICAL_ROUTE_'],
+    label: '4-5-3-1-5-3-3-3 Approval Chain Definition & Hierarchical Route Foundation',
+  },
 };
 
 const argOf = (name) => {
@@ -67,7 +80,8 @@ const argOf = (name) => {
 const blockArg = argOf('block');
 const prefixArg = argOf('prefix');
 if (!blockArg && !prefixArg) {
-  console.error('오류: --block=<532|5331> 또는 --prefix=<접두사> 필요.');
+  console.error(`오류: --block=<${Object.keys(BLOCKS).join('|')}> 또는 --prefix=<접두사> 필요.`);
+  console.error('  (--prefix 사용 시 --dir=<경로> 도 함께 주라. 기본 디렉터리는 docs/segmentation 이다.)');
   console.error('  블록을 추정하지 않는다 — 분모를 조용히 바꾸는 것이 이 측정기가 막으려는 병이다.');
   process.exit(2);
 }
@@ -75,6 +89,8 @@ if (blockArg && !BLOCKS[blockArg]) {
   console.error(`오류: 미등록 블록 "${blockArg}". 등록된 블록 = ${Object.keys(BLOCKS).join(', ')}`);
   process.exit(2);
 }
+// 디렉터리 결정: --dir 명시 > 블록 정의의 dir > 기본값. 조용히 추정하지 않는다.
+const DIR = argOf('dir') ?? (blockArg ? (BLOCKS[blockArg].dir ?? DEFAULT_DIR) : DEFAULT_DIR);
 const PREFIXES = prefixArg ? [prefixArg] : BLOCKS[blockArg].prefix;
 const EXACT = blockArg ? (BLOCKS[blockArg].exact ?? []) : [];
 const LABEL = blockArg ? BLOCKS[blockArg].label : `(임의 접두사 ${prefixArg})`;
@@ -94,9 +110,14 @@ const COVERS = new Set(['VALIDATED_LEGACY']);
 //   전부 NO_VOCAB(노이즈)로 오분류했다. 접두사만 파라미터화하고 어휘를 그대로 둔 것이
 //   바로 이 파일이 막으려던 "규칙 분기"였다(289차 9회차 자기결함).
 //   신규 어휘는 여기에만 추가하고, 커버 여부는 COVERS 가 단독 결정한다.
+//   ★9회차 결함이 10회차에 재발했다 — 5-3-3-3 이 도입한 BLOCKED_PREREQUISITE 를 어휘에 넣지
+//   않아 67행을 NO_VOCAB 으로 오분류했다. **어휘를 규율(에이전트 지시)에만 추가하고 측정기에
+//   추가하지 않으면 그 판정은 조용히 사라진다.** 규율과 이 배열은 항상 함께 갱신하라.
 const VOCAB = [
   // 커버
   'VALIDATED_LEGACY',
+  // 실재 (커버 아님 — Chain 도메인 밖 실재이거나 요구 미충족)
+  'REAL',
   // 인접/분리 (커버 아님)
   'LEGACY_ADAPTER', 'KEEP_SEPARATE_WITH_REASON',
   // 부분/저급 실재 (커버 아님)
@@ -108,6 +129,9 @@ const VOCAB = [
   // 차단 (커버 아님)
   'BLOCKED_CROSS_TENANT', 'BLOCKED_WORKFLOW_BYPASS', 'BLOCKED_MIGRATION_RISK',
   'BLOCKED_SECURITY_RISK', 'BLOCKED_POLICY_DRIFT',
+  // ★5-3-3-3 도입: 선행조건 부재로 "만들어도 동작하지 않는" 항목. ABSENT("만들면 된다")와
+  //   구별해야 후속 차수가 선행조건 없이 착수하지 않는다.
+  'BLOCKED_PREREQUISITE',
 ];
 
 const files = readdirSync(DIR).filter(f => f.endsWith('.md') && matches(f)).sort();
