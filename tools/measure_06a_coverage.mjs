@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 /**
- * EPIC 06-A Part 4-5-3-1-5-3-2 — 커버리지 측정기 (289차 9회차)
+ * EPIC 06-A — 블록 공용 커버리지 측정기 (289차 9회차)
+ *
+ * ★측정기를 블록마다 복제하지 마라(289차 ④ 규칙 SSOT 교훈)
+ *   `tools/scan_secrets.sh` 를 CI 에 복사하면 규칙이 분기하듯,
+ *   측정기를 5-3-2용·5-3-3-1용으로 복제하면 커버 판정 규칙이 분기한다.
+ *   → 접두사만 파라미터로 받고 **판정 규칙은 한 벌만 유지**한다.
+ *   (레포 기지 병증: 백오프 3공식 병존 · 타임존 축 3벌 · isDemo 술어 12벌 — 같은 실수 금지)
  *
  * ★설계 원칙 (289차 ② stale 351 교훈)
  *   값을 문서에 손으로 박지 마라. 값은 "측정"하고 문서는 측정기를 가리켜라.
@@ -11,21 +17,62 @@
  *   분자 = VALIDATED_LEGACY 만. LEGACY_ADAPTER·KEEP_SEPARATE_WITH_REASON 은 커버가 아니다.
  *   (인접 자산이 있다 ≠ 요구를 충족한다. 이를 커버로 세면 갭이 정의상 소멸한다.)
  *
- * 사용: node tools/measure_06a_532_coverage.mjs [--json]
+ * 사용:
+ *   node tools/measure_06a_coverage.mjs --block=532      # 5-3-2 Approval Workflow
+ *   node tools/measure_06a_coverage.mjs --block=5331     # 5-3-3-1 Organization Hierarchy
+ *   node tools/measure_06a_coverage.mjs --prefix=<임의접두사>
+ *   (+ --json 으로 전수 출력)
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIR = 'docs/segmentation';
-const PREFIX = 'DSAR_APPROVAL_WORKFLOW_';
+
+// 블록 → 문서 접두사. 신규 블록은 여기에만 추가하라(측정기 복제 금지).
+const BLOCKS = {
+  '532':  { prefix: 'DSAR_APPROVAL_WORKFLOW_', label: '4-5-3-1-5-3-2 Approval Workflow Execution Engine' },
+  '5331': { prefix: 'DSAR_ORGANIZATION_',      label: '4-5-3-1-5-3-3-1 Organization Hierarchy & Graph' },
+};
+
+const argOf = (name) => {
+  const hit = process.argv.find(a => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : null;
+};
+const blockArg = argOf('block');
+const prefixArg = argOf('prefix');
+if (!blockArg && !prefixArg) {
+  console.error('오류: --block=<532|5331> 또는 --prefix=<접두사> 필요.');
+  console.error('  블록을 추정하지 않는다 — 분모를 조용히 바꾸는 것이 이 측정기가 막으려는 병이다.');
+  process.exit(2);
+}
+if (blockArg && !BLOCKS[blockArg]) {
+  console.error(`오류: 미등록 블록 "${blockArg}". 등록된 블록 = ${Object.keys(BLOCKS).join(', ')}`);
+  process.exit(2);
+}
+const PREFIX = prefixArg ?? BLOCKS[blockArg].prefix;
+const LABEL = blockArg ? BLOCKS[blockArg].label : `(임의 접두사 ${PREFIX})`;
 
 // 커버 판정 = 이것만. 나머지는 전부 미충족.
 const COVERS = new Set(['VALIDATED_LEGACY']);
 // 정식 판정 어휘 (이 외 토큰은 파싱 노이즈로 계수 제외 후 보고)
+//
+// ★어휘는 블록 공용이다 — 블록별로 분기시키지 마라.
+//   초판은 5-3-2 어휘만 담아 5-3-3-1 의 ABSENT/PARTIAL/KV_ONLY/NAME_ONLY 456행을
+//   전부 NO_VOCAB(노이즈)로 오분류했다. 접두사만 파라미터화하고 어휘를 그대로 둔 것이
+//   바로 이 파일이 막으려던 "규칙 분기"였다(289차 9회차 자기결함).
+//   신규 어휘는 여기에만 추가하고, 커버 여부는 COVERS 가 단독 결정한다.
 const VOCAB = [
-  'VALIDATED_LEGACY', 'LEGACY_ADAPTER', 'KEEP_SEPARATE_WITH_REASON',
-  'NOT_APPLICABLE', 'CONTRACT_ONLY', 'VACUOUS', 'CONSOLIDATION_REQUIRED',
-  'MIGRATION_REQUIRED', 'DEPRECATION_CANDIDATE', 'UNVERIFIED',
+  // 커버
+  'VALIDATED_LEGACY',
+  // 인접/분리 (커버 아님)
+  'LEGACY_ADAPTER', 'KEEP_SEPARATE_WITH_REASON',
+  // 부분/저급 실재 (커버 아님)
+  'PARTIAL', 'KV_ONLY', 'NAME_ONLY',
+  // 부재/계약 (커버 아님)
+  'NOT_APPLICABLE', 'ABSENT', 'CONTRACT_ONLY', 'VACUOUS',
+  // 조치 요구 (커버 아님)
+  'CONSOLIDATION_REQUIRED', 'MIGRATION_REQUIRED', 'DEPRECATION_CANDIDATE', 'UNVERIFIED',
+  // 차단 (커버 아님)
   'BLOCKED_CROSS_TENANT', 'BLOCKED_WORKFLOW_BYPASS', 'BLOCKED_MIGRATION_RISK',
   'BLOCKED_SECURITY_RISK', 'BLOCKED_POLICY_DRIFT',
 ];
@@ -88,8 +135,9 @@ if (process.argv.includes('--json')) {
   process.exit(0);
 }
 
-console.log('EPIC 06-A 4-5-3-1-5-3-2 — 커버리지 측정 (측정기 산출 · 손으로 박은 값 아님)');
+console.log(`EPIC 06-A ${LABEL} — 커버리지 측정 (측정기 산출 · 손으로 박은 값 아님)`);
 console.log('='.repeat(78));
+console.log(`문서 접두사          : ${PREFIX}`);
 console.log(`산출 문서            : ${files.length} 편`);
 console.log(`원문 항목(분모)      : ${grand}`);
 console.log(`파싱 노이즈(미계수)  : ${grandNoise}`);
