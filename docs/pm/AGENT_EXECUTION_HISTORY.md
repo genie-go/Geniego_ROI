@@ -124,6 +124,33 @@ Rebate 엔진(1-1~1-4)은 **grep 0(부재)**이었으나 **Authorization 은 실
 
 ---
 
+## AE-289-06 — EPIC 06-A Part 4-5-3-1-5-4 (Maker-Checker·SoD·Delegation·Impersonation)
+
+- **차수**: 289차 (2026-07-17) · **비파괴 · 코드변경 0** · feat/n236 · master 미접촉
+- **★★스펙 미수령·자율 판단(사용자 명시 승인)** — 세부 자율임을 Canonical 2 + ADR 전부에 명시 · **§요구 부재 → 완료 조건 판정 불가 · §53/§59 없음**.
+
+### ★5-3 기술 정정 (자기 정정)
+**`action_request` 는 정족수가 없다** — `$status = $decision === "approve" ? "approved" : "rejected";`(Alerting.php:593) = **단일 승인 즉시 확정**. `approvals_json` 은 **이력 배열일 뿐** 정족수 판정에 미사용(:591). 5-3 이 두 승인 계통을 동급 REAL 로 기술한 것을 정정 — **정족수 REAL 은 `mapping_change_request` 하나뿐**.
+
+### ★5-3 §7 위임 2건 판정 (자율·미확정·미수정)
+| 판정 | 실측 | 자율 판정 | 조치 |
+|---|---|---|---|
+| **중복 승인** | `$approvals[] = ["user"=>$actor,...]`(Mapping.php:212) **dedup 없음** → 동일인 2회 → count=2 → **approved**(:214) | **결함 후보** — `DEFAULT 2` 의 의도("서로 다른 2명")를 **무력화** | **MIGRATION_REQUIRED** · PM 재증명 필요 |
+| **자기 승인** | `requested_by`(:167) vs `$actor` **미비교** | **결함 후보** — 단 required_approvals=2 라 **판정 1 과 결합될 때만 단독 확정** | 동상 |
+| **(신규) action_request 정족수 부재** | Alerting.php:593 | 의도 불명(경량 승인 설계 가능성) | PM 재증명 대상 |
+
+**FP 규약 준수**: P0 단정 금지 · 실 영향 판정 필요 = approve 호출 권한 · 실 운영 사용 여부 · `actor()` 해석. **비파괴 미수정**.
+
+### ★Impersonation 은 예상보다 잘 설계됨 (통제 6종 REAL)
+requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단**(:488=권한상승 차단) · **`imp_` 토큰 분리**(:493) · **2시간 만료**(:495) · 감사(:499) · **사용자 배너 고지**(`_impersonated`·:525). **Act-As 도 286차 후 "admin + platform_growth 만·기본 OFF"로 블래스트 반경 최소**(UserAuth.php:391-394).
+**관찰(미확정)**: **대행 세션 Action 무제한** — `imp_` 토큰이 일반 세션과 동일 저장(:496)·제한 없음 → 대행 중 승인/집행 가능(SoD Matrix `IMPERSONATE × APPROVE/EXECUTE`=CRITICAL). 단 admin 대상은 차단이라 **반경은 일반 회원**. **미수정** → §4c 신설로 해소 권장.
+
+### 자율 판단
+①**SoD Conflict Matrix 9쌍** 설계(APPROVE_PAYOUT×EXECUTE_PAYOUT 등) — **현행 `approve`/`execute` Action 분리(TeamPermissions.php:39)가 SoD 를 Action 수준에서 표현 가능케 하는 기반** ②**대행 = 기본 읽기 전용**(엔드포인트명 "대행 **열람**"이 설계 의도와 정합) ③**Act-As Blast Radius 6원칙**(286차 "자동ON+고착" 사고 반영) ④**1인 테넌트 예외**(exclude_requester 교착 방지·명시 정책+감사로만).
+- **코드 변경 0**.
+
+---
+
 ## AE-289-02 — Rebate 실행계층 선행설계 R1~R5 (정본 9분할 슬롯 아님)
 
 - **경위**: 정본 로드맵 미확인 상태에서 Part 5~9 를 **추정 명명**하여 5개 문서쌍 생성 → 사용자 지시("Part N/9 진행해")도 이 잘못된 라벨에 기반 → **"9분할 완결" 오보고**.
