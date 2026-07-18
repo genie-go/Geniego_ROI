@@ -24,7 +24,7 @@
 >
 > **✅ 1순위 완료(11회차) — ⓔ 인용검증 전량 종결.** 위 §11회차 완료 참조. 규율 정본 = `docs/segmentation/DSAR_MENU_AUDIT_LOG_CITATION_CORRECTION.md`(scratchpad 대체·영속). 아래 10회차 시점 ①②③④ 잔여는 **전건 처리됨**(①-a 정정·①-b 무변확인·② P유형 ~78보강·③ schema_migrations 층위구분·④ VALIDATED_LEGACY 유지확정) — 이력 참고용 보존.
 >
-> **★차기 1순위 — 5-3-3-4 Approval Authority Matrix** ⓑ 전수조사부터(아래 상세). **★새 우선순위 = 5-3-3-4 → 미배포 코드 2건 배포검증(§별건 승인) → SEG-H2/H3/H5 라이브세션.**
+> **★차기 1순위 — 5-3-3-4 Approval Authority Matrix** — **✅ⓑ 전수조사 완료(11회차)** = `docs/segmentation/DSAR_APPROVAL_AUTHORITY_EXISTING_IMPLEMENTATION.md`(6클러스터 병렬 능력기반 재실증·정의부 Read·코드0). **결론: Approval Authority 개념 자체 부재** — §72 Canonical Entity 20종 전량 ABSENT · 승인=진입게이트+상태전이 · §3.4 DOA식별자 44 전부 0(예외=HIGH_VALUE_KRW ₩5M 상수·boolean만) · 4경로=mapping(2인 REAL)/catalog·admin_growth(1인)/action_request(VACUOUS·생산자0) · §47~§54 전 ABSENT. **★능력기반 FLIP 5건**(헤더 정정): ①action_request executeAction=실집행(287차)·죽은파이프라인(장식 아님) ②effective_from=수수료/VAT 실 open-interval dating(전면부재 아님) ③AutoCampaign:843-889=실 예산상한+누적차감(§30/31/39 유일예외) ④FX 24h TTL 신선도가드 실재 ⑤Alerting required_approvals=2=표시용 하드코딩(미집행). **다음 = ⓒ 전사**(§79 per-entity `DSAR_APPROVAL_AUTHORITY_*`·§5~§64 원문 전사+대조+판정·분모 측정기). **★우선순위 = 5-3-3-4 ⓒ~ⓕ → 미배포 코드 2건 배포검증(§별건 승인) → 실결함 수정세션(high_value 라우팅갭·1인결재 3경로·Actor Auth Snapshot 부재) → SEG-H2/H3/H5.**
 >
 > ---
 > <details><summary>10회차 시점 ⓔ 잔여 상세(전건 처리됨·이력)</summary>
