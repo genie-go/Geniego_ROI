@@ -73,7 +73,7 @@ PM/Enterprise.php:363  INSERT INTO pm_baseline (id,tenant_id,project_id,name,bac
 | 24 | membership reference | 인접 = `app_user.parent_user_id`(2단 봉인) · `team_role`(owner>manager>member `TeamPermissions.php:17`) — **현재 상태만 · 스냅샷 아님** | `PARTIAL` |
 | 25 | effective_at | 🔴**부재** — `kr_fee_rule.effective_from`(`Db.php:898`)이 유일 effective date이나 **as-of 술어 0건** · 스냅샷과 무관(채널 요율) | `KEEP_SEPARATE_WITH_REASON` |
 | 26 | captured_at | ★**정정** — DB 컬럼 아님. **`snapshot_json` 내부 JSON 키**(`PM/Enterprise.php:360`)로만 존재 · DDL 은 `created_at`(`:55`·`:62`) · **인덱스/질의 불가** | `KV_ONLY` |
-| 27 | immutable_hash | 🔴**`immutable_hash`/`snapshot_hash` grep 0.** ★**패턴 선례는 실재** = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)` · INSERT `:63-64`) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`) | `LEGACY_ADAPTER` |
+| 27 | immutable_hash | 🔴**`immutable_hash`/`snapshot_hash` grep 0.** ★**패턴 선례는 실재** = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)` · INSERT `:63-64`) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER` |
 | 28 | status | 부재 — `menu_defaults`·`pm_baseline` 둘 다 status 컬럼 없음(DDL 전 컬럼 확인) | `ABSENT` |
 | 29 | evidence | 부재 | `ABSENT` |
 
@@ -90,7 +90,7 @@ PM/Enterprise.php:363  INSERT INTO pm_baseline (id,tenant_id,project_id,name,bac
 | 5 | Legal Entity Boundary 기록 | 법인 엔티티 부재. 🔴**★최대 함정 — `DATA_SCOPES` 의 `'company'` 를 법인 경계로 계산 금지**: `effectiveScope():258` `if ($st === 'company') return null; // 전사 = 무제한` — **경계를 긋는 게 아니라 지운다**(의미 정반대) | `ABSENT` |
 | 6 | Cross-country Path 기록 | 부재 — **Country→Region 매핑 코드 0건** · 국가 간 경로 개념 전무 | `ABSENT` |
 | 7 | Matrix Relationship 기록 | `matrix_` **grep 0** — 매트릭스 조직 전무 | `ABSENT` |
-| 8 | Snapshot Hash 검증 | 🔴 스냅샷 해시 **0**. ★**검증 패턴 선례는 실재** = `schema_migrations.checksum`(`Migrate.php:50`,`:63-64`) · `menu_audit_log.hash_chain` prev-chain(`AdminMenu.php:182-197`·`lastHash():214-219`) | `LEGACY_ADAPTER` |
+| 8 | Snapshot Hash 검증 | 🔴 스냅샷 해시 **0**. ★**검증 패턴 선례는 실재** = `schema_migrations.checksum`(`Migrate.php:50`,`:63-64`) · `menu_audit_log.hash_chain` prev-chain(`AdminMenu.php:182-197`·`lastHash():214-219`). 🔴 단 `menu_audit_log.hash_chain` 은 **쓰기 체인만 실재**하고 검증기(`verify()`)가 0이며 preimage `ts`(`:195`) 소실로 재계산 불가 → **tamper-evident 아님** — 실제 재계산·교차검증이 도는 검증형 정본은 `SecurityAudit::verify():56-68` 이다 | `LEGACY_ADAPTER` |
 | 9 | 원본 Source Reference 보존 | 부재 — 원천 참조 축 없음(**ERP/HRIS 커넥터 0** · `ChannelRegistry.php:12`,`:79` `group_type` 열거에 `erp`·`finance`·`hr` 없음) | `ABSENT` |
 | 10 | 민감 Employee 정보 최소화 | ★**정책 선례 실재** — 헌법 **No PII storage**(CLAUDE.md · v418.1 집계 전용 설계). ⚠️단 조직 스냅샷 맥락의 employee 최소화 규칙은 부재 | `LEGACY_ADAPTER` |
 

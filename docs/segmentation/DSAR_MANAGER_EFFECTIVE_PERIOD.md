@@ -63,7 +63,7 @@
 | 13 | interim period 여부 | **`interim` 1건 = 지오리프트 중간결과**(`AttributionEngine.php:672` `$rj['interim']`) — **이름 함정** | `ABSENT` |
 | 14 | source effective date | 부재 — §3.4 외부 소스 42항목 전부 부재(HRIS/ERP/Directory 히트 0) → **source 가 없으니 source date 도 없다** | `ABSENT` |
 | 15 | status | 부재 · 인접 `team.status VARCHAR(20) DEFAULT 'active'`(`TeamPermissions.php:148`) = **팀 상태**(관계 기간 아님) | `ABSENT` |
-| 16 | evidence | 부재 · 인접 immutable 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain) — 🔴 **`tenant_id` 없음 → 스키마 복제 금지·알고리즘만 이식** | `ABSENT` |
+| 16 | evidence | 부재 · 인접 immutable 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain) — 🔴 **`tenant_id` 없음 → 스키마 복제 금지·알고리즘만 이식** · 🔴 쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `ABSENT` |
 
 **실측 개수: 16 / 16 전사.** (측정기 16 · 원문 대조 16 · 전사 16 — **3자 일치**.) 커버리지 = **부재 16 · 커버 0**.
 
@@ -75,5 +75,5 @@
 - 🔴 **`kr_fee_rule` 스키마를 복제하지 마라.** `effective_from VARCHAR(32)` = **문자열 정렬 의존** · `effective_to` 없음 · **UNIQUE 없음**(중첩 구간 방지 없음) · 인덱스 `idx_kr_fee_rule(tenant_id,channel_key,category)` 에 **시점 컬럼 미포함** → as-of 질의 시 풀스캔. **이 결함을 물려받으면 설계 시점에 이미 불가능해진다.**
 - ★ **`timezone` 은 스키마 형태만 이식.** `daypart_schedule.tz VARCHAR(40)`(`RuleEngine.php:56`)는 **광고 데이파팅**이며 **직원 근무지가 아니다**. 🔴 `crm_customer_prefs.tz_offset INT` 형태는 **채택 금지** — DST 표현 불가.
 - 🔴 **`pm_baseline.captured_at` 형태(JSON 내부 키) 채택 금지** — `menu_defaults.version='baseline'` 리터럴과 함께 **"컬럼이 있으니 축이 있다"의 반례**다. 시점은 **인덱스 가능한 DB 컬럼**이어야 한다.
-- `evidence` 는 **`menu_audit_log` 알고리즘만 이식**(SHA-256 prev-chain) · 🔴 **테이블 복제 금지**(`tenant_id` 부재 · `lastHash():214-219` 에 tenant 술어 없음) → 테넌트별 체인 시 `WHERE tenant_id=?` **필수**.
+- `evidence` 는 **`menu_audit_log` 알고리즘만 이식**(SHA-256 prev-chain) · 🔴 **테이블 복제 금지**(`tenant_id` 부재 · `lastHash():214-219` 에 tenant 술어 없음) → 테넌트별 체인 시 `WHERE tenant_id=?` **필수**. 🔴 **단 쓰기 체인만 실재하고 검증기(`verify()`)가 0**이며 preimage 의 `ts`(`:195`)가 INSERT 컬럼에 없어 `created_at` DB DEFAULT 가 덮어 재계산 불가 → tamper-evident 아님. 검증형 정본 = `SecurityAudit::verify():56-68`.
 - 🔴 **16종 "있다고 가정"하고 배선 금지.**

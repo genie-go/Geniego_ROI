@@ -44,13 +44,13 @@
 
 ### ★`immutable_hash` 선례 — **2건 실재 · ⓑ 브리핑이 지목한 쪽이 열등하다**
 
-| 선례 | tenant_id | prev_hash 컬럼 | **검증기** | 판정 |
+| 선례 | tenant_id | **preimage ts 저장 = 검증 가능성**(★진짜 구분축) | 검증기 | 판정 |
 |---|---|---|---|---|
-| **`security_audit_log`**(`SecurityAudit.php:48-51`) | ✅ **있음**(`:49`) · **해시 preimage 에도 포함**(`:27`) | ✅ `:51` | ✅ **`verify():56-68`** — `hash_equals`(`:64`)+prev 연결 검사 · **실 소비자 `AdminGrowth.php:1429`** | ★**정본 선례** |
-| `menu_audit_log`(`AdminMenu.php:123-131`) | 🔴 **없음** | 🔴 **없음**(payload JSON 내부 `'prev'` `:194`뿐) | 🔴 **없음** | 열등 |
-| `schema_migrations.checksum`(`Migrate.php:50`) | — | — | — | DDL 체크섬(도메인 무관) |
+| **`security_audit_log`**(`backend/src/SecurityAudit.php:48-52`) | ✅ **있음**(`:49`) · **해시 preimage 에 포함**(`:27`) | ✅ **`created_at` 에 preimage `$now` 를 명시 저장**(`:31`) → `verify()` 가 `:63` 에서 그대로 재계산 | ✅ **`verify():56-68`** — `hash_equals`(`:64`)+`prev_hash` 교차검증(`:64`) · **실 소비자 `AdminGrowth.php:1429`** | ★**정본 선례** |
+| `menu_audit_log`(`AdminMenu.php:123-131`) | 🔴 **없음** | 🔴 **미저장** — preimage `'ts'=date('c')`(`:195`)가 INSERT 컬럼목록(`:199-203`)에 **없어** `created_at DB DEFAULT`(`:129`)가 덮음 → **행에서 preimage 재계산 불가** | 🔴 **없음**(`hash_equals` 레포 0히트) | 열등 — **체인 자체는 실재**(`lastHash():216` 이 직전 `hash_chain` 을 `'prev'` `:194` 로 투입)**하나 검증 불가능한 장식** |
+| `schema_migrations.checksum`(`Migrate.php:63`) | — | ⚠️ preimage=**디스크의 마이그레이션 파일** → 재계산은 가능하나 **검증기 0**(`:63` 은 INSERT) | 🔴 **없음** | DDL 체크섬(도메인 무관·**층위 상이**) |
 
-🔴 **ⓑ 브리핑 정정** — ⓑ 는 `menu_audit_log.hash_chain` 을 immutable_hash 선례로 지목했으나, **`SecurityAudit` 이 모든 축에서 우월**하다(tenant_id 보유 + prev_hash 컬럼 + **실동작 검증기**). ⓑ 는 `SecurityAudit` 을 **언급하지 않았다**.
+🔴 **ⓑ 브리핑 정정** — ⓑ 는 `menu_audit_log.hash_chain` 을 immutable_hash 선례로 지목했으나, **`SecurityAudit` 이 모든 축에서 우월**하다(tenant_id 보유 + **preimage ts 저장** + **실동작 검증기 `verify()`**). ⓑ 는 `SecurityAudit` 을 **언급하지 않았다**. 🔴 **★구분축 정정(10회차)**: 초판이 든 *"prev_hash 컬럼 유무"* 는 **진짜 구분축이 아니다** — `menu_audit_log` 는 전용 컬럼 없이도 `lastHash():216` 으로 체인을 **정상 연결**한다. 두 구현을 가르는 것은 오직 **preimage 타임스탬프를 저장하는가**(→ 재계산·검증 가능성)뿐이다.
 
 🔴 **★`menu_audit_log` 는 검증 자체가 불가능하다**(ⓑ 미지적): 해시 preimage(`AdminMenu.php:183-196`)가 **`'ts' => date('c')`(`:195`)를 포함**하는데, 저장되는 `created_at` 은 **DB `DEFAULT CURRENT_TIMESTAMP`**(`:129`)다 → **다른 시계·다른 포맷** → **행에서 preimage 를 재구성할 수 없다** → `hash_chain` 은 **검증 불가능한 장식**이다. §55 항목 14 "Immutable Hash 검증"의 선례로 삼으면 **가짜 녹색을 상속**한다.
 

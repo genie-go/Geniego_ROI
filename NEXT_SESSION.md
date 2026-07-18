@@ -1,4 +1,14 @@
-> **최신 인계서(289차·연속 10회차)**: **5-3-3-3 완결(ⓐ~ⓕ·커버리지 0.00%) + ⓔ 인용검증(부분) + 5-3-3-4 스펙 선영속**. 커밋 push 완료(feat/n236·**master 미접촉**·**코드 변경 0**).
+> **최신 인계서(289차·연속 11회차)**: **★ⓔ 인용검증 완료**(1순위 종결) — `menu_audit_log.hash_chain` 오염 정정 전량. 10회차까지 = 5-3-3-3 완결 + 5-3-3-4 스펙 선영속. 커밋(feat/n236·**master 미접촉**·**코드 변경 0**).
+>
+> ## ★11회차 완료 — ⓔ 인용검증 (커버리지 회귀 0 · 판정 전건 무변)
+> `menu_audit_log.hash_chain` 을 *"tamper-evident·재사용 선례·이식 선례"* 로 인용한 곳을 **확정사실**(체인 쓰기는 실재하나 `verify()` 0·preimage `ts`(`AdminMenu.php:195`)가 INSERT 컬럼(`:199-203`)에 없어 소실 → 검증 불가능한 장식; 진짜 검증형 정본 = `SecurityAudit::verify():56-68`)로 전량 정정. **근거만 교체·판정 토큰 전건 무변.**
+> - **①-a** `DSAR_MANAGER_RELATIONSHIP_SNAPSHOT` 비교표 축 *"prev_hash 컬럼"* → **"preimage ts 저장(검증 가능성)"** (menu 는 전용컬럼 없이 `lastHash():216` 으로 체인 정상 연결 — 진짜 결함은 ts 소실).
+> - **①-b** `ADR_DSAR_REBATE_REPORTING_LINE...` D-10 = 이미 정정됨(무변 확인).
+> - **④** 재량 2건(`API_CONTRACT #45`·`EVIDENCE #33`) = **VALIDATED_LEGACY 유지 확정**(판정 다리 = `pm_audit_log` 필드패턴 · hash_chain 제거해도 불붕괴 · 격하는 "분자 과소" 반대오류). cover 5331=17 확정.
+> - **F 유형 12편**(tamper-evident/위변조 탐지/✔/재사용 선례/`:18` 주석 = 거짓) 직접 정정 + **P 유형 ~78보강/~45편**(6배치 병렬 · "알고리즘만 이식"에 검증측 부재·SecurityAudit 병기) — tenant 반례·필드 선례(참)는 미접촉.
+> - **durable 레지스트리 신설** = `docs/segmentation/DSAR_MENU_AUDIT_LOG_CITATION_CORRECTION.md`(확정사실+규칙 R-E11+잔여 registry · scratchpad 휘발 방지).
+> - **회귀 증명**: 측정기 cover **50/17/9/0 불변** + git diff 판정토큰 제거/추가 카운트 토큰별 완전일치(flip 0) + `VALIDATED_LEGACY` diff 0건.
+> - 🔴 **잔여 미세**: `DSAR_ORGANIZATION_HIERARCHY_AUDIT_EVENT` §0 능력대조표(`:38` "tamper-evident 해시체인 ✅"·`:43` "tamper-evident 주석 :18")는 같은 문서 3계층 실측표(`:23`)가 이미 정정·반증하나 §0 셀 2개는 잔존(비계상·저위험).
 >
 > ## ★커버리지 현황 (ⓔ 정정 반영 · 측정기 산출 · 손으로 쓴 값 아님)
 > | 블록 | 편수 | 분모 | cover | ⓔ 전 |
@@ -12,7 +22,14 @@
 >
 > ## ★다음 우선순위 (이 순서대로)
 >
-> **1순위 — ⓔ 인용검증 완료**(10회차에 착수·**부분 완료 상태로 종료**). `menu_audit_log` 오염 = **116편**(내 초기 추정 "~60편"은 **과소**). 분류: `docs/approval/` 14편 = **전부 반례(정상)** · `docs/segmentation`+`architecture` 96편 중 **반례/정정 동반 29 · ★무비판 인용 67**. 규율 = `scratchpad/N289_E_CITATION_FIX.md`(세션 종료 시 소실 — **아래 §확정사실로 재작성 가능**).
+> **✅ 1순위 완료(11회차) — ⓔ 인용검증 전량 종결.** 위 §11회차 완료 참조. 규율 정본 = `docs/segmentation/DSAR_MENU_AUDIT_LOG_CITATION_CORRECTION.md`(scratchpad 대체·영속). 아래 10회차 시점 ①②③④ 잔여는 **전건 처리됨**(①-a 정정·①-b 무변확인·② P유형 ~78보강·③ schema_migrations 층위구분·④ VALIDATED_LEGACY 유지확정) — 이력 참고용 보존.
+>
+> **★차기 1순위 — 5-3-3-4 Approval Authority Matrix** ⓑ 전수조사부터(아래 상세). **★새 우선순위 = 5-3-3-4 → 미배포 코드 2건 배포검증(§별건 승인) → SEG-H2/H3/H5 라이브세션.**
+>
+> ---
+> <details><summary>10회차 시점 ⓔ 잔여 상세(전건 처리됨·이력)</summary>
+>
+> `menu_audit_log` 오염 = **116편**. 분류: `docs/approval/` 14편 = 전부 반례(정상) · `docs/segmentation`+`architecture` 96편 중 반례/정정동반 29 · 무비판 인용 67.
 >
 > **✅ 10회차에 완료된 분**: 이번 세션 자기오염 **16편**(`docs/approval/` 14 + `ADR_APPROVAL_CHAIN_CANONICAL_SOURCE`(D-18 ⓐ) + `ADR_APPROVAL_CHAIN_VERSIONING`(D-3)) — **근거만 교체·판정 전건 무변·cover 0→0·분모 1817 불변**(측정기 재확인). ⚠️내 배정은 architecture 5편이었으나 **실 오염은 2편**뿐이었다(나머지 3편의 `AdminMenu` 인용은 `wouldCycle` 깊이캡·`audit_log`(≠`menu_audit_log`) 건) — **지시받았다고 억지로 고치지 않은 판단이 옳다**.
 >
@@ -26,7 +43,9 @@
 > ③ ★**신규 발견 — `schema_migrations.checksum` 선례도 약하다**: 문서들이 *"검증 `Migrate.php:63-64`"* 라 인용하나 **`:63-64` 는 검증이 아니라 INSERT**다(`hash_equals` 0). 단 **checksum·preimage(디스크의 마이그레이션 파일)가 남아 재계산은 가능** → `menu_audit_log`(재계산 자체가 불가)와 **층위가 다른 결함**. **구분해 서술하라.**
 > ④ ★**10회차 재량 지점 2건 재검토**(에이전트 자진 신고): `DSAR_ORGANIZATION_HIERARCHY_API_CONTRACT:120`(`45 Audit`) · `_EVIDENCE:97`(`33 audit reference`) 를 **`VALIDATED_LEGACY` 유지**했다. 근거 = 두 행의 판정을 지탱하는 다리가 **`pm_audit_log`(tenant+entity+diff_json)**이라 `hash_chain` 을 빼도 무너지지 않는다. **"menu_audit_log 인용 = 무조건 격하"로 밀면 분자를 과소하게 만드는 반대 방향 오류**가 된다. 재량이 과했다면 이 2건이 −2 후보(→ 5331 = 15).
 >
-> **2순위 — 5-3-3-4 Approval Authority Matrix**. **스펙 원문 선영속 완료** = `docs/segmentation/SPEC_06A_4_5_3_1_5_3_3_4_VERBATIM.md`(§0~§90 · **착수 전 필독 헤더에 10회차 실측 전량 주입**). **ⓑ 전수조사부터.**
+</details>
+>
+> ### ★차기 1순위 상세 — 5-3-3-4 Approval Authority Matrix (ⓑ 전수조사 착수자료). **스펙 원문 선영속 완료** = `docs/segmentation/SPEC_06A_4_5_3_1_5_3_3_4_VERBATIM.md`(§0~§90 · **착수 전 필독 헤더에 10회차 실측 전량 주입**). **ⓑ 전수조사부터.**
 > - **★§79 가 다시 per-entity(`docs/segmentation/DSAR_*` 88편)로 돌아갔다** — 5-3-3-3 §71 의 *"Entity·Enum별 문서를 무조건 각각 생성하지 마라"*(통합 16편)와 **정반대**. **블록마다 산출 형태가 다르다 — 앞 블록 패턴을 관성으로 적용하면 즉시 위반.** 매 블록 §산출문서 조항을 **원문에서 직접 읽어라.** 실측: `DSAR_APPROVAL_AUTHORITY_*` **0편** · `*AUTHORITY*` **0편**(88편 중 실재 0).
 > - **★§3.1 선행조건이 5-3-3-3 산출물인데 그것은 커버리지 0.00% 의 계약 명세다** — `docs/approval/` 16편은 **실 코드·테이블 0건**. **문서 존재를 구현 존재로 계산하면 역산.** §3.1 대부분은 `CONTRACT_ONLY`/`BLOCKED_PREREQUISITE` 가 정직한 판정.
 > - **★이 블록이 미리 답을 아는 축**(전부 스펙 헤더에 실측 기록): §3.4 `Existing Hardcoded Amount Condition` = **`Catalog:1016`+`:1103-1105` 실재하나 Route 없음** · §4.1 Manager = **Resolver 자체가 ABSENT·`parent_user_id` 재사용 불가** · §4.2 Role = **권한 축 2벌 분열·매핑 0** · §26/§27 **환율은 저장 계층부터 부재**(세율과 부재 깊이가 다르다 — 균질화 금지) · §57 **`version` 6컬럼 전부 하드코딩 태그** · §59 **집행 수단 없음 + `AgencyPortal` `revoked_at=NULL` 정면 반례** · §76 **무효화할 캐시가 없다** · §77 **러너 0**

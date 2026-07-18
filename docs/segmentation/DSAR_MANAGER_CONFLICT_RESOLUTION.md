@@ -46,6 +46,6 @@
 - ★ **#9 Manual Review 는 `Mapping` 을 표준으로 삼아라** — maker-checker 4요소(actor fail-closed · 자기승인 차단 · dedup · 정족수)가 **전부 갖춰진 유일 경로**다.
   🔴 **`Catalog::approveQueue:2341-2365` 를 참조 구현으로 삼지 마라** — 실집행 경로는 REAL 이나 **행위자를 읽지도 않으며**(`:2343` `requirePro` = **구독 플랜 게이트**) `Mapping` 의 maker-checker 를 **전혀 갖지 않는다**. 이를 "중복 제거"로 통합하면 **`Mapping` 의 능력이 소실된다**(규칙 9 — 미달을 중복이라 부르면 통합 결과가 자동으로 "기능 유지"로 위장된다).
 - ★ **#10 Block 은 쓰기 경로에서 집행하라**(`Dependencies.php:32-34` 패턴). 🔴 `Gantt.php:120-125` 의 **부분결과+경고 degrade** 를 Resolution 에 적용하면 **미해소 충돌이 저장·집행된다**.
-- ★ **Evidence 말미 요구**: 자동 Resolution 결과와 **근거**를 남겨라 → `pm_audit_log` 패턴(`tenant_id NOT NULL`+`diff_json`+append-only) 확장. 🔴 **`menu_audit_log` 스키마 복제 금지(`tenant_id` 없음)** — 해시체인 알고리즘만 이식.
+- ★ **Evidence 말미 요구**: 자동 Resolution 결과와 **근거**를 남겨라 → `pm_audit_log` 패턴(`tenant_id NOT NULL`+`diff_json`+append-only) 확장. 🔴 **`menu_audit_log` 스키마 복제 금지(`tenant_id` 없음)** — 해시체인 알고리즘만 이식. 🔴 **단 쓰기 체인만 실재·검증기(`verify()`) 0·preimage ts(`:195`) 소실 → tamper-evident 아님**; 검증형 정본 = `SecurityAudit::verify():56-68`.
 - ⚠️ **"Material" 의 기준은 원문이 정의하지 않는다** — §45 `severity` 와의 결합 규칙은 **본 블록 범위 밖**이며 임의 정의 금지(요구 날조 0).
 </content>

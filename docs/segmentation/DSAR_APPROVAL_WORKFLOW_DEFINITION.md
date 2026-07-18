@@ -50,7 +50,7 @@
 | 28 | status | 레코드 `status` 는 있으나 **Definition status** 아님 | `NOT_APPLICABLE` |
 | 29 | valid_from | 부재 | `NOT_APPLICABLE` |
 | 30 | valid_to | 부재 | `NOT_APPLICABLE` |
-| 31 | evidence | `menu_audit_log.hash_chain`(AdminMenu.php:123-131) 만 선례 | `MIGRATION_REQUIRED` |
+| 31 | evidence | `menu_audit_log.hash_chain`(AdminMenu.php:123-131) 만 선례 — 🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts`(:195) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `MIGRATION_REQUIRED` |
 
 **실측 개수: 31 / 31 전사.** 커버리지 = 신설 27 · 재사용/이관 4.
 

@@ -35,7 +35,7 @@
 | 14 | production certification state | 부재 | `NOT_APPLICABLE` |
 | 15 | owner | 부재 | `NOT_APPLICABLE` |
 | 16 | status | 부재(템플릿 레벨) | `NOT_APPLICABLE` |
-| 17 | evidence | `menu_audit_log.hash_chain`(AdminMenu.php:123-131) 만 선례 | `MIGRATION_REQUIRED` |
+| 17 | evidence | `menu_audit_log.hash_chain`(AdminMenu.php:123-131) 만 선례 — 🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts`(:195) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `MIGRATION_REQUIRED` |
 
 **실측 개수: 17 / 17 전사.** 커버리지 = 신설 15 · 이관 2.
 

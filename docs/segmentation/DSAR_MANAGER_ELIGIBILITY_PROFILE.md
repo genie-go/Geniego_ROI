@@ -74,7 +74,7 @@
 | 21 | valid_from | `valid_from` **전역 grep 0** · 유사 선례 `kr_fee_rule.effective_from`(`Db.php:898`) = **컬럼 有·질의 無**(`WHERE effective_from <= :as_of` 전역 0 · 읽기 4개소 전부 최신승) | `ABSENT` |
 | 22 | valid_to | `valid_to`/`effective_to` **전역 grep 0** | `ABSENT` |
 | 23 | status | 프로파일 엔티티 부재로 상태를 걸 대상 없음 | `ABSENT` |
-| 24 | evidence | 적격성 판정 근거 기록 **0** · **`Actor Authorization Snapshot` = `ABSENT`**(승인 시점 권한 동결 0) · 이식 선례 `menu_audit_log.hash_chain`(`AdminMenu.php:128`) | `LEGACY_ADAPTER` |
+| 24 | evidence | 적격성 판정 근거 기록 **0** · **`Actor Authorization Snapshot` = `ABSENT`**(승인 시점 권한 동결 0) · 이식 선례 `menu_audit_log.hash_chain`(`AdminMenu.php:128`) — 🔴 쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `LEGACY_ADAPTER` |
 
 **실측 개수: 24 / 24 전사** (**측정기 분모 24 와 일치**).
 커버리지 = `ABSENT` 18 · `PARTIAL` 3 · `NAME_ONLY` 2 · `CONTRACT_ONLY` 1 · `LEGACY_ADAPTER` 1 · **`VALIDATED_LEGACY` 0**.

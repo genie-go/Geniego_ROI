@@ -87,7 +87,7 @@
 | `graph_node`/`graph_edge` | Adjacency(타입드) | **하드코딩 3-hop**(범용 아님) | **없음** |
 | `journeys.edges` | JSON 문서 | 단일 next(`:786`) | **런타임 방문집합만**(`:511-518` · 작성자 JSON 무검증 자인) |
 | 라우트/메뉴키 | Materialized Path(**문자열**) | 최장 prefix | — |
-- 🔴 **Closure Table·Path Index·Nested Set·Materialized Path(DB 컬럼) 전례 0** → **§18/§66 은 순수 신규**. 반면 **Node·Edge 는 `graph_node`/`graph_edge` 가, Snapshot 은 `menu_defaults`/`pm_baseline` 이, immutable_hash 는 `schema_migrations.checksum`(`Migrate.php:50`)이, 해시체인은 `menu_audit_log` 가 선례 제공.**
+- 🔴 **Closure Table·Path Index·Nested Set·Materialized Path(DB 컬럼) 전례 0** → **§18/§66 은 순수 신규**. 반면 **Node·Edge 는 `graph_node`/`graph_edge` 가, Snapshot 은 `menu_defaults`/`pm_baseline` 이, immutable_hash 는 `schema_migrations.checksum`(`Migrate.php:50`)이, 해시체인은 `menu_audit_log` 가 선례 제공.** 🔴 **단 `menu_audit_log` 은 쓰기 체인만 실재·`verify()` 0·preimage `ts`(`AdminMenu.php:195`) 소실 → tamper-evident 가 아니다**(D-12 ① 참조); **검증형 정본 = `SecurityAudit::verify():56-68`** — 해시체인을 실제 검증까지 가는 선례로 인용할 때는 이쪽을 쓴다.
 - ⚠️ **`menu_tree` 는 `tenant_id` 없음(전역 단일 트리)** → 조직 아님 · **선례로만**. `reorder` 프론트 호출자 0 · `AdminMenuManager.jsx:252` "menu_tree 가 비어 있습니다" 분기 → **운영 0행 가능성** → **"운영 중인 트리"로 인용 금지.**
 - ★**Path Index 도입 정당화** = `GraphScore.php:207-219` **N+1**(hop3∈hop2∈hop1) — 285차 "루프 내 N+1=즉시장애" 트랩의 DB판.
 
@@ -135,7 +135,7 @@ OIDC Authorization Code + id_token RS256/JWKS 검증 · SAML ds:Signature 검증
   - ⚠️ **`SecurityAudit` 잠복 결함 2건**(신규 관찰 · **등급 미부여** · 라이브 미검증): ⓐ `lastHash():38`·`verify():59` 에 **tenant 술어 없음** → 체인이 **전역 단일**(테넌트별 체인 확장 시 `WHERE tenant_id=?` 필수) ⓑ `:31` 이 actor 를 `substr(...,0,190)` 로 저장하나 `:27` 해시는 **원본 전체** → **190자 초과 actor 에서 `verify()` 영구 실패**.
 - (초판 서술) `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) · 마이그레이션 `20260526_168_102_create_menu_audit_log.sql` 은 **실재하나 위 ①대로 검증 불가**.
 - ★**`pm_audit_log`** = `tenant_id NOT NULL`(migration `20260526_168_008:7`) + `entity` + `diff_json`(`:13`) + **3인덱스**(`:17-19`) + append-only 주석(`:2-3`).
-- 🔴 **그러나 선례는 알고리즘 수준이지 스키마 수준이 아니다**: ⓐ **`menu_audit_log` 에 `tenant_id` 가 없다** → **스키마 복제 금지 · 알고리즘만 이식** ⓑ **`lastHash()` 에 tenant 술어가 없다** → 테넌트별 체인 확장 시 **`WHERE tenant_id=?` 추가 필수**.
+- 🔴 **그러나 `menu_audit_log` 은 알고리즘조차 온전한 선례가 아니다 — 쓰기 체인만 실재·`verify()` 0·preimage `ts`(`AdminMenu.php:195`) 소실 → tamper-evident 가 아니다**(D-12 ①). **검증형 정본 = `SecurityAudit::verify():56-68`.** 부득이 `menu_audit_log` 을 참조하더라도: ⓐ **`menu_audit_log` 에 `tenant_id` 가 없다** → **스키마 복제 금지 · 알고리즘만 이식** ⓑ **`lastHash()` 에 tenant 술어가 없다** → 테넌트별 체인 확장 시 **`WHERE tenant_id=?` 추가 필수**.
 - **중복 감사 스토어 신설 금지.** `journey_node_logs` 는 **tenant_id 보유**(`JourneyBuilder.php:69`)+조회 술어 실배선(`:248`) — 스키마 선례(단 마케팅 도메인 → 커버 금지).
 
 ### D-13. ★Effective Period = **결번이 두 축에서 동형 재현 · 부재의 깊이가 다르다**

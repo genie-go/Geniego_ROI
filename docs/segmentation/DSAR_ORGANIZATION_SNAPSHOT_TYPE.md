@@ -44,7 +44,7 @@
 | 7 | APPROVAL_EXECUTION | 부재. 🔴**`Alerting::executeAction`(Alerting.php:601-660) 참조 금지** — `:612` 에서 `status` SELECT 후 **판독 안 함**(승인 우회) · **`INSERT INTO action_request` grep 0 → 생산자 전무 = VACUOUS** | `VACUOUS` |
 | 8 | ORGANIZATION_CHANGE | 조직 변경 이벤트 **부재**(§45·§47 — `reparent`·`lifecycle_event` grep 0) | `ABSENT` |
 | 9 | RECONCILIATION | ★**부재 + 집행 수단 없음** — `ensureTables` 는 **테이블 생성만 · 데이터 변환/백필 없음**(ⓑ §20 제약 2) · `backend/migrations/` **172차 정지** | `ABSENT` |
-| 10 | AUDIT_RECONSTRUCTION | 🔴**부재 — 재현 능력이 구조적으로 없다**: `effective_from *<=` **전역 0건** + 스냅샷 조회가 **최신 1건**(`AdminMenu.php:584`) → **"과거 어느 시점의 조직"을 물을 수단 자체가 없음**. ⚠️인접 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`·`:182-197`) = **tamper-evident 선례**(단 메뉴 도메인) | `ABSENT` |
+| 10 | AUDIT_RECONSTRUCTION | 🔴**부재 — 재현 능력이 구조적으로 없다**: `effective_from *<=` **전역 0건** + 스냅샷 조회가 **최신 1건**(`AdminMenu.php:584`) → **"과거 어느 시점의 조직"을 물을 수단 자체가 없음**. ⚠️인접 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`·`:182-197`) = **prev-chain 쓰기 선례**(단 메뉴 도메인 · 🔴 `verify()` 0·preimage ts 소실 → **tamper-evident 아님**; 검증형은 `SecurityAudit::verify()`) | `ABSENT` |
 
 **실측 개수: 10 / 10 전사.** 커버리지 = **`VALIDATED_LEGACY` 0** · `KEEP_SEPARATE_WITH_REASON` 1 · `VACUOUS` 1 · `ABSENT` 8.
 

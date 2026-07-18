@@ -47,7 +47,7 @@
 | 10 | `context snapshot` | **부재** — §0 동일(스냅샷 축 전무) · **NOT_APPLICABLE(신설)** |
 | 11 | `effective_from` | **부재** — §0 version/이력 축 전무 · **NOT_APPLICABLE(신설)** |
 | 12 | `effective_to` | **부재** — §0 동일 · **NOT_APPLICABLE(신설)** |
-| 13 | `immutable_hash` | **부재** — ※재사용 선례 = `menu_audit_log.hash_chain`(AdminMenu.php:123-131) · **승인 도메인 아님** |
+| 13 | `immutable_hash` | **부재** — ※쓰기 체인 선례 = `menu_audit_log.hash_chain`(AdminMenu.php:123-131 · 🔴 `verify()` 0 → tamper-evident 아님; 검증형 = `SecurityAudit::verify()`) · **승인 도메인 아님** |
 | 14 | `created_at` | **부재(Version 행)** — ※Request 행 `created_at` 은 존재(Db.php:599,635) |
 | 15 | `status` | **부재(Version 행)** — ※`FeedTemplate`(FeedTemplate.php:248-285)은 상태는 있으나 **버전 스냅샷 아님**(전이 후 이전 내용 복원 불가) · **MIGRATION_REQUIRED** |
 | 16 | `evidence` | ⚠️ **판정 유보** — §0 미열거(§50 Evidence 축) |

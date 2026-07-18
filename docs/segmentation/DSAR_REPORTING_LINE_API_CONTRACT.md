@@ -110,7 +110,7 @@
 |---|---|---|---|
 | 37 | Manager Snapshot 생성 | **`Actor Authorization Snapshot` `ABSENT`**(승인 시점 권한 동결 0) · 🔴**`snapshot` grep 최다 히트 = CCTV JPEG**(`routes.php:271`·`WmsCctv.php:45`) | `ABSENT` |
 | 38 | Snapshot 조회 | 부재 · ★**`pm_baseline.captured_at` 은 DB 컬럼이 아니라 `snapshot_json` 내부 JSON 키**(`Handlers/PM/Enterprise.php:360` · DDL 은 `created_at` `:55`/`:62`) → **인덱스 불가·as-of 질의 불가** | `KV_ONLY` |
-| 39 | Snapshot Hash 검증 | **선례 REAL**: `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219`) · `schema_migrations.checksum`(`Migrate.php:50`) 🔴**`menu_audit_log` 에 `tenant_id` 없음 → 스키마 복제 금지·알고리즘만 이식** | `LEGACY_ADAPTER`(알고리즘 이식) |
+| 39 | Snapshot Hash 검증 | 선례: `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219`) 🔴**단 쓰기 체인만 실재·`verify()` 0** — AdminMenu `hash_equals` 0 · preimage `'ts'=date('c')`(`:195`)가 INSERT 컬럼(`:199-203`) 소실 → `created_at` DEFAULT(`:129`)가 덮어 재계산 불가 → **tamper-evident 아님**(`:18` 주석≠근거); **검증형 정본 = `SecurityAudit::verify():56-68`**(`:64` hash_equals+prev_hash 교차) · `schema_migrations.checksum`(`Migrate.php:50`) 🔴**`menu_audit_log` 에 `tenant_id` 없음 → 스키마 복제 금지·알고리즘만 이식** | `LEGACY_ADAPTER`(알고리즘 이식) |
 | 40 | Historical Reconstruction | 부재 · 🔴**정면 반례**: `AgencyPortal.php:304`·`:381` 이 `revoked_at=NULL` 로 **이력 물리적 소멸** | `NOT_APPLICABLE`(신설) |
 
 ### Reconciliation (5)
@@ -145,6 +145,6 @@
 - 🔴 **라우트 3중 등록 필수**: `routes.php` 매핑 + `$register` + **`/api` 접두 별칭**. 별칭 누락 시 **nginx SPA HTML 폴백이 200 을 반환**해 "동작"으로 오독된다.
 - 🔴 **★Rate Limit 을 "있다"로 §78 을 닫지 마라.** `index.php:508-545` 는 **`api_key` 축에서만 REAL**이며 **fail-open**이다. Manager Relationship API 를 **SPA/세션 경로로 노출하면 레이트리밋은 0**이다. **분모를 API 키 축으로 갈아끼우는 역산 금지.**
 - 🔴 **Optimistic Lock 은 "SQLite 라서 못 한다"가 아니다.** 진짜 제약은 **마이그레이션 경로**(172차 정지 · `ensureTables` 는 **DDL 만 · 데이터 변환/백필 없음** · **MySQL/SQLite 두 방언 수기 중복 작성 의무**). 🔴**`Migrate` 이름 겹침 주의 — DDL 적용기이지 도메인 데이터 이행기가 아니다.**
-- 🔴 **Audit 은 `pm_audit_log` 를 선례로 삼으라**(`tenant_id NOT NULL`+`diff_json`+3인덱스+append-only). **`menu_audit_log` 는 `tenant_id` 가 없어 스키마 복제 금지 — 알고리즘(SHA-256 prev-chain)만 이식**하고 `lastHash()` 에 **`WHERE tenant_id=?` 필수**.
+- 🔴 **Audit 은 `pm_audit_log` 를 선례로 삼으라**(`tenant_id NOT NULL`+`diff_json`+3인덱스+append-only). **`menu_audit_log` 는 검증형 해시체인 선례가 아니다** — **쓰기 체인만 실재**하고 `verify()` 검증기가 없으며(AdminMenu `hash_equals` 0), preimage `'ts'`(`:195`)가 INSERT 컬럼에서 소실돼 `created_at` DEFAULT 가 덮으므로 **재계산 불가 = tamper-evident 아님**(`:18` 주석≠근거); **검증형 정본은 `SecurityAudit::verify():56-68`**. `menu_audit_log` 는 `tenant_id` 도 없어 **스키마 복제 금지 — 검증형 알고리즘(SHA-256 prev-chain)만 이식**하고 `lastHash()` 에 **`WHERE tenant_id=?` 필수**.
 - 🔴 **Reconciliation API(#41~#45) 를 source 측부터 만들지 마라** — **Canonical 선언이 §66 에 선행**한다. 양변 부재 상태의 비교는 **자동 MATCH = 가짜녹색**이다.
 - **경로 접두 필수**: `backend/src/Handlers/PM/…` — `backend/src/PM/` 는 **존재하지 않는다**.

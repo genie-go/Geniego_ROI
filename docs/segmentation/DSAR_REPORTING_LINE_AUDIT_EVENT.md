@@ -111,7 +111,7 @@ pm_audit_log 골격        : tenant_id NOT NULL · actor 2축 · entity_type/ent
 
 ## 2. 규칙
 
-- 🔴 **"해시체인 없음"을 전역 명제로 쓰지 마라 — 거짓이다.** 참인 것은 **전역 `audit_log`**(`Db.php:540-545`/`AdminGrowth.php:157-159` — `actor`·`action`·`details_json`·`created_at` **4컬럼 · tenant 없음 · 해시체인 없음**)에 한해서다. **`menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain)은 실재하는 선례다.**
+- 🔴 **"해시체인 없음"을 전역 명제로 쓰지 마라 — 거짓이다.** 참인 것은 **전역 `audit_log`**(`Db.php:540-545`/`AdminGrowth.php:157-159` — `actor`·`action`·`details_json`·`created_at` **4컬럼 · tenant 없음 · 해시체인 없음**)에 한해서다. **`menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain)은 실재하는 선례다.** 🔴**단 실재하는 것은 쓰기 체인뿐 — `verify()` 0·preimage ts(`:195`) 소실로 행에서 재계산 불가 → tamper-evident 는 아니다(주석 `:18` 은 주석일 뿐, 코드 근거 아님). 검증형 정본 = `SecurityAudit::verify():56-68`.**
 - 🔴 **§74 = `pm_audit_log` 골격 + `menu_audit_log` 해시체인 합집합 확장.** **중복 감사 스토어 신설 금지**(신설 시 레포에 감사 스토어 4개).
 - 🔴 **선례는 알고리즘 수준이지 스키마 수준이 아니다.**
   - **`menu_audit_log` 스키마 복제 금지** — `tenant_id` 가 없다(DDL `AdminMenu.php:123-131`). 복제하면 **테넌트 격리 절대 원칙 위반**.

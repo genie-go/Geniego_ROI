@@ -54,7 +54,7 @@
 | 20 | valid_from | **`valid_from` grep 0** · 인접 `kr_fee_rule.effective_from`(`Db.php:898`) = **컬럼 有·질의 無**(`WHERE effective_from <= :as_of` 전역 0) | `ABSENT` |
 | 21 | valid_to | **`valid_to`/`effective_to` grep 0** | `ABSENT` |
 | 22 | status | 부재. 🔴트랩 **`is_active` = 계정 상태이지 고용/계층 상태가 아니다**(base DDL `Db.php:1106` · 소비처 전부 인증 게이트) · **`NOT NULL DEFAULT 1` → 미지가 자동 "가용" = fail-open** | `ABSENT` |
-| 23 | evidence | 감사 선례는 있으나 계층 축 부재 — `menu_audit_log.hash_chain`(`AdminMenu.php:128`) · `pm_audit_log`(`…168_008:7`) | `ABSENT`(선례 = `LEGACY_ADAPTER`) |
+| 23 | evidence | 감사 선례는 있으나 계층 축 부재 — `menu_audit_log.hash_chain`(`AdminMenu.php:128` · 🔴 쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68`) · `pm_audit_log`(`…168_008:7`) | `ABSENT`(선례 = `LEGACY_ADAPTER`) |
 
 **실측 개수: 23 / 23 전사.** 측정기 §9 합계 **36** = 본 문서 **23** + Hierarchy Type **13**(별도 문서) — **불일치 없음.**
 ★원문이 `evidence` 로 **끝난다**(`:610`) → 규칙 4 에 따라 전사에 포함(추가 아님).

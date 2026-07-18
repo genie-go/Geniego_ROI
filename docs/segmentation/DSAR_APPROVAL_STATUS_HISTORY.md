@@ -16,7 +16,7 @@
 | `catalog_writeback_job` | `'pending_approval'`→`'queued'`(`Catalog.php:2341-2364`) | ✘ | **MIGRATION_REQUIRED** |
 | `FeedTemplate::transition` | `draft→submitted→approved→published` 순차 강제 · 역행 차단 · `invalid_state` 409(`FeedTemplate.php:248-285`) | ✘ **전이는 막지만 이력은 안 남김** | **CANONICAL_APPROVAL_TRANSITION_GUARD**(전이 강제만 승격) |
 | `audit_log` | `id, actor, action, details_json, created_at`(`Db.php:540-546`) · `Mapping::audit`(`Mapping.php:60-63`) | △ **tenant_id 없음 · 해시체인 없음 · immutable 아님** | **LEGACY_ADAPTER**(대체물 아님) |
-| **`menu_audit_log`** | `hash_chain CHAR(64)` + `old_value`/`new_value` JSON + `prev` 해시 체인(`AdminMenu.php:123-131,169-210`) | ✔ **tamper-evident** | **★재사용 선례**(승인 도메인 아님) |
+| **`menu_audit_log`** | `hash_chain CHAR(64)` + `old_value`/`new_value` JSON + `prev` 해시 체인(`AdminMenu.php:123-131,169-210`) | ⚠️ **체인만 실재·검증 불가** — `verify()` 0(`hash_equals` `AdminMenu` 0히트) · preimage `ts`(`:195`) 미저장(`:199-203` 에 `created_at` 없음) → **tamper-evident 아님**. 진짜 검증 선례 = `SecurityAudit::verify():56-68` | **필드·저장 선례**(승인 도메인 아님 · 🔴 무결성은 `SecurityAudit` 이식) |
 | APPROVAL_STATUS_HISTORY | **grep 0** | — | **NOT_APPLICABLE(부재 → 신설)** |
 
 > **스펙 §28 요구 대비 현행 판정**: 스펙은 *"Status 를 직접 덮어쓰지 말고 History Event 를 생성하라"* 를 요구한다.
@@ -59,7 +59,7 @@
 
 초판은 `tenant_id`(*"격리 필수 — `audit_log` 결함 교정"*)와 `hash_chain`(*"`menu_audit_log` 선례 확장"*)을 필드로 넣었다. **둘 다 스펙 §28 원문에는 없다.**
 
-> ⚠️ **그렇다고 §0 의 결함 판정이 취소되는 것은 아니다** — `audit_log` **tenant_id 없음 · 해시체인 없음 · immutable 아님**(**LEGACY_ADAPTER**)과 `menu_audit_log.hash_chain` **tamper-evident 재사용 선례**(AdminMenu.php:123-131,169-210)는 **§0 실측으로 유효하며 삭제하지 않는다**(무후퇴).
+> ⚠️ **그렇다고 §0 의 결함 판정이 취소되는 것은 아니다** — `audit_log` **tenant_id 없음 · 해시체인 없음 · immutable 아님**(**LEGACY_ADAPTER**)과 `menu_audit_log.hash_chain` **필드·저장 선례**(AdminMenu.php:123-131,169-210 · 🔴 **tamper-evident 아님** — `verify()` 0·preimage ts(`:195`) 소실 → 무결성 검증은 `SecurityAudit::verify():56-68` 이식)는 **§0 실측으로 유효하며 삭제하지 않는다**(무후퇴).
 > **다만 그 둘은 "스펙 §28 이 요구한 필드"가 아니라 "289차가 판단한 보강"** 이다 — **분모(원문)와 판단(설계)을 섞지 않는다**(REQ §16 요구 날조 0 · §15 역산 금지). 헌법상 **테넌트 격리 절대**는 별도 근거로 유지된다.
 
 > **§0 판정 재확인**: 스펙 §28 요구 대비 현행 **미충족 0/4**(전 4개 승인 테이블 100% 직접 덮어쓰기) — 전사 후에도 **모순 0**.
@@ -69,6 +69,6 @@
 - **Append-only**(§4.9) — History 행은 **UPDATE·DELETE 금지**. 상태 변경은 **History INSERT 가 정본**이고, 현재 상태 컬럼은 **파생 캐시**다.
 - **기존 `status` 컬럼 보존**(비파괴 · Golden Rule = Extend) — 컬럼 제거 금지. History 를 **추가**할 뿐이다.
 - **전이 검증 없는 `UPDATE status` 금지** — `FeedTemplate.php:248-285` 의 `invalid_state` 409 패턴을 **확장**(신설 금지). 허용 전이 정본 = `DSAR_APPROVAL_ALLOWED_TRANSITIONS.md`(§29).
-- **해시체인은 신설이 아니라 재사용** — `menu_audit_log` 선례를 승인 도메인으로 확장. 별도 tamper-evident 엔진 신설 금지.
+- **해시체인은 신설이 아니라 재사용** — 🔴 단 검증형 정본은 **`SecurityAudit`**(`verify():56-68`·preimage ts 저장 `:31`)이다. `menu_audit_log.hash_chain` 은 **쓰기 체인만 실재·검증 불가**(tamper-evident 아님)이므로 **필드·prev-chain 알고리즘만** 참조하고 무결성 검증은 `SecurityAudit` 을 확장. 별도 tamper-evident 엔진 신설 금지(중복 엔진 금지).
 - `audit_log`(`Db.php:540-546`)는 **History 대체물이 아니다**(tenant_id·체인 부재). **있다고 가정하고 배선 금지**(287차 죽은 스켈레톤).
 - **코드변경 0**.

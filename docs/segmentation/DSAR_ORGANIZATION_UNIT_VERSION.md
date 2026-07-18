@@ -12,7 +12,7 @@
 | **유일 "버전 붙은 스냅샷"** | `menu_defaults(snapshot_data JSON, version, created_at)`(AdminMenu.php:120·:139 · 생성 :308 · 복원 :584-590) — 단 **immutable_hash 없음 · 전역 1행(tenant 없음) · 최신 1건만 조회** | `PARTIAL`(선례 가치) |
 | 스냅샷 선례 2 | `pm_baseline(snapshot_json, captured_at)`(PM\Enterprise.php:55·:62·:360-364) — ★`captured_at` 명명이 원문 `recorded_at` 축과 정확히 대응 | `LEGACY_ADAPTER` |
 | **immutable_hash 선례** | ★`schema_migrations.checksum`(Migrate.php:50 `hash('sha256',$sql)` · :63-64 · :145/:151) | `LEGACY_ADAPTER`(패턴 정본) |
-| **해시체인 선례** | ★**`menu_audit_log.hash_chain CHAR(64)`(AdminMenu.php:128) = SHA-256 prev-chain 실구현**(생성 :182-197 · `lastHash()` :214-219 · tamper-evident 주석 :18) | `LEGACY_ADAPTER`(패턴 정본) |
+| **해시체인 쓰기 선례** | ★**`menu_audit_log.hash_chain CHAR(64)`(AdminMenu.php:128) = SHA-256 prev-chain 쓰기 실구현**(생성 :182-197 · `lastHash()` :214-219) · 🔴 **tamper-evident 아님**(:18 은 주석·`verify()` 0·preimage ts 소실 → 검증형 정본 = `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER`(쓰기 패턴만) |
 | **effective dating 총량** | ★`kr_fee_rule.effective_from`(Db.php:898) = **전 코드베이스 유일 effective date**. 쓰기 KrChannel.php:128-140 · **읽기가 전부 `ORDER BY effective_from DESC LIMIT 1`(최신승)** — Pnl.php:454 · KrChannel.php:102·:151·:459 | **컬럼 有 · as-of 능력 無** |
 | ↑ ★**as-of 조회 부재 실증** | ★**PM 직접 검증: `WHERE effective_from <= :as_of` 술어 = backend/src 전역 0건** · **`effective_to` 없음**(`valid_to\|effective_to` grep 0) → **폐구간 모델은 신규** | `NOT_APPLICABLE` |
 | ↑ ⚠️ 관찰 사실 | `Pnl.php:449` 가 기간(`$from`,`$to`)을 받고도 `:454` 는 기간을 무시 → **과거 기간 P&L 도 오늘자 최신 VAT율로 계산**. 단 주석(:451) *"테넌트 최신 kr_fee_rule(채널 무관 최신)"* 이 **의도 명시** → **설계 선택일 수 있음 · 등급 미부여 · 관찰 사실로만 등재**(라이브 확인 필요) | **미판정** |
@@ -30,7 +30,7 @@
 | 1 | organization_unit_version_id | 부재 — 버전 엔티티 없음 | `NOT_APPLICABLE` |
 | 2 | organization_unit_id | 부재(FK) · 대상 후보 `team.id`(TeamPermissions.php:146) | `NOT_APPLICABLE` |
 | 3 | version_number | 부재 — ★엔티티 `version` 은 `menu_defaults.version`(AdminMenu.php:120) **단 1건** · 조직 버전 0 | `NOT_APPLICABLE` |
-| 4 | previous_version_id | 부재 — 버전 체인 0 · ★**인접 패턴 = `menu_audit_log.hash_chain`**(:128 · `lastHash()` :214-219) — **prev 를 해시로 잇는 실선례** | `LEGACY_ADAPTER`(패턴만) |
+| 4 | previous_version_id | 부재 — 버전 체인 0 · ★**인접 패턴 = `menu_audit_log.hash_chain`**(:128 · `lastHash()` :214-219) — **prev 를 해시로 잇는 실선례** · 🔴 **쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님**(검증형 정본 = `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER`(패턴만) |
 | 5 | organization name | 부재(버전 스냅샷) · 현행 `team.name`(:147)은 **덮어쓰기 · 이력 없음** | `NOT_APPLICABLE` |
 | 6 | organization type | 부재(버전 스냅샷) · 현행 `team.team_type`(:147) 덮어쓰기 | `NOT_APPLICABLE` |
 | 7 | organization category | 부재 — Category 컬럼 자체가 없음([§8](DSAR_ORGANIZATION_CATEGORY.md)) | `NOT_APPLICABLE` |
@@ -47,7 +47,7 @@
 | 18 | effective_to | ★**완전 부재 — `valid_to\|effective_to` grep 0** → **폐구간(closed interval) 모델은 순수 신규** | `NOT_APPLICABLE` |
 | 19 | recorded_at | 부재(조직) · ★**인접 명명 정확 일치 = `pm_baseline.captured_at`**(PM\Enterprise.php:55·:62·:360-364) · `menu_defaults.created_at`(:120) | `LEGACY_ADAPTER` |
 | 20 | recorded_by | 부재 · 인접 `team.created_by INT NULL`(:149)은 **생성자 1회 기록**이지 버전 기록자 아님 · `audit_log.actor`(Db.php:540-545) | `LEGACY_ADAPTER` |
-| 21 | immutable_hash | 부재(조직) · ★**선례 2건 실재**: `schema_migrations.checksum`(Migrate.php:50 `hash('sha256',$sql)`·:63-64·:145) · `menu_audit_log.hash_chain CHAR(64)`(AdminMenu.php:128 · 생성 :182-197). ★**`menu_defaults` 스냅샷에는 immutable_hash 가 없다** — 스냅샷과 해시가 **한 번도 결합된 적 없음** | `LEGACY_ADAPTER`(패턴만·미결합) |
+| 21 | immutable_hash | 부재(조직) · ★**선례 2건 실재**: `schema_migrations.checksum`(Migrate.php:50 `hash('sha256',$sql)`·:63-64·:145) · `menu_audit_log.hash_chain CHAR(64)`(AdminMenu.php:128 · 생성 :182-197) — 🔴 단 후자는 **쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실로 재계산 불가 → tamper-evident 아님**(검증형 정본 = `SecurityAudit::verify():56-68`). ★**`menu_defaults` 스냅샷에는 immutable_hash 가 없다** — 스냅샷과 해시가 **한 번도 결합된 적 없음** | `LEGACY_ADAPTER`(패턴만·미결합) |
 | 22 | status | 부재(버전) · `team.status`(:148)는 **현재상태 전용** | `NOT_APPLICABLE` |
 | 23 | evidence | 부재 — 전 도메인 0 | `NOT_APPLICABLE` |
 
@@ -57,10 +57,10 @@
 
 - 🔴 **`kr_fee_rule.effective_from` 을 "시점 이력 능력 있음"으로 계산 금지 — 이름이 아니라 능력으로 판단하라.** 컬럼은 있으나 **읽기가 전부 `ORDER BY effective_from DESC LIMIT 1`(최신승)** 이고 **`WHERE effective_from <= :as_of` 술어가 backend/src 전역 0건**이다. **as-of 조회는 순수 신규**다.
 - 🔴 **`effective_to` 는 grep 0 — 폐구간 모델을 "기존 패턴 확장"으로 쓰지 마라.** 전례가 **없다**. 신설 시 **`effective_from`/`effective_to` 쌍의 as-of 술어를 처음부터 SSOT 로 고정**하라(현행 최신승 술어가 4개소에 흩어진 것과 같은 분산을 반복하지 말 것 — 5-3-2 "백오프 3공식"·"타임존 3벌"·`isDemo` 12벌과 동형).
-- 🔴 **"해시체인 선례 없음"을 전역 명제로 쓰지 마라 — 오염이다.** 참인 것은 **전역 `audit_log`(4컬럼·tenant 없음·Db.php:540-545)에 한해서**다. `menu_audit_log.hash_chain`(AdminMenu.php:128 · :182-197 · :214-219)은 **SHA-256 prev-chain 실구현**이며, 버전 체인은 **이 패턴의 확장**이다 — 신설이 아니다.
+- 🔴 **"해시체인 선례 없음"을 전역 명제로 쓰지 마라 — 오염이다.** 참인 것은 **전역 `audit_log`(4컬럼·tenant 없음·Db.php:540-545)에 한해서**다. `menu_audit_log.hash_chain`(AdminMenu.php:128 · :182-197 · :214-219)은 **SHA-256 prev-chain 쓰기 실구현**이며, 버전 체인은 **이 쓰기 패턴의 확장**이다 — 신설이 아니다. ⚠️ 단 이는 **쓰기 체인에 한한다** — `verify()` 0 · preimage ts(`:195`) 소실로 **tamper-evident 는 아니다**(검증형 정본 = `SecurityAudit::verify():56-68`). 확장 시 검증기까지 함께 이식하라.
 - 🔴 **`menu_defaults` 를 조직 버전 정본으로 재사용 금지.** ⓐ **`tenant_id` 없음(전역 1행)** — 테넌트 격리 헌법 정면 충돌 ⓑ **최신 1건만 조회**(:584-590) ⓒ **immutable_hash 없음**. **선례로만 인용**하고 조직 버전은 **tenant 스코프 신설 테이블**로 간다.
 - 🔴 **`plan_period_pricing.period_months` 를 유효기간 선례로 인용 금지**(초판 브리핑 오류). **구독 기간 상품 옵션**(1/3/6/12개월)이며 effective date 가 없다.
-- ★**조합 지침 — 선례가 흩어져 있고 결합된 적이 없다.** Snapshot=`menu_defaults`/`pm_baseline` · immutable_hash=`schema_migrations.checksum` · 해시체인=`menu_audit_log.hash_chain` · changed fields=`pm_audit_log.diff_json` · tenant 스코프 로그=`journey_node_logs`(JourneyBuilder.php:69 · 조회 술어 :248 — **스키마 선례 최적**이나 마케팅 도메인 → **커버 계산 금지**). 조직 버전은 **이 5개 패턴의 결합**이며, **어느 것도 재구현하지 말고 패턴만 차용**하라.
+- ★**조합 지침 — 선례가 흩어져 있고 결합된 적이 없다.** Snapshot=`menu_defaults`/`pm_baseline` · immutable_hash=`schema_migrations.checksum` · 해시체인=`menu_audit_log.hash_chain`(🔴 쓰기 체인만 — `verify()` 0 · preimage ts(`:195`) 소실로 tamper-evident 아님 → 검증형 정본 `SecurityAudit::verify():56-68` 도 함께 차용) · changed fields=`pm_audit_log.diff_json` · tenant 스코프 로그=`journey_node_logs`(JourneyBuilder.php:69 · 조회 술어 :248 — **스키마 선례 최적**이나 마케팅 도메인 → **커버 계산 금지**). 조직 버전은 **이 5개 패턴의 결합**이며, **어느 것도 재구현하지 말고 패턴만 차용**하라.
 - 🔴 **`crm_segments` 를 버전 선례로 쓰지 마라** — version/snapshot/evaluated_at **전무**(CRM.php:64-70). 5-3-2 에서 확정된 사실이다.
 - ⚠️ **§14 Hierarchy Version 간 데이터 이행 · §46 Retroactive 재계산은 집행 수단이 현재 없다**(제약 2 — `ensureTables` 는 테이블 생성만 하고 **데이터 변환·백필을 하지 않는다** · `backend/migrations/` **172차 정지**). 버전 도입 시 **INITIAL 버전을 런타임 지연 생성**(첫 변경 시 현재상태를 v1 으로 봉인)하는 설계가 백필 부재를 우회하는 유일 경로다.
 - ⚠️ **`Pnl.php:449→:454` 기간 무시는 등급 미부여** — 주석(:451)이 "채널 무관 최신"을 **의도로 명시**하므로 설계 선택일 수 있다. **관찰 사실로만 등재 · 라이브 확인 필요.** 결함으로 단정하지 마라.

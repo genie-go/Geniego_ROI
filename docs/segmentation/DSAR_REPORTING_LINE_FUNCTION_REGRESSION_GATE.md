@@ -46,7 +46,7 @@
 |---|---|---|---|
 | 1 | Reporting Line Registry가 구축되었는가 | 실 코드 0 · 계약만 | `CONTRACT_ONLY` |
 | 2 | Reporting Line Definition과 Version이 분리되는가 | 실 코드 0 | `CONTRACT_ONLY` |
-| 3 | Active Version이 Immutable한가 | 실 코드 0 · 인접 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) 🔴**tenant_id 없음 → 알고리즘만 이식** | `CONTRACT_ONLY` |
+| 3 | Active Version이 Immutable한가 | 실 코드 0 · 인접 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) 🔴**쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님**(검증형 정본 = `SecurityAudit::verify():56-68`) · 🔴**tenant_id 없음 → 알고리즘만 이식** | `CONTRACT_ONLY` |
 | 4 | Supervisory Hierarchy와 Version이 구축되는가 | 실 코드 0 · 🔴**`parent_team_id` 없음 → 팀 트리 자체가 없다** | `CONTRACT_ONLY` |
 | 5 | Manager Relationship Type이 Registry화되는가 | 실 코드 0 | `CONTRACT_ONLY` |
 | 6 | Subject·Position·Organization 기반 관계가 분리되는가 | 실 코드 0 · 현행은 **`team.manager_user_id` 팀당 1칸뿐** | `CONTRACT_ONLY` |

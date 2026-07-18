@@ -34,7 +34,7 @@
 | **AL-10** | Actor Authorization Snapshot 없는 Decision | 결정 시점 권한 재현 불가 | 🔴 **전면 부재**(§4.6 미충족) |
 | **AL-11** | Policy Version 없는 Approval Requirement | 승인 근거 재현 불가 | 🔴 **Policy Version 부재** · `PlanPolicy` = PHP const |
 | **AL-12** | Decision Reason 없는 Rejection | 거절 사유 불명 | 🔴 Reason 저장 구조 부재 |
-| **AL-13** | Immutable Hash 없는 Final Decision | 사후 변조 탐지 불가 | 🔴 승인 도메인 해시 부재(**선례**=`menu_audit_log.hash_chain` AdminMenu.php:123-131) |
+| **AL-13** | Immutable Hash 없는 Final Decision | 사후 변조 탐지 불가 | 🔴 승인 도메인 해시 부재(**검증형 선례**=`SecurityAudit::verify():56-68`; `menu_audit_log.hash_chain`(AdminMenu.php:123-131)은 쓰기만·`verify()` 0 → tamper-evident 아님) |
 | **AL-14** | **Approval Status 직접 덮어쓰기** | 상태 이력 소실 | 🔴 **전 도메인** — `UPDATE ... SET status=?`(Alerting.php:653 · AdminGrowth.php:1313-1343 · Catalog.php:2341-2364) |
 | **AL-15** | **Decision Update·Delete 사용** | Append-only 위배(§4.9) | 🔴 동상 |
 | **AL-16** | Idempotency 없는 Financial Approval Request | 중복 지급 승인 | 🔴 승인측 부재(**선례**=`dedup_key` UNIQUE Db.php:257-281 · `Paddle.php:343`) |

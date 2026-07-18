@@ -96,7 +96,7 @@ AdminGrowth.php:164-179   private static function json(...)
 | 31 | MANAGER_SUPERVISORY_PATH_MISSING | Path 축 0(Recursive CTE·Closure Table·Path Prefix 전부 0) | `CONTRACT_ONLY` |
 | 32 | MANAGER_CHAIN_DEPTH_EXCEEDED | Chain 0. ★`Dependencies.php:84` `$depth<10000` 은 **방문 노드 예산**이지 깊이 캡 아님 — **선례 계산 금지** | `CONTRACT_ONLY` |
 | 33 | MANAGER_SNAPSHOT_MISSING | Snapshot 축 0 · ★`snapshot` grep 최다 히트 = **CCTV JPEG**(`WmsCctv.php:45`) | `CONTRACT_ONLY` |
-| 34 | MANAGER_SNAPSHOT_INVALID | 해시 검증 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) — **도메인 상이·알고리즘만 이식** | `CONTRACT_ONLY` |
+| 34 | MANAGER_SNAPSHOT_INVALID | 해시 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) 🔴**단 쓰기 체인만 실재·`verify()` 0** — preimage `'ts'`(`:195`) INSERT 컬럼 소실→`created_at` DEFAULT 가 덮어 재계산 불가 → **tamper-evident 아님**(`:18` 주석≠근거); **검증형(INVALID 판정) 정본 = `SecurityAudit::verify():56-68`** — **도메인 상이·검증형 알고리즘만 이식** | `CONTRACT_ONLY` |
 | 35 | MANAGER_TASK_ASSIGNEE_DRIFT | `pm_task_assignees(role ENUM(...))` = **태스크 역할이지 매니저 아님** | `CONTRACT_ONLY` |
 | 36 | MANAGER_RECONCILIATION_FAILED | 🔴 **이중 공허**(좌·우변 양쪽 부재) → **자동 MATCH = 가짜녹색** | `CONTRACT_ONLY` |
 | 37 | MANAGER_RUNTIME_BLOCKED | 런타임 차단 축 0 · Kill Switch 0 | `CONTRACT_ONLY` |

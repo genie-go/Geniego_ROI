@@ -85,7 +85,7 @@ Manager Relationship 변경        ← 관계 축 grep 0 (트리거가 없다)
 - ★★🔴 **#14 "완료된 Decision 변경 금지"는 현행이 이미 위반 중이다.** `AgencyPortal.php:304`·`:381` 의 `revoked_at=NULL` **소거 패턴을 신규 설계에 절대 복제 금지.** 상태 전이는 **덮어쓰기가 아니라 append** 여야 한다.
   - **`pm_audit_log` 패턴을 확장하라** — `tenant_id NOT NULL`+`entity`+`diff_json`+3인덱스+append-only(migration `20260526_168_008`).
   - 🔴 **전역 `audit_log`(`Db.php:540-545` · 4컬럼 · **tenant_id 없음** · 해시체인 없음) 사용 금지** — 테넌트 격리가 깨진다.
-  - 무결성이 필요하면 `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`:214-219`) **알고리즘만 이식** — 🔴**`menu_audit_log` 스키마는 `tenant_id` 가 없고 `lastHash():214-219` 에 tenant 술어가 없다 → 복제 금지 · 테넌트별 체인 시 `WHERE tenant_id=?` 필수.**
+  - 무결성이 필요하면 `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`:214-219`) **알고리즘만 이식** — 🔴**`menu_audit_log` 스키마는 `tenant_id` 가 없고 `lastHash():214-219` 에 tenant 술어가 없다 → 복제 금지 · 테넌트별 체인 시 `WHERE tenant_id=?` 필수.** 🔴 **단 쓰기 체인만 실재하고 검증기(`verify()`)가 0**이며 preimage `ts`(`:195`)가 INSERT 컬럼에 없어 `created_at` DB DEFAULT 가 덮어 재계산 불가 → tamper-evident 아님. 검증형 정본 = `SecurityAudit::verify():56-68`.
 - ★🔴 **#16 캐시 무효화 — 무효화할 캐시가 없다**(규칙 10). **Redis/Memcached 0 · `apcu_*` 는 지표 보고 전용**(`SystemMetrics.php:225-451`). 따라서:
   - **"캐시 무효화 훅을 붙인다"는 설계는 현 시점에 대상이 없다.** 캐시 계층 도입은 **별도 결정**이며 §64 의 전제가 아니다.
   - 🔴 **역으로, Manager Resolution 캐시를 신설한다면 §80 Cache 원칙(Version-aware·Tenant-isolated·Effective-date-aware · 원문 :2858-2860)을 먼저 충족해야 한다.** 캐시를 먼저 만들고 무효화를 나중에 붙이면 **테넌트 교차 오염**(286차 `platform_growth` 하이재킹과 동형)이 발생한다.

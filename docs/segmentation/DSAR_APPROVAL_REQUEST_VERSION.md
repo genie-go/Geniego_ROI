@@ -55,7 +55,7 @@
 | 15 | `resource_version_after` | **부재** — §0 동일 · §4.5 상충 |
 | 16 | `created_at` | **부재(Version 행)** — ※Request 행에는 `created_at` VARCHAR(32) 존재(Db.php:599,635) |
 | 17 | `created_by` | **부재(Version 행)** — ※Request 행에는 `requested_by`(mapping 만) 존재 |
-| 18 | `immutable_hash` | **부재** — §0 참조 선례 = `menu_audit_log` **해시체인**(AdminMenu.php:123-131) · **KEEP_SEPARATE_WITH_REASON**(도메인 상이 · **패턴 참조 대상**) |
+| 18 | `immutable_hash` | **부재** — §0 참조 선례 = `menu_audit_log` **해시체인 쓰기**(AdminMenu.php:123-131 · 🔴 검증형 아님·`verify()` 0 → 무결성은 `SecurityAudit::verify()`) · **KEEP_SEPARATE_WITH_REASON**(도메인 상이 · **쓰기 패턴 참조 대상**) |
 | 19 | `requires_reapproval` | **부재** — §0 "재승인 트리거 **부재(grep 0)**" · §4.5 상충 · **NOT_APPLICABLE(신설)** |
 | 20 | `status` | **부재(Version 행)** — ※Request 행 `status` 는 존재(§27) |
 | 21 | `evidence` | **부재** — §0 미열거(§50 Evidence 축) · **NOT_APPLICABLE(신설)** |

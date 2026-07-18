@@ -55,7 +55,7 @@ JSON 배열은 **행 단위 제약(FK·UNIQUE·감사)이 걸리지 않아** Dec
 - **#23 `decided_at`** — `approvals_json[].ts`(`Mapping.php:285`) **부분 충족**(JSON 배열 원소 · 행 필드 아님).
 - **#26 `status`** 는 현행에 존재하나 **Decision 행이 아니라 Request 행의 컬럼**이다 → **산입 불가**(§4.3 필요성↔결과 분리 위반이 그 이유).
 - **#19~22**(`decision_sequence`·supersedes·correction·reversal) = Append-only 계보 축 → **전부 부재**. 이것이 위 대조표 "결정의 역사를 모른다" 의 필드 수준 근거다.
-- **#25 `immutable_hash`** — 승인 도메인 부재. 단 `menu_audit_log.hash_chain`(`AdminMenu.php:123-131`)이 **재사용 가능한 유일 선례**(§2 규칙).
+- **#25 `immutable_hash`** — 승인 도메인 부재. 단 검증형 선례는 **`SecurityAudit::verify():56-68`**(preimage ts 저장 `:31`)이다 — `menu_audit_log.hash_chain`(`AdminMenu.php:123-131`)은 **쓰기 체인·필드만** 참조 가능(🔴 `verify()` 0·preimage ts 소실 → tamper-evident 아님)(§2 규칙).
 
 ## 2. 규칙
 

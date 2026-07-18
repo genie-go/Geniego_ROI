@@ -53,7 +53,7 @@
 | 20 | valid_from | `kr_fee_rule.effective_from`(`Db.php:898`)가 **전 코드베이스 유일** · 🔴 **`WHERE effective_from <= :as_of` 술어 backend/src 전역 0건** — 컬럼은 있으나 **as-of 조회 능력 없음** | `KV_ONLY` |
 | 21 | valid_to | `valid_to`\|`effective_to` **grep 0** → **폐구간 모델은 신규** | `ABSENT` |
 | 22 | status | `team.status`·`agency_client_link.status`(pending/approved/revoked `AgencyPortal.php:64-72`) 등 도메인별 개별 | `LEGACY_ADAPTER` |
-| 23 | evidence | `menu_audit_log.hash_chain`(`AdminMenu.php:128`·생성 `:182-197`·`lastHash()` `:214-219`) = 해시체인 실선례 · 🔴 **"해시체인 없음"은 전역 `audit_log` 에 한해서만 참** | `LEGACY_ADAPTER` |
+| 23 | evidence | `menu_audit_log.hash_chain`(`AdminMenu.php:128`·생성 `:182-197`·`lastHash()` `:214-219`) = 해시체인 **쓰기** 실선례 · 🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts`(`:195`) 소실(INSERT 컬럼 `:199-203` 부재→`created_at` DB DEFAULT가 덮음) → **tamper-evident 아님**; 검증형 정본 = `SecurityAudit::verify():56-68` · 🔴 **"해시체인 없음"은 전역 `audit_log` 에 한해서만 참** | `LEGACY_ADAPTER` |
 
 **실측 개수: 23 / 23 전사.** 커버리지 = `VALIDATED_LEGACY` **1**(tenant_id) · `PARTIAL` 4 · `LEGACY_ADAPTER` 5 · `NAME_ONLY` 1 · `KV_ONLY` 1 · `ABSENT` 4 · `NOT_APPLICABLE` 7.
 
@@ -68,5 +68,5 @@
 - 🔴 **`agency_client_link`(`AgencyPortal.php:64-72`) 를 조직 계층 근거로 쓰지 마라.** ⓐ **이분(bipartite)** — `agency_account`(`:56-63`)는 테넌트가 아니라 **별도 인증 realm** ⓑ **N:M · 1홉 전용**(순회·이행성·깊이 0) ⓒ 조직↔조직 엣지 아님 ⓓ **동의 기반 접근 허가**이지 소유·포함 관계 아님.
 - `maximum depth` 는 **신규 상수를 만들지 말고** `Dependencies::validateDependency`(`PM/Dependencies.php:79-100`) 의 깊이캡 패턴(반복 DFS + 명시적 `$visited` + tenant 필터 + **쓰기 전 차단** `:32-34` → 422 `cycle_detected`)을 **확장**하라. 레포 최고 품질 선례다.
 - 신설 스키마는 **MySQL/SQLite 두 방언 동시 수기 작성 의무**(`CRM.php:48` vs `:77` 패턴). 마이그레이션 파일 경로는 **죽었다**(§14 참조) → `ensureTables` 멱등 `CREATE TABLE IF NOT EXISTS` + `try{ALTER}catch{}`(`Db.php:1123-1127`) 필수.
-- `evidence` 는 **"선례 없음→신설"이 아니다.** `menu_audit_log.hash_chain`(SHA-256 prev-chain) / `pm_audit_log`(tenant+entity+diff_json+3인덱스) **패턴 확장**이 정본.
+- `evidence` 는 **"선례 없음→신설"이 아니다.** `menu_audit_log.hash_chain`(SHA-256 prev-chain) / `pm_audit_log`(tenant+entity+diff_json+3인덱스) **패턴 확장**이 정본. 🔴 단 `menu_audit_log.hash_chain` 은 **쓰기 체인만 실재**하고 검증기(`verify()`)가 0이며 preimage `ts`(`:195`)가 INSERT 컬럼에서 소실돼 재계산 불가 → **tamper-evident 아님**(`:18` "tamper-evident" 는 주석일 뿐 근거 아님). 검증형 정본은 `SecurityAudit::verify():56-68`(preimage $now→`created_at` 저장→hash_equals+prev_hash 교차 재계산)이다.
 - 🔴 23종 **"있다고 가정"하고 배선 금지.**

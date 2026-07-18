@@ -72,7 +72,7 @@
 ## 2. 규칙
 
 - **Version 은 Definition 변경의 유일한 합법 경로**다. Definition 직접 수정(§4.2 위배) 금지 — 새 Version 을 만들어라.
-- `immutable_hash` 는 **신설이 아니라 `menu_audit_log.hash_chain` 의 확장**이다(Golden Rule). 승인 도메인 전용 해시 엔진 신설 금지(중복 엔진 금지).
+- `immutable_hash` 는 **신설이 아니라 기존 해시체인의 확장**이다(Golden Rule). 승인 도메인 전용 해시 엔진 신설 금지(중복 엔진 금지). 🔴 **단 확장 원본을 `menu_audit_log.hash_chain` 으로 잡지 마라 — 쓰기 체인만 실재하고 `verify()` 가 0이며 preimage 의 `ts`(`AdminMenu.php:195`)가 INSERT 컬럼에 없어 `created_at` DB DEFAULT 가 덮어 재계산 불가 → tamper-evident 가 아니다.** 검증형 정본 = `backend/src/SecurityAudit.php` `verify():56-68`(`hash_equals`+`prev_hash` 연쇄 대조·preimage 시각을 `created_at` 로 저장해 재계산 가능).
 - `reviewed_by` ≠ `approved_by` — **현행 미분화를 그대로 승계하지 마라.** Review 는 승인 권한 없는 검토다(§8 `READ_ONLY_REVIEW`).
 - 🔴 `NOT_APPLICABLE` 19축 + Version Type 8종 전부 **"있다고 가정"하고 배선 금지**.
 - 진행 중 인스턴스는 **시작 시점 Version 에 고정**되어야 한다 — 현행처럼 배포가 곧 정의 교체가 되면 §4.2 가 무너진다.

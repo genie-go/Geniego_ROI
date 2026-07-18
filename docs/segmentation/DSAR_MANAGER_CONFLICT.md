@@ -13,7 +13,7 @@
 | **충돌 개념 자체** | Manager 관계 축이 레포에 **존재한 적이 없다**(`manager_id`·`reports_to`·`supervisor_id` **0** · **git 삭제 이력도 0**) | `ABSENT` |
 | 충돌 해소 결과 기록 | `resolved_by`·`resolved_at` **grep 0** | `ABSENT` |
 | 인접 — 승인 감사 선례 | `pm_audit_log` = `tenant_id NOT NULL`+`entity`+`diff_json`+3인덱스+append-only(migration `20260526_168_008:2-19`) | `LEGACY_ADAPTER`(evidence 저장 패턴) |
-| 인접 — 해시체인 선례 | `menu_audit_log.hash_chain` SHA-256 prev-chain(`AdminMenu.php:128`·생성 `:182-197`·`lastHash():214-219`) | `LEGACY_ADAPTER`(**알고리즘만**) |
+| 인접 — 해시체인 선례 | `menu_audit_log.hash_chain` SHA-256 prev-chain(`AdminMenu.php:128`·생성 `:182-197`·`lastHash():214-219`) — 🔴 쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `LEGACY_ADAPTER`(**알고리즘만**) |
 
 ### ★축 주의 — **15필드 전부 `ABSENT`**(규율 규칙 10)
 
@@ -48,7 +48,7 @@
 - ★ **#12 `resolved_by` 는 `Mapping::actorId:36-53` 을 표준으로 삼아라**(3분기 `apikey:{id}`/`user:{email}`/`user:#{id}` 폴백 · **미확인 → null → 403 fail-closed** `:187-190`·`:246-250`).
   🔴 **`Alerting::actor:33-36` 을 참조 구현으로 삼지 마라** — `X-User-Email` 헤더 / `?actor=` 쿼리 / `'unknown'` 폴백 = **289차 G-01 이 `Mapping` 에서 고친 바로 그 위조가능 패턴**. `action_request` 생산자 0 이라 **현재 도달 불가(VACUOUS) = 잠복 결함**이며, **생산자를 하나 붙이는 순간 위조가능 승인이 활성화된다.**
   ⚠️ **등급 미부여 관찰**: 동일인이 API키/세션 경로로 접근하면 **actor 문자열이 달라져** `Mapping.php:279` dedup·`:268` 자기승인 차단이 **경로 전환으로 우회 가능**. **실 경합 경로 미검증.**
-- ★ **#15 evidence 저장은 `pm_audit_log` 패턴을 확장하라**(`tenant_id NOT NULL`+`diff_json`+append-only). 🔴 **`menu_audit_log` 스키마는 복제 금지 — `tenant_id` 가 없다**(`lastHash():214-219` 에도 tenant 술어 없음). **해시체인 알고리즘만 이식하고 `WHERE tenant_id=?` 를 반드시 추가하라.**
+- ★ **#15 evidence 저장은 `pm_audit_log` 패턴을 확장하라**(`tenant_id NOT NULL`+`diff_json`+append-only). 🔴 **`menu_audit_log` 스키마는 복제 금지 — `tenant_id` 가 없다**(`lastHash():214-219` 에도 tenant 술어 없음). **해시체인 알고리즘만 이식하고 `WHERE tenant_id=?` 를 반드시 추가하라.** 🔴 **단 `menu_audit_log` 는 쓰기 체인만 실재하고 검증기(`verify()`)가 0**이며 preimage `ts`(`:195`)가 INSERT 컬럼에 없어 `created_at` DB DEFAULT 가 덮어 재계산 불가 → tamper-evident 아님. 검증형 정본 = `SecurityAudit::verify():56-68`.
 - ★ **#13 `resolved_at` 불변성**: `AgencyPortal.php:304`·`:381` 이 `revoked_at=NULL` 로 이전 해지 시각을 소거하는 것은 **§55 "과거 Snapshot 대체 금지"의 정면 반례**다. **이 패턴을 답습하지 마라.**
 - ⚠️ **Migration 경로 없음** — `backend/migrations/` 는 **172차 정지**(21파일) → 신규 스키마는 `ensureTables` 멱등 `CREATE TABLE IF NOT EXISTS`+`try{ALTER}catch{}` 경유. 🔴 **`ensureTables` 는 테이블 생성만 하고 데이터 변환·백필을 하지 않는다** → §40 Retroactive Correction 집행 수단 없음. **MySQL/SQLite 두 방언 수기 중복 작성 의무.**
 </content>

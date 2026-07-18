@@ -73,7 +73,7 @@
 | 16 | valid_from | `kr_fee_rule.effective_from`(`Db.php:898`) = **전 코드베이스 유일 effective date**(쓰기 `KrChannel.php:128-140`). ★단 **읽기가 전부 `ORDER BY effective_from DESC LIMIT 1` 최신승**(`Pnl.php:454`·`KrChannel.php:102`,`:151`,`:459`) — **`WHERE effective_from <= :as_of` 술어 backend/src 전역 0건** → 컬럼만 있고 **as-of 조회 능력 없음** | `PARTIAL`(컬럼 선례만) |
 | 17 | valid_to | `valid_to`/`effective_to` **grep 0** → **폐구간 모델 순수 신규** | `NOT_APPLICABLE` |
 | 18 | status | `graph_node` 에 `status` 컬럼 **없음**(`Db.php:816-824`) · 인접 = `agency_client_link.status`(pending/approved/revoked `AgencyPortal.php:64-72`)·`team.status` | `NOT_APPLICABLE` |
-| 19 | **evidence** | 승인 증적 필드 부재 · 인접 선례 = `menu_audit_log.hash_chain CHAR(64)` SHA-256 prev-chain(`AdminMenu.php:128`·생성 `:182-197`·`lastHash():214-219`)·`pm_audit_log`(tenant+entity+diff_json+3인덱스, migration `20260526_168_008`)·`schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) | `LEGACY_ADAPTER`(해시체인 패턴 확장) |
+| 19 | **evidence** | 승인 증적 필드 부재 · 인접 선례 = `menu_audit_log.hash_chain CHAR(64)` SHA-256 prev-chain(`AdminMenu.php:128`·생성 `:182-197`·`lastHash():214-219`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`)·`pm_audit_log`(tenant+entity+diff_json+3인덱스, migration `20260526_168_008`)·`schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) | `LEGACY_ADAPTER`(해시체인 패턴 확장) |
 
 **실측 개수: 19 / 19 전사.** 커버리지 = `VALIDATED_LEGACY` **0** · `KEEP_SEPARATE_WITH_REASON` 3 · `LEGACY_ADAPTER` 1 · `PARTIAL` 1 · `NAME_ONLY` 3 · `NOT_APPLICABLE` 11.
 
@@ -87,6 +87,6 @@
 - 🔴 **`business_unit`(#12)·`country_code`(#14)·`level`(#6)·`region`(#13) 의 이름 일치를 커버로 계산 금지.** 전부 타 도메인(Trustpilot 자격증명 · TikTok dimension · WMS 물리 선반 · 광고 인구통계)이다 → `NAME_ONLY`.
 - 🔴 **"테넌트 = 법인" 가정 금지**(#11). 테넌트는 **구독 단위**이며 마스터 테이블조차 없다(`api_key.tenant_id VARCHAR(100)` **FK 없음** `Db.php:944` · 발급 = `'acct_'.$id` 문자열 생성 `UserAuth.php:220-224`). `legal entity id` 를 tenant_id 로 대체하면 역산이다.
 - 🔴 **★`DATA_SCOPES` 의 `'company'` 를 Legal Entity 로 읽지 마라** — `effectiveScope():258` `if ($st === 'company') return null; // 전사 = 무제한`. **법인 경계를 긋는 게 아니라 지운다.** 의미가 정반대다.
-- **`evidence`(#19)는 "선례 없음→신설"이 아니다.** `menu_audit_log.hash_chain`(SHA-256 prev-chain 실구현) · `pm_audit_log`(tenant+diff_json) 패턴을 **확장**하라. 🔴 **"레포에 해시체인 없음"은 전역 명제로 인용하면 오염** — 참인 것은 **전역 `audit_log` 4컬럼**(`Db.php:540-545`·`AdminGrowth.php:157-159`)에 한해서다.
+- **`evidence`(#19)는 "선례 없음→신설"이 아니다.** `menu_audit_log.hash_chain`(SHA-256 prev-chain 실구현) · `pm_audit_log`(tenant+diff_json) 패턴을 **확장**하라. 🔴 단 `menu_audit_log.hash_chain` 은 **쓰기 체인만 실재**하고 검증기(`verify()`)가 0이며 preimage `ts`(`:195`)가 INSERT 컬럼에서 소실돼 재계산 불가 → **tamper-evident 아님**(`:18` 주석은 근거 아님). 실제 재계산·prev_hash 교차검증이 도는 정본은 `SecurityAudit::verify():56-68` 이다. 🔴 **"레포에 해시체인 없음"은 전역 명제로 인용하면 오염** — 참인 것은 **전역 `audit_log` 4컬럼**(`Db.php:540-545`·`AdminGrowth.php:157-159`)에 한해서다.
 - **스키마 도입 제약 3건**(§20): ⓐ `backend/migrations/` 는 **172차 정지**(최신 `20260527_172_002_coupon_tables.sql`) → 조직 스키마는 마이그레이션 파일로 들어갈 수 없다. **핸들러 self-healing `ensureTables`** 필수 ⓑ `ensureTables` 는 **생성만 하고 백필하지 않는다** ⓒ **MySQL/SQLite 두 방언 동시 수기 작성 의무**(`CRM.php:48` vs `:77`).
 - ⚠️ **미확인 · 라이브 검증 권장**: `SELECT COUNT(*) FROM graph_node` / `graph_edge` — 0행이면 `/v419/graph/*` 9라우트는 전부 `VACUOUS` 이며 §66 의 "실동작 선례" 논거가 **선례에서 계약으로 강등**된다(패턴 차용 근거는 유지되나 "검증된 운영 패턴"으로는 인용 불가).

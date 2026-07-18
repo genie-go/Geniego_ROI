@@ -41,7 +41,7 @@
 | 18 | valid_from | `valid_from` **grep 0** · `team`/`app_user` 에 effective date **0** · 유일 유사 선례 `kr_fee_rule.effective_from`(`Db.php:898`)은 **컬럼 有·질의 無**(`WHERE effective_from <= :as_of` 전역 0) | `ABSENT` |
 | 19 | valid_to | `valid_to`/`effective_to` **grep 0** | `ABSENT` |
 | 20 | status | 🔴 `team.status`(`:148`) = **팀 상태**이지 Assignment 상태 아님 · Assignment 엔티티 부재로 상태를 걸 대상 없음 | `ABSENT` |
-| 21 | evidence | Assignment evidence **0** · 이식 가능 선례: `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219`) · `pm_audit_log`(migration `20260526_168_008:7` `tenant_id NOT NULL`+`diff_json :13`+3인덱스) | `LEGACY_ADAPTER` |
+| 21 | evidence | Assignment evidence **0** · 이식 가능 선례: `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219`) — 🔴 쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님(검증형 정본 = `SecurityAudit::verify():56-68`) · `pm_audit_log`(migration `20260526_168_008:7` `tenant_id NOT NULL`+`diff_json :13`+3인덱스) | `LEGACY_ADAPTER` |
 
 **실측 개수: 21 / 21 전사.** (측정기 분모 35 = 필수 필드 21 + Assignment Type 14 — **불일치 아님 · 축 분할**)
 커버리지 = `ABSENT` 18 · `PARTIAL` 1 · `CONTRACT_ONLY` 1 · `LEGACY_ADAPTER` 1 · **`VALIDATED_LEGACY` 0**.
@@ -52,6 +52,6 @@
 - 🔴 **`team.manager_user_id` 를 Assignment 로 승격 금지.** Type/Priority/Responsibility Scope 표현 불가 · effective date 0 · 이력 0. **1:1 컬럼을 N:N Assignment 로 바꾸는 것은 스키마 변경이지 확장이 아니다.**
 - ★**`promoteManager:768-776` 의 비대칭을 상속하지 마라** — 승격은 `app_user.team_role='manager'`+`team_id` 를 UPDATE(`:774`)하나 **강등 경로가 0개**다. `manager_user_id=NULL` 로 바꿔도 **전임자의 `team_role='manager'` 가 잔존**해 위임 권한(`isManagerAdmin:136`·`putMemberPermissions:618`)을 계속 보유한다(§76 실재 항목 2).
 - ★**`createTeam:492-501` 매니저 교체 = 전임자 강등 없음**(§76 실재 항목 1). Assignment 신설 시 **전임 Assignment 의 `valid_to` 마감이 동일 트랜잭션**이어야 한다.
-- 🔴 **`evidence` 를 `menu_audit_log` **스키마 복제**로 구현 금지** — 해당 테이블에 **`tenant_id` 가 없고** `lastHash()` 에도 tenant 술어가 없다. **알고리즘만 이식**하고 `WHERE tenant_id=?` 필수.
+- 🔴 **`evidence` 를 `menu_audit_log` **스키마 복제**로 구현 금지** — 해당 테이블에 **`tenant_id` 가 없고** `lastHash()` 에도 tenant 술어가 없다. **알고리즘만 이식**하고 `WHERE tenant_id=?` 필수. 🔴 **단 쓰기 체인만 실재하고 검증기(`verify()`)가 0**이며 preimage `ts`(`:195`)가 INSERT 컬럼에 없어 `created_at` DB DEFAULT 가 덮어 재계산 불가 → tamper-evident 아님. 검증형 정본 = `SecurityAudit::verify():56-68`.
 - 🔴 **신규 스키마는 마이그레이션 파일 경로가 없다** — `backend/migrations/` 는 **172차 정지**(최신 `20260527_172_002_coupon_tables.sql`). `ensureTables` 멱등 `CREATE TABLE IF NOT EXISTS`+`try{ALTER}catch{}` 이며 **MySQL/SQLite 두 방언 수기 중복 작성 의무**.
 - 21종 **"있다고 가정"하고 배선 금지**.

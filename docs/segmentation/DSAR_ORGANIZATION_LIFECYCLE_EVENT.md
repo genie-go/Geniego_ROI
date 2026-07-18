@@ -83,7 +83,7 @@ AgencyPortal.php:400  UPDATE agency_client_link SET status='revoked', revoked_at
 
 ## 2. 규칙
 
-- ★**§47 판정 = `PARTIAL`.** 근거: **이벤트 타입 21종은 전무**하나 **이벤트 로그의 구성요소(actor·reason·recorded date·hash chain)는 실선례가 있다**(`menu_audit_log`). 🔴 **"감사로그가 있으니 라이프사이클 커버"로 밀면 역산** — 감사로그는 **부수 기록**이고 §47 이벤트는 **조직 상태의 정본(SoT)** 이다. **역할이 다르다.**
+- ★**§47 판정 = `PARTIAL`.** 근거: **이벤트 타입 21종은 전무**하나 **이벤트 로그의 구성요소(actor·reason·recorded date·hash chain)는 실선례가 있다**(`menu_audit_log`). ⚠️ 단 `hash_chain` 은 **쓰기 체인만 실재** — `verify()` 0 · preimage ts(`AdminMenu.php:195`) 소실로 **tamper-evident 는 아니다**(검증형 정본 = `SecurityAudit::verify():56-68`). 🔴 **"감사로그가 있으니 라이프사이클 커버"로 밀면 역산** — 감사로그는 **부수 기록**이고 §47 이벤트는 **조직 상태의 정본(SoT)** 이다. **역할이 다르다.**
 - 🔴 **★`agency_client_link` 를 이력 모델 선례로 삼지 마라.** `:304`·`:381` 의 **`revoked_at=NULL`** 이 결정적 증거다 — **상태 슬롯 덮어쓰기 = 전이 이력 소멸**. **인용은 "상태전이 타임스탬프 패턴이 존재한다"까지만.**
 - ★**신설은 이벤트 테이블(append-only)로.** 컬럼 슬롯(`approved_at`/`revoked_at`) 방식은 **N회 전이를 표현할 수 없다** — 21종 × 반복 발생이 전제인 §47 에는 **구조적으로 부적합**. **1행 = 1이벤트 · UPDATE 금지 · DELETE 금지.**
 - ★**감사 패턴은 `menu_audit_log` 확장**(ⓑ §8): `action`·`changed_by`·`changed_by_role`·`reason`·`ip_address`·`user_agent`·`request_id`·**`hash_chain CHAR(64)`**(`AdminMenu.php:123-131`). 🔴 **전역 `audit_log`(`Db.php:540-545`, 4컬럼·tenant 없음·해시체인 없음) 확장 금지** — **테넌트 격리 위반**(헌법 절대).

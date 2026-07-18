@@ -32,7 +32,7 @@
 | Graph 순회 | `graph_node`/`graph_edge`(`Db.php:816-839`) · `/v419/graph/*` 9라우트(`routes.php:721-729`) — ⚠️**순환 방어 없음** · `GraphScore::scoreInfluencer:187-240` **하드코딩 3-hop** · **hop3∈hop2∈hop1 = N+1**(`:207-219`) | `KEEP_SEPARATE_WITH_REASON` — 🔴 **답습 금지** |
 | Kill Switch | `kill_switch`/`killswitch` 개념 — 조직 도메인 **부재** | `ABSENT` |
 | Effective Date 검증 | ★**`WHERE effective_from <= :as_of` 술어 = backend/src 전역 0건.** 유일 컬럼 `kr_fee_rule.effective_from`(`Db.php:898`) 읽기는 전부 최신승(`Pnl.php:454`·`KrChannel.php:102`·`:151`·`:459`) · **`effective_to` grep 0** | `ABSENT` — **as-of 조회 능력 자체가 없다** |
-| Snapshot Hash 검증 | `menu_defaults`(`AdminMenu.php:120`) **immutable_hash 없음** · `pm_baseline`(`PM\Enterprise.php:55`) 동일 · 해시 선례는 `schema_migrations.checksum`(`Migrate.php:50`)·`menu_audit_log.hash_chain`(`AdminMenu.php:128`) | `PARTIAL`(선례만) |
+| Snapshot Hash 검증 | `menu_defaults`(`AdminMenu.php:120`) **immutable_hash 없음** · `pm_baseline`(`PM\Enterprise.php:55`) 동일 · 해시 선례는 `schema_migrations.checksum`(`Migrate.php:50`)·`menu_audit_log.hash_chain`(`AdminMenu.php:128`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) | `PARTIAL`(선례만) |
 | Path Index Drift | Path Index 부재 → drift 판정 대상 없음 | `ABSENT` |
 
 ## 1. 원문 전사 + 판정 — **원문 24종**

@@ -32,7 +32,7 @@
 | 13 | RESOURCE_REFERENCE | 부재 · 유사 `ref_type`/`ref_id`(AdminGrowth.php:142-149) | `LEGACY_ADAPTER` |
 | 14 | SUBJECT_REFERENCE | 부재 · 유사 `Mapping::actorId` → `apikey:{id}`/`user:{email}`(Mapping.php:36-53) | `LEGACY_ADAPTER`(★위조불가 신원 정본) |
 | 15 | POLICY_REFERENCE | 부재 · `PlanPolicy` 는 **fail-open**(PlanPolicy.php:12 주석 자인) | `BLOCKED_POLICY_DRIFT` |
-| 16 | EVIDENCE_REFERENCE | 부재 · `menu_audit_log.hash_chain` 만 선례 | `MIGRATION_REQUIRED` |
+| 16 | EVIDENCE_REFERENCE | 부재 · `menu_audit_log.hash_chain` 만 선례 — 🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts`(:195) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `MIGRATION_REQUIRED` |
 | 17 | SECRET_REFERENCE | 부재(승인) · `channel_credential` AES-256-GCM(Db.php:976) | `VALIDATED_LEGACY` |
 | 18 | JSON | 사실상 **현행 유일 타입**(`action_json`·`payload_json`·`approvals_json`) — **타입 부재의 증상**이지 구현 아님 | `MIGRATION_REQUIRED` |
 | 19 | CUSTOM | 부재 | `NOT_APPLICABLE` |

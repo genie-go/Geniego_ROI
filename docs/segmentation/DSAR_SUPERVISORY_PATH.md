@@ -18,7 +18,7 @@
 | **Recursive CTE** | ❌ **0** | **`WITH RECURSIVE`·`CONNECT BY` backend/src grep 0** |
 | **Graph Database** | ❌ **0** | `graph_node`/`graph_edge` = **관계형 테이블**(Neo4j 등 도입 0) |
 | Bitemporal Table | ❌ **0** | `valid_from`/`valid_to`/`effective_to` **grep 0** · §38 이중 시간축 **전례 0** |
-| Event-sourced Relationship History | ❌ **0** | append-only 선례는 `pm_audit_log`·`menu_audit_log` 뿐이며 **감사 로그이지 이벤트 소싱 아님** |
+| Event-sourced Relationship History | ❌ **0** | append-only 선례는 `pm_audit_log`·`menu_audit_log` 뿐이며 **감사 로그이지 이벤트 소싱 아님**(🔴 `menu_audit_log.hash_chain` 도 쓰기 체인만 — `verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68`) |
 
 > **∴ 레포는 Adjacency List 단일 지배**이며 **트리 순회 전례가 전부 애플리케이션 계층**이다(이식성 — MySQL/SQLite 양 방언 지원 목적).
 > | 전례 | 계층 | 증거 |
@@ -84,5 +84,5 @@
   - 🔴 **`ChannelSync.php:954-964` 를 순회 선례로 삼지 마라** — 주석 `:954` 가 *"순환/과도한 깊이 방어"* 를 자칭하나 **`$visited` 없이 `:959` `$guard < 10` 으로 깊이만 자른다** → **순환 시 탐지 없이 조용히 절단**(규칙 8).
 - ★ **#16 `computed_at` + 재계산 트리거가 §49 의 핵심 난점**이다 — Path 는 **파생 데이터**이므로 Edge 변경 시 **무효화·재계산**이 필요하다. 🔴 **레포에 파생 캐시 무효화 선례가 없다** → 신규 설계. **`ensureTables` 는 데이터 변환·백필을 하지 않으므로**(§40 집행 수단 없음) **초기 Path 백필은 수기 이행 계획 필요**.
 - ⚠️ **Migration 경로 없음** — `backend/migrations/` **172차 정지** → `CREATE TABLE IF NOT EXISTS`+`try{ALTER}catch{}` 멱등 경유. **ALTER 실패가 조용히 삼켜진다**(가짜 녹색) → 스키마 적용 여부를 **실측으로 확인**하라(265차 Paddle 오탐 회피 = 라이브 `SHOW COLUMNS`).
-- 🔴 **#18 evidence 는 `pm_audit_log` 패턴 확장**(`tenant_id NOT NULL`+`diff_json`+append-only). **`menu_audit_log` 스키마 복제 금지 — `tenant_id` 없음**(`lastHash():214-219` 에도 tenant 술어 없음) · **알고리즘만 이식 + `WHERE tenant_id=?` 필수**.
+- 🔴 **#18 evidence 는 `pm_audit_log` 패턴 확장**(`tenant_id NOT NULL`+`diff_json`+append-only). **`menu_audit_log` 스키마 복제 금지 — `tenant_id` 없음**(`lastHash():214-219` 에도 tenant 술어 없음) · **알고리즘만 이식 + `WHERE tenant_id=?` 필수**. 🔴 단 이식 대상은 **쓰기 체인뿐** — `menu_audit_log` 는 `verify()` 0·preimage ts(`:195`) 소실로 **tamper-evident 아님** → 검증기(`SecurityAudit::verify():56-68`)까지 함께 이식하라.
 </content>

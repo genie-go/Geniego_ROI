@@ -27,7 +27,7 @@
 | Tenant 컬럼 관례 | 도메인 테이블 대다수 `tenant_id` 보유 · ★**`menu_tree` 는 tenant 없음**(`AdminMenu.php:108-117`, 전역 단일 트리) · `channel_registry` 도 tenant 없음(`ChannelRegistry.php:32-49`) | 선례 혼재 — 조직은 tenant 필수 |
 | Self-loop / Cycle 차단 선례 | ★**`PM/Dependencies`**: self-loop `:29-31` · 반복 DFS+visited+tenant+깊이 10000 `:79-100` · **쓰기 전 422 차단** `:32-34` · **`menu_tree`**: `wouldCycle(:540-555)` 자기참조 즉시 차단 `:542` + `$depth<100` 하드캡 `:545` · 이동 시 검사 후 UPDATE `:487-503` | `LEGACY_ADAPTER` — 런타임 가드이지 **Static Lint 아님** |
 | Path Index | Closure/Nested Set(`lft`/`rgt`)/Path 컬럼 **0** | `ABSENT` |
-| Hierarchy Version Hash | immutable hash 선례 = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) · 해시체인 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) — **조직 도메인 0** | `ABSENT` |
+| Hierarchy Version Hash | immutable hash 선례 = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) · 해시체인 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) — **조직 도메인 0** | `ABSENT` |
 | Snapshot 불변 | `menu_defaults`(`AdminMenu.php:120`) **immutable_hash 없음** · `pm_baseline`(`PM\Enterprise.php:55`) | `PARTIAL` — 스냅샷은 있으나 불변성 강제 없음 |
 | 이름 기반 Join | ★**실사례 존재**: `seedOrg` 가 **동명 skip 으로 멱등**(`TeamPermissions.php:725-753`) · `sso_group_role_map` 은 **그룹이 엔티티가 아니라 평문 문자열**(`EnterpriseAuth.php:70`·`:84` `group_name IN (?)`) | 🔴 **현행 관례가 §58 #27 위반 방향** |
 | 중복 Registry 생성 | `seedOrg` 동명 skip=멱등·트랜잭션·감사(`:747`) | `PARTIAL` — 멱등은 있으나 Lint 아님 |
@@ -61,7 +61,7 @@
 | 21 | Orphan Node | 조직 부재 · ⚠️레포에 고아 실사례 존재(`PolicyTreeEditor.jsx` import 0) — 다른 축 | `CONTRACT_ONLY` |
 | 22 | Unreachable Node | 조직 부재 | `CONTRACT_ONLY` |
 | 23 | Path Index 누락 | Path Index 부재 | `CONTRACT_ONLY` |
-| 24 | Hierarchy Version Hash 누락 | Hierarchy Version 부재. 해시 선례 = `schema_migrations.checksum`·`menu_audit_log.hash_chain` | `CONTRACT_ONLY` |
+| 24 | Hierarchy Version Hash 누락 | Hierarchy Version 부재. 해시 선례 = `schema_migrations.checksum`·`menu_audit_log.hash_chain`(🔴 후자는 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) | `CONTRACT_ONLY` |
 | 25 | Active Version 직접 수정 | 버전 부재 · 🔴**현행 관례가 정반대**: `menu_defaults` 최신 1건 조회(`:584-590`) · `kr_fee_rule` 최신승(`Pnl.php:454`) · `updated_at` 덮어쓰기 | `CONTRACT_ONLY` |
 | 26 | Snapshot 직접 수정 | `menu_defaults`·`pm_baseline` 에 **immutable_hash·수정 차단 없음** | `CONTRACT_ONLY` |
 | 27 | Organization 이름 기반 Join | 🔴**현행 관례가 위반 방향**: `seedOrg` 동명 skip(`:725-753`) · `sso_group_role_map.group_name` 평문 문자열 룩업(`EnterpriseAuth.php:84`) · `team` UNIQUE 키가 이름 기반 | `CONTRACT_ONLY`(관례 역행 경고) |

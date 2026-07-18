@@ -71,7 +71,7 @@
 | 11 | valid_from | **부재** — `data_scope` 에 `updated_at` 뿐(`:163`). 유일 effective date 선례 `kr_fee_rule.effective_from`(`Db.php:898`)조차 **as-of 술어 backend/src 전역 0건** | `NOT_APPLICABLE` | 0 |
 | 12 | valid_to | **부재** — `valid_to`/`effective_to` **grep 0** → **폐구간 모델은 순수 신규** | `NOT_APPLICABLE` | 0 |
 | 13 | status | **부재** — `data_scope` 에 status 컬럼 없음(바인딩이 **항상 활성**). 인접 실 선례 = `agency_client_link.status`(`AgencyPortal.php:67` pending/approved/revoked + fail-closed 재검증 `:427`) | `LEGACY_ADAPTER` | 0 |
-| 14 | evidence | **부재** — 스코프 부여 근거·부여자·시각 전무. 인접 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128`) · `pm_audit_log`(tenant+diff_json+3인덱스) | `LEGACY_ADAPTER` | 0 |
+| 14 | evidence | **부재** — 스코프 부여 근거·부여자·시각 전무. 인접 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128` · 🔴 쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68`) · `pm_audit_log`(tenant+diff_json+3인덱스) | `LEGACY_ADAPTER` | 0 |
 
 **실측 개수: 14 / 14 전사.**
 **대응 합계 = 3.5 / 14** (0.5 + 0.5 + 1 + 1 + 0.5). 커버리지 = **`VALIDATED_LEGACY` 0** · `PARTIAL` 5 · `LEGACY_ADAPTER` 2 · 부재 7.

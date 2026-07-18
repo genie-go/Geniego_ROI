@@ -58,7 +58,7 @@
 | 23 | Snapshot 생성 가능 | 부재(조직) · 선례 = `menu_defaults(snapshot_data JSON, version)`(`AdminMenu.php:120`·생성 `:308`) · `pm_baseline(snapshot_json, captured_at)`(`PM\Enterprise.php:55`·`:360-364`) | `PARTIAL`(선례만) |
 | 24 | Approval Routing Eligible Path 존재 | 부재 — 승인 라우팅 전무(5-3-2 §12) | `ABSENT` |
 | 25 | Manager Resolution Eligible Path 존재 | 부재 — `reports_to` **0** · `manager_id` **0**(단 `team.manager_user_id` 존재·평면) | `ABSENT` |
-| 26 | Immutable Version Hash 유효 | 부재(조직) · 선례 = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·:63-64·:145) · `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`·생성 :182-197·`lastHash()` :214-219) | `PARTIAL`(선례만) |
+| 26 | Immutable Version Hash 유효 | 부재(조직) · 선례 = `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·:63-64·:145) · `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`·생성 :182-197·`lastHash()` :214-219)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) | `PARTIAL`(선례만) |
 
 **실측 개수: 26 / 26 전사.** 원문은 **검증 체크리스트**이며 **필수필드 축이 아니다** → 목록이 `evidence` 로 끝나지 **않는다**(원문 :2143 = `Immutable Version Hash 유효`). **관례에 맞추려고 `evidence` 를 추가하지 않았다.**
 
@@ -73,7 +73,7 @@
 - 🔴 **`JourneyBuilder:511-518` 을 참조 구현으로 삼지 마라.** **런타임 방문집합만** 있고 **작성자 JSON 을 무검증**한다(`:512` 자인) — 즉 **순환을 저장은 허용하고 실행 때만 막는다.** §52 는 **"Hierarchy Version 활성화 전 검증"**(:2116)이므로 **쓰기 전 차단**(`Dependencies:32-34` 패턴)이 정본이다.
 - 🔴 **`graph_node`/`graph_edge`(`Db.php:816-839`)를 §52 커버로 계산 금지.** 구조는 §15/§16 의 쌍둥이(Node/Edge 분리·타입드·가중치·양방향 인덱스)이나 ⓐ 도메인 = **마케팅 귀속**(influencer→creative→sku→order) → `KEEP_SEPARATE_WITH_REASON` ⓑ **순환 방어가 아예 없다** ⓒ **내부 생산자 0**(`upsertNode`/`upsertEdge` 호출처 = 핸들러·라우트뿐·frontend 0 → 외부 POST 전용 · **VACUOUS 가능성 미배제**). **단 §66 선례 가치는 최상 — 전용 그래프 DB 도입은 불필요**(Neo4j/Cypher/Gremlin/Neptune **grep 0**).
 - 🔴 **#21 Inverse Relationship 을 양방향 인덱스로 계산 금지.** 인덱스는 **조회 성능**이지 **역관계 선언**이 아니다 — 규율 9 직격.
-- **#26 Immutable Version Hash 는 "선례 없음→신설"이 아니다.** `schema_migrations.checksum`(SHA-256) · `menu_audit_log.hash_chain`(SHA-256 prev-chain·tamper-evident `AdminMenu.php:18`) **양쪽이 실구현**이다. 🔴 **"해시체인 없음"을 전역 명제로 인용하면 오염이다** — 참인 것은 **전역 `audit_log`(4컬럼·tenant 없음·해시체인 없음 `Db.php:540-545`)에 한해서**다.
+- **#26 Immutable Version Hash 는 "선례 없음→신설"이 아니다.** `schema_migrations.checksum`(SHA-256) · `menu_audit_log.hash_chain`(SHA-256 prev-chain 쓰기 `AdminMenu.php:182-197` · 🔴 `:18` 은 *주석*이고 `verify()`·preimage ts 없음 → **tamper-evident 아님**) **쓰기 알고리즘은 실구현**이다(검증형은 `SecurityAudit::verify()`). 🔴 **"해시체인 없음"을 전역 명제로 인용하면 오염이다** — 참인 것은 **전역 `audit_log`(4컬럼·tenant 없음·해시체인 없음 `Db.php:540-545`)에 한해서**다.
 - **#23 Snapshot 도 선례 실재** — `menu_defaults`(version+snapshot_data) · `pm_baseline`(`captured_at` 명명 일치). 단 **`menu_defaults` 는 immutable_hash 없음 · 전역 1행(tenant 없음) · 최신 1건만 조회** → **그대로 복제 금지**.
 - **N+1 순회 금지** — `GraphScore::scoreInfluencer:187-240` 은 **하드코딩 3-hop 런타임 전개**에 **hop3∈hop2∈hop1 = N+1**(`:207-219`). 285차 "루프 내 외부API N+1 = 즉시장애" 트랩의 DB판이며 **Path Index(#22) 도입의 정당화 근거**다.
 - **스키마 도입 제약**: `backend/migrations/` **172차 정지** → `ensureTables` 멱등 패턴 + **MySQL/SQLite 두 방언 동시 작성** 의무. ⚠️단 **PM 8테이블은 변종** — 마이그레이션 정의 + 런타임 자가치유 **병행**(`PM\Shared::ensurePmTables:37-53` 이 부재 시 `Migrate::applyFiles` 로 168차 SQL 을 **런타임 적용**). 조직 그래프가 `Dependencies` 를 확장한다면 **이 변종 패턴을 따르게 된다**.

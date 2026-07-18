@@ -11,7 +11,7 @@
 | 엔터티 `version` 컬럼 | **레포 전체 1건** = `menu_defaults.version` · 🔴**유일 생산자 `AdminMenu.php:309` 이 리터럴 `'baseline'` 고정 = 버전이 아니라 라벨**(주석 `:281` 이 282차까지 0행 자인) | `NAME_ONLY` |
 | optimistic lock `version` | **grep 0** | `ABSENT` |
 | `effective_to`/`valid_to`/`valid_from` | **grep 0** | `ABSENT` |
-| immutable_hash 선례 | `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219`) · `schema_migrations.checksum`(`Migrate.php:50`) | `LEGACY_ADAPTER` |
+| immutable_hash 선례 | `menu_audit_log.hash_chain`(`AdminMenu.php:128` SHA-256 prev-chain · 생성 `:182-197` · `lastHash():214-219` — 🔴 쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68`) · `schema_migrations.checksum`(`Migrate.php:50`) | `LEGACY_ADAPTER` |
 | 스냅샷 선례 | 🔴**`pm_baseline.captured_at` 은 DB 컬럼이 아니라 `snapshot_json` 내부 JSON 키**(`Handlers/PM/Enterprise.php:360` · DDL 은 `created_at` `:55`/`:62`) → **인덱스 불가·as-of 질의 불가** | `KV_ONLY` |
 
 ### ★`node count`/`edge count` — **최우선 오염원(커버 계산 금지)**
@@ -34,7 +34,7 @@
 | 1 | supervisory_hierarchy_version_id | 엔터티 부재 | `ABSENT` |
 | 2 | supervisory_hierarchy_id | 부모 엔터티 부재(§9) | `ABSENT` |
 | 3 | version_number | **엔터티 `version` = `menu_defaults.version` 1건이며 리터럴 `'baseline'` 라벨**(`AdminMenu.php:309`) · 증분 버전 채번 **0** | `ABSENT` |
-| 4 | previous_version_id | 버전 체인 **0** · 인접 해시 체인 선례만 존재(`menu_audit_log` prev-chain `AdminMenu.php:128`) | `ABSENT`(선례 = `LEGACY_ADAPTER`) |
+| 4 | previous_version_id | 버전 체인 **0** · 인접 해시 체인 선례만 존재(`menu_audit_log` prev-chain `AdminMenu.php:128` — 🔴 쓰기 체인만 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68`) | `ABSENT`(선례 = `LEGACY_ADAPTER`) |
 | 5 | root references | 루트 개념 부재(§9 #16 `multiple roots allowed` 동일) | `ABSENT` |
 | 6 | node count | 🔴**트랩** — `node_counts`(`GraphScore.php:454`) = **응답 투영 키** · 저장 컬럼 아님 | `ABSENT` |
 | 7 | edge count | 🔴**트랩** — `COUNT(*) AS edge_count`(`GraphScore.php:434`,`:438`,`:442`) = **질의 별칭** · 저장 컬럼 아님 | `ABSENT` |
@@ -47,7 +47,7 @@
 | 14 | source version | 🔴**§62 와 동일 구조 — "우선순위 미구현"이 아니라 정렬할 대상이 0개.** manager 데이터를 싣는 소스가 **0개**(HRIS/ERP/Directory 전부 `ABSENT` · SCIM `manager` 전역 0) → `VACUOUS` 이전에 **무대상** | `ABSENT` |
 | 15 | effective_from | 🔴**`kr_fee_rule.effective_from` 은 다른 도메인(세율)이며 컬럼 有·질의 無** — 계층 축에는 **컬럼조차 없다** | `ABSENT` |
 | 16 | effective_to | **`effective_to` grep 0** | `ABSENT` |
-| 17 | immutable_hash | 알고리즘 선례 REAL — `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) · `schema_migrations.checksum`(`Migrate.php:50`). 🔴**`menu_audit_log` 에 `tenant_id` 없음 · `lastHash()` 에 tenant 술어 없음** | `LEGACY_ADAPTER`(알고리즘만) |
+| 17 | immutable_hash | 알고리즘 선례 REAL — `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) · `schema_migrations.checksum`(`Migrate.php:50`). 🔴**`menu_audit_log` 에 `tenant_id` 없음 · `lastHash()` 에 tenant 술어 없음** · 🔴**쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님**(검증형 정본 = `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER`(알고리즘만) |
 | 18 | status | 🔴트랩 `is_active` = **계정 상태**(base DDL `Db.php:1106`) · **`NOT NULL DEFAULT 1` → `UNKNOWN` 표현 불가 = fail-open** | `ABSENT` |
 | 19 | evidence | 감사 선례 `pm_audit_log`(`tenant_id NOT NULL`+`entity`+`diff_json`+3인덱스+append-only 주석 `20260526_168_008`) — 계층 버전 축은 부재 | `ABSENT`(선례 = `LEGACY_ADAPTER`) |
 
@@ -56,7 +56,7 @@
 
 ## 2. 규칙
 
-1. 🔴 **`menu_audit_log` 스키마 복제 금지 — 알고리즘만 이식.** `tenant_id` 가 없고 `lastHash():214-219` 에 tenant 술어가 없다. 테넌트별 체인 시 **`WHERE tenant_id=?` 필수**.
+1. 🔴 **`menu_audit_log` 스키마 복제 금지 — 알고리즘만 이식.** `tenant_id` 가 없고 `lastHash():214-219` 에 tenant 술어가 없다. 테넌트별 체인 시 **`WHERE tenant_id=?` 필수**. 🔴 **게다가 이식 대상은 쓰기 체인뿐** — `menu_audit_log` 는 `verify()` 0·preimage ts(`:195`) 소실로 **tamper-evident 아니다** → 검증기(`SecurityAudit::verify():56-68`)까지 함께 이식하라.
 2. 🔴 **`node count`/`edge count` 를 `GraphScore` 질의 별칭으로 닫지 마라.** 별칭·응답 키는 **저장된 버전 메트릭이 아니다**.
 3. 🔴 **`version_number` 를 리터럴로 고정하면 5-3-3-1 D-13 재발.** `menu_defaults.version='baseline'`(`AdminMenu.php:309`)·`Mapping.php:210` `required_approvals=2` 와 **동형** — **컬럼이 있다 ≠ 모델이 있다**(규칙 7).
 4. 🔴 **`pm_baseline` 을 스냅샷 선례로 복제 금지.** `captured_at` 이 **`snapshot_json` 내부 JSON 키**라 **인덱스·as-of 질의 불가**(`KV_ONLY`). 버전 시점은 **DB 컬럼 + 인덱스**로 두라.

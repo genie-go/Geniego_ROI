@@ -102,8 +102,8 @@
 
 ## 2. 규칙
 
-- 🔴🔴 **"해시체인 없음"을 전역 명제로 인용 금지 — 289차 초판 브리핑 오염원.** 참인 것은 **전역 `audit_log`(`actor`·`action`·`details_json`·`created_at` 4컬럼 · tenant 없음 · 해시체인 없음 — `Db.php:540-545` / `AdminGrowth.php:157-159`)에 한해서**다. ★**해시체인 선례는 실재한다**: `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) = **SHA-256 prev-chain 실구현**(생성 `:182-197` · `lastHash():214-219` · tamper-evident 주석 `:18`).
-- 🔴 **§63 은 "선례 없음 → 신설"이 아니라 `menu_audit_log`/`pm_audit_log` 패턴 확장이다.** 두 선례가 요구 능력을 **분할 보유**(§0 능력 대조표) → **조직 감사 = `pm_audit_log` 골격(tenant NOT NULL + entity type/id + diff_json + 3인덱스 + append-only) + `menu_audit_log` 해시체인(prev-chain SHA-256)의 합집합.**
+- 🔴🔴 **"해시체인 없음"을 전역 명제로 인용 금지 — 289차 초판 브리핑 오염원.** 참인 것은 **전역 `audit_log`(`actor`·`action`·`details_json`·`created_at` 4컬럼 · tenant 없음 · 해시체인 없음 — `Db.php:540-545` / `AdminGrowth.php:157-159`)에 한해서**다. ★**SHA-256 prev-chain 쓰기 선례는 실재한다**: `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) — 생성 `:182-197` · `lastHash():214-219`. 🔴 **단 tamper-evident 는 아니다** — `:18` 은 *주석*이고(규칙#3: 주석≠근거), `verify()` 0·preimage ts(`:195`) 소실로 **검증 불가능한 장식**. 검증형 정본 = **`SecurityAudit::verify():56-68`**(preimage ts 저장 `:31`).
+- 🔴 **§63 은 "선례 없음 → 신설"이 아니라 `menu_audit_log`/`pm_audit_log` 패턴 확장이다.** 두 선례가 요구 능력을 **분할 보유**(§0 능력 대조표) → **조직 감사 = `pm_audit_log` 골격(tenant NOT NULL + entity type/id + diff_json + 3인덱스 + append-only) + `menu_audit_log` 해시체인(prev-chain SHA-256)의 합집합.** 🔴 단 `menu_audit_log` 는 **쓰기 체인만 실재**하고 검증기(`verify()`)가 0이며 preimage `ts`(`:195`) 소실로 재계산 불가 → **tamper-evident 아님**: 가져올 것은 prev-chain **쓰기** 알고리즘이며, 실제 재계산·교차검증이 도는 검증형 정본은 `SecurityAudit::verify():56-68` 이다.
 - 🔴 **중복 감사 스토어 신설 금지.** 현재 감사 스토어 3벌(+`journey_node_logs`). 네 번째를 **독립 설계**하면 헌법 위반(중복 엔진)이며, 5-3-2 "술어 SSOT 부재"·ⓑ `isDemo` 12벌과 동형 재발이다.
 - 🔴 **전역 `audit_log` 를 조직 감사 기반으로 쓰지 마라 = 기능후퇴.** `tenant_id` 없음 + 해시체인 없음 + `details_json` 뭉치 = **3계층 중 최약**. 조직은 **테넌트 격리 절대**(헌법 데이터 Vol1) → tenant 없는 테이블은 **구조적으로 부적격**.
 - ⚠️ **`menu_audit_log` 를 그대로 복제하지 마라**: 🔴 **`tenant_id` 컬럼이 없다**(전역 단일 메뉴 트리 도메인 전제). **가져올 것은 해시체인 알고리즘이지 스키마 전체가 아니다.**

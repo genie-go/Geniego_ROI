@@ -12,7 +12,7 @@
 | 워크플로 "목록" 유사물 | `JourneyBuilder` `journeys`(JourneyBuilder.php:35-38 · `nodes`/`edges` MEDIUMTEXT · `status DEFAULT 'draft'`) | **KEEP_SEPARATE_WITH_REASON** — 마케팅 여정 카탈로그(`approve|approval` **grep 0**). 승인 카탈로그로 전용 금지 |
 | 카탈로그 대상 도메인 | `REBATE_*` **grep 0** | 카탈로그가 등재할 승인 대상이 코드에 없다 → **전방호환 계약** |
 | `catalog_type` 스코프 축 | `tenant_id` 는 광범위 존재 · `organization_id`·`workspace_id` 는 승인계 테이블 **부재**(`admin_growth_approval` 은 tenant_id 조차 없음 · AdminGrowth.php:142-149) | `MIGRATION_REQUIRED` |
-| `evidence` | 해시체인 선례 `menu_audit_log.hash_chain`(AdminMenu.php:123-131) **유일** · `audit_log`(Db.php:540-546)은 `actor·action·details_json·created_at` 뿐 | 부분 재사용 |
+| `evidence` | 해시체인 선례 `menu_audit_log.hash_chain`(AdminMenu.php:123-131) **유일** · `audit_log`(Db.php:540-546)은 `actor·action·details_json·created_at` 뿐 — 🔴 단 `menu_audit_log` 은 **쓰기 체인만 실재·`verify()` 0·preimage `ts`(:195) 소실 → tamper-evident 아님**; 검증형 정본 = `SecurityAudit::verify():56-68` | 부분 재사용 |
 
 **★현행에 "승인 워크플로 카탈로그"는 존재하지 않는다.** 현행 승인은 카탈로그 없이 **핸들러별 하드코딩 상태전이**로 분산돼 있다(§52 기존 구현 분류).
 
@@ -39,7 +39,7 @@
 | 15 | status | 핸들러별 `status` 컬럼 존재하나 카탈로그 레벨 없음 | `NOT_APPLICABLE` |
 | 16 | valid_from | 부재 | `NOT_APPLICABLE` |
 | 17 | valid_to | 부재 | `NOT_APPLICABLE` |
-| 18 | evidence | `menu_audit_log.hash_chain` 만 선례 | `MIGRATION_REQUIRED` |
+| 18 | evidence | `menu_audit_log.hash_chain` 만 선례 — 🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts`(:195) 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68` | `MIGRATION_REQUIRED` |
 
 **실측 개수: 18 / 18 전사.** 커버리지 = 신설 15 · 재사용/이관 3.
 

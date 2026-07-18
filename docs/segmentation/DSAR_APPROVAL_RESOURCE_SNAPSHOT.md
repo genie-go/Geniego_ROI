@@ -16,7 +16,7 @@
 | `action_request.action_json` | `Db.php:592-600` — **집행 의도(Action)** 블롭. 원본 리소스 상태가 아님 | **NOT_APPLICABLE**(Snapshot 아님) |
 | `admin_growth_approval.payload_json` | `AdminGrowth.php:142-149,1292` — 요청 페이로드. 원본 스냅샷 아님 | **NOT_APPLICABLE** |
 | `catalog_writeback_job` | `Catalog.php:2341-2364` — 상태만 보관 | **NOT_APPLICABLE** |
-| **`menu_audit_log`** | `old_value` / `new_value` JSON + `hash_chain CHAR(64)` 체인(`AdminMenu.php:123-131,169-210`) — **변경 전/후 전문 + 위변조 탐지** | **★재사용 선례**(승인 도메인 아님 · 해시 = `sha256(payload+prev)`) |
+| **`menu_audit_log`** | `old_value` / `new_value` JSON + `hash_chain CHAR(64)` 체인(`AdminMenu.php:123-131,169-210`) — **변경 전/후 전문 필드 선례** · ⚠️ **위변조 탐지는 불가**(`verify()` 0·preimage ts(`:195`) 소실) = tamper-evident 아님 | **필드·스냅샷 선례**(승인 도메인 아님 · 해시 = `sha256(payload+prev)` **쓰기만** · 검증형은 `SecurityAudit::verify()`) |
 | `audit_log` | `details_json`(`Db.php:540-546`) · `Mapping::audit`(`Mapping.php:60-63`) — **tenant_id 없음 · 해시체인 없음 · immutable 아님** | **LEGACY_ADAPTER**(스냅샷 대체물 아님) |
 | **Resource Version** | **개념 부재(grep 0)** — 승인 시점 리소스 버전을 가리킬 수단 없음 | **NOT_APPLICABLE(신설)** |
 | APPROVAL_RESOURCE_SNAPSHOT | **grep 0** | **NOT_APPLICABLE(부재 → 신설)** |
@@ -84,7 +84,7 @@
 
 - **Immutable · Append-only**(§4.9) — Snapshot 행 **UPDATE·DELETE 금지**. 정정은 **새 스냅샷**으로.
 - **`DECISION` 스냅샷(원문 Type #4) 없는 승인은 무효**(§4.4) — "무엇을 승인했는가"가 증명 불가한 승인은 승인이 아니다. (289차 표기 `AT_DECISION` 은 자작 · 원문 `DECISION` 으로 정정.)
-- **해시체인은 신설 아님** — `menu_audit_log.hash_chain`(`AdminMenu.php:123-131`) 선례를 **확장**. 별도 tamper-evident 엔진 신설 금지.
+- **해시체인은 신설 아님** — 🔴 검증형 정본은 **`SecurityAudit`**(`verify():56-68`·preimage ts 저장). `menu_audit_log.hash_chain`(`AdminMenu.php:123-131`)은 **쓰기 체인·필드만** 참조(tamper-evident 아님)하고 무결성 검증은 `SecurityAudit` 을 **확장**. 별도 tamper-evident 엔진 신설 금지.
 - **`mapping_change_request` 의 raw/canonical 복사 보관은 보존**(비파괴) — 어댑터로 흡수하되 컬럼 제거 금지(Golden Rule = Extend).
 - `audit_log`·`action_request.action_json` 을 **스냅샷으로 간주하고 배선 금지**(287차 죽은 스켈레톤).
 - **snapshot payload(원문 #9)** = **원본 업무 데이터**. 요청 환경/주체 맥락은 `DSAR_APPROVAL_CONTEXT_SNAPSHOT.md`(§32) — **혼동·중복 신설 금지**.

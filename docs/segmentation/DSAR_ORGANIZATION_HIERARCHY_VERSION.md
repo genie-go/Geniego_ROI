@@ -12,7 +12,7 @@
 | 버전 붙은 스냅샷 | `menu_defaults(snapshot_data JSON, version, created_at)` — 생성 `AdminMenu.php:308` · 복원 `:584-590`. **단 immutable_hash 없음 · 전역 1행(tenant 없음) · 최신 1건만 조회** | `PARTIAL` |
 | 스냅샷 선례 2 | `pm_baseline(snapshot_json, captured_at)`(`PM\Enterprise.php:55`·`:62`·`:360-364`) — ★`captured_at` 명명이 원문 `recorded_at` 계열과 정확히 대응 | `LEGACY_ADAPTER` |
 | `immutable_hash` 선례 | `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) | `LEGACY_ADAPTER` |
-| 해시체인 선례 | `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) SHA-256 prev-chain 실구현(생성 `:182-197`·`lastHash()` `:214-219`·tamper-evident 주석 `:18`) | `LEGACY_ADAPTER` |
+| 해시체인 선례 | `menu_audit_log.hash_chain CHAR(64)`(`AdminMenu.php:128`) SHA-256 prev-chain **쓰기** 실구현(생성 `:182-197`·`lastHash()` `:214-219`) · 🔴 **tamper-evident 아님**(`:18` 은 주석·`verify()` 0·preimage ts 소실 → 검증형은 `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER` |
 | `effective_from` | ★**`kr_fee_rule.effective_from`(`Db.php:898`) = 전 코드베이스 유일.** 쓰기 `KrChannel.php:128-140` · 읽기가 **전부 `ORDER BY effective_from DESC LIMIT 1`(최신승)**(`Pnl.php:454`·`KrChannel.php:102`·`:151`·`:459`) | `KV_ONLY` |
 | as-of 조회 능력 | 🔴 ★**`WHERE effective_from <= :as_of` 술어 = backend/src 전역 0건**(PM 직접 검증) | `ABSENT` |
 | `effective_to` | `valid_to`\|`effective_to` **grep 0** → **폐구간 모델은 신규** | `ABSENT` |
@@ -50,10 +50,10 @@
 | 19 | recorded_by | `created_by` 관례(`team` DDL `TeamPermissions.php:145-151`) · `audit_log.actor`(`Db.php:540-545`) | `LEGACY_ADAPTER` |
 | 20 | reviewed_by | **부재** — Review 단계 자체 없음(5-3-2 §12 확정: Review/Approval 미분화) | `ABSENT` |
 | 21 | approved_by reference | 부재(승인 도메인) · ⚠️ `agency_client_link.approved_at`(`AgencyPortal.php:64-72`) 는 **시각만 · approver 참조 없음** | `PARTIAL` |
-| 22 | immutable_hash | ★선례 실재 — `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`). 🔴 **단 `menu_defaults` 스냅샷에는 hash 없음** | `LEGACY_ADAPTER` |
+| 22 | immutable_hash | ★선례 실재 — `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·preimage=디스크 파일이라 재계산 가능) · `menu_audit_log.hash_chain`(`AdminMenu.php:128`). 🔴 **단 `menu_audit_log.hash_chain` 은 쓰기 체인만 실재·`verify()` 0·preimage `ts`(`:195`) 소실 → tamper-evident 아님**(검증형 정본 = `SecurityAudit::verify():56-68`) · 🔴 **`menu_defaults` 스냅샷에는 hash 없음** | `LEGACY_ADAPTER` |
 | 23 | migration policy | **부재** — [Migration Policy 문서](DSAR_ORGANIZATION_HIERARCHY_MIGRATION_POLICY.md) 참조. ★**집행 수단 자체가 없다**(`ensureTables` 는 백필 안 함) | `ABSENT` |
 | 24 | status | [Status 축 문서](DSAR_ORGANIZATION_HIERARCHY_VERSION_STATUS.md) 참조 — 14종 중 커버 0 | `NOT_APPLICABLE` |
-| 25 | evidence | `menu_audit_log.hash_chain` / `pm_audit_log`(tenant+entity+diff_json+3인덱스) 패턴 확장 · `journey_node_logs` tenant_id 보유(`JourneyBuilder.php:69`·조회 술어 `:248`) = 스키마 선례 최적(단 마케팅 도메인 → 커버 금지) | `LEGACY_ADAPTER` |
+| 25 | evidence | `menu_audit_log.hash_chain`(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) / `pm_audit_log`(tenant+entity+diff_json+3인덱스) 패턴 확장 · `journey_node_logs` tenant_id 보유(`JourneyBuilder.php:69`·조회 술어 `:248`) = 스키마 선례 최적(단 마케팅 도메인 → 커버 금지) | `LEGACY_ADAPTER` |
 
 **실측 개수: 25 / 25 전사.** 커버리지 = `VALIDATED_LEGACY` **0** · `PARTIAL` 3 · `LEGACY_ADAPTER` 7 · `KV_ONLY` 1 · `ABSENT` 4 · `NOT_APPLICABLE` 10.
 
@@ -64,8 +64,8 @@
 - 🔴 **`kr_fee_rule.effective_from` 을 "시점 조회 능력 있음"의 근거로 쓰지 마라.** 컬럼은 있으나 **읽기가 전부 `ORDER BY effective_from DESC LIMIT 1`(최신승)** 이고 **as-of 술어는 전역 0건**이다. 능력이 아니라 **컬럼**이다(`KV_ONLY`).
 - 🔴 **`plan_period_pricing.period_months` 를 §13 선례로 인용 금지** — 구독 기간 상품 옵션이다.
 - 🔴 **`menu_defaults` 를 "테넌트별 버전 스냅샷" 선례로 인용 금지.** **전역 1행 · tenant 컬럼 없음 · 최신 1건만 조회 · immutable_hash 없음**. 선례 가치는 *"버전이 붙은 JSON 스냅샷을 만들고 복원한다"*(`:308`·`:584-590`)는 **형태**까지다.
-- **`immutable_hash` 는 신설이 아니라 확장이다.** `schema_migrations.checksum`(`Migrate.php:50`) 의 `hash('sha256', $payload)` 패턴 + `menu_audit_log.lastHash()`(`AdminMenu.php:214-219`) 의 prev-chain 결합이 정본 경로.
-- **`evidence` 는 `menu_audit_log`/`pm_audit_log` 패턴 확장이다** — "선례 없음→신설"이 아니다. 🔴 **전역 `audit_log`(4컬럼·tenant 없음·해시체인 없음)를 확장 기준으로 삼으면 후퇴다.**
+- **`immutable_hash` 는 신설이 아니라 확장이다.** `schema_migrations.checksum`(`Migrate.php:50`) 의 `hash('sha256', $payload)` 패턴 + `menu_audit_log.lastHash()`(`AdminMenu.php:214-219`) 의 prev-chain 결합이 정본 경로. 🔴 단 `menu_audit_log.hash_chain` 은 **쓰기 체인만 실재**하고 검증기(`verify()`)가 0이며 preimage `ts`(`:195`)가 INSERT 컬럼에서 소실돼 재계산 불가 → **tamper-evident 아님**. 실제 재계산·교차검증이 도는 정본은 `SecurityAudit::verify():56-68`(preimage를 `created_at`으로 저장→hash_equals+prev_hash 재계산)이다. `schema_migrations.checksum` 은 preimage=디스크 파일이라 재계산 가능해 결함 층위가 다르다 — 균질화 금지.
+- **`evidence` 는 `menu_audit_log`/`pm_audit_log` 패턴 확장이다** — "선례 없음→신설"이 아니다. 🔴 **전역 `audit_log`(4컬럼·tenant 없음·해시체인 없음)를 확장 기준으로 삼으면 후퇴다.** 🔴 단 `menu_audit_log.hash_chain` 은 쓰기 체인만 실재·`verify()` 0·preimage `ts`(`:195`) 소실로 **tamper-evident 아님** — 검증형 정본은 `SecurityAudit::verify():56-68` 이다.
 - 🔴 **`graph_node`/`graph_edge` 를 §13 커버로 계산 금지.** 도메인 = **마케팅 귀속**(influencer→creative→sku→order). 단 **구조적 쌍둥이**이므로 신설 시 **저장 형태 선례로 최상급** — Node/Edge 분리 + 타입드 관계 + 가중치 + 양방향 인덱스가 이미 있어 **전용 그래프 DB 도입은 불필요**(Neo4j/Cypher/Gremlin/Neptune/Arango/JanusGraph/TinkerPop **grep 0**).
   ⚠️ 단 `graph_node`/`graph_edge` 는 **내부 생산자 0**(`upsertNode`/`upsertEdge` 호출처 = 핸들러·라우트뿐 · frontend 0 → **외부 POST 전용 유입**) — **VACUOUS 가능성 미배제**. "운영 중인 그래프"로 인용 금지.
 - **`node count`/`edge count`/`maximum depth` 를 버전 메타로 저장하려면 신규다.** 현행 깊이캡 3건은 **런타임 가드**이지 저장 메타가 아니다 — 혼동 금지.

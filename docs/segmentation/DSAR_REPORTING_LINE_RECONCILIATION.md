@@ -116,7 +116,7 @@
 | 44 | resolved_by | 🔴**행위자 표준 부재** — `Mapping::actorId:36-53` **3분기 fail-closed = REAL 이나 국소 표준** · `Alerting::actor:33-36` = **`X-User-Email` 헤더/`?actor=` 쿼리/`'unknown'` 폴백**(위조 가능) · `admin_growth_approval.decided_by` = **자유 텍스트**(`AdminGrowth.php:1330`) | `ABSENT` · 🔴**표준 미확립** |
 | 45 | resolved_at | 시각 컬럼 선례 다수(`created_at`/`updated_at`) · 🔴**`AgencyPortal.php:304`·`:381` 이 `revoked_at=NULL` 로 이전 시각을 소거 → 이력 물리적 소멸** = **§55 "과거 Snapshot 대체 금지" 정면 반례** | `ABSENT` · 🔴**반례 존재** |
 | 46 | status | §67 참조 — 30종 전건 `ABSENT` · ★**`MATCH` 반전 규칙 필수** | `CONTRACT_ONLY` |
-| 47 | evidence | 근거 영속 0 · 인접 선례 = `pm_audit_log.diff_json`(migration `20260526_168_008:13`) · `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`) | `ABSENT` |
+| 47 | evidence | 근거 영속 0 · 인접 선례 = `pm_audit_log.diff_json`(migration `20260526_168_008:13`) · `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`) 🔴**단 쓰기 체인만 실재·`verify()` 0·preimage ts(`:195`) 소실 → tamper-evident 아님, 검증형 정본 = `SecurityAudit::verify():56-68`** | `ABSENT` |
 
 **실측 개수: 47 / 47 전사.**
 - **측정기 분모 47** = 비교쌍 28 + 필수 필드 19. **원문 대조 47 · 전사 47 — 3자 일치.**

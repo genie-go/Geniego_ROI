@@ -57,7 +57,7 @@ PK(tenant_id, skey) = **테넌트당 KV 정확히 1벌** → 후보가 복수일
 | 2 | OPERATIONAL_WORKSPACE | 부재 · 인접 = 운영 데이터 KV 키군(`wms_*`·`orderhub_routing_rules`·`reviews_escalated` `:32`, 279차 감사로 서버 영속화) — **키이지 워크스페이스 아님** | `NOT_APPLICABLE` |
 | 3 | FINANCE_WORKSPACE | 부재 — 🔴 `ORG_PRESET` **'재무팀'**(`TeamPermissions.php:717`)의 `'scope' => 'company'` 를 재무 경계로 읽지 마라. **`'company'` 는 무제한 센티넬**(`effectiveScope():258` `if ($st==='company') return null; // 전사 = 무제한`) — **경계를 긋는 게 아니라 지운다** | `NOT_APPLICABLE` |
 | 4 | APPROVAL_WORKSPACE | 부재 · 인접 = `approval_cfg` KV 키(`:29`) | `LEGACY_ADAPTER`(설정 슬롯) |
-| 5 | AUDIT_WORKSPACE | 부재 — 감사 선례는 존재하나(`menu_audit_log.hash_chain` `AdminMenu.php:128` · `pm_audit_log`) **워크스페이스 축이 아니다** | `NOT_APPLICABLE` |
+| 5 | AUDIT_WORKSPACE | 부재 — 감사 선례는 존재하나(`menu_audit_log.hash_chain` `AdminMenu.php:128` — 🔴 쓰기 체인만 실재 · `verify()` 0 · preimage ts(`:195`) 소실 → tamper-evident 아님 · 검증형 정본 = `SecurityAudit::verify():56-68` · `pm_audit_log`) **워크스페이스 축이 아니다** | `NOT_APPLICABLE` |
 | 6 | REPORTING_WORKSPACE | 부재 | `NOT_APPLICABLE` |
 | 7 | READ_ONLY_REFERENCE | 부재(워크스페이스) · ★**실 effect 선례 = `agency_client_link`** (`AgencyPortal.php:89` `defaultScope()` `['write'=>false,…]` → `index.php:92-96` write 미허가 시 403). **`data_scope` 에는 없는 능력** | `LEGACY_ADAPTER`(effect 선례) |
 | 8 | CUSTOM | 부재 | `NOT_APPLICABLE` |

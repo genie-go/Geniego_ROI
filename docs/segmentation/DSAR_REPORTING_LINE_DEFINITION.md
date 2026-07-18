@@ -70,7 +70,7 @@ Definition 은 `reporting_line_registry_id` 를 FK 로 갖는 **하위 엔티티
 | 22 | valid_from | **grep 0** · `kr_fee_rule.effective_from`(`Db.php:898`)은 **컬럼 有·질의 無** | `ABSENT` |
 | 23 | valid_to | **`valid_to`·`effective_to` grep 0** | `ABSENT` |
 | 24 | status | 인접 `team.status VARCHAR(20) DEFAULT 'active'`(`:148`) = **무검증 자유문자열**(ENUM/CHECK/`in_array` 0) · 팀 상태이지 정의 상태 아님 | `ABSENT` |
-| 25 | evidence | 인접 REAL = `menu_audit_log.hash_chain`(`AdminMenu.php:128` · `lastHash():214-219`) · `pm_audit_log`(`tenant_id NOT NULL` + `diff_json` + append-only). 🔴**`menu_audit_log` tenant_id 없음 → 스키마 복제 금지·알고리즘만 이식** | `LEGACY_ADAPTER` |
+| 25 | evidence | 인접 선례 = `menu_audit_log.hash_chain`(`AdminMenu.php:128` · `lastHash():214-219`) 🔴**단 쓰기 체인만 실재** — `verify()` 검증기 0 · preimage `'ts'`(`:195`)가 INSERT 컬럼 소실 → `created_at` DEFAULT 가 덮어 재계산 불가 → **tamper-evident 아님**(`:18` 주석≠근거) · **검증형 정본 = `SecurityAudit::verify():56-68`** · `pm_audit_log`(`tenant_id NOT NULL` + `diff_json` + append-only). 🔴**`menu_audit_log` tenant_id 없음 → 스키마 복제 금지·알고리즘만 이식** | `LEGACY_ADAPTER` |
 
 **측정기 분모: 40(§7 전체) / 원문 대조: 필수 필드 25 + Reporting Line Type 15 = 40 / 본 편 전사: 25.** 잔여 15는 [DSAR_REPORTING_LINE_TYPE.md](DSAR_REPORTING_LINE_TYPE.md) 에서 전사. **불일치 없음.**
 

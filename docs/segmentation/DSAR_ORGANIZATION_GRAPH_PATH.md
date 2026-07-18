@@ -107,7 +107,7 @@ while ($stack && $depth < 10000) {          // :84  작업량 상한
 | 13 | valid_to | `valid_to`/`effective_to` **grep 0** → **폐구간 순수 신규** | `NOT_APPLICABLE` |
 | 14 | computed_at | ★**파생 데이터의 계산시각 = 레포 전례 0**(경로 사전계산 자체가 없으므로). 인접 명명 = `pm_baseline.captured_at`(`PM\Enterprise.php:55`·`:62`·`:360-364`) · `channel_category_catalog.synced_at`(`Catalog.php:209`·`:660-663`) = **파생 캐시의 갱신시각** 선례 | `LEGACY_ADAPTER` |
 | 15 | status | 경로 테이블 부재 · `graph_edge`/`graph_node` 에도 `status` 없음(`Db.php:816-837`) | `NOT_APPLICABLE` |
-| 16 | **evidence** | 부재. 인접 선례 = `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) · `pm_audit_log`(tenant+entity+diff_json+3인덱스) · `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) | `LEGACY_ADAPTER` |
+| 16 | **evidence** | 부재. 인접 선례 = `menu_audit_log.hash_chain`(SHA-256 prev-chain `AdminMenu.php:128`·`:182-197`·`lastHash():214-219`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) · `pm_audit_log`(tenant+entity+diff_json+3인덱스) · `schema_migrations.checksum`(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) | `LEGACY_ADAPTER` |
 
 **실측 개수: 16 / 16 전사.** 커버리지 = `VALIDATED_LEGACY` **0** · `LEGACY_ADAPTER` 2 · `PARTIAL` 1 · `NOT_APPLICABLE` 13.
 
@@ -182,7 +182,7 @@ while ($stack && $depth < 10000) {          // :84  작업량 상한
 | 3 | Immutable Hierarchy Version: 승인 시점 재현 | `menu_defaults(snapshot_data JSON, version, created_at)`(`AdminMenu.php:120`·`:139` · 생성 `:308` · 복원 `:584-590`) = **유일한 "버전 붙은 스냅샷"**. 🔴 단 **immutable_hash 없음 · 전역 1행(tenant 없음) · 최신 1건만 조회** | `PARTIAL` |
 | 4 | Effective Period: Business Time | `kr_fee_rule.effective_from`(`Db.php:898`) **유일** · `effective_to` **0** · 🔴 **as-of 조회 능력 0**(전역 `WHERE effective_from <= :as_of` 0건) | `PARTIAL` |
 | 5 | Recorded Period: System Time | `created_at` 관례 광범위(`graph_node`/`graph_edge` `Db.php:823`·`:836`) · `pm_baseline.captured_at`(`PM\Enterprise.php:55`·`:62`) — 단 **폐구간(recorded_from/to) 0** · `graph_edge` UPDATE 가 `created_at` 미갱신(`GraphScore.php:142`) | `PARTIAL` |
-| 6 | Snapshot: Approval Evidence | `menu_defaults.snapshot_data`(`AdminMenu.php:120`) · `pm_baseline.snapshot_json`(`PM\Enterprise.php:55`·`:360-364`) · **immutable_hash 선례 = `schema_migrations.checksum`**(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) · **해시체인 = `menu_audit_log.hash_chain CHAR(64)`**(`AdminMenu.php:128`·`:182-197`) | `LEGACY_ADAPTER`(조합 확장) |
+| 6 | Snapshot: Approval Evidence | `menu_defaults.snapshot_data`(`AdminMenu.php:120`) · `pm_baseline.snapshot_json`(`PM\Enterprise.php:55`·`:360-364`) · **immutable_hash 선례 = `schema_migrations.checksum`**(`Migrate.php:50` `hash('sha256',$sql)`·`:63-64`·`:145`/`:151`) · **해시체인 = `menu_audit_log.hash_chain CHAR(64)`**(`AdminMenu.php:128`·`:182-197`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) | `LEGACY_ADAPTER`(조합 확장) |
 
 **실측 개수: 6 / 6 전사.**
 

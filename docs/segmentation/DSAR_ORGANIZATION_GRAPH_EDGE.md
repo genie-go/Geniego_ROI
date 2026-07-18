@@ -77,7 +77,7 @@
 | 16 | valid_to | `valid_to`/`effective_to` **grep 0** → **폐구간 순수 신규** | `NOT_APPLICABLE` |
 | 17 | recorded_at | `graph_edge.created_at VARCHAR(32)`(`Db.php:836` · 쓰기 `GraphScore.php:152` `gmdate('c')`) = System Time 선례. **단 UPDATE 경로(`:142`)는 `created_at` 을 갱신하지 않아 최초 생성시각으로 고정** → recorded period 표현 불가 | `PARTIAL` |
 | 18 | status | `graph_edge` 에 `status` 컬럼 **없음**(`Db.php:826-837`) — 엣지 철회 = **행 삭제뿐**(이력 소실). 인접 = `agency_client_link.status`(pending/approved/revoked + `revoked_at` `AgencyPortal.php:64-72`) | `LEGACY_ADAPTER`(status+타임스탬프 패턴) |
-| 19 | **evidence** | `graph_edge` 무. 인접 선례 = `menu_audit_log.hash_chain CHAR(64)` SHA-256 prev-chain(`AdminMenu.php:128`·`:182-197`·`lastHash():214-219`) · `pm_audit_log`(tenant+entity+diff_json+3인덱스) · **★엣지 쓰기 감사 실선례 = `PM/Dependencies.php:48-54`**(엣지 생성 시 diff 감사 · `:67-72` 삭제 시도) | `LEGACY_ADAPTER` |
+| 19 | **evidence** | `graph_edge` 무. 인접 선례 = `menu_audit_log.hash_chain CHAR(64)` SHA-256 prev-chain(`AdminMenu.php:128`·`:182-197`·`lastHash():214-219`)(🔴 쓰기 체인만 실재·`verify()` 0·preimage `ts` `:195` 소실 → tamper-evident 아님; 검증형 정본 = `SecurityAudit::verify():56-68`) · `pm_audit_log`(tenant+entity+diff_json+3인덱스) · **★엣지 쓰기 감사 실선례 = `PM/Dependencies.php:48-54`**(엣지 생성 시 diff 감사 · `:67-72` 삭제 시도) | `LEGACY_ADAPTER` |
 
 **실측 개수: 19 / 19 전사.** 커버리지 = `VALIDATED_LEGACY` **0** · `KEEP_SEPARATE_WITH_REASON` 5 · `LEGACY_ADAPTER` 2 · `PARTIAL` 2 · `KV_ONLY` 1 · `NAME_ONLY` 1 · `NOT_APPLICABLE` 8.
 
