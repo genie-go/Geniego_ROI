@@ -40,3 +40,40 @@
 - ★**RP-002 완화책이 예측대로 작동한 2차 실증**: 1차(5-2)는 **"양보 명시" 덕에 양보가 논쟁 없이 성립**했고, 2차(5-3)는 **"대기" 결정 덕에 양보할 산출물 자체를 늘리지 않았다**. → **최선은 양보를 잘 하는 것이 아니라 양보할 것을 만들지 않는 것**이다.
 - ★**규약 2번(스펙 수령 즉시 영속)의 2차 실증**: 5-3-1 은 **스펙 수령 즉시·설계 착수 전**에 분모를 영속했다. **5-2 는 "스펙이 도착해서" 계산 가능했고, 5-3-1 은 "도착 즉시 적어서" 계산 가능**해졌다 → [`COVERAGE_REQUIREMENT_REGISTRY_06A.md`](../segmentation/COVERAGE_REQUIREMENT_REGISTRY_06A.md) `source_persisted` **1 → 2**.
 - **289차 ⑤ 가 이 규약에 추가한 것**: 요구를 **나중에** 적으면 그것은 **산출물에서의 역산**이고 **커버리지가 정의상 100%** 가 된다 → **분모 작성 시점이 정직성을 결정한다**(⑤ §1-1 역산 금지).
+
+### ★3차 사례 (289차 13회차 · 06-A-02) — 규약대로 작동 (스펙 수령→즉시 선영속→설계만)
+
+- **경과**: 06-A-02 Approval Assignment Engine 스펙 v1.0 수령 → **즉시 ⓐ 선영속**(설계 착수 전 원문+측정 선행조건 고정) → ⓑ전수조사→ⓒ64편→ⓓADR. 전량 코드 0.
+- **RP-002 준수**: 스펙 있으므로 자율 아님. 단 **실 구현은 선행 4축 부재로 BLOCKED_PREREQUISITE** → 설계 명세만 산출하고 실 엔진은 "별도 승인세션"으로 양보(만들지 않음).
+- **가짜 녹색 회피(287/288차 교훈)**: 64편 중 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0으로 **정직 판정**. 실존 인접자산만 VALIDATED_LEGACY/CANONICAL(≠cover). "인접 자산 존재 ≠ 구현 존재" 명시. 억지 "구현됨" 0건.
+- **★"결론의 근거도 재실증"(10회차 교훈) 적용**: 12회차 4축 ABSENT 감사를 코드 직접 정독으로 재검증 → 축4만 PARTIAL로 미세 상향(SecurityAudit::verify·break-glass·tenant격리 실재). 선행 결론을 무비판 복제하지 않음.
+
+### ★4차 사례 (289차 13회차 · 06-A-03-01) — 규약대로 작동 (스펙 수령→즉시 선영속→설계만)
+
+- **경과**: 06-A-03-01 Sequential State Machine 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사→ⓒ67편→ⓓADR. 코드 0.
+- **RP-002 준수**: 스펙 있음(자율 아님). 실 구현은 선행 5군(특히 Assignment·06-A-02에서 ABSENT 확정) 부재로 BLOCKED_PREREQUISITE → 설계 명세만·실 엔진 양보(만들지 않음).
+- **가짜 녹색 회피**: 67편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. "status 컬럼 존재 ≠ State Machine" 규율로 하드코딩 status 3종을 enum 실존 근거로 승격하지 않음. 실존 인접자산만 CANONICAL/VALIDATED_LEGACY/KEEP_SEPARATE.
+- **★"결론의 근거도 재실증"**: 12·13회차 선행 4군 ABSENT를 코드 재정독으로 재확인(반증 없이 유지). JourneyBuilder를 "상태머신 존재"로 오판하지 않고 마케팅 도메인 KEEP_SEPARATE로 정확 분리.
+
+### ★5차 사례 (289차 13회차 · 06-A-03-02-01) — 규약대로 작동 + 감사 중 실결함 발견
+
+- **경과**: Decision Processing Core 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사→ⓒ62편→ⓓADR. 코드 0.
+- **RP-002 준수**: 스펙 있음. 실 구현은 선행 6군(5군 ABSENT) 부재로 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★능력기반 감사가 실결함 발견**: `Alerting::actor()`(`:33-35`)가 `X-User-Email` 헤더/`?actor=` 쿼리로 승인자 위조 가능(BLOCKED_SECURITY). 설계 전수조사가 라이브 보안결함을 부수 발견 — 별도 수정세션 후보로 등재.
+- **가짜 녹색 회피**: "status=approved UPDATE ≠ Decision Record" 규율로 in-place UPDATE 4핸들러를 Decision Record 실존 근거로 승격하지 않음. 대부분 ABSENT/cover 0.
+- **★치유된 이슈 재플래그 금지**: parent_user_id 붕괴는 286차 치유 확인(`UserAuth.php:403-406`)·과거 감사노트 관성으로 재플래그하지 않음.
+
+### ★6차 사례 (289차 13회차 · 06-A-03-02-02) — 규약대로 작동 + 감사 중 실결함 발견
+
+- **경과**: Decision Actions 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사→ⓒ65편→ⓓADR. 코드 0.
+- **RP-002 준수**: 실 구현은 선행 6군(5군 ABSENT)+Content Foundation 부재로 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★능력기반 감사가 실결함 발견 2차**: `CreativeStore::brandAssetUpload`(`:265-275`) 파일 무검증(BLOCKED_GAP)·Malware/DLP 부재. 06-A-03-02-01 Alerting actor 위조에 이어 연속 발견.
+- **가짜 녹색 회피**: APPROVE 5도메인을 "Action 프레임워크 존재"로 승격하지 않음. RETURN 등 7액션 정직 ABSENT(오탐 코드기반 기각).
+
+### ★7차 사례 (289차 13회차 · 06-A-03-02-03-01) — 규약대로 작동 + 감사 중 실결함 발견 3차
+
+- **경과**: Decision Integrity/Immutable Ledger 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사→ⓒ60편→ⓓADR. 코드 0.
+- **RP-002 준수**: 실 구현은 선행 §3.1~3.3 부재로 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★능력기반 감사가 실결함 발견 3차**: `media_gc_cron.php:35,43`이 append-only 감사로그를 90일 물리 DELETE(불변성 상충). 06-A-03-02-01 Alerting actor 위조·03-02-02 CreativeStore 무검증에 이어 연속 발견 — 별도 수정세션 후보 등재.
+- **★"결론의 근거도 재실증" 정본화**: "해시체인 존재 ≠ tamper-evident" 규율로 menu_audit_log·schema_migrations.checksum·journey_decision_log를 무결성 자산으로 오인하지 않고 장식으로 배제. SecurityAudit::verify만 실 자산으로 계상. [[reference_menu_audit_log_not_tamper_evident]] 재확인.
+- **가짜 녹색 회피 + Platform substrate 정직 인정**: 대부분 ABSENT이나 Platform primitive(트랜잭션/SHA-256/SKIP LOCKED/Outbox)는 "재사용 substrate"로 정직 인정("발명 아닌 조립"). 부재만 과장하지 않음.

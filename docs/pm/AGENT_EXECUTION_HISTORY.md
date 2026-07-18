@@ -378,3 +378,38 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **Static Lint 19 + Runtime Guard 30 = 전부 `CONTRACT_ONLY`**(구현 0·배선 0) → **"승인 Lint/Guard가 있다"고 서술 금지**(289차 ① `guard_headerless_getjson` 교훈: **파일 존재 ≠ 배선 ≠ 실효**).
 - **회귀게이트 보존 목록에 `is_effective=false` 5건 등재 금지** 명시(1-8 GOLDEN-GAP-01 재현 방지): `Alerting` 게이트/정족수 · `catalog_writeback_approval` 고아 · `TeamPermissions['approve']`(호출부 0) · 팬텀 승인 라우트 6개 — **실행 안 되는 건 회귀할 수 없다**.
 - **06-A 판정 `NOT_CERTIFIED` 불변**.
+
+### 289차 13회차 — 06-A-02 Assignment 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 전수조사 2에이전트**(병렬): ①기존 assignment/queue/claim 인프라 능력조사 ②선행 4축 재검증. 결과=EPIC 엔진 부재·실존 자산 3종·4축 1·2·3 ABSENT/4 PARTIAL. 코드 정독(이름 추론 금지).
+- **ⓒ 전사 8에이전트**(2 wave×4): §72 per-entity 64편. 공용 **전사 키트**(전 엔티티 필수필드/enum + §GROUND_TRUTH 허용 file:line 목록 + §TEMPLATE + 5규율)로 일관·반날조 강제.
+- **★반날조 검증**: 신규 67편 file:line 인용 전수 집계 → **전부 허용목록**(Catalog/Omnichannel/PM/AdminGrowth/UserAuth/SecurityAudit/Mapping/TeamPermissions/AgencyPortal/Db/Alerting) + 정당 참조 4건(PM/Tasks·PM/Gantt·index·Enterprise). **지어낸 file:line 0**. (지난 Authority 문서의 index/Connectors/RuleEngine 인용은 이번 산출과 무관.)
+- **정직 표기**: 64편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. VALIDATED_LEGACY/CANONICAL는 실존 인접자산(catalog_writeback_job·omni_outbox·pm_task_assignees)에만. **"구축 완료"가 아니라 "계약 명세 확정" · 06-A NOT_CERTIFIED 불변.** menu_audit_log.hash_chain 인용 금지 트랩 반영(불변해시=SecurityAudit::verify 확장).
+
+### 289차 13회차 — 06-A-03-01 Sequential 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트**: ①기존 상태머신/전이/동시성 primitive ②선행 5군 재검증. 결과=State Machine 등 ABSENT·선행 4군 ABSENT/5군째 PARTIAL·Assignment 부재가 Step→assignee 차단.
+- **ⓒ 8에이전트**(2 wave): §73 per-entity 67편. 공용 **전사 키트**(전 엔티티 필드/enum + §GROUND_TRUTH 허용 file:line + §TEMPLATE + 5규율)로 일관·반날조 강제.
+- **★반날조 검증**: 신규 70편(SEQUENTIAL 68+SPEC+ADR) file:line 인용 전수 집계 → **전부 허용목록**(Catalog/JourneyBuilder/Omnichannel/AdminGrowth/Mapping/SecurityAudit/UserAuth/Paddle/routes/ChannelSync/TeamPermissions/EnterpriseAuth). **지어낸 file:line 0**.
+- **정직 표기**: 67편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. CANONICAL/VALIDATED_LEGACY/KEEP_SEPARATE는 실존 인접자산에만. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.** menu_audit_log.hash_chain 인용 금지 트랩 반영(불변해시=SecurityAudit::verify 확장).
+
+### 289차 13회차 — 06-A-03-02-01 Decision 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트**: ①기존 decision/approve-reject/outbox/idempotency ②선행 6군 재검증. 결과=in-place UPDATE 4핸들러·선행 5군 ABSENT·Alerting actor 위조 발견.
+- **ⓒ 8에이전트**(단일 wave): §72 per-entity 62편. 공용 **전사 키트**(전 엔티티 필드/enum + §GROUND_TRUTH 허용 file:line + §TEMPLATE + 5규율).
+- **★반날조 검증**: 신규 65편(DECISION 63+SPEC+ADR) file:line 인용 전수 집계 → **전부 허용목록**(Mapping/AdminGrowth/Alerting/Omnichannel/Paddle/Catalog/SecurityAudit/AgencyPortal/UserAuth/TeamPermissions/Connectors). **지어낸 file:line 0**.
+- **정직 표기**: 62편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. CANONICAL(Mapping actor)/VALIDATED_LEGACY(Paddle 멱등)/KEEP_SEPARATE(omni_outbox)/BLOCKED_SECURITY(Alerting)만 실존 대응. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+
+### 289차 13회차 — 06-A-03-02-02 Decision Actions 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트**: ①기존 액션+reason/comment/attachment ②선행 6군+Content/Document 재검증. 결과=APPROVE만 실존·7액션 ABSENT·Malware/DLP 부재·CreativeStore 무검증.
+- **ⓒ 8에이전트**: §70 per-entity 65편. 공용 전사 키트.
+- **★반날조 검증**: 신규 67편 file:line 인용 전수 → 전부 허용목록(Alerting/AdminGrowth/Mapping/Catalog/index/MediaHost/routes/ReturnsPortal/OrderHub/Dsar/DataPlatform/SecurityAudit/AgencyPortal/CreativeStore). 날조 0. 오탐(orderhub_claims/withdraw=GDPR/defer=STO) 코드기반 기각.
+- **정직 표기**: 65편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. 06-A NOT_CERTIFIED 불변.
+
+### 289차 13회차 — 06-A-03-02-03-01 Decision Integrity/Ledger 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트**: ①기존 ledger/immutable/hash-chain/soft-delete/retention ②선행 4군+Platform Foundation. 결과=Immutable Ledger 부재·SecurityAudit 유일 실 해시체인·Platform substrate 실재·media_gc 물리삭제 발견.
+- **ⓒ 8에이전트**(단일 wave): §68 per-entity 60편. 공용 전사 키트.
+- **★반날조 검증**: 신규 62편(LEDGER 61+SPEC+ADR·EXISTING 포함) file:line 인용 전수 → **전부 허용목록**(SecurityAudit/Omnichannel/Mapping/media_gc_cron/Db/Migrate/JourneyBuilder/Paddle/PM·Shared/MediaHost/index/Compliance/UserAuth/routes/AdminMenu/DataPlatform). **지어낸 file:line 0**. 장식(menu_audit_log/checksum/journey_decision_log) 무결성 계상 금지 일관.
+- **정직 표기**: 60편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. CANONICAL(SecurityAudit 패턴)·재사용 substrate(Platform primitive)만 실존 대응. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
