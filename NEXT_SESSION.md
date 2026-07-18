@@ -1,3 +1,52 @@
+> # ★★세션 종결 요약 (289차 13회차 · 2026-07-18)
+>
+> **이 세션 성과**: **high_value ₩5M 승인 게이트 라우팅갭 실결함 수정**(백엔드 3경로 서버측 강제 + CatalogSync UX 라벨) → **데모+운영 배포·검증·커밋**(`a2943fe2192`·feat/n236·**push 안함·master 미접촉**). 부수: 로컬 PHP PDO/mbstring 활성화.
+>
+> ## ★이번 세션 상세 (실결함 수정 — 첫 코드 변경 배포)
+> - **재증명 결과**: 권장 상위 2건은 **이미 닫힘** — Cross-Tenant 헤더 위조=`index.php:595-600`(188차 무조건 덮어쓰기)·잔여는 `GENIE_STRICT_AUTH=1` 환경변수뿐(코드 아님) / 무게이트 발송=`CRM::isMarketingSendAllowed` 13개 호출지점 전 채널 배선·라이브.
+> - **확정·수정 실결함 = high_value ₩5M 라우팅갭**: 승인 게이트(`Catalog::evaluatePolicy`·`HIGH_VALUE_KRW=5000000`)가 프리뷰(`writebackPrepare`)·리프라이서에만 존재. 직접 publish 3경로(`assignCategory:396`·`assignBrand:592`·핵심 `writeback:847`)가 evaluatePolicy를 우회해 `processJobById` 즉시 송출 → ₩5M↑ 상품이 승인 없이 마켓 등록. `Writeback.jsx:169`는 클라이언트 게이트지만 **`CatalogSync.jsx`(주 화면)는 프리뷰 없이 직접 호출→우회** ∴ 서버측 강제가 정답.
+> - **수정**(비파괴·확장): `requiresHighValueApproval` 헬퍼 신설(price 없으면 catalog_listing 보강) → 3경로에서 `approval_type='high_value'`만 게이트하여 `pending_approval` 적재→기존 `approveQueue` 인간승인 재사용. **신규 테이블/엔진 0**. unregister 즉시해제는 무회귀(범위 밖 명시 제외). CatalogSync ⏳"승인 대기" 라벨 + 오표기 차단.
+> - **검증**: `php -l` + 실 SQLite 리플렉션 하네스 **9/9 PASS**. 데모+운영 배포(out-of-band 0·서버 Catalog.php=로컬HEAD b8c5f5.. 사전확인→순방향·백엔드 sha `725f0b..` 양쪽 일치·원자적 dist swap·fpm 2서비스 reload·스모크 health200/SPA200). **운영 Contamination Guard 통과**(운영번들=`VITE_DEMO_MODE==="true"` 비교코드/false·데모=`VITE_DEMO_MODE:"true"` 객체값 — 판정법). **롤백=양 서버 `Catalog.php.bak.n289l`·`dist.bak.n289l`**.
+> - **부수**: 로컬 PHP 8.1.34(WinGet)에 php.ini 신설·`pdo_sqlite/pdo_mysql/mbstring/sqlite3` 활성화 → Reflection+in-memory SQLite로 핸들러 private 정책로직 실DB없이 검증 가능(scratchpad `verify_highvalue.php`).
+>
+> ## ★이번 세션 후반 — EPIC 06-A 설계 거버넌스 5블록 (전부 코드 변경 0·설계 명세)
+> 사용자 제공 스펙을 받아 각 EPIC을 **동일 파이프라인(ⓐ스펙 선영속 → ⓑ 2에이전트 능력기반 전수조사 → ⓒ per-entity DSAR 전사[8배치 wave 팬아웃] → ⓓ ADR+PM/Repeat/Agent History)**으로 처리. **총 ~333 신규 문서·실 코드/테이블 0**. 반날조 검증(신규문서 file:line 인용 전수집계=전부 ⓑ GROUND_TRUTH 허용목록·지어낸 인용 0).
+> | EPIC | 설계 편수 | 결론 |
+> |---|---|---|
+> | 06-A-02 Approval Assignment Engine | 69 | EPIC 의미 Assignment 부재. 실존=catalog_writeback_job 승인큐·omni_outbox claim/lease·pm_task_assignees 확장대상. |
+> | 06-A-03-01 Sequential State Machine | 70 | State Machine/Stage/Level/Step/Fencing 전부 ABSENT·하드코딩 status 전이만·JourneyBuilder=최성숙 패턴 참조(KEEP_SEPARATE). |
+> | 06-A-03-02-01 Decision Processing Core | 65 | 승인 결정=in-place UPDATE 4핸들러·불변 Record/원자 Commit/Outbox 부재. Mapping::actorId=CANONICAL. |
+> | 06-A-03-02-02 Decision Actions | 67 | APPROVE만 5도메인·REJECT 이진·나머지 7액션 ABSENT·Reason taxonomy/Malware·DLP 부재. |
+> | 06-A-03-02-03-01 Decision Integrity/Immutable Ledger | 62 | Ledger 부재·SecurityAudit::verify=유일 실 append-only 해시체인(CANONICAL 패턴)·Platform primitive 실재 substrate("발명 아닌 조립"). |
+> - **전 블록 공통 판정 = BLOCKED_PREREQUISITE**: 각 EPIC은 선행 foundation(Approval Chain·Authority·Delegation·Assignment·Sequential·Decision Core·Actions·Ledger) 위에 얹히는데 그 선행이 전부 ABSENT → §per-entity 대부분 ABSENT/cover 0이 정직판정. 실 엔진=선행 신설 후 별도 승인세션(RP-002).
+> - **★설계 감사 중 부수 발견한 라이브 실결함 3건**(별도 수정세션 후보·자립수정 가능): ①**`Alerting::actor()`(`:33-35`) X-User-Email 헤더/`?actor=` 쿼리로 승인자 신원 위조**(action_request 승인/집행 감사 스푸핑·BLOCKED_SECURITY) ②**`CreativeStore::brandAssetUpload`(`:265-275`) 파일 MIME/malware 무검증**(악성 업로드·Malware/DLP 리포 전역 부재) ③**`media_gc_cron.php:35,43`이 append-only 감사로그를 90일 물리 DELETE**(불변성 상충·Legal Hold 예외 없음). 각 ADR/PM History 등재.
+>
+> ## ★다음 세션 최우선 (이 순서)
+> 1. **★라이브 실결함 3건 자립수정+배포** — high_value처럼 통제기계가 없거나 국소적이라 **자립수정 가능**. 라이브 재증명(PM 코드 재증명·오탐 아님 확인) 후 수정+데모/운영 배포: **Alerting actor 위조**(canonical actor=Mapping::actorId 패턴 도입)·**CreativeStore 파일 무검증**(MediaHost `:81-91` 매직바이트 검증 경로로 통합)·**media_gc_cron 감사로그 물리삭제**(Ledger/audit 대상 제외·retention은 payload만). ★배포 승인 필요.
+> 2. **남은 Decision Integrity & Security 세부 EPIC** — 06-A-03-02-03-02(Hash Chain & Tamper Detection)~-10(Existing Audit/Migration/Cert). 스펙 제공 시 ⓐ선영속부터·자율 금지(RP-002). ★이번 03-01(Ledger)은 완료·다음은 -02.
+> 3. **선행 foundation 실구현 (대규모 별도 승인세션·모든 06-A 엔진의 전제)** — Approval Chain·Authority Matrix·Delegation·Assignment·Sequential·Decision Core·Actions·Immutable Ledger를 실 엔진으로 신설. 289차 설계자산(SPEC/DSAR/ADR ~500편)이 착수 기반·자체 migration+회귀 스위트 전제. **이번 유형(자립수정+배포) 세션에 넣지 말 것**(근거=아래 §"★왜 4축을 1회 배포세션에 넣으면 안 되는가").
+> 4. **이전 세션 실결함**(1인결재 3경로·Actor Auth Snapshot·action_request VACUOUS·Payment Execution Hook·위임 무결성 4건) — 선행 foundation 전제(3번에 종속).
+> 5. 브랜치 보호+required check(사용자 결정 대기).
+>
+> ## ★왜 4축을 1회 배포세션에 넣으면 안 되는가 (근거 명문화 — 13회차 사용자 문의 답변 정본)
+> **결론: 4축은 "실결함 수정"이 아니라 "제로에서 신설하는 다중 EPIC 그린필드 빌드"** — 확인→자립수정→검증→배포로 끝나는 세션 유형에 부적합. 지금 막는 게 아니라 **순서가 아직 안 온 것**(설계 SoT·스펙 선행 미완).
+> 1. **부재의 신설(규모)**: 11·12회차 감사가 확정한 상태는 부분미비가 아니라 **개념 0** — Approval Chain(범용 chain/stage/level 0·단발 3종만)·Authority(matrix/binding/amount_band 0·§72 20종 전량 ABSENT)·Org/Position(Resolver가 `parent_user_id`→owner 붕괴 `UserAuth.php:156-157`·엔티티 0)·SoD/Actor Snapshot(ABSENT·acl allow-only). 인증/승인 코어 재정의 작업.
+> 2. **상호의존 → 반쪽=가짜 녹색**: SoD⊃Authority⊃Org/Position, 위임⊃4축 전부. 하나만 넣으면 "막는 척하나 안 막는 스켈레톤" = 287차 fake-looks-real·288차 가짜녹색 systemic으로 **걷어내온** 패턴. 있는 척 광고하는 통제 = 은행급 보안 원칙 위반.
+> 3. **blast radius 최대 → 설계(ADR)-우선**: 멀티테넌트 전역 승인·권한 판정을 바꿈. Golden Rule(Extend)+무후퇴+중복금지는 부재증명→Canonical/SoT확정→확장점결정 후 첫 테이블을 놓으라 요구. 289차가 **설계명세를 코드0으로 먼저 쌓은** 이유. 그 선행 미완.
+> 4. **스펙 대기(RP-002)**: 06-A-02 Approval Assignment Engine 스펙 미제공 상태에서 코드-우선 착수 = 자율 금지 위반.
+> 5. **PII/엔티티 SoT 미결정**: Org/Legal Entity/Position/Employment·Reporting-Line은 HR 인접 실데이터. No PII 제약 + 외부 위임소스(HRIS/Calendar OOO/ERP) 5개 전부 ABSENT(대사 대상 없음) → "정본 소스·consent·테넌트 격리"를 데이터 아키텍처 결정으로 먼저 확정 안 하면 재작업 확정 투기성 스키마.
+> 6. **검증/무후퇴 불성립**: 마이그레이션+시딩+기존 전 handler RBAC 회귀+멀티테넌트 격리 테스트 필요 → 1패스 검증 불가. 전용 migration+회귀 스위트 전제라야 무후퇴 보장.
+> - **★high_value가 되고 나머지가 안 되는 결정적 대조**: high_value는 통제 기계(evaluatePolicy+pending_approval+approveQueue)가 **이미 존재**해 실행 경로 **배선만** 하면 됐다(자립수정 가능). 남은 결함은 통제 기계 **자체가 미존재** → 배선 대상이 없다(없는 것에 배선 불가).
+> - **각 잔여 결함 ↔ 필요 축**: 1인결재 3경로→SoD+Authority · Actor Snapshot→Authorization Safety(결정시점 불변) · Payment Hook→Approval Chain+Authority(금액밴드) · action_request VACUOUS→Approval Chain 생산자+제품결정(287차) · 위임 무결성 4→4축 전부.
+> - **권장 경로**: 06-A-02 스펙 확보 → 선행 4축 설계 SoT(ADR) 완결 → 전용 foundation 빌드 세션(별도 승인·자체 migration+회귀). 289차 설계자산이 착수 기반.
+>
+> ## ★현재 라이브 배포 상태 (289차 13회차 반영)
+> - **high_value ₩5M 승인 게이트(3경로 서버측 강제)+CatalogSync UX 라벨** = 데모+운영 **라이브**. 백엔드 `Catalog.php`(sha `725f0b..`)·운영 프론트 `index-CnAXbBIP.js`·데모 `index-CbV200_M.js`. 롤백=양 서버 `.bak.n289l`.
+> - (12회차 이전) 발송게이트 P0+phone DNC = 라이브(`.bak.n289k`). 예산 대시보드 성능개선 = 라이브(`dist.bak.n289k`).
+> - ★배포 도구: plink/pscp `C:\Program Files\PuTTY\`·자격증명 [[reference_session_credentials]] 런타임 정규식 추출→`$env:SSHPW`·멀티라인 plink=`.sh` 업로드 후 `sed -i 's/\r$//'`→`bash` 패턴·fpm 2서비스(php8.1-fpm+php-fpm) reload.
+>
+> ---
+>
 > # ★★세션 종결 요약 (289차 12회차 · 2026-07-18)
 >
 > **이 세션 성과**: ⓔ 인용검증 완료 · 5-3-3-4 Approval Authority(ⓑⓒ84ⓓ) · **EPIC 06-A-01 Delegation Foundation(ⓐⓑⓒ58ⓓ)** · 미배포 코드 2건 배포 · 예산 대시보드 성능개선 배포. **전 커밋 origin/feat/n236 push 완료**(1c66372ad14·master 미접촉). 설계문서 전량 **코드 변경 0**.
