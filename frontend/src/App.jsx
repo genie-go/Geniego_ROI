@@ -382,6 +382,16 @@ function AdminRouteGuard({ children }) {
 function AppLayout() {
   useSecurityGuard({ enabled: true });
 
+  // [현 차수] recharts(약 326KB 별도 청크) 유휴 프리페치 — 차트 페이지 진입 전 미리 warm하여
+  //   온디맨드 다운로드+파싱 워터폴을 제거(그래프가 늦게 뜨는 주원인). 동적 import·순수 프리페치라
+  //   171차 init-order race(정적 그룹화 문제)와 무관. 인증 셸에서만 1회 유휴 실행.
+  React.useEffect(() => {
+    const warm = () => { import('recharts').catch(() => {}); };
+    const ric = typeof window !== 'undefined' && window.requestIdleCallback;
+    const id = ric ? window.requestIdleCallback(warm, { timeout: 3000 }) : setTimeout(warm, 1200);
+    return () => { try { (window.cancelIdleCallback || window.clearTimeout)(id); } catch { /* noop */ } };
+  }, []);
+
   return (
     <CurrencyProvider>
       <MobileSidebarProvider>

@@ -413,8 +413,8 @@ export default function AccountPerformance() {
                                         <YAxis stroke="#94a3b8" fontSize={11} tickFormatter={v => v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v} />
                                         <RechartsTooltip content={<GlassTooltip currFmt={fmt} />} />
                                         <Legend wrapperStyle={{ fontSize: 12, fontWeight: 700, paddingTop: 10, color: '#334155' }} />
-                                        <Bar dataKey="allocated" name={t('acctPerf.budgetAllocated', 'Budget Allocated')} fill="rgba(79,142,247,0.6)" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="spent" name={t('acctPerf.budgetSpent', 'Budget Spent')} radius={[4, 4, 0, 0]}>
+                                        <Bar dataKey="allocated" name={t('acctPerf.budgetAllocated', 'Budget Allocated')} fill="rgba(79,142,247,0.6)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                                        <Bar dataKey="spent" name={t('acctPerf.budgetSpent', 'Budget Spent')} radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                             {teamBudget.map((entry, i) => (
                                                 <Cell key={`cell-${i}`} fill={entry.spent > entry.allocated ? '#ef4444' : '#f97316'} />
                                             ))}
@@ -467,9 +467,9 @@ export default function AccountPerformance() {
                                         <YAxis stroke="#94a3b8" fontSize={11} tickFormatter={v => v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v} />
                                         <RechartsTooltip content={<GlassTooltip currFmt={fmt} />} />
                                         <Legend wrapperStyle={{ fontSize: 12, fontWeight: 700, marginTop: 10, color: '#334155' }} />
-                                        <Area type="monotone" name={t('acctPerf.convRev', 'Conversion Revenue')} dataKey="conversion" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#apColorConv)" />
-                                        <Area type="monotone" name={t('acctPerf.awareRev', 'Awareness Revenue')} dataKey="awareness" stroke="#4f8ef7" strokeWidth={3} fillOpacity={1} fill="url(#apColorAware)" />
-                                        <Area type="monotone" name={t('acctPerf.consRev', 'Consideration Revenue')} dataKey="consideration" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#apColorCons)" />
+                                        <Area type="monotone" name={t('acctPerf.convRev', 'Conversion Revenue')} dataKey="conversion" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#apColorConv)" isAnimationActive={false} />
+                                        <Area type="monotone" name={t('acctPerf.awareRev', 'Awareness Revenue')} dataKey="awareness" stroke="#4f8ef7" strokeWidth={3} fillOpacity={1} fill="url(#apColorAware)" isAnimationActive={false} />
+                                        <Area type="monotone" name={t('acctPerf.consRev', 'Consideration Revenue')} dataKey="consideration" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#apColorCons)" isAnimationActive={false} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
