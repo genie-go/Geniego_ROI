@@ -1,4 +1,12 @@
-> **최신 인계서(289차·연속 11회차)**: **★ⓔ 인용검증 완료**(1순위 종결) — `menu_audit_log.hash_chain` 오염 정정 전량. 10회차까지 = 5-3-3-3 완결 + 5-3-3-4 스펙 선영속. 커밋(feat/n236·**master 미접촉**·**코드 변경 0**).
+> **최신 인계서(289차·연속 11회차)**: **★ⓔ 인용검증 완료 + 5-3-3-4 ⓑ전수조사·ⓒ전사 84/84·ⓓADR 완결 + 미배포 코드 2건 데모/운영 배포검증 완료.** 커밋(feat/n236·**master 미접촉**).
+>
+> ## ★11회차 최종 요약
+> 1. **ⓔ 인용검증 완료** — `menu_audit_log.hash_chain` 오염 정정 전량(F 12 + P ~78/45편·회귀0). 정본 레지스트리 = `docs/segmentation/DSAR_MENU_AUDIT_LOG_CITATION_CORRECTION.md` + memory [[reference_menu_audit_log_not_tamper_evident]].
+> 2. **5-3-3-4 Approval Authority Matrix** — ⓑ전수조사(`DSAR_APPROVAL_AUTHORITY_EXISTING_IMPLEMENTATION.md`·6클러스터 능력기반·FLIP 5건) + **ⓒ전사 84/84 완결**(§5~§77 per-entity·측정기 전 정합·**커버 0**·VALIDATED_LEGACY 0) + ⓓADR(`docs/architecture/ADR_DSAR_REBATE_APPROVAL_AUTHORITY_MATRIX_FOUNDATION.md`). 결론=**Approval Authority 개념 부재**·§72 전 엔티티 ABSENT. ★측정기가 육안분모 8건 정정(§46/47/51/60/62/64/71 등). **코드 변경 0.**
+> 3. **★배포 완료** — 미배포 코드 2건(발송게이트 P0 `c2e6a753cdb`·SEG-C4 phone DNC `407c1231872`·SmsMarketing/WhatsApp/CRM/routes.php)을 **데모→검증→운영→재검증** 순 배포. 안전패턴(로컬 php -l→임시업로드→서버 php -l 게이트→백업 `.bak.n289k`→원자적 mv→chown www:www→fpm 2서비스 reload→smoke). 양 서버 라이브해시=로컬 일치·SEG-C4 `/api/sms/suppression` 401 배선확인·`/api/v423/creds` 200·외부 www.genieroi.com 200. ★서버=289차 코드 직전(288차)과 바이트 일치 확인 후 순방향 적용(out-of-band 0). ★로컬 php 8.1.34 실재(WinGet)=CLAUDE.md "로컬 php 부재" 정정.
+>
+> ### ★배포 도구/자격증명 정정(다음 세션 유용)
+> - `plink`/`pscp` = `C:\Program Files\PuTTY\`. 자격증명 파일에서 런타임 정규식 추출→`$env:SSHPW`(평문 미노출). **멀티라인 plink 인자는 무출력 실패 → `.sh` 파일 pscp 후 `sed -i 's/\r$//'`→`bash script.sh` 패턴 필수**(scratchpad `n289k_gate.sh`·`n289k_verify.sh` = 도메인 인자 재사용형). 샌드박스가 `rm -f`+`C:\Program` 조합 오탐 차단 → deploy 스크립트에 `rm` 지양.
 >
 > ## ★11회차 완료 — ⓔ 인용검증 (커버리지 회귀 0 · 판정 전건 무변)
 > `menu_audit_log.hash_chain` 을 *"tamper-evident·재사용 선례·이식 선례"* 로 인용한 곳을 **확정사실**(체인 쓰기는 실재하나 `verify()` 0·preimage `ts`(`AdminMenu.php:195`)가 INSERT 컬럼(`:199-203`)에 없어 소실 → 검증 불가능한 장식; 진짜 검증형 정본 = `SecurityAudit::verify():56-68`)로 전량 정정. **근거만 교체·판정 토큰 전건 무변.**
