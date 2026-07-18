@@ -1,3 +1,19 @@
+> # ★★세션 종결 요약 (289차 12회차 · 2026-07-18)
+>
+> **이 세션 성과**: ⓔ 인용검증 완료 · 5-3-3-4 Approval Authority(ⓑⓒ84ⓓ) · **EPIC 06-A-01 Delegation Foundation(ⓐⓑⓒ58ⓓ)** · 미배포 코드 2건 배포 · 예산 대시보드 성능개선 배포. **전 커밋 origin/feat/n236 push 완료**(1c66372ad14·master 미접촉). 설계문서 전량 **코드 변경 0**.
+>
+> ## ★다음 세션 최우선 (이 순서)
+> 1. **EPIC 06-A-02 Approval Assignment Engine** — 스펙 대기(사용자 제공 시 ⓐ선영속부터·자율 금지 RP-002). 06-A-01 Delegation Foundation이 선행 완료됨.
+> 2. **실 결함 수정세션**(별도 승인·배포 필요) — 5-3-3-4 실결함 5건(high_value 라우팅갭·1인결재 3경로·Actor Auth Snapshot·action_request VACUOUS·Payment Execution Hook) + 06-A-01 실위험 4건(Cross-Tenant strict OFF·acl 위임상한 monotonicity·위임 무결성 게이트·AgencyPortal revoked_at 반례). ★단 EPIC 06-A 설계정본들이 요구하는 **선행 4축(Approval Chain·Authority·Org/Legal Entity/Position·SoD) 실구현**이 전제.
+> 3. 브랜치 보호+required check(사용자 결정 대기).
+>
+> ## ★현재 라이브 배포 상태 (서버 실측·git과 별개)
+> - **발송게이트 P0(SEG-C1~C3)+phone DNC(SEG-C4)** = 데모(demo.genieroi.com)+운영(www.genieroi.com) **라이브**. 롤백=`.bak.n289k` 양 서버(`/home/wwwroot/{roidemo,roi}.geniego.com/backend`).
+> - **예산 대시보드 성능개선**(recharts 유휴 프리페치 + 애니메이션 off) = 데모(VITE_DEMO_MODE true)+운영(Contamination Guard) 프론트 dist **라이브**. 롤백=`dist.bak.n289k` 양 서버 frontend.
+> - ★배포 도구: plink/pscp `C:\Program Files\PuTTY\`·자격증명은 [[reference_session_credentials]] 런타임 추출→`$env:SSHPW`·**멀티라인 plink=무출력 실패→`.sh` 업로드 후 `bash` 패턴**·로컬 php 8.1.34 실재(WinGet). 스크립트 정본=scratchpad `n289k_{gate,verify,distswap}.sh`.
+>
+> ---
+>
 > **최신 인계서(289차·연속 12회차)**: **★EPIC 06-A-01 Rebate Delegation Foundation 완결**(ⓐ선영속+ⓑ전수조사+ⓒ전사 58편+ⓓADR·코드0·커버0). 11회차=ⓔ인용검증+5-3-3-4 ⓑⓒ84ⓓ+미배포코드2건 배포+예산대시보드 성능개선 배포. 커밋(feat/n236·**master 미접촉**).
 >
 > ## ★12회차 완료 — EPIC 06-A-01 Delegation Foundation (9커밋·비파괴)
