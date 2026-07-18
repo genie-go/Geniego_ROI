@@ -391,6 +391,11 @@ class Catalog
 
         if (empty($b['publish'])) return self::jsonRes($res, ['ok' => true, 'assigned' => $code]);
 
+        // [289차] 고액(₩5M↑) 상품은 즉시 송출 대신 승인 대기로 보류(서버측 강제 — 프리뷰 우회 차단).
+        if (self::requiresHighValueApproval($pdo, $tenant, $channel, $sku, [], 'register')) {
+            self::logJob($pdo, $tenant, $channel, $sku, 'publish', 'pending_approval', ['sku' => $sku]);
+            return self::jsonRes($res, ['ok' => true, 'assigned' => $code, 'status' => 'pending_approval', 'requires_approval' => true]);
+        }
         // 즉시 전송 — logJob 이 기존 미완료 잡을 superseded 로 마감하고 새 대기 잡 1건만 남긴다.
         //   실패로 굳은 잡(failed)도 여기서 새 잡으로 대체되므로 재시도 카운터가 초기화된다.
         $st = self::channelStatus($pdo, $tenant, $channel, 'register');
@@ -588,6 +593,12 @@ class Catalog
         // 즉시 전송 — assignCategory 와 동일(logJob 이 기존 미완료 잡을 superseded 로 마감).
         $results = [];
         foreach ($skus as $sku) {
+            // [289차] 고액(₩5M↑) 상품은 승인 대기로 보류(서버측 강제 — assignCategory 와 동일).
+            if (self::requiresHighValueApproval($pdo, $tenant, $channel, $sku, [], 'register')) {
+                self::logJob($pdo, $tenant, $channel, $sku, 'publish', 'pending_approval', ['sku' => $sku]);
+                $results[] = ['sku' => $sku, 'status' => 'pending_approval', 'requires_approval' => true, 'error' => null];
+                continue;
+            }
             $st    = self::channelStatus($pdo, $tenant, $channel, 'register');
             $jobId = self::logJob($pdo, $tenant, $channel, $sku, 'publish', $st === 'saved' ? 'awaiting_credentials' : $st, ['sku' => $sku]);
             if ($jobId > 0) self::processJobById($pdo, $jobId);
@@ -843,9 +854,18 @@ class Catalog
         //   (소비 조건 = status IN ('queued','awaiting_credentials')). 자격증명이 없어 대기하는 상태의 정본은
         //   'awaiting_credentials' 이며, ChannelCreds::upsert 가 자격증명 등록 즉시 큐를 플러시한다.
         //   catalog_listing.status 는 'saved'(리스팅 저장됨) 그대로 두고, 잡 상태만 정합화한다.
-        $jobStatus = ($status === 'saved') ? 'awaiting_credentials' : $status;
+        // [289차] high_value(₩5M↑) 승인정책을 서버측에서 강제 — 승인 필요 시 즉시 송출 대신
+        //   'pending_approval' 로 적재하고 여기서 반환(기존 approveQueue 인간 승인→queued→채널 push 재사용).
+        //   CatalogSync 화면이 프리뷰(writebackPrepare) 없이 이 경로로 직접 publish 해 승인 게이트를 우회하던 갭 차단.
+        $needsApproval = self::requiresHighValueApproval($pdo, $tenant, $channel, $sku, $f, $action);
+        $jobStatus = $needsApproval ? 'pending_approval' : (($status === 'saved') ? 'awaiting_credentials' : $status);
         $jobId = self::logJob($pdo, $tenant, $channel, $sku, (string)($body['operation'] ?? 'publish'), $jobStatus, $f);
-        Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$status]); // 감사: 상품 writeback
+        Db::audit($pdo, $tenant, 'catalog.writeback', ['channel'=>$channel, 'sku'=>$sku, 'action'=>$action, 'status'=>$needsApproval ? 'pending_approval' : $status]); // 감사: 상품 writeback
+        if ($needsApproval) {
+            return self::jsonRes($res, ['ok' => true, 'status' => 'pending_approval', 'requires_approval' => true,
+                'channel' => $channel, 'sku' => $sku,
+                'hint' => '고액(₩5M↑) 상품은 승인 후 채널에 반영됩니다 — Writeback 콘솔에서 승인하세요.']);
+        }
 
         // [277차] ★"동기화 성공"인데 채널에 등록되지 않는 문제의 근본 — 종전엔 큐에 넣고 'queued' 를 반환했고
         //   프론트가 이를 성공으로 표기했다. 실제 채널 push 는 10분 주기 크론이 나중에 시도하며, 거기서 실패해도
@@ -1125,6 +1145,28 @@ class Catalog
             'approval_type' => $approvalType,
             'connected' => $connected,
         ];
+    }
+
+    /**
+     * [289차 실결함] high_value(₩5M↑) 승인정책을 **서버측**에서 판정(방어심층).
+     *   기존엔 실행 경로(assignCategory/assignBrand/writeback)가 evaluatePolicy 를 우회해 승인은 프리뷰
+     *   (writebackPrepare)에서만 물었고, CatalogSync 화면은 프리뷰 없이 직접 publish 해 ₩5M 상품이 승인 없이
+     *   즉시 채널 송출됐다(클라이언트 게이트 Writeback.jsx 는 우회 가능 — 승인 강제는 서버가 SSOT).
+     *   true 면 호출측은 즉시 송출(processJobById) 대신 잡을 'pending_approval' 로 적재(기존 approveQueue 소비).
+     *   ★정확히 approval_type='high_value' 만 게이트한다 — unregister 승인은 즉시 채널해제 동작을 바꾸므로 범위 밖(별건).
+     *   $product 에 price 가 없으면 catalog_listing 에서 보강한다(미조회 시 price=0 → 통과 = 무회귀).
+     */
+    private static function requiresHighValueApproval(\PDO $pdo, string $tenant, string $channel, string $sku, array $product, string $action): bool
+    {
+        if (!isset($product['price']) || (float)($product['price'] ?? 0) <= 0) {
+            try {
+                $st = $pdo->prepare("SELECT name AS title, category, price FROM catalog_listing WHERE tenant_id=? AND channel=? AND sku=? LIMIT 1");
+                $st->execute([$tenant, $channel, $sku]);
+                $row = $st->fetch(\PDO::FETCH_ASSOC);
+                if ($row) $product = $row + $product;
+            } catch (\Throwable $e) { /* best-effort — 미조회 시 정책이 price=0 으로 통과(무회귀) */ }
+        }
+        return (self::evaluatePolicy($pdo, $tenant, $channel, $product, $action)['approval_type'] ?? null) === 'high_value';
     }
 
     /** 결정적 카테고리 추천(키워드 사전 기반·랜덤 없음·공개 분류 체계라 테넌트 무관). */

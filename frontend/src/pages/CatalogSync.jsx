@@ -797,13 +797,18 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                     {t('catalogSync.resultTitle', '채널 응답')}
                                 </div>
                                 <div style={{ maxHeight: 180, overflowY: "auto" }}>
-                                    {results.map((r, i) => (
+                                    {results.map((r, i) => {
+                                      // [289차] 고액(₩5M↑) 상품은 pending_approval 로 보류 — 즉시 등록(✅)이 아님을 명확히 표기.
+                                      const held = r.status === 'pending_approval';
+                                      return (
                                         <div key={i} style={{ fontSize: 11, padding: "6px 8px", borderRadius: 6, marginBottom: 4,
-                                            background: r.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)" }}>
-                                            <span style={{ fontWeight: 700, color: r.ok ? "#16a34a" : "#dc2626" }}>
-                                                {r.ok ? '✅' : '❌'} {r.chId} · {r.sku}
+                                            background: held ? "rgba(245,158,11,0.10)" : (r.ok ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)") }}>
+                                            <span style={{ fontWeight: 700, color: held ? "#d97706" : (r.ok ? "#16a34a" : "#dc2626") }}>
+                                                {held ? '⏳' : (r.ok ? '✅' : '❌')} {r.chId} · {r.sku}
                                             </span>
-                                            <span style={{ color: "#64748b", marginLeft: 6 }}>{r.status}</span>
+                                            <span style={{ color: held ? "#d97706" : "#64748b", marginLeft: 6, fontWeight: held ? 700 : 400 }}>
+                                                {held ? t('catalogSync.wbPendingApproval', '승인 대기 (고액 ₩5M↑)') : r.status}
+                                            </span>
                                             {r.error && <div style={{ color: "#b91c1c", marginTop: 2, wordBreak: "break-word" }}>{r.error}</div>}
                                             {/* [현 차수] 계약검사 누락 항목 — 채널이 한 번에 하나씩 알려주던 것을 전송 전에 전부 나열한다.
                                                 한 줄로 뭉치면 무엇부터 채워야 할지 보이지 않아 왕복이 다시 늘어난다. */}
@@ -839,7 +844,8 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                 </div>
                                             )}
                                         </div>
-                                    ))}
+                                      );
+                                    })}
                                 </div>
                                 {results.some(r => !r.ok) && (
                                     <div style={{ textAlign: "right", marginTop: 8 }}>
@@ -1089,8 +1095,14 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
             const d = await postJson('/api/catalog/assign-category', {
                 channel: it.channel, sku: it.sku, category_code: code, category_label: label || '', publish: true,
             });
-            setMsg(m => ({ ...m, [key]: { ok: !!d.ok, text: d.ok ? t('catalogSync.pcDone', '채널에 등록했습니다') : (d.error || d.status) } }));
-            if (d.ok) { setItems(prev => prev.filter(x => !(x.channel === it.channel && x.sku === it.sku))); onDone && onDone(); }
+            // [289차] 고액(₩5M↑) 상품은 pending_approval 로 보류 — "등록 완료" 오표기 방지 + 목록에서 지우지 않음(승인 대기 유지).
+            const held = !!d.requires_approval || d.status === 'pending_approval';
+            setMsg(m => ({ ...m, [key]: {
+                ok: !!d.ok, pending: held,
+                text: held ? t('catalogSync.pcPendingApproval', '고액(₩5M↑) 상품 — 승인 후 채널에 반영됩니다')
+                           : (d.ok ? t('catalogSync.pcDone', '채널에 등록했습니다') : (d.error || d.status)),
+            } }));
+            if (d.ok && !held) { setItems(prev => prev.filter(x => !(x.channel === it.channel && x.sku === it.sku))); onDone && onDone(); }
         } catch (e) {
             setMsg(m => ({ ...m, [key]: { ok: false, text: e.message } }));
         } finally { setBusy(''); }
@@ -1184,8 +1196,8 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
                                 </button>
                             )}
                             {msg[key] && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: msg[key].ok ? "#16a34a" : "#dc2626" }}>
-                                    {msg[key].ok ? '✅' : '❌'} {msg[key].text}
+                                <span style={{ fontSize: 10, fontWeight: 700, color: msg[key].pending ? "#d97706" : (msg[key].ok ? "#16a34a" : "#dc2626") }}>
+                                    {msg[key].pending ? '⏳' : (msg[key].ok ? '✅' : '❌')} {msg[key].text}
                                 </span>
                             )}
                         </div>
