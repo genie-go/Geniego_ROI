@@ -1,4 +1,12 @@
-> **최신 인계서(289차·연속 11회차)**: **★ⓔ 인용검증 완료 + 5-3-3-4 ⓑ전수조사·ⓒ전사 84/84·ⓓADR 완결 + 미배포 코드 2건 데모/운영 배포검증 완료.** 커밋(feat/n236·**master 미접촉**).
+> **최신 인계서(289차·연속 12회차)**: **★EPIC 06-A-01 Rebate Delegation Foundation 완결**(ⓐ선영속+ⓑ전수조사+ⓒ전사 58편+ⓓADR·코드0·커버0). 11회차=ⓔ인용검증+5-3-3-4 ⓑⓒ84ⓓ+미배포코드2건 배포+예산대시보드 성능개선 배포. 커밋(feat/n236·**master 미접촉**).
+>
+> ## ★12회차 완료 — EPIC 06-A-01 Delegation Foundation (9커밋·비파괴)
+> 스펙=`docs/segmentation/SPEC_06A_01_DELEGATION_FOUNDATION_VERBATIM.md`. ⓑ정본=`DSAR_APPROVAL_DELEGATION_EXISTING_IMPLEMENTATION.md`·ⓓ=`ADR_DSAR_REBATE_DELEGATION_FOUNDATION_GOVERNANCE.md`.
+> - **결론: 레포에 Approval Delegation 개념 없음.** §4 전항목 ABSENT(유일 히트 `DELEGATION_EXCEEDED`=RBAC 부여상한 오탐). **§3 선행조건 4축 전부 부재**(Approval·Authority·Reporting-Line Resolver·SoD/CoI/Break-glass/Actor Snapshot)→§65 58편 대부분 **ABSENT/BLOCKED_PREREQUISITE·커버 0**. 외부소스(HRIS/Calendar OOO/ERP) 5개 전부 ABSENT.
+> - 인접(확장자산·재구현 금지): acl 위임상한(monotonicity·`TeamPermissions:615-647`·기간/수락/재위임 없음·KEEP_SEPARATE)·AgencyPortal(접근권 승인)·SecurityAudit(evidence)·PM cycle 알고리즘·Tenant Guard(strict OFF).
+> - ⓒ 6 wave 팬아웃(§6~§63)·측정기 전 정합·**측정기가 육안분모 다수 정정**(§11·§25/26/27·program_id·FX TTL 1h 등). VALIDATED_LEGACY 0 전 문서.
+> - ★실 위험 4(별도 승인세션): Cross-Tenant strict OFF·acl 위임상한만 monotonicity·위임 무결성 게이트 부재·AgencyPortal revoked_at 반례. **실 Delegation 엔진=선행 4축 신설 후 별도 승인세션.**
+> - **다음 = EPIC 06-A-02 Approval Assignment Engine**(스펙 대기·자율 금지) 또는 5-3-3-4/06-A-01 실 결함 수정세션.
 >
 > ## ★11회차 최종 요약
 > 1. **ⓔ 인용검증 완료** — `menu_audit_log.hash_chain` 오염 정정 전량(F 12 + P ~78/45편·회귀0). 정본 레지스트리 = `docs/segmentation/DSAR_MENU_AUDIT_LOG_CITATION_CORRECTION.md` + memory [[reference_menu_audit_log_not_tamper_evident]].
