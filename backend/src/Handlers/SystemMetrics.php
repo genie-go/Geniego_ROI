@@ -49,15 +49,12 @@ final class SystemMetrics
     /** [282차 F-P2] 관리자 세션 여부 — 플랫폼 인프라 정찰정보(테넌트 수·DB버전·cron·마이그레이션)는 admin 전용. */
     private static function isAdmin(Request $request): bool
     {
-        try {
-            $h = $request->getHeaderLine('Authorization');
-            $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : trim((string)($request->getQueryParams()['token'] ?? ''));
-            if ($token === '') return false;
-            $pdo = Db::pdo();
-            $st = $pdo->prepare("SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? LIMIT 1");
-            $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
-            return strtolower((string)($st->fetchColumn() ?: '')) === 'admin';
-        } catch (\Throwable $e) { return false; }
+        // [289차후속 P4] Canonical 관리자 판정 SSOT(UserAuth::resolveAdminByToken)로 위임. 종전 로컬 쿼리는
+        //   u.plan 만 보고 plans 컬럼·is_active 를 누락해, plans='admin' 관리자를 놓치고 비활성(is_active=0)
+        //   관리자를 통과시키던 드리프트 결함이 있었다 → 표준 술어로 정정(fail-secure).
+        $h = $request->getHeaderLine('Authorization');
+        $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : trim((string)($request->getQueryParams()['token'] ?? ''));
+        return $token !== '' && \Genie\Handlers\UserAuth::resolveAdminByToken($token) !== null;
     }
 
     public static function metrics(Request $request, Response $response, array $args): Response

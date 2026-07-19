@@ -2971,6 +2971,45 @@ final class UserAuth
         return [$user, null];
     }
 
+    /**
+     * [289차후속 P4] Canonical 플랫폼 관리자 판정 SSOT — 세션 토큰이 '활성 관리자'인지.
+     *   종전 토큰기반 관리자 체크가 5개소(UserAdmin/EventPopup/DbAdmin::requireAdmin·SystemMetrics::isAdmin
+     *   + 본 클래스)에 제각각 미러링되며 드리프트했다(특히 SystemMetrics 는 plans 컬럼·is_active 를 누락해
+     *   plans='admin' 관리자를 놓치고 비활성 관리자를 통과시키는 잠재결함). 이를 단일 정본으로 통합한다.
+     *   표준 술어: (plan='admin' OR plans='admin') AND is_active=1 AND 세션 미만료.
+     *   반환: 관리자면 app_user 행(id·email·name·admin_level·plan 정규화), 아니면 null.
+     *   ★UserAdmin::requireAdmin 의 리치 쿼리+admin_level 컬럼 폴백을 그대로 승격(무회귀).
+     *   ★requireAdminUser(리치 userByToken 경로)·TeamPermissions::isAdmin(이미 해석된 배열 술어)은
+     *     상이한 계층이라 본 SSOT 와 별개로 의도적 유지.
+     */
+    public static function resolveAdminByToken(string $token): ?array
+    {
+        $token = trim($token);
+        if ($token === '') return null;
+        $pdo = Db::pdo();
+        try {
+            $stmt = $pdo->prepare(
+                "SELECT u.id, u.email, u.name, u.admin_level, COALESCE(u.plans, u.plan, 'pro') AS plan
+                   FROM user_session s JOIN app_user u ON u.id = s.user_id
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                    AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
+            );
+            $stmt->execute([$token, self::now()]);
+        } catch (\Throwable $e) {
+            // admin_level 컬럼 미존재 스키마 폴백(값은 null=master 취급).
+            try {
+                $stmt = $pdo->prepare(
+                    "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan, 'pro') AS plan
+                       FROM user_session s JOIN app_user u ON u.id = s.user_id
+                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                        AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
+                );
+                $stmt->execute([$token, self::now()]);
+            } catch (\Throwable $e2) { return null; }
+        }
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+    }
+
     /** GET /auth/admin/smtp — 현재 SMTP 설정(비밀번호 마스킹). */
     public static function smtpGet(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface
     {

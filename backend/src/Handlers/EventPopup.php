@@ -96,22 +96,10 @@ class EventPopup
     private static function requireAdmin(Request $req, Response $res): ?Response
     {
         if ((string)$req->getAttribute('auth_role') === 'admin') return null;
+        // [289차후속 P4] Canonical 관리자 판정 SSOT(UserAuth::resolveAdminByToken)로 위임 — 동일 술어. 중복 미러 제거.
         $h = $req->getHeaderLine('Authorization');
-        if (preg_match('/^Bearer\s+(.+)$/i', $h, $m)) {
-            $token = trim($m[1]);
-            if ($token !== '') {
-                try {
-                    $pdo = \Genie\Db::pdo();
-                    $st  = $pdo->prepare(
-                        "SELECT 1 FROM user_session s JOIN app_user u ON u.id = s.user_id
-                          WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-                            AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
-                    );
-                    $st->execute([$token, gmdate('Y-m-d\TH:i:s\Z')]);
-                    if ($st->fetchColumn()) return null;
-                } catch (\Throwable $e) { /* fall through → 403 */ }
-            }
-        }
+        $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : '';
+        if ($token !== '' && \Genie\Handlers\UserAuth::resolveAdminByToken($token)) return null;
         return self::json($res, ['ok' => false, 'error' => 'Admin privileges required'], 403);
     }
 

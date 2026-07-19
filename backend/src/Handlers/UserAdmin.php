@@ -32,33 +32,12 @@ final class UserAdmin
     /** 요청자 토큰에서 admin 확인 */
     private static function requireAdmin(ServerRequestInterface $req): ?array
     {
+        // [289차후속 P4] Canonical 관리자 판정 SSOT(UserAuth::resolveAdminByToken)로 위임 — 종전 로컬 쿼리와
+        //   동일 술어((plan∨plans)='admin' + is_active + admin_level 폴백)를 정본에서 승격. 중복 미러 제거·드리프트 방지.
         $h = $req->getHeaderLine('Authorization');
         preg_match('/^Bearer\s+(.+)$/i', $h, $m);
         $token = $m[1] ?? ($req->getQueryParams()['token'] ?? '');
-        if (!$token) return null;
-
-        $pdo = Db::pdo();
-        // [259차] admin_level 을 함께 조회 — 최고관리자(master)/하위관리자(sub) 구분에 사용(권한상승 차단).
-        //   admin_level 컬럼 미존재 스키마 폴백: 컬럼 없이 재시도(값은 null=master 취급).
-        try {
-            $stmt = $pdo->prepare(
-                "SELECT u.id, u.email, u.name, u.admin_level, COALESCE(u.plans, u.plan, 'pro' /*replaced demo*/) as plan
-                   FROM user_session s
-                   JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-                    AND (u.plan = 'admin' OR u.plans = 'admin')"
-            );
-            $stmt->execute([$token, self::now()]);
-        } catch (\Throwable $e) {
-            $stmt = $pdo->prepare(
-                "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan, 'pro') as plan
-                   FROM user_session s JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-                    AND (u.plan = 'admin' OR u.plans = 'admin')"
-            );
-            $stmt->execute([$token, self::now()]);
-        }
-        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        return UserAuth::resolveAdminByToken((string)$token);
     }
 
     /** 최고관리자(master) 여부 — admin_level 이 'sub' 가 아니면 master(기존 NULL 계정 = master 하위호환). */
