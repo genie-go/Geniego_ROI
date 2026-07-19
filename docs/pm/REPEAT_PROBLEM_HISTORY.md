@@ -105,3 +105,13 @@
 - **★기수정 재플래그 회피**: §53 "Actor ID Body 신뢰" Critical Gap이 직전 03-03 세션의 `Alerting::actor()` canonical actor 수정으로 이미 닫혔음을 인지 — 과거 감사노트 관성으로 재플래그하지 않음(치유 이슈 재플래그 금지 규율 적용).
 - **★"부재" 정직 판정**: 하드코딩 user-id/email authz가 레포에 전무(전부 DB 컬럼 기반)임을 확인·"Hardcoded User ID Allow"를 결함으로 날조하지 않음. 레거시 아카이브(legacy_v338_pkg gateway)를 라이브로 오인하지 않음.
 - **★실 위험 발견**: writeGuard UI-only(서버 전역 미배선)·requireFeaturePlan fail-open·중복 유틸 3~4중 미러(정책 드리프트) — 후속 enforcement Part 등재(자립 quick-fix 아님·대규모 배선).
+
+### ★11차 사례 (289차 후속 · 06-A-03-02-03-04 Part 3-2 Role Hierarchy) — "부재 도메인"의 순신규 판정·유사구조 오흡수 회피
+
+- **경과**: Part 3-2 스펙 수령 → ⓐ선영속 → ⓑ전수조사(2 Explore 스레드) → ⓒADR+ground-truth 2편 → ⓓper-entity 61편(8 에이전트 wave). 코드 0.
+- **★"부재 도메인"의 정직 판정**: 앞 블록들과 달리 Part 3-2 도메인(Role Hierarchy/Composite/Graph/Cycle/Closure/Diamond)이 **grep 0건으로 통째 순신규**임을 실증. "있을 법하다"고 스키마를 투기적으로 채우지 않고 전건 ABSENT로 정직 표기.
+- **★유사 구조 오흡수 회피(신규 축)**: `roleRank`(선형 rank)·`parent_user_id`(계정 위계)·`menu_tree`(메뉴 트리)가 "위계처럼 보이나 Role↔Role 그래프가 아님"을 코드로 확인 — 이들을 Role Hierarchy Edge로 오흡수하지 않고 §6.1(Organization≠Role Hierarchy) 경계로 분리. "parent_id가 있으니 role hierarchy 있다"는 착시 회피.
+- **★"근접 알고리즘"의 도메인 명시**: cycle 탐지(menu_tree wouldCycle·PM Dependencies DFS)·resolver(effectiveForUser)가 실재하나 전부 비-Role 도메인임을 명시 — "cycle 탐지 있다→role cycle guard 있다"로 오인하지 않음. 조립 참조로만 인용.
+- **★hash_chain tamper-evident 오인 회피(메모리 규율 적용)**: 서브에이전트가 `menu_audit_log` hash_chain을 "tamper-evident"로 낙관 표기한 것을 [[reference_menu_audit_log_not_tamper_evident]]에 따라 "verify 0·장식·정본=SecurityAudit::verify"로 정정 후 ground-truth 반영. 낙관적 표현 무비판 수용 회피.
+- **★기수정 재플래그 회피**: 289차 P1~P4(writeGuard·featurePlan·admin폐기·resolveAdminByToken)를 결함으로 재플래그하지 않음. 폐기 admin_roles 재부활 금지 유지.
+- **★부수 실 결함 발견(수정 아님)**: AdminMenu required_role↔rank 데드락·SSO group→role 부분배선 — 설계 거버넌스(코드0) 규율상 자립수정 대신 §D-8 등재·후속 fix 세션 후보로 분리(13회차 high_value 대조: 통제기계 자체 부재/도메인 밖이라 이번 세션 유형 부적합).

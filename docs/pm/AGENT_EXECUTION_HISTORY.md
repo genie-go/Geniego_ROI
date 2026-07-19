@@ -439,3 +439,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **정직 표기**: Verdict 분포=ABSENT/PARTIAL-substrate/PRESENT/LEGACY/DORMANT 다양(실 substrate 대량 정직 반영). 과대주장 스캔 0(배치별 자기보고 일치). **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 58(per-entity 56 + EXISTING + DUPLICATE) + ADR 1 = **60 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
 - **★위험 등재(후속 enforcement Part)**: writeGuard UI-only(서버 requireTeamWrite 11개소뿐)·requireFeaturePlan 3중 fail-open·admin_roles DORMANT·isAdmin/requireAdmin/team_role 중복 미러 — 대규모 배선이라 자립 quick-fix 아님. ★긍정: 하드코딩 email authz 부재·Actor ID Body 신뢰는 직전 03-03 수정으로 닫힘(재플래그 회피).
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-2 Role Hierarchy & Composite Governance 전수조사·전사 (8 에이전트 wave)
+
+- **ⓑ 2 Explore 스레드**: ①백엔드(role rank/hierarchy/resolver·parent-child·composite·cycle·versioning·admin_roles 잔재·AdminMenu enum·plan god flag) 50 tool-use ②FE/IAM/config(role 배열·JWT claim·SSO group→role·정책 중복정의·config role tree·ERP·migration) 70 tool-use. 결과=Part 3-2 도메인 통째 순신규 확정 + rank 3종 병존 + 유사구조 3종(roleRank/parent_user_id/menu_tree)=비-Role + 부수 실결함 2건.
+- **ⓒ 8 에이전트(단일 wave·A~H)**: §78 per-entity DSAR **61편**. 공용 지시(선정독 4파일[ADR+ground-truth 2편+SPEC]+GROUND_TRUTH allowlist+판정 규율[대부분 ABSENT/순신규·근접패턴은 EXISTING_IMPLEMENTATION §5만·전부 비-Role 명시·hash_chain tamper-evident 아님·폐기 admin_roles·P1~P4 재플래그 금지]). 배치 A8·B8·C7·D8·E8·F8·G8·H6.
+- **★반날조 검증(사용자 지시)**: ①61편 존재 100%(누락 0) ②61편 인용 소스 basename 전수 → 허용목록(14소스: AdminMenu/AgencyPortal/AuthContext/Dependencies/EnterpriseAuth/index/Keys/PlanPolicy/teamApi/TeamPermissions/teamRolePolicy/UserAuth/Wms/WmsManager)와 **정확히 일치·초과 0**. **지어낸 file:line 0**. SecurityAudit(이름언급)·migration .sql은 라인없는 참조로 허용. ③헤더 일관(전편 NOT_CERTIFIED+상위 ADR 링크)·코드 무접촉(git status 소스 변경 0)·커밋된 4문서 오염 0.
+- **정직 표기**: Verdict 분포=전건 ABSENT/순신규/BLOCKED_PREREQUISITE(부재 도메인 정직 반영). 근접 substrate는 "비-Role·조립 참조"로만 표기·실 구현으로 오계상 0. 과대주장(cover100/CERTIFIED/구현완료) 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 63(per-entity 61 + EXISTING + DUPLICATE) + ADR 1 = **65 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+- **★부수 산출=실 결함 2건 등재**(AdminMenu required_role↔rank 데드락·SSO group→role 부분배선) — 설계 코드0 규율상 수정 아님·후속 fix 세션 후보(DUPLICATE_AUDIT §D-8).
