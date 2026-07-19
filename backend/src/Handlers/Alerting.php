@@ -30,9 +30,35 @@ final class Alerting {
             ->execute([$actor,$action,json_encode($details, JSON_UNESCAPED_UNICODE),gmdate('c')]);
     }
 
+    /**
+     * [보안수정] 승인·집행 판정용 canonical actor — 서버 인증 context에서만 도출(위조불가).
+     *   종전 actor()는 `X-User-Email` 헤더/`?actor=` 쿼리를 그대로 신뢰해, 클라이언트가 승인자 신원을
+     *   임의로 지정할 수 있었다(감사·정족수 위조 → action_request 승인/집행 무결성 붕괴).
+     *   정본 패턴은 Mapping::actorId 와 동일하다(이 클래스 tenantOf 도 이미 auth_tenant 위조불가 사용).
+     *   ① api_key 경로 → auth_key(미들웨어 주입·위조불가) → 'apikey:{id}'
+     *   ② 세션 경로   → UserAuth::authedUser(user_session JOIN app_user) → 'user:{email}'
+     *   ③ 미확인      → null (승인/집행 경로는 호출측이 403 fail-closed)
+     */
+    private static function actorId(Request $request): ?string {
+        $k = $request->getAttribute('auth_key');
+        if (is_array($k) && isset($k['id']) && (int)$k['id'] > 0) {
+            return 'apikey:' . (int)$k['id'];
+        }
+        try {
+            $u = UserAuth::authedUser($request);
+            if (is_array($u)) {
+                $email = trim((string)($u['email'] ?? ''));
+                if ($email !== '') return 'user:' . $email;
+                $uid = (int)($u['id'] ?? 0);
+                if ($uid > 0) return 'user:#' . $uid;
+            }
+        } catch (\Throwable $e) {}
+        return null;
+    }
+
+    /** 감사 표기용(미확인이어도 로그는 남긴다). 승인/집행 판정에는 actorId() 를 쓸 것. */
     private static function actor(Request $request): string {
-        $a = $request->getHeaderLine('X-User-Email');
-        return $a !== '' ? $a : (string)($request->getQueryParams()['actor'] ?? 'unknown');
+        return self::actorId($request) ?? 'unknown';
     }
 
     /** 요청에서 테넌트 식별 (auth 미들웨어 속성 > 세션토큰 > 기본 demo). [227차] raw X-Tenant-Id 폴백 제거 — 헤더 위조 차단. */
@@ -571,11 +597,17 @@ final class Alerting {
 
     public static function decideAction(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
-        $actor = self::actor($request);
+        // [보안수정] 승인자 신원은 서버 인증 context에서만 도출(위조불가). 미확인=fail-closed(403).
+        //   종전엔 self::actor()가 X-User-Email/?actor= 를 신뢰 → 위조 actor 로 단일 승인 즉시 approved 였다.
+        $actor = self::actorId($request);
+        if ($actor === null) {
+            $response->getBody()->write(json_encode(["detail"=>"approver identity unresolved"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
         $id = (int)($args["id"] ?? 0);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
-        $decision = (string)($body["decision"] ?? "approve");
+        $decision = (string)($body["decision"] ?? "approve") === "reject" ? "reject" : "approve";
 
         // 208차 검수(P0 IDOR): 테넌트 소유 검증 — 타 테넌트 action_request 승인/거부 차단.
         $tnt = self::tenantOf($request);
@@ -586,21 +618,53 @@ final class Alerting {
             $response->getBody()->write(json_encode(["detail"=>"action_request not found"], JSON_UNESCAPED_UNICODE));
             return $response->withStatus(404)->withHeader('Content-Type','application/json');
         }
+        // [보안수정] 이미 종결된 건에 결정 누적 금지(승인/거부/집행 후 재결정 차단).
+        $curStatus = strtolower((string)($r["status"] ?? ""));
+        if (in_array($curStatus, ['approved','rejected','executed','failed','approved_manual'], true)) {
+            $response->getBody()->write(json_encode(["detail"=>"action_request is not pending (status={$curStatus})"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(409)->withHeader('Content-Type','application/json');
+        }
         $approvals = $r["approvals_json"] ? json_decode($r["approvals_json"], true) : [];
         if (!is_array($approvals)) $approvals = [];
-        $approvals[] = ["actor"=>$actor, "decision"=>$decision, "ts"=>gmdate('c')];
 
-        $status = $decision === "approve" ? "approved" : "rejected";
+        if ($decision === "reject") {
+            $approvals[] = ["actor"=>$actor, "decision"=>"reject", "ts"=>gmdate('c')];
+            $status = "rejected";
+        } else {
+            // [보안수정] 동일 행위자 재승인 차단(dedup) — 한 사람이 두 번 눌러 정족수를 채우던 경로.
+            foreach ($approvals as $a) {
+                if (is_array($a) && (string)($a["actor"] ?? "") === $actor && (string)($a["decision"] ?? "approve") === "approve") {
+                    $response->getBody()->write(json_encode(["detail"=>"already approved by this approver"], JSON_UNESCAPED_UNICODE));
+                    return $response->withStatus(409)->withHeader('Content-Type','application/json');
+                }
+            }
+            $approvals[] = ["actor"=>$actor, "decision"=>"approve", "ts"=>gmdate('c')];
+            // [보안수정] Maker-Checker 정족수 강제 — 서로 다른 승인자 2명 이상이어야 approved.
+            //   종전엔 required_approvals=2 가 표시용 상수일 뿐 미강제(단일 승인=approved). UI 계약과 일치시킨다.
+            $distinct = [];
+            foreach ($approvals as $a) {
+                if (is_array($a) && (string)($a["decision"] ?? "approve") === "approve") {
+                    $distinct[(string)($a["actor"] ?? "")] = true;
+                }
+            }
+            $status = count($distinct) >= 2 ? "approved" : "pending";
+        }
+
         $pdo->prepare("UPDATE action_request SET approvals_json=?, status=? WHERE id=? AND tenant_id=?")
             ->execute([json_encode($approvals, JSON_UNESCAPED_UNICODE), $status, $id, $tnt]);
 
-        self::audit($pdo, $actor, "action_decide", ["id"=>$id, "decision"=>$decision]);
+        self::audit($pdo, $actor, "action_decide", ["id"=>$id, "decision"=>$decision, "status"=>$status]);
         return TemplateResponder::respond($response, ["ok"=>true, "id"=>$id, "status"=>$status]);
     }
 
     public static function executeAction(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
-        $actor = self::actor($request);
+        // [보안수정] 집행자 신원도 canonical(위조불가)·fail-closed.
+        $actor = self::actorId($request);
+        if ($actor === null) {
+            $response->getBody()->write(json_encode(["detail"=>"executor identity unresolved"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(403)->withHeader('Content-Type','application/json');
+        }
         $id = (int)($args["id"] ?? 0);
         // 208차 검수(P0 IDOR): 테넌트 소유 검증 — 타 테넌트 액션 실행(라이트백) 차단.
         $tnt = self::tenantOf($request);
@@ -615,6 +679,12 @@ final class Alerting {
         if (!$r) {
             $response->getBody()->write(json_encode(["detail"=>"action_request not found"], JSON_UNESCAPED_UNICODE));
             return $response->withStatus(404)->withHeader('Content-Type','application/json');
+        }
+        // [보안수정] 승인되지 않은 액션의 집행 차단 — 종전엔 status 무관하게 즉시 외부 광고 API 를 집행했다
+        //   (pending/rejected 도 집행 가능 → Maker-Checker 우회). approved 상태에서만 집행한다.
+        if (strtolower((string)($r["status"] ?? "")) !== "approved") {
+            $response->getBody()->write(json_encode(["detail"=>"action_request is not approved (status=".(string)($r["status"] ?? "").")"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(409)->withHeader('Content-Type','application/json');
         }
         $action = $r["action_json"] ? json_decode($r["action_json"], true) : [];
         if (!is_array($action)) $action = [];

@@ -2744,3 +2744,41 @@ a752546921  189 보안 하드닝(비번정책8자·rate-limit·MFA·자동로그
 
 ---
 
+
+
+---
+
+# 289차 후속 세션 인계서 (2026-07-19) — EPIC 06-A 설계 3블록 + BLOCKED_SECURITY 수정·배포
+
+> ★이후 세션은 NEXT_SESSION 대신 메모리(MEMORY.md·project_n289_*)를 주 로그로 사용해 왔음. 본 엔트리는 사용자 지시로 추가.
+
+## A. 이번 세션 완료 (설계 명세 · 코드 변경 0 · git 커밋 대상)
+EPIC 06-A-03-02-03 계열 설계 거버넌스를 동일 파이프라인(ⓐSPEC 선영속 → ⓑ능력기반 전수조사 2에이전트[GROUND_TRUTH] → ⓒper-entity DSAR 8배치 wave → ⓓADR+PM/Repeat/Agent History)으로 3블록 처리. 전부 반날조 검증(인용 file:line 전수 GROUND_TRUTH 대조·지어낸 인용 0).
+
+| 블록 | 문서 | 핵심 판정 |
+|---|---|---|
+| **03-02-03-02 Cryptographic Hash Chain & Tamper Detection** | 76편(DSAR72+SPEC+ADR) | BLOCKED_PREREQUISITE. 실 자산=`SecurityAudit::verify`(유일 SHA-256 append-only 체인)·단 canonicalization 부재·Head-CAS 없음·fail-open. Weak Algo 무결성사용 0(공포=부재). |
+| **03-02-03-03 Actor Identity Assurance & Authentication Binding** | 71편(DSAR67+SPEC+ADR) | 실 substrate 대량(session·api_key RBAC·MFA·SSO/SCIM·Mapping::actorId). 승인결합/불변snapshot/device 부재. ★부수발견 BLOCKED_SECURITY 6건. |
+| **03-02-03-04 Part1 Authorization Registry Foundation** | 60편(DSAR56+SPEC+ADR) | 실 substrate 대량(index.php:553-603 중앙RBAC·TeamPermissions RBAC/ABAC·Maker-Checker). 선언적 Policy/버전화/Decision불변저장 부재. |
+
+## B. BLOCKED_SECURITY 실결함 수정·배포 완료 (실 코드 변경 · 운영+데모 반영)
+03-03 감사가 발견한 라이브 실결함을 라이브 재증명 후 수정, **운영(genieroi.com)+데모(demo.genieroi.com) 배포·검증 완료**(health200·php-l 무오류·fatal0·롤백 `.bak.secfix_n289`). 백엔드 3파일(Alerting/UserAuth/UserAdmin).
+- **#1** Alerting actor 위조 차단(canonical actorId) · **#2** Maker-Checker 정족수2+집행 상태게이트 · **#4** mfa_secret AES-256-GCM 암호화(무회귀 dual-read) · **#6** impersonate Original Principal 보존(impersonated_by) · **#5** break-glass 전용감사(의도유지).
+- **#3 `user_session.token` 평문 저장 = DEFER**(전용 마이그레이션 세션 — 조회 25+개소·전원 재로그인·UNIQUE 인덱스).
+
+## C. ★다음 세션 최우선 (사용자 지정)
+1. **★writeGuard 서버측 전역 enforcement (대규모·최우선)** — FE `writeGuard.js`는 UI-only·fail-open이고 서버측 `requireTeamWrite`는 11개소뿐 → **116페이지 mutating 엔드포인트 대다수가 member read-only를 UI로만 방어**(§5.4 위반). 서버측 전역 배선이 대규모 enforcement 작업. **1순위.**
+2. `requireFeaturePlan` 3중 fail-open(`UserAuth.php:68,72,82-84`) → fail-closed 전환.
+3. `admin_roles/user_roles` DORMANT(저장·미소비 죽은 RBAC) → 실배선(RBAC Part3) 또는 폐기.
+4. isAdmin(4정의)/requireAdmin(3정의)/team_role(3중 미러) 중복 → Canonical Subject Contract SSOT화.
+5. **#3 session token 해시화** 전용 마이그레이션(dual-read + 전 조회지점 전환).
+6. EPIC 06-A-03-02-03-04 **Part 2 Permission Engine Foundation**(스펙 대기) → P3 RBAC~P10.
+
+## D. 배포·자격증명 (불변)
+- 배포=CI inert·수동 plink/pscp. 운영 `/home/wwwroot/roi.geniego.com/backend`·데모 `/home/wwwroot/roidemo.geniego.com/backend`. chown www:www + php-fpm 2서비스(php-fpm.service+php8.1-fpm.service) reload. **모든 배포 사용자 승인 의무.**
+- 자격증명=메모리 `reference_session_credentials`(평문노출 금지). SSH root@1.201.177.46.
+- 백엔드 양쪽 동일 업로드·프론트 분리빌드(운영 npm run build / 데모 --mode demo).
+
+## E. 규율 재확인
+- 06-A 설계는 **코드 변경 0·"계약 명세 확정"·NOT_CERTIFIED 불변**. 실 엔진=선행 Decision Core 신설 후 별도 승인세션(RP-002).
+- 장식 오인 금지(menu_audit_log.hash_chain verify0·admin_roles DORMANT)·기수정 재플래그 금지(Alerting actor는 닫힘)·부재를 결함으로 날조 금지(하드코딩 email authz 부재).

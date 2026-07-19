@@ -936,7 +936,8 @@ final class UserAuth
                     if ($otp === '') {
                         return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '2단계 인증 코드를 입력하세요.'], 401);
                     }
-                    if (!self::verifyTotp((string)($user['mfa_secret'] ?? ''), $otp)
+                    // [보안수정] 저장 시크릿은 암호문("enc:vN:…") → 복호화 후 검증. 기존 평문 행은 Crypto::decrypt 가 그대로 통과(무회귀).
+                    if (!self::verifyTotp(\Genie\Crypto::decrypt((string)($user['mfa_secret'] ?? '')), $otp)
                         && !self::consumeRecoveryCode($pdo, $mfaUid, $otp)) {
                         self::rateLimitFail($pdo, $rlIdent);
                         return self::json($res, ['ok' => false, 'mfa_required' => true, 'mfa_method' => 'totp', 'error' => '인증 코드가 올바르지 않습니다.'], 401);
@@ -971,6 +972,11 @@ final class UserAuth
             self::recordSessionMeta($pdo, $req, $token); // 189차+ 세션 ip/ua 메타 기록
             // [240차 약점⑦] 불변 보안 감사 — 로그인 성공 기록(tamper-evident 해시체인).
             try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'auth.login', ['plan' => ($user['plans'] ?? $user['plan'] ?? ''), 'master' => $isMasterAuth], $req); } catch (\Throwable $e) {}
+            // [보안수정] break-glass(마스터) 로그인은 MFA 를 우회하는 비상 접근 경로다(의도된 설계·env 게이트로만 활성).
+            //   우회 자체는 운영 복구를 위해 유지하되, 사용 사실을 불변 해시체인에 '전용 이벤트'로 남겨 사후 감사·탐지를 보장한다.
+            if ($isMasterAuth) {
+                try { \Genie\SecurityAudit::log($pdo, (string)self::resolveTenantId($pdo, $user), (string)($user['email'] ?? ''), 'auth.breakglass', ['email' => (string)($user['email'] ?? ''), 'mfa_bypassed' => true], $req); } catch (\Throwable $e) {}
+            }
 
             $effectivePlan = $user['plans'] ?? $user['plan'] ?? 'free';
             if (($user['plan'] ?? '') === 'admin' || ($user['plans'] ?? '') === 'admin') {
@@ -3418,10 +3424,13 @@ final class UserAuth
         static $done = false;
         if ($done) return;
         $done = true;
-        foreach (['mfa_secret VARCHAR(64)', 'mfa_enabled TINYINT DEFAULT 0', 'mfa_enrolled_at VARCHAR(32)',
+        foreach (['mfa_secret VARCHAR(255)', 'mfa_enabled TINYINT DEFAULT 0', 'mfa_enrolled_at VARCHAR(32)',
                   'mfa_method VARCHAR(20)', 'mfa_otp_hash VARCHAR(80)', 'mfa_otp_expires VARCHAR(32)'] as $col) {
             try { $pdo->exec("ALTER TABLE app_user ADD COLUMN $col"); } catch (\Throwable $e) { /* 이미 존재 */ }
         }
+        // [보안수정] mfa_secret 은 이제 AES-256-GCM 봉투("enc:vN:...")로 저장 → 평문 base32 보다 길다.
+        //   기존 DB 의 VARCHAR(64) 를 확장(멱등·MySQL MODIFY; sqlite 는 길이 미강제라 실패 무해).
+        try { $pdo->exec("ALTER TABLE app_user MODIFY mfa_secret VARCHAR(255)"); } catch (\Throwable $e) { /* 이미 확장/미지원 */ }
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS mfa_recovery (user_id INT NOT NULL, code_hash VARCHAR(80) NOT NULL, used_at VARCHAR(32) NULL)");
         } catch (\Throwable $e) {}
@@ -3768,7 +3777,9 @@ final class UserAuth
         } catch (\Throwable $e) {}
         $secret = self::genMfaSecret();
         try {
-            $pdo->prepare('UPDATE app_user SET mfa_secret=?, mfa_enabled=0 WHERE id=?')->execute([$secret, $user['id']]);
+            // [보안수정] TOTP 시크릿을 평문(base32)으로 저장하지 않는다 — AES-256-GCM 봉투로 암호화(DB 유출 시 재현 차단).
+            //   Crypto 는 openssl/키 미가용 시 예외(fail-closed) → 아래 catch 가 500 으로 안전 실패(평문 저장 안 함).
+            $pdo->prepare('UPDATE app_user SET mfa_secret=?, mfa_enabled=0 WHERE id=?')->execute([\Genie\Crypto::encrypt($secret), $user['id']]);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'MFA 설정 저장 중 오류가 발생했습니다.'], 500);
         }
@@ -3790,7 +3801,8 @@ final class UserAuth
             $st = $pdo->prepare('SELECT mfa_secret, mfa_enabled FROM app_user WHERE id=?');
             $st->execute([$user['id']]); $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
         } catch (\Throwable $e) { $row = []; }
-        $secret = (string)($row['mfa_secret'] ?? '');
+        // [보안수정] 저장 시크릿 복호화(기존 평문 행은 그대로 통과). setup 이 암호문으로 저장 → enable 검증 시 복호화 필요.
+        $secret = \Genie\Crypto::decrypt((string)($row['mfa_secret'] ?? ''));
         if ((int)($row['mfa_enabled'] ?? 0) === 1) {
             return self::json($res, ['ok' => false, 'error' => '이미 2단계 인증이 활성화되어 있습니다.'], 409);
         }

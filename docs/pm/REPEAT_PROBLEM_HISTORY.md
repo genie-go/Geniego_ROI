@@ -77,3 +77,31 @@
 - **★능력기반 감사가 실결함 발견 3차**: `media_gc_cron.php:35,43`이 append-only 감사로그를 90일 물리 DELETE(불변성 상충). 06-A-03-02-01 Alerting actor 위조·03-02-02 CreativeStore 무검증에 이어 연속 발견 — 별도 수정세션 후보 등재.
 - **★"결론의 근거도 재실증" 정본화**: "해시체인 존재 ≠ tamper-evident" 규율로 menu_audit_log·schema_migrations.checksum·journey_decision_log를 무결성 자산으로 오인하지 않고 장식으로 배제. SecurityAudit::verify만 실 자산으로 계상. [[reference_menu_audit_log_not_tamper_evident]] 재확인.
 - **가짜 녹색 회피 + Platform substrate 정직 인정**: 대부분 ABSENT이나 Platform primitive(트랜잭션/SHA-256/SKIP LOCKED/Outbox)는 "재사용 substrate"로 정직 인정("발명 아닌 조립"). 부재만 과장하지 않음.
+
+### ★8차 사례 (289차 후속 · 06-A-03-02-03-02) — 규약대로 작동 + "공포의 부재"를 정직 판정
+
+- **경과**: Cryptographic Hash Chain & Tamper Detection 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사(GROUND_TRUTH)→ⓒ72편→ⓓADR. 코드 0.
+- **RP-002 준수**: 실 구현은 선행 §3.1 Immutable Ledger·§3.2 Decision Foundation 부재로 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★"결론의 근거도 재실증" 심화 — 실 체인조차 결함 노출**: `SecurityAudit`를 "유일 실 해시체인"으로 정직 인정하되, 그 체인이 **Canonicalization 부재(raw concat+UNESCAPED_UNICODE json=§5.3/§5.4 위반)·Head-CAS 없음·tenant 술어 없음·fail-open**임을 코드 정독으로 드러냄. "실 자산=완성 자산" 착시 회피.
+- **★오탐 예방 신규 축 — "공포의 부재"를 정직 판정**: 스펙이 최우선 공포로 지목한 "MD5/SHA-1/CRC를 Integrity Proof로 사용"이 **레포에 전무**임을 확인. 산재 md5/sha1/crc를 무결성 결함으로 과대 플래그하지 않고 비보안(ID/캐시/PII)·벤더강제(OAuth1.0a/TOTP/CRAM-MD5)로 정확 분류. **부재를 결함으로 날조하지 않음.**
+- **장식 오인 금지 일관**: menu_audit_log·schema_migrations.checksum·journey_decision_log를 4차 연속(03-02-03-01 이어) 무결성 자산 계상 배제. [[reference_menu_audit_log_not_tamper_evident]] 재확인.
+- **가짜 녹색 회피**: 72편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. CANONICAL(SecurityAudit verify 패턴)·VALIDATED(Crypto)·VALIDATED_FILE_HASH(MediaHost)만 실존 대응.
+
+### ★9차 사례 (289차 후속 · 06-A-03-02-03-03) — 실 substrate 대량 블록·"부재 과장"과 "실재 과신" 양방향 회피
+
+- **경과**: Actor Identity Assurance 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사(신원+인증 2에이전트)→ⓒ67편→ⓓADR. 코드 0.
+- **RP-002 준수**: 승인 결합부는 선행 Decision Foundation 부재로 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★"실재 과신" 회피(부재 과장의 반대 오류)**: 이 블록은 앞 두 블록과 달리 인증/신원 코드가 대량 실재(session·api_key·MFA·SSO·SCIM·Mapping::actorId). 이를 "완성"으로 오인하지 않고 **PARTIAL/VALIDATED로 정직 판정**하되 승인 결합·불변 snapshot·device·commit 재검증 부재를 명확히 분리. 반대로 device/mTLS/cert는 "있을 법하다"고 날조하지 않고 코드 부재로 ABSENT 확정.
+- **★능력기반 감사가 라이브 실결함 다수 발견**: Alerting actor 위조(X-User-Email/?actor=)·executeAction 미승인 집행·user_session.token 평문·mfa_secret 평문·break-glass MFA 우회·impersonation Original Principal 미보존. 06-A-03-02-01/02/03-01의 연속 발견(Alerting actor·CreativeStore·media_gc)에 이어 **BLOCKED_SECURITY 6건** 등재 — 별도 배포승인 수정세션 후보.
+- **★canonical actor 정본 정직 인정**: `Mapping::actorId`(위조불가·승인 fail-closed)를 확장 기준점으로 인정하되, 같은 리포의 `Alerting::actor()`가 미하드닝(위조 가능)임을 대조 — "한 곳이 안전하니 전체 안전" 착시 회피.
+- **장식 오인 금지**: `Decisioning.php`(ad-insights ingest)를 decision 도메인으로 오인하지 않음·승인 감사 비체인 audit_log를 SecurityAudit 해시체인으로 오인하지 않음.
+
+### ★10차 사례 (289차 후속 · 06-A-03-02-03-04 Part1) — 실 substrate 대량 블록·DORMANT 오계상 회피·기수정 재플래그 회피
+
+- **경과**: Authorization Registry Foundation 스펙 수령 → 즉시 ⓐ 선영속 → ⓑ전수조사(서버측+역할/UI 2에이전트)→ⓒ56편→ⓓADR. 코드 0.
+- **RP-002 준수**: 정책 데이터 선언체·판정 불변저장은 순신규·선행 Decision/Resource Version 부재로 대부분 BLOCKED_PREREQUISITE → 설계 명세만.
+- **★"실재 과신" 회피**: index.php 중앙 RBAC·TeamPermissions RBAC/ABAC·Maker-Checker가 실재하나 "authorization 완성"으로 오인하지 않고 PARTIAL/substrate로 정직 판정. 선언적 Policy 버전화·Combining·Decision 불변저장·SoD/COI/Dual-Control 부재를 명확히 분리.
+- **★DORMANT 오계상 회피(신규 축)**: `admin_roles/user_roles`가 CRUD·permissions 저장은 하나 런타임 접근판정에서 미소비(죽은 RBAC)임을 코드로 확인 — "RBAC 구현 존재"로 계상하지 않음. 저장≠집행.
+- **★기수정 재플래그 회피**: §53 "Actor ID Body 신뢰" Critical Gap이 직전 03-03 세션의 `Alerting::actor()` canonical actor 수정으로 이미 닫혔음을 인지 — 과거 감사노트 관성으로 재플래그하지 않음(치유 이슈 재플래그 금지 규율 적용).
+- **★"부재" 정직 판정**: 하드코딩 user-id/email authz가 레포에 전무(전부 DB 컬럼 기반)임을 확인·"Hardcoded User ID Allow"를 결함으로 날조하지 않음. 레거시 아카이브(legacy_v338_pkg gateway)를 라이브로 오인하지 않음.
+- **★실 위험 발견**: writeGuard UI-only(서버 전역 미배선)·requireFeaturePlan fail-open·중복 유틸 3~4중 미러(정책 드리프트) — 후속 enforcement Part 등재(자립 quick-fix 아님·대규모 배선).

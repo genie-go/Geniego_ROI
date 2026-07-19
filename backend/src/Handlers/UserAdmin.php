@@ -493,8 +493,19 @@ final class UserAdmin
         $token   = 'imp_' . bin2hex(random_bytes(24));
         $now     = self::now();
         $expires = gmdate('Y-m-d\TH:i:s\Z', time() + 2 * 3600);
-        $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
-            ->execute([$id, $token, $expires, $now]);
+        // [보안수정] 대행 세션에 Original Principal(발급 admin)을 세션 행에 보존한다(멱등 컬럼).
+        //   종전엔 대행 세션이 대상 회원 세션과 구별되지 않아, 대행 중 수행한 승인/행위를 발급 admin 으로
+        //   사후 추적할 수 없었다(감사 공백). NULL = 일반 세션(무회귀), 값 존재 = 대행 세션.
+        try { $pdo->exec("ALTER TABLE user_session ADD COLUMN impersonated_by VARCHAR(255) NULL"); } catch (\Throwable $e) { /* 이미 존재 */ }
+        $impBy = 'user:' . (string)($admin['email'] ?? ('#' . (int)($admin['id'] ?? 0)));
+        try {
+            $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at,impersonated_by) VALUES(?,?,?,?,?)')
+                ->execute([$id, $token, $expires, $now, $impBy]);
+        } catch (\Throwable $e) {
+            // 컬럼 미지원 등 예외 시에도 대행 발급은 유지(무회귀) — 원 principal 은 감사로그로 보존됨.
+            $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
+                ->execute([$id, $token, $expires, $now]);
+        }
 
         self::auditLog($admin, "impersonate", "user#{$id} {$user['email']} 회원세션 발급(2h)");
 

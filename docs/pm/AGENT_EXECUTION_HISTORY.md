@@ -413,3 +413,29 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **ⓒ 8에이전트**(단일 wave): §68 per-entity 60편. 공용 전사 키트.
 - **★반날조 검증**: 신규 62편(LEDGER 61+SPEC+ADR·EXISTING 포함) file:line 인용 전수 → **전부 허용목록**(SecurityAudit/Omnichannel/Mapping/media_gc_cron/Db/Migrate/JourneyBuilder/Paddle/PM·Shared/MediaHost/index/Compliance/UserAuth/routes/AdminMenu/DataPlatform). **지어낸 file:line 0**. 장식(menu_audit_log/checksum/journey_decision_log) 무결성 계상 금지 일관.
 - **정직 표기**: 60편 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0. CANONICAL(SecurityAudit 패턴)·재사용 substrate(Platform primitive)만 실존 대응. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+
+### 289차 후속 — 06-A-03-02-03-02 Cryptographic Hash Chain & Tamper Detection 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트**: ①기존 hash/SHA/HMAC/digest/canonical-JSON/hash-chain/verify/tamper 전수 ②선행 §3.1 Immutable Ledger·§3.2 Decision Foundation 실코드 존재 여부. 결과=`SecurityAudit::verify` 유일 실 SHA-256 append-only 체인+검증(단 canonicalization 부재·Head-CAS 없음·tenant 술어 없음·fail-open)·선행 Ledger/Decision 설계전용(코드/테이블 0)·**Weak Algorithm 무결성 사용 0**(공포=부재)·장식 3종 재확인.
+- **ⓒ 8에이전트(단일 wave·A~H)**: §74 per-entity DSAR **72편**. 공용 지시(선정독 3파일[SPEC·GROUND_TRUTH·템플릿]+인용 allowlist+판정 5규율). 배치 A8·B10·C9·D11·E7·F8·G9·H10.
+- **★반날조 검증(사용자 지시)**: ①72편 존재 100%(누락 0) ②72편 인용 소스파일 basename 전수 집계 → 허용목록 대조: **날조 0**. ③허용목록 밖 유일 basename=`Omnichannel.php`(트랜잭션 substrate)는 인용 4종(`:404-415`beginTx~rollback·`:405`FOR UPDATE SKIP LOCKED·`:390-448`claimBatch·`:429-441`claim UPDATE) **실코드 라인 정확일치**·선행 Ledger 블록 GROUND_TRUTH 등재분 → 실재 확정(EXISTING_IMPLEMENTATION §4에 검증 라인 보강해 인용사슬 자기완결).
+- **정직 표기**: Verdict 분포=ABSENT 247·BLOCKED_PREREQUISITE 79 압도·CANONICAL 69(SecurityAudit 패턴 인용)·PRESENT/PARTIAL(substrate). 과대주장(cover100/CERTIFIED/구현완료) 스캔 **0**. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 74(per-entity 72 + EXISTING + DUPLICATE) + ADR 1 = **76 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+
+### 289차 후속 — 06-A-03-02-03-03 Actor Identity Assurance 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트(신원+인증)**: ①신원(Mapping::actorId·app_user·team_role·impersonation·Alerting actor·Decision/Assignment/Authority/Delegation 선행) ②인증(session·api_key RBAC·MFA·SSO/SAML/SCIM·device·nonce·commit 재검증·raw credential). 결과=canonical actor 정본 실재+인증 스택 대량 실재+BLOCKED_SECURITY 6건 발견+선행 Decision Foundation 부재.
+- **ⓒ 8에이전트(단일 wave·A~H)**: §74 per-entity DSAR **67편**. 공용 지시(선정독 3파일+GROUND_TRUTH allowlist+판정 규율[실 substrate=PARTIAL/PRESENT/VALIDATED·승인결합=BLOCKED_PREREQUISITE·라이브결함=BLOCKED_SECURITY]). 배치 A9·B9·C8·D8·E8·F8·G9·H8.
+- **★반날조 검증(사용자 지시)**: ①67편 존재 100%(누락 0) ②67편 인용 소스 basename 전수 → 허용목록(12소스: Mapping/UserAuth/UserAdmin/index/Db/EnterpriseAuth/OAuth/Onsite/SecurityAudit/TeamPermissions/Alerting/Decisioning)과 **정확히 일치·초과 0**. **지어낸 file:line 0**(03-02의 Omnichannel 같은 예외조차 없음).
+- **정직 표기**: Verdict 분포=ABSENT 164·BLOCKED_PREREQUISITE 64·PARTIAL 42·BLOCKED_SECURITY 41·PRESENT 34(실 substrate 정직 반영·부재 과장/실재 과신 양방향 회피). 과대주장(cover100/CERTIFIED/구현완료) 스캔 **0**. **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 69(per-entity 67 + EXISTING + DUPLICATE) + ADR 1 = **71 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+- **★부수 산출=BLOCKED_SECURITY 6건 등재**(Alerting actor 위조·executeAction 미승인 집행·user_session.token 평문·mfa_secret 평문·break-glass MFA 우회·impersonation Original Principal 미보존) — 선행무관 자립 수정세션 후보(최우선).
+
+### 289차 후속 — 06-A-03-02-03-04 Part1 Authorization Registry Foundation 전수조사·전사 (10 에이전트 팬아웃)
+
+- **ⓑ 2에이전트(서버측+역할/UI)**: ①서버측 enforcement(index.php RBAC/scopes/tenant 강제·requireAdmin·Maker-Checker·fail-open) ②역할/권한/admin-check/UI-control/하드코딩(TeamPermissions RBAC/ABAC·isAdmin·plan=admin·admin_roles DORMANT·writeGuard UI-only). 결과=중앙 RBAC+TeamPermissions RBAC/ABAC 대량 실재+선언적 정책/판정불변저장 부재+위험 4건.
+- **ⓒ 8에이전트(단일 wave·A~H)**: §67 per-entity DSAR **56편**. 공용 지시(선정독 3파일+GROUND_TRUTH allowlist+판정 규율[실 substrate=PARTIAL/PRESENT/LEGACY·선언체=ABSENT·UI-only/fail-open=위험]). 배치 A7·B7·C7·D7·E7·F7·G7·H7.
+- **★반날조 검증(사용자 지시)**: ①56편 존재 100%(누락 0) ②56편 인용 소스 basename 전수 → authorization 허용목록(22소스: index/TeamPermissions/UserAuth/UserAdmin/Keys/Alerting/Mapping/EnterpriseAuth/Compliance/Pnl/SystemMetrics/DbAdmin/EventPopup/Wms/AdminPlans/AdminMenu/Db/writeGuard/teamRolePolicy/App 등)와 대조. **지어낸 file:line 0**. ③허용목록 밖 4basename(SecurityAudit.php·MediaHost.php·media_gc_cron.php·routes.php)=Authorization Digest/Audit/Snapshot가 재사용하는 **선행 03-02 crypto 블록 검증분**(SecurityAudit:24/27/56-68 등 다회검증·routes는 라인없는 이름언급)=실재 확정·크로스블록 정당 인용(EXISTING_IMPLEMENTATION §5에 substrate 명시로 인용사슬 자기완결).
+- **정직 표기**: Verdict 분포=ABSENT/PARTIAL-substrate/PRESENT/LEGACY/DORMANT 다양(실 substrate 대량 정직 반영). 과대주장 스캔 0(배치별 자기보고 일치). **"계약 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 58(per-entity 56 + EXISTING + DUPLICATE) + ADR 1 = **60 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+- **★위험 등재(후속 enforcement Part)**: writeGuard UI-only(서버 requireTeamWrite 11개소뿐)·requireFeaturePlan 3중 fail-open·admin_roles DORMANT·isAdmin/requireAdmin/team_role 중복 미러 — 대규모 배선이라 자립 quick-fix 아님. ★긍정: 하드코딩 email authz 부재·Actor ID Body 신뢰는 직전 03-03 수정으로 닫힘(재플래그 회피).

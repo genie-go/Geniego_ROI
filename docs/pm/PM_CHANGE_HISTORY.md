@@ -720,3 +720,60 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★신규 실위험**: ①**`media_gc_cron.php:35,43`이 append-only 감사로그를 90일 물리 DELETE**(불변성 상충·Legal Hold 예외 없음) ②승인 in-place UPDATE 과거 소실 ③DB 레벨 불변강제(Trigger/RLS/Permission) 전무·Application Role UPDATE/DELETE 가능 ④SecurityAudit Head-CAS/트랜잭션경계 부재(동시 INSERT 체인분기).
 - **구현 판정 = BLOCKED_PREREQUISITE**: 선행 §3.1~3.3(Decision Core/Actions/Runtime) ABSENT → Ledger가 기록할 불변 Record 대상 없어 공회전. 단 §3.4 Platform substrate 실재로 실 엔진=Decision Core 신설 후 기존 primitive 위 조립.
 - **완료 기준**: "계약 명세 확정". 실 엔진=선행 신설 후 별도 승인세션(RP-002). 다음=06-A-03-02-03-02 Cryptographic Hash Chain & Tamper Detection(+03~10). ★이 Decision Integrity & Security 전체=10 세부 EPIC 중 1번째 완료.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-02 Cryptographic Hash Chain & Tamper Detection Governance (설계 명세 · 코드 0)
+
+- **산출**: ⓐ 선영속(`SPEC_06A_03_02_03_02_CRYPTO_HASH_CHAIN_TAMPER_VERBATIM.md`) → ⓑ 전수조사(`DSAR_APPROVAL_CRYPTO_INTEGRITY_EXISTING_IMPLEMENTATION.md`+`_DUPLICATE_IMPLEMENTATION_AUDIT.md`·2에이전트 GROUND_TRUTH) → ⓒ per-entity DSAR **72편**(§74·8에이전트 wave) → ⓓ ADR(`ADR_DSAR_CRYPTOGRAPHIC_HASH_CHAIN_TAMPER_DETECTION.md`). 총 ~75 신규 문서. **실 코드·테이블 0**.
+- **핵심 결론**: Cryptographic Integrity Governance(Registry/Policy/Canonicalization/Field Set/Projection/Digest Envelope/Chain·Head·Checkpoint Digest/Verification/Tamper/Rotation) 부재. ★**`SecurityAudit::verify`=유일 실 append-only SHA-256 해시체인+검증**(재계산·hash_equals+prev_hash·GENESIS·tenant preimage·재계산 가능 created_at·배선 `AdminGrowth.php:1429`)=CANONICAL_VERIFICATION_ENGINE 확장 대상. `Crypto.php` SHA-256/HMAC·`MediaHost` 내용주소 CAS·서버UTC=재사용 substrate("발명 아닌 조립").
+- **★핵심 실결함(실 체인조차)**: ①**Canonicalization 부재**(`SecurityAudit.php:27` raw `|`-concat + `json_encode(UNESCAPED_UNICODE)` → §5.3/§5.4 위반) ②Head-CAS 없음(동시 INSERT 체인분기) ③verify tenant 술어 없음(전역 단일 체인) ④catch fail-open(`:32` silent reset) ⑤'sha256' 리터럴 하드코딩 산재(Rotation 불가).
+- **★중대 긍정(오탐 예방)**: Tamper/Chain 경로 **Weak Algorithm(MD5/SHA-1/CRC) 사용 0** — §61 "MD5/SHA-1 Integrity Proof" 해당없음. 산재 md5/sha1/crc는 비보안(ID/캐시/PII 가명화 `CRM.php:589-930`) 또는 벤더강제(OAuth1.0a/TOTP/CRAM-MD5). Legacy Hash Import에서 비무결성 분류·Canonical 승격 금지.
+- **장식 오인 금지**: menu_audit_log.hash_chain(verify()0·preimage ts 미저장)·schema_migrations.checksum(비교 미실행)·journey_decision_log(in-place UPDATE).
+- **구현 판정 = BLOCKED_PREREQUISITE**: 선행 §3.1 Immutable Ledger·§3.2 Decision Foundation 설계전용(코드/테이블 0) → 해시체인이 결합할 불변 Entry/Snapshot/Evidence/Audit/Outbox 대상 없어 공회전. §74 대부분 ABSENT/BLOCKED_PREREQUISITE·cover 0.
+- **완료 기준**: "계약 명세 확정". 실 엔진=선행 Ledger·Decision Core 신설 후 별도 승인세션(RP-002). 다음=06-A-03-02-03-03 Actor Identity Assurance & Authentication Binding(★스펙 미제공·대기). ★Decision Integrity & Security 10 세부 EPIC 중 2번째 완료.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-03 Actor Identity Assurance & Authentication Binding Governance (설계 명세 · 코드 0)
+
+- **산출**: ⓐ 선영속(`SPEC_06A_03_02_03_03_ACTOR_IDENTITY_ASSURANCE_VERBATIM.md`) → ⓑ 전수조사(`DSAR_APPROVAL_IDENTITY_EXISTING_IMPLEMENTATION.md`+`_DUPLICATE_IMPLEMENTATION_AUDIT.md`·신원+인증 2에이전트) → ⓒ per-entity DSAR **67편**(§74·8에이전트 wave) → ⓓ ADR(`ADR_DSAR_ACTOR_IDENTITY_AUTHENTICATION_BINDING.md`). 총 ~70 신규 문서. **실 코드·테이블 0**.
+- **★이 블록은 순수-설계 선행(03-02-03-01/02)과 다름 — 실 인증/신원 코드 대량 실재** → 판정 다수 PARTIAL/PRESENT-substrate/VALIDATED.
+- **실 substrate(확장대상)**: **`Mapping::actorId`(Mapping.php:36-53)=canonical actor 정본**(위조불가·승인 fail-closed·정족수2)·서버측 영속 세션(user_session·revocation·유휴폐기)·api_key+RBAC scopes(index.php:554-600·Db.php:942)·MFA(TOTP/SMS/email/복구·정책)·SSO OIDC/SAML/SCIM(state/nonce/replay 방어)·SecurityAudit 불변체인.
+- **진짜 부재(순신규)**: Actor Identity Assurance Registry/Policy/Type·Principal Registry·Canonical Subject Binding·Assurance Level Model·session↔Decision Command 결합·commit-time 재검증·Original Principal↔Effective Actor 이중보존·불변 Identity/Auth Snapshot·Device/mTLS/Cert·JTI/refresh·승인경로 replay.
+- **★BLOCKED_SECURITY 라이브 실결함 6건(선행무관·자립수정 가능·별도 배포승인)**: ①`Alerting::actor()`(Alerting.php:33-36) X-User-Email/?actor= 승인자 위조+`decideAction` 정족수 없이 단일 approved ②`executeAction`(:601-665) 미승인·미재검증 집행 ③`user_session.token` 평문(UserAuth.php:969) ④`mfa_secret`(TOTP) 평문(:3421,3771) ⑤break-glass 마스터로그인 MFA 우회(:777-798,925) ⑥member impersonation Original Principal 미보존(UserAdmin.php:472-534).
+- **장식 오인 금지**: `Decisioning.php`=ad-insights ingest(decision 아님)·승인 감사가 비체인 audit_log(SecurityAudit 해시체인 밖).
+- **구현 판정 = BLOCKED_PREREQUISITE(승인 결합부)**: 선행 §3.3 Decision Foundation·§3.4 Assignment/Authority/Delegation ABSENT → Identity 결합할 불변 Decision Record/Snapshot 대상 없음. 인증/신원 substrate 실재로 실 엔진=Decision Core 신설 후 조립.
+- **완료 기준**: "계약 명세 확정". 다음=06-A-03-02-03-04 Authorization·SoD·Conflict-of-Interest·Dual-Control(스펙 대기). ★Decision Integrity & Security 10 세부 EPIC 중 3번째 완료. ★BLOCKED_SECURITY 6건=자립 수정세션 후보(최우선).
+
+---
+
+## 289차 후속 — BLOCKED_SECURITY 라이브 실결함 수정 + 배포 (실 코드 변경 · 운영+데모 배포완료)
+
+06-A-03-02-03-03 감사가 부수 발견한 라이브 실결함 6건을 라이브 재증명(현재 코드 직접 정독) 후 수정. **운영(genieroi.com)+데모(demo.genieroi.com) 백엔드 3파일 배포·검증완료**(health 200·php -l 무오류·fatal 0·롤백 `.bak.secfix_n289`). Golden Rule=Extend·무후퇴·수정 전 게이트 준수. 커밋 미실행(사용자 지시 대기).
+
+### 수정 4건 (배포됨)
+- **#1 `Alerting::actor()` 승인자 위조 차단**(`Alerting.php:33-58`) — X-User-Email 헤더/`?actor=` 쿼리 신뢰 제거 → canonical `actorId()`(auth_key→`apikey:{id}`·세션→`user:{email}`·미확인 null) 신설(Mapping::actorId 정본 패턴 확장). 실제 헤더 읽기 코드 0(잔존은 주석).
+- **#2 action_request Maker-Checker 강제**(`Alerting.php` decideAction/executeAction) — decide: fail-closed 403·종결가드·동일인 dedup·**서로 다른 승인자 2명 강제**(종전 required_approvals=2 표시상수 미강제). execute: **status='approved'에서만 집행**(종전 상태무관 즉시 외부 광고API 집행=Maker-Checker 우회). ★action_request 라이브 생산자 0건(INSERT 무)이라 회귀위험 사실상 0.
+- **#4 `mfa_secret`(TOTP) 평문→AES-256-GCM 암호화**(`UserAuth.php`) — setup 쓰기 `Crypto::encrypt`·login/enable 읽기 `Crypto::decrypt`(기존 평문 secret passthrough=무회귀)·`mfa_secret` VARCHAR(64→255) 자가치유 확장. Crypto fail-closed(키/openssl 미가용 시 평문저장 거부). 로컬 round-trip 검증(복호=원본·평문 passthrough·길이 67~87≤255).
+- **#6 impersonate Original Principal 보존**(`UserAdmin.php`) — `user_session.impersonated_by`(멱등 컬럼)에 발급 admin 신원 저장(종전 대행세션이 회원 본인세션과 구별불가). NULL=일반세션(무회귀)·예외 시 폴백 INSERT.
+
+### 조정 2건
+- **#5 break-glass MFA 우회 = 의도된 비상접근 유지 + 전용감사 보강**(`UserAuth.php`) — env 게이트 복구경로라 제거 금지. `auth.breakglass` 전용 불변 해시체인 이벤트 추가(사후 감사·탐지). 우회 동작 무변.
+- **#3 `user_session.token` 평문 저장 = defer**(전용 마이그레이션 세션) — 조회 25+ 개소·전원 강제 재로그인·UNIQUE 인덱스. 무후퇴 위해 dual-read 전환 별도 착수.
+
+### 배포 실측
+- 백엔드 PHP 3파일(Alerting/UserAuth/UserAdmin) pscp → chown www:www → 서버 php -l → php-fpm 2서비스(php-fpm.service+php8.1-fpm.service) reload. **DB 마이그레이션 불필요**(자가치유 ALTER: mfa_secret 확장·impersonated_by 추가가 핸들러 최초 실행 시 적용). 운영 login 스모크 400(fatal 아님·핸들러 정상). 데모·운영 parity.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-04 Part 1 Authorization Registry Foundation Governance (설계 명세 · 코드 0)
+
+- **산출**: ⓐ 선영속(`SPEC_06A_03_02_03_04_P1_AUTHORIZATION_REGISTRY_VERBATIM.md`) → ⓑ 전수조사(`DSAR_APPROVAL_AUTHORIZATION_EXISTING_IMPLEMENTATION.md`+`_DUPLICATE_IMPLEMENTATION_AUDIT.md`·서버측+역할/UI 2에이전트) → ⓒ per-entity DSAR **56편**(§67·8에이전트 wave) → ⓓ ADR(`ADR_DSAR_AUTHORIZATION_REGISTRY_FOUNDATION.md`). 총 ~59 신규 문서. **실 코드·테이블 0**.
+- **★실 authorization 코드 대량 실재** → 판정 다수 PARTIAL/PRESENT-substrate/LEGACY.
+- **실 substrate(확장대상)**: **`index.php:553-603` 중앙 RBAC**(roleRank/scope/write/tenant 강제)·**`TeamPermissions.php:120-322` RBAC/ABAC**(acl_permission 매트릭스+data_scope 행필터+위임상한·fail-closed=Registry 최근접)·Maker-Checker(Mapping/Alerting)·api_key scopes(Keys.php)·SSO group→role(EnterpriseAuth.php:78)·agency 위임(index.php:74-104).
+- **진짜 부재(순신규)**: Authorization Registry/Policy/Definition 선언체·Policy 버전화·Policy Set·Combining Algorithm·선언적 Default/Explicit Deny·Authorization Decision/Snapshot/Evidence/Digest/Ledger 결합·SoD/COI/Dual-Control.
+- **★위험(후속 enforcement Part)**: ①FE `writeGuard.js` **UI-only·fail-open**(서버 requireTeamWrite 11개소뿐→116페이지 member 쓰기 UI-only 방어·§5.4) ②`requireFeaturePlan` 3중 fail-open(UserAuth.php:72,82-84) ③`admin_roles/user_roles` **DORMANT**(저장·미소비 죽은 RBAC) ④isAdmin4/requireAdmin3/team_role3중 **중복 미러**(정책 드리프트).
+- **★중대 긍정(오탐예방)**: 하드코딩 user-id/email authz **부재**(전부 DB plan/plans/admin_level)·"Actor ID Body 신뢰"는 직전 03-03 Alerting canonical actor 수정으로 **닫힘**(재플래그 금지).
+- **구현 판정 = 대부분 ABSENT/PARTIAL-substrate/BLOCKED_PREREQUISITE**: 정책 데이터 선언체·판정 불변저장 순신규·선행 Decision/Resource Version 부재. 실 엔진=TeamPermissions/index.php RBAC를 Canonical Registry/Policy로 데이터화 + Decision 결합 조립.
+- **완료 기준**: "계약 명세 확정". 다음=Part 2 Permission Engine Foundation(스펙 대기). ★06-A-03-02-03-04는 총 10 Part 중 Part 1 완료.
