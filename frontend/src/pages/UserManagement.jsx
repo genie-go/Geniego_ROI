@@ -12,9 +12,6 @@ const PLAN_COLORS = {
     growth: "#4f8ef7", pro: "#8b5cf6",
     enterprise: "#f59e0b", admin: "#ef4444",
 };
-const ALL_PERMS = [
-    "read", "write", "marketing", "ops", "wms", "finance", "billing", "admin", "ai", "export",
-];
 
 const css = {
     card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: "20px 24px", marginBottom: 16 },
@@ -56,11 +53,6 @@ async function adminPost(token, path, body, method = "POST") {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(body),
     });
-    return r.json();
-}
-
-async function adminDelete(token, path) {
-    const r = await fetch(`${API}/${path}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     return r.json();
 }
 
@@ -161,9 +153,6 @@ function MembersTab() {
     const [expiringView, setExpiringView] = useState(false);
     const { data: expData } = useAdminApi("v423/admin/users-expiring?days=30", []);
     const expSummary = expData?.summary || { total: 0, expired: 0, within7: 0, within30: 0 };
-
-    const { data: rolesData } = useAdminApi("v423/admin/roles");
-    const allRoles = rolesData?.roles || [];
 
     // ★ 201차 통합: 플랜 목록을 PlanPricing(/admin/plan-pricing) 정본(v424/admin/plans)과 동기화.
     //   판매 플랜(동적) + 시스템 플랜(free/demo/admin)을 합쳐 회원 배정에 사용 → 두 화면 플랜 집합 일치.
@@ -418,19 +407,6 @@ function MembersTab() {
                                 비밀번호 초기화
                             </button>
                         </div>
-                        {/* Role assign */}
-                        <div>
-                            <label style={css.label}>역할 부여</label>
-                            <select id="roleSelect" style={css.input}>
-                                {allRoles.map(r => <option key={r.role_key} value={r.role_key}>{r.name_ko} ({r.role_key})</option>)}
-                            </select>
-                            <button style={{ ...css.btn("primary"), marginTop: 8, width: "100%" }} onClick={() => {
-                                const sel = document.getElementById("roleSelect");
-                                patch(`v423/admin/users/${selected.id}/role`, { role_key: sel.value });
-                            }}>
-                                역할 부여
-                            </button>
-                        </div>
                     </div>
                     {/* Paddle info */}
                     {selected.paddle_status && (
@@ -440,117 +416,6 @@ function MembersTab() {
                     )}
                 </div>
             )}
-        </div>
-    );
-}
-
-/* ─── TAB: 권한(역할) 관리 ───────────────────────────────────────────────── */
-function RolesTab() {
-    const t = useT();
-    const { token } = useAuth();
-    const { data, loading, refetch } = useAdminApi("v423/admin/roles");
-    const [form, setForm] = useState({ role_key: "", name_ko: "", name_en: "", permissions: [], is_active: 1, sort_order: 0 });
-    const [msg, setMsg] = useState("");
-
-    const togglePerm = (perm) => {
-        setForm(f => ({
-            ...f,
-            permissions: f.permissions.includes(perm) ? f.permissions.filter(p => p !== perm) : [...f.permissions, perm],
-        }));
-    };
-
-    const editRole = (r) => {
-        let perms = [];
-        try { perms = typeof r.permissions === "string" ? JSON.parse(r.permissions) : r.permissions; } catch { }
-        setForm({ role_key: r.role_key, name_ko: r.name_ko, name_en: r.name_en, permissions: perms || [], is_active: r.is_active, sort_order: r.sort_order });
-    };
-
-    const save = async () => {
-        const d = await adminPost(token, "v423/admin/roles", form);
-        setMsg(d.ok ? "✅ 저장 완료" : `❌ ${d.error}`);
-        if (d.ok) { refetch(); setForm({ role_key: "", name_ko: "", name_en: "", permissions: [], is_active: 1, sort_order: 0 }); }
-        setTimeout(() => setMsg(""), 3000);
-    };
-
-    const del = async (role_key) => {
-        if (!confirm(`역할 '${role_key}'을 삭제할까요?`)) return;
-        await adminDelete(token, `v423/admin/roles/${role_key}`);
-        refetch();
-    };
-
-    return (
-        <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                {/* Form */}
-                <div style={css.card}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>역할 생성 / 편집</div>
-                    <div style={{ ...css.row, gridTemplateColumns: "1fr 1fr" }}>
-                        <div>
-                            <label style={css.label}>역할 키 (영문소문자_)</label>
-                            <input style={css.input} value={form.role_key} onChange={e => setForm(f => ({ ...f, role_key: e.target.value.replace(/[^a-z0-9_]/g, "") }))} placeholder="e.g. marketing_mgr" />
-                        </div>
-                        <div>
-                            <label style={css.label}>{t('userMgmtPage.sortOrder', '정렬 순서')}</label>
-                            <input type="number" style={css.input} value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: +e.target.value }))} />
-                        </div>
-                    </div>
-                    <div style={{ ...css.row, gridTemplateColumns: "1fr 1fr" }}>
-                        <div>
-                            <label style={css.label}>Name (한국어)</label>
-                            <input style={css.input} value={form.name_ko} onChange={e => setForm(f => ({ ...f, name_ko: e.target.value }))} />
-                        </div>
-                        <div>
-                            <label style={css.label}>Name (영어)</label>
-                            <input style={css.input} value={form.name_en} onChange={e => setForm(f => ({ ...f, name_en: e.target.value }))} />
-                        </div>
-                    </div>
-                    <div style={{ marginBottom: 12 }}>
-                        <label style={css.label}>권한 설정 (복수 선택)</label>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
-                            {ALL_PERMS.map(p => (
-                                <button key={p} onClick={() => togglePerm(p)} style={{ padding: "4px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 600, cursor: "pointer", background: form.permissions.includes(p) ? "rgba(79,142,247,0.2)" : "#eef2f7", borderColor: form.permissions.includes(p) ? "#4f8ef7" : "rgba(255,255,255,0.1)", color: form.permissions.includes(p) ? "#4f8ef7" : "#64748b" }}>
-                                    {p}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <select style={{ ...css.input, width: 100 }} value={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: +e.target.value }))}>
-                            <option value={1}>활성</option>
-                            <option value={0}>비활성</option>
-                        </select>
-                        <button style={css.btn("primary")} onClick={save}>{t('save', '저장')}</button>
-                        {msg && <span style={{ fontSize: 12, color: msg.startsWith("✅") ? "#22c55e" : "#ef4444" }}>{msg}</span>}
-                    </div>
-                </div>
-
-                {/* Role list */}
-                <div style={css.card}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>등록된 역할</div>
-                    {loading ? <div style={{ color: "var(--text-3)", fontSize: 12 }}>로딩 중...</div> : (data?.roles || []).map(r => {
-                        let perms = [];
-                        try { perms = typeof r.permissions === "string" ? JSON.parse(r.permissions) : r.permissions; } catch { }
-                        return (
-                            <div key={r.role_key} style={{ padding: "12px 14px", borderRadius: 10, border: '1px solid var(--border)', marginBottom: 8, position: "relative" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                    <div>
-                                        <div style={{ fontWeight: 700, fontSize: 11, color: "var(--text-3)" }} >{r.name_ko} <span>({r.role_key})</span></div>
-                                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
-                                            {(perms || []).map(p => (
-                                                <span key={p} style={{ padding: "2px 8px", borderRadius: 20, fontSize: 10, background: "rgba(79,142,247,0.1)", color: "#4f8ef7", border: "1px solid rgba(79,142,247,0.2)" }}>{p}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 6 }}>
-                                        <button style={{ ...css.btn(), padding: "3px 10px", fontSize: 11 }} onClick={() => editRole(r)}>편집</button>
-                                        <button style={{ ...css.btn("danger"), padding: "3px 10px", fontSize: 11 }} onClick={() => del(r.role_key)}>{t('delete', '삭제')}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
         </div>
     );
 }
@@ -746,7 +611,6 @@ function MemberAuditTab() {
 const TABS = [
     { id: "stats", label: "📊 대시보드" },
     { id: "members", label: "👥 회원 관리" },
-    { id: "roles", label: "🔐 역할·권한(RBAC)" },
     { id: "billing", label: "💰 결제 내역" },
     { id: "audit", label: "📋 감사 로그" },
     { id: "memberlog", label: "🛡️ 회원 로그" },
@@ -806,7 +670,6 @@ export default function UserManagement() {
             {/* Tab content */}
             {tab === "stats" && <StatsTab />}
             {tab === "members" && <MembersTab />}
-            {tab === "roles" && <RolesTab />}
             {tab === "billing" && <BillingTab />}
             {tab === "audit" && <AuditTab />}
             {tab === "memberlog" && <MemberAuditTab />}

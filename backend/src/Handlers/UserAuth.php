@@ -69,14 +69,21 @@ final class UserAuth
             $tenant = self::authedTenant($req);
             if ($tenant === null || $tenant === '') $tenant = (string)($req->getAttribute('auth_tenant') ?? '');
             $plan = self::resolveTenantPlan($pdo, (string)$tenant);
-            if ($plan === null || $plan === 'admin' || $plan === 'demo') return null; // fail-open / 관리·데모
-            if (\Genie\PlanPolicy::allows($plan, $featureKey)) return null;
+            if ($plan === 'admin' || $plan === 'demo') return null; // 관리·데모 우회(정당)
+            // [289차후속 P2] fail-SECURE 정합 — plan 미해석(app_user 부재/조회실패)을 종전엔 무조건 통과(return null)
+            //   처리해, 해석 불가한 호출자가 유료 기능(auto_campaign=starter 등)을 무료로 우회할 수 있었다(수익누수).
+            //   PlanPolicy 가 미정의 기능을 'pro'로 fail-secure 처리(minPlanFor)하는 것과 동일 철학으로, 미해석
+            //   plan 은 최저 등급('free', rank 0)으로 간주해 PlanPolicy 가 판정하게 한다 → free 허용 기능은 그대로
+            //   통과, 유료 기능은 정상 403. ★아래 catch 는 가드 자체 크래시용 fail-open 유지(구매 고객 기능을
+            //   코드버그로 뺏지 않음 — 수익누수 벡터=미해석 plan 은 여기서 봉인). 데이터 보안은 테넌트격리+RBAC 담당.
+            $effPlan = ($plan === null || $plan === '') ? 'free' : $plan;
+            if (\Genie\PlanPolicy::allows($effPlan, $featureKey)) return null;
             $min = \Genie\PlanPolicy::minPlanFor($featureKey);
             return self::json($res, [
                 'ok' => false,
                 'error' => "이 기능은 {$min} 플랜 이상에서 이용 가능합니다.",
                 'code' => 'PLAN_REQUIRED',
-                'currentPlan' => $plan,
+                'currentPlan' => $effPlan,
                 'requiredPlan' => $min,
             ], 403);
         } catch (\Throwable $e) {
@@ -1124,6 +1131,45 @@ final class UserAuth
             return [null, [$msg, 403]];
         }
         return [$caller, null];
+    }
+
+    /**
+     * [289차후속 P1] 서버측 전역 팀 쓰기 가드 — FE writeGuard.js(UI-only·직접 API 호출로 우회 가능)의
+     *   심층 미러(defense-in-depth). 중앙 미들웨어(index.php)가 모든 mutating(POST/PUT/PATCH/DELETE)
+     *   요청에 대해 호출하여 **오직 명시적 team_role='member'(읽기전용 하위계정)의 쓰기만** 403 차단한다.
+     *
+     *   기존 팀권한 체계(normTeamRole/teamCanWrite)를 그대로 재사용 — 신규 권한 체계 신설 없음.
+     *   requireTeamWrite 와 달리 '무세션=401' 이 아니라 '무세션=통과' 다(전역 미들웨어이므로 공개/api_key/
+     *   비로그인 경로를 401 로 깨면 안 됨). action 미검사(전역·메서드 기반) → member 읽기전용만 강제하고,
+     *   owner-only 액션(billing/plan_change/api_keys/security_policy)의 manager 제한은 종전대로 각 핸들러의
+     *   requireTeamWrite($action) 가 담당(이중게이트 충돌 없음).
+     *
+     *   fail-open(무회귀) — FE writeGuard 와 1:1 대응:
+     *     · 세션 토큰 부재/미해결(api_key·공개비콘·비로그인·agt_·local_admin·만료세션) → null(통과)
+     *     · plan=admin(플랫폼 관리자) → null(우회)
+     *     · team_role ∈ {owner, manager, 미지정→owner 정규화} → null(통과)
+     *     · 예외/스키마 이슈 등 어떤 불확실성 → null(통과)
+     *   반환: null=통과, [$msg, $status]=차단. (메서드 판정·/auth/* 예외는 호출측 index.php 가 수행.)
+     */
+    public static function guardTeamWrite(ServerRequestInterface $req): ?array
+    {
+        try {
+            // 데모 환경 전면 우회 — FE writeGuard 의 IS_DEMO 예외와 1:1 대응("데모=full 엔터프라이즈 경험").
+            //   envLabel()==='demo' 는 연결 DB 명이 '_demo' 접미인 데모 배포에서만 참(운영에선 절대 거짓) →
+            //   운영 보안엔 무영향이면서 데모 쇼케이스의 어떤 세션도 차단하지 않는다.
+            if (Db::envLabel() === 'demo') return null;
+            $token = (string)(self::extractToken($req) ?? '');
+            if ($token === '') return null;                              // 비로그인/공개/비콘
+            if (strncmp($token, 'local_admin_', 12) === 0 || strncmp($token, 'local__', 7) === 0) return null; // 로컬 관리자
+            $caller = self::userByToken($token);
+            if (!$caller) return null;                                   // api_key·agt_·만료세션 → 위임(통과)
+            if (($caller['plan'] ?? '') === 'admin') return null;        // 플랫폼 admin 우회
+            $role = $caller['team_role'] ?? (!empty($caller['parent_user_id']) ? 'member' : 'owner');
+            if (self::normTeamRole($role) !== 'member') return null;     // owner/manager/미지정 통과
+            return ['읽기 전용 멤버 계정입니다 — 이 작업은 관리자(owner) 또는 매니저만 수행할 수 있습니다.', 403];
+        } catch (\Throwable $e) {
+            return null; // fail-open: 정책 불확실 시 기존 동작 보존
+        }
     }
 
     /**

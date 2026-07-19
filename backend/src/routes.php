@@ -1667,12 +1667,9 @@ return function (App $app): void {
         // [263차] v423 admin/plan-prices(period-based) 제거 — plan_prices 유령테이블(CREATE 부재·프론트 호출0) 참조 고아.
         // 기간별 구독요금 SSOT 는 plan_period_pricing(AdminPlans UI·PlanPricing/AuthPage 소비) 으로 일원화됨. 중복 재신설 금지.
         'GET /v423/admin/migrate'                        => 'Genie\\Handlers\\UserAdmin::migrate',
-        'GET /v423/admin/roles'                          => 'Genie\\Handlers\\UserAdmin::listRoles',
-        'POST /v423/admin/roles'                         => 'Genie\\Handlers\\UserAdmin::upsertRole',
-        'DELETE /v423/admin/roles/{role_key}'            => 'Genie\\Handlers\\UserAdmin::deleteRole',
-        'GET /v423/admin/users/{id}/roles'               => 'Genie\\Handlers\\UserAdmin::getUserRoles',
-        'PATCH /v423/admin/users/{id}/role'              => 'Genie\\Handlers\\UserAdmin::assignRole',
-        'DELETE /v423/admin/users/{id}/roles/{role_key}' => 'Genie\\Handlers\\UserAdmin::revokeRole',
+        // [289차후속 P3] admin_roles/user_roles 폐기 — 부여된 커스텀 역할이 어떤 인가 게이트에서도 소비되지 않는
+        //   DORMANT(장식) RBAC 였다(실 RBAC=TeamPermissions acl_permission/data_scope). listRoles/upsertRole/
+        //   deleteRole/getUserRoles/assignRole/revokeRole 6라우트 + FE UserManagement 역할탭 동반 제거. 재신설 금지.
         'GET /v423/admin/billing'                        => 'Genie\\Handlers\\UserAdmin::billingList',
         'GET /v423/admin/audit-logs'                     => 'Genie\\Handlers\\UserAdmin::auditLogs',
 
@@ -2701,12 +2698,7 @@ return function (App $app): void {
     $register('GET',    '/v423/admin/stats');
     // [263차] admin/plan-prices 제거(위 참조) — plan_period_pricing SSOT 로 일원화
     $register('GET',    '/v423/admin/migrate');
-    $register('GET',    '/v423/admin/roles');
-    $register('POST',   '/v423/admin/roles');
-    $register('DELETE', '/v423/admin/roles/{role_key}');
-    $register('GET',    '/v423/admin/users/{id}/roles');
-    $register('PATCH',  '/v423/admin/users/{id}/role');
-    $register('DELETE', '/v423/admin/users/{id}/roles/{role_key}');
+    // [289차후속 P3] admin_roles/user_roles 폐기(위 map 참조) — DORMANT RBAC. roles/user-roles 6라우트 제거.
     $register('GET',    '/v423/admin/billing');
     $register('GET',    '/v423/admin/audit-logs');
 

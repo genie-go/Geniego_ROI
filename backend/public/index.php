@@ -69,6 +69,25 @@ $app->add(function (Request $request, $handler) use ($GENIE_ALLOWED_ORIGINS) {
 $app->add(function (Request $request, $handler) {
     $path = $request->getUri()->getPath();
 
+    // ── [289차후속 P1] 서버측 전역 팀 쓰기 가드 (FE writeGuard.js 심층 미러 · 직접 API 우회 차단) ──
+    //   읽기전용 팀멤버(team_role='member')의 mutating(POST/PUT/PATCH/DELETE) 호출을 라우팅 이전에 중앙 403.
+    //   지금까지 서버측 team_role 강제는 requireTeamWrite 11개소(계정/플랜/api_keys/보안정책)뿐이라, member 가
+    //   FE writeGuard 를 우회해 직접 API 를 때리면 116페이지 mutating 대다수가 무방비였다(§5.4). 여기서 전역 봉인.
+    //   ★fail-open 무회귀: 세션 미해결(api_key·공개비콘·비로그인·agt_·만료)·plan=admin·owner/manager 는 전부 통과.
+    //   ★예외: 인증 수명주기(/auth/*)는 BE 가 자체 권위(본인 비번변경/로그아웃/MFA 등 셀프서비스) → FE 와 동일 예외.
+    $wgMethod = strtoupper($request->getMethod());
+    if (in_array($wgMethod, ['POST', 'PUT', 'PATCH', 'DELETE'], true)
+        && strpos($path, '/auth/') !== 0 && strpos($path, '/api/auth/') !== 0
+        && $path !== '/auth' && $path !== '/api/auth') {
+        $wgErr = \Genie\Handlers\UserAuth::guardTeamWrite($request);
+        if ($wgErr !== null) {
+            $wgBody = json_encode(['ok' => false, 'error' => $wgErr[0], 'code' => 'TEAM_READ_ONLY'], JSON_UNESCAPED_UNICODE);
+            $wgResp = new \Slim\Psr7\Response();
+            $wgResp->getBody()->write($wgBody);
+            return $wgResp->withStatus((int)$wgErr[1])->withHeader('Content-Type', 'application/json');
+        }
+    }
+
     // [272차 대행사(Agency)] ① 대행사 자체 엔드포인트(/agency/*) = 핸들러 self-auth(agt_ 세션·별도 네임스페이스).
     //   login 은 무토큰 공개, me/clients/switch/brand 등은 핸들러가 agt_ 토큰 자체검증. api_key 미들웨어 우회.
     if (preg_match('#^(/api)?/agency(/|$)#', $path)) {
