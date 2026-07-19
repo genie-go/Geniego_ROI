@@ -337,12 +337,23 @@ final class AdminMenu
         $userRole = $g['role'];
         $rank = ['viewer' => 0, 'connector' => 1, 'analyst' => 2, 'admin' => 3];
         $userRank = $rank[$userRole] ?? 0;
+        $isSuper  = !empty($g['is_super']);
 
-        $filtered = array_values(array_filter($rows, function ($r) use ($userRole, $userRank, $rank) {
+        $filtered = array_values(array_filter($rows, function ($r) use ($userRole, $userRank, $rank, $isSuper) {
             if ($r['is_admin_only'] && $userRole !== 'admin') return false;
             if (!empty($r['required_role'])) {
-                $need = $rank[$r['required_role']] ?? 99;
-                if ($userRank < $need) return false;
+                $rr = (string)$r['required_role'];
+                // [현 차수] 데드락 수정: 쓰기측 ROLE_ENUM(super_admin/moderator)이 읽기측 rank 맵에 없어
+                //   $rank[$rr]??99 → admin(rank3)조차 영구 비노출이었다. 쓰기 vocabulary를 가시성 판정으로 정합.
+                //   기존 admin/legacy rank 값(viewer~admin)은 동작 완전 보존 — super_admin/moderator만 정합.
+                if ($rr === 'super_admin') {
+                    if (!$isSuper) return false;      // super_admin 메뉴 = 슈퍼(owner/admin:menu_super) 전용
+                } elseif ($rr === 'moderator') {
+                    if ($userRank < 3) return false;  // moderator = admin 영역(admin 이상 노출)
+                } else {
+                    $need = $rank[$rr] ?? 99;         // admin/legacy rank 값 = 기존 동작 그대로
+                    if ($userRank < $need) return false;
+                }
             }
             return true;
         }));

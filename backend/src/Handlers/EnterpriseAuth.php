@@ -236,8 +236,11 @@ class EnterpriseAuth
         $email = strtolower((string)$claims['email']);
         $name = (string)($claims['name'] ?? ($claims['given_name'] ?? '') . ' ' . ($claims['family_name'] ?? ''));
         $sub = (string)($claims['sub'] ?? '');
+        // [현 차수] IdP 그룹 claim → 롤 매핑 배선(종전 OIDC 로그인은 groups 미전달로 항상 default_role·SCIM만 실효).
+        //   groups 부재/미매핑이면 roleForGroups='' → default_role 유지(무회귀).
+        $groups = is_array($claims['groups'] ?? null) ? $claims['groups'] : [];
         try {
-            $uid = self::provisionUser($pdo, $tenant, $email, trim($name) ?: $email, 'oidc', $sub, (string)($cfg['default_role'] ?? 'member'), (int)($cfg['auto_provision'] ?? 1));
+            $uid = self::provisionUser($pdo, $tenant, $email, trim($name) ?: $email, 'oidc', $sub, (string)($cfg['default_role'] ?? 'member'), (int)($cfg['auto_provision'] ?? 1), '', $groups);
         } catch (\Throwable $e) { return self::fail($res, $e->getMessage()); }
         $session = self::issueSession($pdo, $uid);
         return $res->withHeader('Location', self::publicBase() . '/login?sso_token=' . $session)->withStatus(302);
@@ -290,8 +293,12 @@ class EnterpriseAuth
         $name = self::samlAttr($signedXml, $nameAttr) ?: self::samlAttr($signedXml, 'displayName') ?: '';
         $email = strtolower(trim((string)$email));
         if ($email === '' || strpos($email, '@') === false) return self::fail($res, 'no email in SAML assertion');
+        // [현 차수] SAML 그룹 속성(groups/memberOf) → 롤 매핑 배선(★검증된 서명 서브트리 $signedXml 에서만 추출).
+        //   종전 SAML 로그인은 groups 미전달로 항상 default_role. 속성 부재/미매핑이면 default_role 유지(무회귀).
+        $groups = self::samlAttrAll($signedXml, 'groups');
+        if (!$groups) $groups = self::samlAttrAll($signedXml, 'memberOf');
         try {
-            $uid = self::provisionUser($pdo, $tenant, $email, trim((string)$name) ?: $email, 'saml', $sub, (string)($cfg['default_role'] ?? 'member'), (int)($cfg['auto_provision'] ?? 1));
+            $uid = self::provisionUser($pdo, $tenant, $email, trim((string)$name) ?: $email, 'saml', $sub, (string)($cfg['default_role'] ?? 'member'), (int)($cfg['auto_provision'] ?? 1), '', $groups);
         } catch (\Throwable $e) { return self::fail($res, $e->getMessage()); }
         $session = self::issueSession($pdo, $uid);
         return $res->withHeader('Location', self::publicBase() . '/login?sso_token=' . $session)->withStatus(302);
@@ -624,6 +631,17 @@ class EnterpriseAuth
         $pat = '/<(?:saml2?:)?Attribute[^>]*Name="' . preg_quote($name, '/') . '"[^>]*>.*?<(?:saml2?:)?AttributeValue[^>]*>([^<]+)<\/(?:saml2?:)?AttributeValue>/is';
         if (preg_match($pat, $xml, $m)) return trim($m[1]);
         return '';
+    }
+
+    /** [현 차수] SAML 다중값 속성 추출(groups/memberOf 등). 해당 Attribute 블록만 격리 후 그 안의 모든
+     *  AttributeValue 반환. ★반드시 서명검증된 서브트리($signedXml) 대상(XSW 방지). 부재 시 빈 배열. */
+    private static function samlAttrAll(string $xml, string $name): array
+    {
+        if ($name === '' || $xml === '') return [];
+        $blockPat = '/<(?:saml2?:)?Attribute[^>]*Name="' . preg_quote($name, '/') . '"[^>]*>(.*?)<\/(?:saml2?:)?Attribute>/is';
+        if (!preg_match($blockPat, $xml, $bm)) return [];
+        if (!preg_match_all('/<(?:saml2?:)?AttributeValue[^>]*>([^<]+)<\/(?:saml2?:)?AttributeValue>/is', $bm[1], $vm)) return [];
+        return array_values(array_filter(array_map('trim', $vm[1]), fn($v) => $v !== ''));
     }
 
     private static function httpGet(string $url, array $headers): string
