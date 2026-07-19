@@ -1,3 +1,32 @@
+> # ★★세션 종결 요약 (289차 후속 대규모 세션 · 2026-07-19)
+>
+> **이 세션 성과**: **보안 실구현 P1~P5 전량 운영+데모 배포·라이브검증·커밋·push** + **EPIC 06-A-03-02-03-04 Part 2(Permission Engine)·Part 3-1(Role Registry) 설계 거버넌스 완결**. 커밋 9개 전부 feat/n236 push(master 미접촉·자동배포 무관).
+>
+> ## ★A. 보안 실구현 P1~P5 (실 코드 · 운영+데모 배포·라이브검증·롤백 .bak)
+> 직전 세션 인계서 "C. 다음 세션 최우선" #1~#5를 전부 완수. 배포=수동 plink/pscp·health200·fpm 2서비스 reload·매번 승인.
+> - **P1 writeGuard 서버측 전역 enforcement** (`c1646bc`): `UserAuth::guardTeamWrite` 신설 + `index.php` 중앙 미들웨어. 읽기전용 member의 mutating 직접 API 우회를 라우팅 전 403 봉인. FE writeGuard 1:1 미러(fail-open·데모우회·/auth 예외). 로컬 10/10·라이브 프로브(owner/admin/무토큰 통과·envLabel=production).
+> - **P2 requireFeaturePlan fail-secure** (`c1646bc`): 미해석 plan→최저등급('free') 간주(수익누수 봉인). 호출처 1곳(auto_campaign). catch는 fail-open 유지. 로컬 7/7·라이브 ghost tenant→403.
+> - **P3 admin_roles/user_roles 폐기** (`c1646bc`): 어떤 인가게이트서도 미소비 DORMANT RBAC → BE 6라우트+6메서드+ensureRoleTables + FE UserManagement 역할탭 제거. 테이블은 파괴적 DROP 회피(고아 유지). `/admin/roles`=404 확인.
+> - **P4 admin 판정 Canonical SSOT** (`0f6ba6d`): `UserAuth::resolveAdminByToken` 신설·UserAdmin/EventPopup/DbAdmin/SystemMetrics 4개소 위임. ★SystemMetrics 드리프트 정정(plan만 보고 plans/is_active 누락). requireAdminUser·TeamPermissions::isAdmin는 의도적 별개. 로컬 8/8·라이브.
+> - **P5 세션토큰 at-rest 해시(2 Phase)**: **Phase1 dual-read**(`8fc150b`·16파일·무중단 기반) → **Phase2 hash-only+마이그레이션**(`cad2728d`·15파일). ★generateToken=bin2hex(32)=64hex=해시와 형식 구분 불가 → created_at 컷오프(Phase1 배포시각 03:48:16Z)로 판별. `UPDATE user_session SET token=SHA2(token,256)` 운영175/데모347행. SHA2=PHP hash('sha256') 실측 일치. **★배포 시퀀스: ①마이그레이션(dual-read하) ②Phase2 hash-only**. ★라이브 end-to-end: 마이그레이션 前 캡처한 실세션 원문토큰→200(무중단)·그 저장해시 replay→401(DB덤프 보호 실현)·무효→401. `token` 컬럼 NOT NULL+UNIQUE라 별도컬럼 아니라 token 컬럼에 해시 저장.
+>
+> ## ★B. EPIC 06-A 설계 거버넌스 (코드 0 · NOT_CERTIFIED · docs만)
+> Part 2·3-1을 Part 1 동형 파이프라인(ⓑ Explore 전수조사 → ADR + ground-truth 2편 → per-entity DSAR 멀티에이전트 wave)으로 완결. 전부 반날조 검증(ground-truth 밖 클래스 file:line 인용 0건).
+> - **Part 2 Permission Engine Foundation** (`85e74b9`+`dc81fd1`): ADR + ground-truth 2편 + per-entity DSAR **82편**(10 에이전트). 총 84 DSAR+1 ADR. 실 substrate=TeamPermissions acl_permission(menu×8action)+data_scope(9dims·4/57핸들러)·index.php RBAC(PEP)·api_key scopes·resolveAdminByToken. 순신규=Registry/Version/Canonical Code/first-class Deny/Combining/Effective영속/Snapshot. Permission=menu_key지 `{DOMAIN}:{RESOURCE}:{ACTION}` 아님. 3 분리 rank.
+> - **Part 3-1 Role Registry Foundation** (`2a6c011`): ADR + ground-truth 2편 + per-entity DSAR **54편**(8 에이전트). 총 56 DSAR+1 ADR. 실 substrate=5개 무관 role vocabulary(team_role/api_key role/admin_level/AdminMenu enum[반쯤死]/plan god flag[§6.5 누출])·값 'admin' 3중복·통합 namespace 부재. 가장 근접=team_role+TeamPermissions(단 version/namespace/lifecycle/owner/snapshot 부재). admin_roles=유일 Role Registry 시도였으나 289차 폐기(재부활 금지). isManager/isApprover/JobTitle 전무(정직).
+>
+> ## ★C. 다음 세션 최우선 (사용자 지정)
+> 1. **★EPIC 06-A-03-02-03-04 Part 3-2 — Role Hierarchy & Composite Role Governance** (Parent/Child/Nested/Composite Role·Role Graph·Circular Reference Detection·Effective Inherited Role·Role Conflict Resolution). Part 3-1이 Hierarchy/Composite Readiness Contract 준비 완료. 설계 거버넌스(코드 0·NOT_CERTIFIED)·동일 wave 파이프라인.
+> 2. (후속) Part 3-3 Assignment → 3-4 Scoped → 3-5 Dynamic → 3-6 Service/System → 3-7 Effective Role Resolution → Part 4 ABAC~Part 10.
+> 3. (실구현 트랙·별도 승인세션 RP-002) plan 'admin' god flag 분리(admin 판정을 Role/admin_level로·resolveAdminByToken 기반)·P5 잔여 없음(완결).
+>
+> ## ★D. 규율 (불변)
+> - 06-A 설계=코드0·NOT_CERTIFIED·BLOCKED_PREREQUISITE. 실엔진=선행 Decision Core+Permission Engine 실구현 후 RP-002 별도 승인세션. **폐기 admin_roles 재부활 금지·289차 P1~P4 재플래그 금지·부재를 결함으로 날조 금지·ground-truth 외 인용 금지.**
+> - per-entity DSAR wave 패턴 확립: committed ADR+EXISTING_IMPLEMENTATION 2문서를 에이전트가 Read→file:line은 그 2문서만 인용→반날조. 검증=파일수·코드무접촉·중복0·헤더일관·2문서밖 클래스인용0.
+> - 배포=수동 plink/pscp·CI inert·매번 승인. 자격증명=메모리 reference. 백엔드 양쪽동일·프론트 분리빌드.
+>
+> ---
+>
 > # ★★세션 종결 요약 (289차 13회차 · 2026-07-18)
 >
 > **이 세션 성과**: **high_value ₩5M 승인 게이트 라우팅갭 실결함 수정**(백엔드 3경로 서버측 강제 + CatalogSync UX 라벨) → **데모+운영 배포·검증·커밋**(`a2943fe2192`·feat/n236·**push 안함·master 미접촉**). 부수: 로컬 PHP PDO/mbstring 활성화.
