@@ -790,3 +790,15 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **정직 부재(오탐예방)**: 하드코딩 email/user-id authz·FULL_ACCESS/MANAGE_ALL/god-role **전무**. wildcard=api_key 한정.
 - **구현 판정 = ABSENT/PARTIAL-substrate/BLOCKED_PREREQUISITE**. 실엔진=선행 Decision Core+Canonical Action/Resource Registry 신설 후 별도 승인세션(RP-002). Permission≠Role(P3)≠Authority(P5) 3분리.
 - **★잔여**: per-entity DSAR ~78편(§100 목록)은 미생성 — Part 1은 58편을 8에이전트 wave로 생성. Part 2 core(ADR+ground-truth 2편)는 확정, per-entity 확장 세트는 후속 멀티에이전트 wave. 다음=Part 3 RBAC Governance.
+- **[후속 완결]** Part 2 per-entity DSAR **82편** 생성(10 에이전트 wave·커밋 dc81fd16ed8·push). 총 84 DSAR+1 ADR. 검증: 전건 헤더·코드무접촉·중복0·반날조 통과.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-04 Part 3-1 Role Registry Foundation Governance (설계 명세 · 코드 0 · NOT_CERTIFIED)
+
+- **산출**: ⓑ 전수조사 `DSAR_APPROVAL_ROLE_EXISTING_IMPLEMENTATION.md`+`_DUPLICATE_AUDIT.md`(타깃 grep+Explore 서브에이전트 26 tool-use) → ⓓ `ADR_DSAR_ROLE_REGISTRY_FOUNDATION.md` → per-entity DSAR **54편**(8 에이전트 wave). 총 56 DSAR+1 ADR. **실 코드·테이블 0**.
+- **★실 role substrate 실재하나 5개 무관 vocabulary 산재**: team_role(owner/manager/member·`app_user.team_role`·`TeamPermissions::roleOf` `:120-131`) + api_key role(viewer/connector/analyst/admin·`Keys.php:95`·roleRank `index.php:573`) + admin_level(master/sub·`UserAdmin.php:43-46`) + AdminMenu ROLE_ENUM(admin/super_admin/moderator·`:247`·게이트 rank와 불일치=반쯤 死) + **plan 'admin' god flag**(`TeamPermissions.php:132`·§6.5 위반 누출). 값 'admin' 3체계 중복·통합 namespace 부재.
+- **★가장 Role Registry 근접 = team_role+TeamPermissions**(acl_permission/data_scope 매핑·fail-closed·서버/FE 미러)이나 version/namespace/lifecycle/owner/snapshot 부재로 정식 Registry 아님. **admin_roles/user_roles=유일한 진짜 Role Registry 시도였으나 289차 P3 폐기**(고아 테이블·재부활 금지).
+- **진짜 부재(순신규)**: Role Registry/Definition/Version/Namespace(`{DOMAIN}:{FUNCTION}:{ROLE}`)·Owner(Business/Technical/Security)·Lifecycle·Risk/Criticality·Permission Mapping(Version 결합)·Scope Requirement·Assignment Policy·Review/Certification·Snapshot/Evidence/Digest·Drift/Revalidation/Simulation/Migration·Alias/Localization/Replacement.
+- **정직 부재(오탐예방)**: isManager/isApprover/Job Title/Position 하드코딩 **전무**. SSO group→role은 team_role 매핑(새 어휘 아님). admin_roles 폐기·289차 P1~P4 재플래그 금지.
+- **구현 판정 = ABSENT/PARTIAL-substrate/BLOCKED_PREREQUISITE**. Role≠Permission≠Authority(P5)≠JobTitle≠Plan 5분리. plan god flag 분리는 후속 정합(admin SSOT resolveAdminByToken=기반). 실엔진=선행 Permission Engine 실구현 후 RP-002. 다음=Part 3-2 Hierarchy/Composite.
