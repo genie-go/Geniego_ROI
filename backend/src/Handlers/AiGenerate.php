@@ -31,8 +31,8 @@ final class AiGenerate
         $auth = $req->getHeaderLine('Authorization');
         if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token') {
             try {
-                $s = Db::pdo()->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) LIMIT 1');
-                $s->execute([UserAuth::hashToken($m[1]), $m[1]]);
+                $s = Db::pdo()->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token = ? LIMIT 1');
+                $s->execute([UserAuth::hashToken($m[1])]);
                 $r = $s->fetch(PDO::FETCH_ASSOC);
                 if ($r) return (string)$r['plan'];
             } catch (\Throwable) {}

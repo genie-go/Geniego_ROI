@@ -900,9 +900,9 @@ final class UserAdmin
             "SELECT u.id, u.email, u.name, u.plan
                FROM user_session s
                JOIN app_user u ON u.id = s.user_id
-              WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1"
+              WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1"
         );
-        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), self::now()]);
         $user = $sStmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'Session expired or invalid'], 401);
 
@@ -1018,9 +1018,9 @@ final class UserAdmin
         $pdo = Db::pdo();
         $sStmt = $pdo->prepare(
             "SELECT u.id FROM user_session s JOIN app_user u ON u.id=s.user_id
-              WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1"
+              WHERE s.token = ? AND s.expires_at>? AND u.is_active=1"
         );
-        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), self::now()]);
         $userId = (int)($sStmt->fetchColumn() ?: 0);
         if (!$userId) return self::json($res, ['ok' => false, 'error' => 'Session expired'], 401);
 
@@ -1096,9 +1096,9 @@ final class UserAdmin
         $sStmt = $pdo->prepare(
             "SELECT u.id, u.email, u.plan FROM user_session s
                JOIN app_user u ON u.id=s.user_id
-              WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1"
+              WHERE s.token = ? AND s.expires_at>? AND u.is_active=1"
         );
-        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), self::now()]);
         $user = $sStmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'Session expired or invalid'], 401);
 

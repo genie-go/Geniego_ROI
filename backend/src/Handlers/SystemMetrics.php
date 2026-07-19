@@ -40,8 +40,8 @@ final class SystemMetrics
             $token = preg_match('/^Bearer\s+(.+)$/i', $h, $m) ? trim($m[1]) : trim((string)($request->getQueryParams()['token'] ?? ''));
             if ($token === '') return false;
             $pdo = Db::pdo();
-            $st = $pdo->prepare("SELECT 1 FROM user_session WHERE token IN (?, ?) AND expires_at>? LIMIT 1");
-            $st->execute([UserAuth::hashToken($token), $token, gmdate('Y-m-d\TH:i:s\Z')]);
+            $st = $pdo->prepare("SELECT 1 FROM user_session WHERE token = ? AND expires_at>? LIMIT 1");
+            $st->execute([UserAuth::hashToken($token), gmdate('Y-m-d\TH:i:s\Z')]);
             return (bool)$st->fetchColumn();
         } catch (\Throwable $e) { return false; }
     }

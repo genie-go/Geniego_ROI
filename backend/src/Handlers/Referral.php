@@ -135,8 +135,8 @@ final class Referral
         if (!preg_match('/Bearer\s+([a-f0-9]{64})/i', $auth, $m)) return 0;
         try {
             $pdo = Db::pdo();
-            $st = $pdo->prepare('SELECT user_id, expires_at FROM user_session WHERE token IN (?, ?) LIMIT 1');
-            $st->execute([UserAuth::hashToken($m[1]), $m[1]]);
+            $st = $pdo->prepare('SELECT user_id, expires_at FROM user_session WHERE token = ? LIMIT 1');
+            $st->execute([UserAuth::hashToken($m[1])]);
             $row = $st->fetch(\PDO::FETCH_ASSOC);
             if (!$row) return 0;
             $exp = (string)($row['expires_at'] ?? '');

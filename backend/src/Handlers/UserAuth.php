@@ -29,8 +29,10 @@ final class UserAuth
      *   api_key.key_hash(SHA-256) 선례와 동일. 클라이언트는 원문 토큰을 계속 보유하고, 서버는 조회 시 해시한다.
      *   ★설계: user_session.token 컬럼(VARCHAR(64) NOT NULL UNIQUE)에 **해시를 저장**한다. 해시(64hex)도
      *     고유·비널이라 기존 제약을 그대로 만족(별도 컬럼/스키마 변경 불필요).
-     *   ★Dual-read 무중단 이행: 신규 세션은 token=해시 저장, 기존 세션은 평문 토큰 잔존 → 조회는
-     *     `token IN (hashToken(t), t)` 로 둘 다 매칭. 기존 세션 만료 후 Phase2 에서 평문분기 제거.
+     *   ★Phase2(현재): 조회는 `token = hashToken(입력)` **hash-only**. 배포 시 기존 평문행을 in-place
+     *     해시화(UPDATE SET token=SHA2(token,256))했으므로 원문 토큰은 `token=hashToken(원문)` 으로 매칭되고,
+     *     DB 덤프로 얻은 저장 해시는 `token=hashToken(해시)≠저장` 이라 replay 불가(실 보호 실현). Phase1 의
+     *     dual-read 평문분기 제거 완료.
      *   모든 핸들러가 `\Genie\Handlers\UserAuth::hashToken()` 로 동일 해시를 산출한다(정본).
      */
     public static function hashToken(string $token): string { return hash('sha256', $token); }
@@ -263,9 +265,9 @@ final class UserAuth
                         s.last_seen_at AS _sess_last_seen
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([self::hashToken($token), $token, self::now()]);
+            $stmt->execute([self::hashToken($token), self::now()]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             // subscription_expires_at 컬럼이 없는 경우 또는 plans 컬럼이 없는 경우 폴백
@@ -275,9 +277,9 @@ final class UserAuth
                         u.company, u.created_at
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([self::hashToken($token), $token, self::now()]);
+            $stmt->execute([self::hashToken($token), self::now()]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         }
 
@@ -299,12 +301,12 @@ final class UserAuth
             $lastTs = $lastSeen ? (int)strtotime((string)$lastSeen) : 0;
             if ($almMin > 0 && $lastTs > 0 && ($nowTs - $lastTs) >= $almMin * 60) {
                 // 유휴 초과 → 세션 폐기(재로그인 강제).
-                try { $pdo->prepare('DELETE FROM user_session WHERE token IN (?, ?)')->execute([self::hashToken($token), $token]); } catch (\Throwable $e) {}
+                try { $pdo->prepare('DELETE FROM user_session WHERE token = ?')->execute([self::hashToken($token)]); } catch (\Throwable $e) {}
                 return null;
             }
             // 활동 갱신(throttle: 최초 또는 60s 초과 시에만 write).
             if ($lastTs === 0 || ($nowTs - $lastTs) >= 60) {
-                try { $pdo->prepare('UPDATE user_session SET last_seen_at = ? WHERE token IN (?, ?)')->execute([self::now(), self::hashToken($token), $token]); } catch (\Throwable $e) {}
+                try { $pdo->prepare('UPDATE user_session SET last_seen_at = ? WHERE token = ?')->execute([self::now(), self::hashToken($token)]); } catch (\Throwable $e) {}
             }
         }
 
@@ -1825,7 +1827,7 @@ final class UserAuth
         $token = self::extractToken($req);
         if ($token) {
             $who = self::userByToken($token);
-            Db::pdo()->prepare('DELETE FROM user_session WHERE token IN (?, ?)')->execute([self::hashToken($token), $token]);
+            Db::pdo()->prepare('DELETE FROM user_session WHERE token = ?')->execute([self::hashToken($token)]);
             if ($who) self::audit($req, 'logout', '로그아웃', 'low', $who);
         }
         return self::json($res, ['ok' => true]);
@@ -2489,7 +2491,7 @@ final class UserAuth
         $pdo->prepare('UPDATE app_user SET password_hash=?, password_hashs=NULL WHERE id=?')
             ->execute([password_hash($new, PASSWORD_DEFAULT), $user['id']]);
         // 보안: 비번 변경 시 현재 세션을 제외한 다른 세션 무효화
-        try { $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>? AND token<>?')->execute([$user['id'], self::hashToken($token), $token]); } catch (\Throwable $e) {}
+        try { $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>?')->execute([$user['id'], self::hashToken($token)]); } catch (\Throwable $e) {}
         self::audit($req, 'password_change', '비밀번호 변경', 'high', $user);
         return self::json($res, ['ok' => true, 'message' => '비밀번호가 변경되었습니다.']);
     }
@@ -3002,20 +3004,20 @@ final class UserAuth
             $stmt = $pdo->prepare(
                 "SELECT u.id, u.email, u.name, u.admin_level, COALESCE(u.plans, u.plan, 'pro') AS plan
                    FROM user_session s JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
                     AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
             );
-            $stmt->execute([self::hashToken($token), $token, self::now()]);
+            $stmt->execute([self::hashToken($token), self::now()]);
         } catch (\Throwable $e) {
             // admin_level 컬럼 미존재 스키마 폴백(값은 null=master 취급).
             try {
                 $stmt = $pdo->prepare(
                     "SELECT u.id, u.email, u.name, COALESCE(u.plans, u.plan, 'pro') AS plan
                        FROM user_session s JOIN app_user u ON u.id = s.user_id
-                      WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1
+                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
                         AND (u.plan = 'admin' OR u.plans = 'admin') LIMIT 1"
                 );
-                $stmt->execute([self::hashToken($token), $token, self::now()]);
+                $stmt->execute([self::hashToken($token), self::now()]);
             } catch (\Throwable $e2) { return null; }
         }
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
@@ -4243,8 +4245,8 @@ final class UserAuth
         try {
             self::ensureSessionMeta($pdo);
             $ua = substr((string)$req->getHeaderLine('User-Agent'), 0, 255);
-            $pdo->prepare('UPDATE user_session SET ip=?, ua=?, last_seen=? WHERE token IN (?, ?)')
-                ->execute([self::clientIp($req), $ua, self::now(), self::hashToken($token), $token]);
+            $pdo->prepare('UPDATE user_session SET ip=?, ua=?, last_seen=? WHERE token = ?')
+                ->execute([self::clientIp($req), $ua, self::now(), self::hashToken($token)]);
         } catch (\Throwable $e) { /* 무시 */ }
     }
 
@@ -4266,7 +4268,7 @@ final class UserAuth
             $tk = (string)($r['token'] ?? '');
             return [
                 'id'         => substr(hash('sha256', $tk), 0, 12), // 안정 식별자(원토큰 비노출)
-                'current'    => (hash_equals($tk, self::hashToken($token)) || hash_equals($tk, $token)), // [P5] 저장값=해시(신규)∨평문(기존)
+                'current'    => hash_equals($tk, self::hashToken($token)), // [P5-Phase2] 저장값=해시(hash-only)
 
                 'ip'         => (string)($r['ip'] ?? ''),
                 'ua'         => (string)($r['ua'] ?? ''),
@@ -4287,8 +4289,8 @@ final class UserAuth
         $pdo = Db::pdo();
         $revoked = 0;
         try {
-            $st = $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>? AND token<>?');
-            $st->execute([(int)$user['id'], self::hashToken($token), $token]);
+            $st = $pdo->prepare('DELETE FROM user_session WHERE user_id=? AND token<>?');
+            $st->execute([(int)$user['id'], self::hashToken($token)]);
             $revoked = $st->rowCount();
         } catch (\Throwable $e) {}
         self::audit($req, 'session_revoke_others', "다른 기기 로그아웃({$revoked}개 세션 폐기)", 'high', $user);

@@ -46,9 +46,9 @@ final class Rollup {
                 $s = $pdo->prepare(
                     'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
                        JOIN app_user u ON u.id = s.user_id
-                      WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
+                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
                 );
-                $s->execute([UserAuth::hashToken($m[1]), $m[1], $now]);
+                $s->execute([UserAuth::hashToken($m[1]), $now]);
                 $r = $s->fetch(\PDO::FETCH_ASSOC);
                 if ($r) {
                     $tid = trim((string)($r['tenant_id'] ?? ''));

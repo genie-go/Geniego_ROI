@@ -78,9 +78,9 @@ final class BillingMethod
             $stmt = $pdo->prepare(
                 'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
+                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
             );
-            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $now]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             if (!$row) return '';
             $tid = trim((string)($row['tenant_id'] ?? ''));

@@ -2765,9 +2765,9 @@ return function (App $app): void {
             // Check admin
             $stmt = $pdo->prepare(
                 "SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id
-                 WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1 LIMIT 1"
+                 WHERE s.token = ? AND s.expires_at>? AND u.is_active=1 LIMIT 1"
             );
-            $stmt->execute([\Genie\Handlers\UserAuth::hashToken($token), $token, $now]);
+            $stmt->execute([\Genie\Handlers\UserAuth::hashToken($token), $now]);
             $admin = $stmt->fetch(\PDO::FETCH_ASSOC);
             // 192차 보안 P0: 라이선스 관리(발급/조회)는 admin 전용 — enterprise 자가발급·키열람 권한상승 차단.
             if (!$admin || $admin['plan'] !== 'admin') {
@@ -2848,9 +2848,9 @@ return function (App $app): void {
             $now = gmdate('Y-m-d\TH:i:s\Z');
             $stmt = $pdo->prepare(
                 "SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id
-                 WHERE s.token IN (?, ?) AND s.expires_at>? LIMIT 1"
+                 WHERE s.token = ? AND s.expires_at>? LIMIT 1"
             );
-            $stmt->execute([\Genie\Handlers\UserAuth::hashToken($token), $token, $now]);
+            $stmt->execute([\Genie\Handlers\UserAuth::hashToken($token), $now]);
             $admin = $stmt->fetch(\PDO::FETCH_ASSOC);
             // 192차 보안 P0: 라이선스 관리(발급/조회)는 admin 전용 — enterprise 자가발급·키열람 권한상승 차단.
             if (!$admin || $admin['plan'] !== 'admin') {

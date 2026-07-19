@@ -211,8 +211,8 @@ final class CreativeStore
         $token = (is_string($authHeader) && str_starts_with($authHeader, 'Bearer ')) ? trim(substr($authHeader, 7)) : '';
         if ($token === '') return 'default';
         try {
-            $st = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token IN (?, ?) AND expires_at > ? LIMIT 1');
-            $st->execute([UserAuth::hashToken($token), $token, gmdate('c')]);
+            $st = Db::pdo()->prepare('SELECT user_id FROM user_session WHERE token = ? AND expires_at > ? LIMIT 1');
+            $st->execute([UserAuth::hashToken($token), gmdate('c')]);
             $uid = $st->fetchColumn();
             if ($uid !== false && $uid !== null && (string)$uid !== '') return (string)$uid;
         } catch (\Throwable $e) { /* 스키마/연결 오류 → 공유 풀 폴백 */ }
