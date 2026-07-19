@@ -777,3 +777,16 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★중대 긍정(오탐예방)**: 하드코딩 user-id/email authz **부재**(전부 DB plan/plans/admin_level)·"Actor ID Body 신뢰"는 직전 03-03 Alerting canonical actor 수정으로 **닫힘**(재플래그 금지).
 - **구현 판정 = 대부분 ABSENT/PARTIAL-substrate/BLOCKED_PREREQUISITE**: 정책 데이터 선언체·판정 불변저장 순신규·선행 Decision/Resource Version 부재. 실 엔진=TeamPermissions/index.php RBAC를 Canonical Registry/Policy로 데이터화 + Decision 결합 조립.
 - **완료 기준**: "계약 명세 확정". 다음=Part 2 Permission Engine Foundation(스펙 대기). ★06-A-03-02-03-04는 총 10 Part 중 Part 1 완료.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-04 Part 2 Permission Engine Foundation Governance (설계 명세 · 코드 0 · NOT_CERTIFIED)
+
+- **산출(core)**: ⓑ 전수조사 `DSAR_APPROVAL_PERMISSION_EXISTING_IMPLEMENTATION.md`(§92 분류+Primitive Present/Absent)+`DSAR_APPROVAL_PERMISSION_DUPLICATE_IMPLEMENTATION_AUDIT.md`(§93·타깃 grep+Explore 서브에이전트 33 tool-use) → ⓓ `ADR_DSAR_PERMISSION_ENGINE_FOUNDATION.md`. **실 코드·테이블 0**.
+- **★실 permission substrate 실재**: `TeamPermissions.php` acl_permission(subject×menu_key×8actions·MENU_CATALOG 26·`:39-82,152-336`)+data_scope(9 dims 행필터·실 enforce `:236-322`·단 ~57핸들러 중 **4곳만** 소비)+위임상한(fail-closed·2-eyes는 아님)·index.php RBAC(PEP)+api_key scopes(read:*/write:*/admin:keys)·plan 게이트·admin SSOT(resolveAdminByToken).
+- **진짜 부재(순신규)**: Permission Registry/Definition/Version/Namespace/Canonical Code(`{DOMAIN}:{RESOURCE}:{ACTION}`)·Grant Version/first-class Explicit Deny·Precedence/Combining·Effective Set 영속·Scope Intersection/Expansion Guard·Hierarchy/Group/Bundle·Snapshot/Digest·Decision Binding·Drift/Revalidation/Simulation/Migration. **Permission=menu_key 기반이지 Canonical Code 아님.**
+- **★3 분리 rank 체계**(plan RANK/api_key roleRank/team_role) 통합 resolver 부재·Evidence PARTIAL(변경만 감사·per-request 결정 미감사)·Deny PARTIAL(1=0 센티넬)·team_member 테이블 부재(=app_user.team_id).
+- **★Part 1 D-2 위험 4건 = 289차 P1~P4 해소**(writeGuard 서버전역·requireFeaturePlan fail-secure·admin_roles 폐기·admin SSOT·+P5 세션토큰해시) — enforcement가 설계에 앞서 실현된 사례. **재플래그 금지.**
+- **정직 부재(오탐예방)**: 하드코딩 email/user-id authz·FULL_ACCESS/MANAGE_ALL/god-role **전무**. wildcard=api_key 한정.
+- **구현 판정 = ABSENT/PARTIAL-substrate/BLOCKED_PREREQUISITE**. 실엔진=선행 Decision Core+Canonical Action/Resource Registry 신설 후 별도 승인세션(RP-002). Permission≠Role(P3)≠Authority(P5) 3분리.
+- **★잔여**: per-entity DSAR ~78편(§100 목록)은 미생성 — Part 1은 58편을 8에이전트 wave로 생성. Part 2 core(ADR+ground-truth 2편)는 확정, per-entity 확장 세트는 후속 멀티에이전트 wave. 다음=Part 3 RBAC Governance.
