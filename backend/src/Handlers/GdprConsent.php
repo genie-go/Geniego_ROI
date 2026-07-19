@@ -125,8 +125,8 @@ final class GdprConsent
         $auth = $req->getHeaderLine('Authorization');
         if (preg_match('/Bearer\s+(\S+)/i', $auth, $m) && $m[1] !== 'demo-token' && !str_starts_with($m[1], 'demo')) {
             try {
-                $s = $pdo->prepare('SELECT user_id FROM user_session WHERE token=? AND expires_at>? LIMIT 1');
-                $s->execute([$m[1], gmdate('Y-m-d\TH:i:s\Z')]);
+                $s = $pdo->prepare('SELECT user_id FROM user_session WHERE token IN (?, ?) AND expires_at>? LIMIT 1');
+                $s->execute([UserAuth::hashToken($m[1]), $m[1], gmdate('Y-m-d\TH:i:s\Z')]);
                 $r = $s->fetch(PDO::FETCH_ASSOC);
                 return $r ? (string)$r['user_id'] : null;
             } catch (\Throwable) {}

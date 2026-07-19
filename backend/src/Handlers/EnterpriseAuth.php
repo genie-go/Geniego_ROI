@@ -507,7 +507,7 @@ class EnterpriseAuth
     {
         $token = bin2hex(random_bytes(32));
         $exp = gmdate('Y-m-d\TH:i:s\Z', time() + 30 * 24 * 3600);
-        $pdo->prepare("INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)")->execute([$userId, $token, $exp, self::now()]);
+        $pdo->prepare("INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)")->execute([$userId, UserAuth::hashToken($token), $exp, self::now()]); // [P5] 토큰 해시 저장
         return $token;
     }
 

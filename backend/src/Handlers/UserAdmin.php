@@ -479,11 +479,11 @@ final class UserAdmin
         $impBy = 'user:' . (string)($admin['email'] ?? ('#' . (int)($admin['id'] ?? 0)));
         try {
             $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at,impersonated_by) VALUES(?,?,?,?,?)')
-                ->execute([$id, $token, $expires, $now, $impBy]);
+                ->execute([$id, UserAuth::hashToken($token), $expires, $now, $impBy]); // [P5] 토큰 해시 저장
         } catch (\Throwable $e) {
             // 컬럼 미지원 등 예외 시에도 대행 발급은 유지(무회귀) — 원 principal 은 감사로그로 보존됨.
             $pdo->prepare('INSERT INTO user_session(user_id,token,expires_at,created_at) VALUES(?,?,?,?)')
-                ->execute([$id, $token, $expires, $now]);
+                ->execute([$id, UserAuth::hashToken($token), $expires, $now]); // [P5] 토큰 해시 저장
         }
 
         self::auditLog($admin, "impersonate", "user#{$id} {$user['email']} 회원세션 발급(2h)");
@@ -900,9 +900,9 @@ final class UserAdmin
             "SELECT u.id, u.email, u.name, u.plan
                FROM user_session s
                JOIN app_user u ON u.id = s.user_id
-              WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1"
+              WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1"
         );
-        $sStmt->execute([$token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
         $user = $sStmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'Session expired or invalid'], 401);
 
@@ -1018,9 +1018,9 @@ final class UserAdmin
         $pdo = Db::pdo();
         $sStmt = $pdo->prepare(
             "SELECT u.id FROM user_session s JOIN app_user u ON u.id=s.user_id
-              WHERE s.token=? AND s.expires_at>? AND u.is_active=1"
+              WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1"
         );
-        $sStmt->execute([$token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
         $userId = (int)($sStmt->fetchColumn() ?: 0);
         if (!$userId) return self::json($res, ['ok' => false, 'error' => 'Session expired'], 401);
 
@@ -1096,9 +1096,9 @@ final class UserAdmin
         $sStmt = $pdo->prepare(
             "SELECT u.id, u.email, u.plan FROM user_session s
                JOIN app_user u ON u.id=s.user_id
-              WHERE s.token=? AND s.expires_at>? AND u.is_active=1"
+              WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1"
         );
-        $sStmt->execute([$token, self::now()]);
+        $sStmt->execute([UserAuth::hashToken($token), $token, self::now()]);
         $user = $sStmt->fetch(\PDO::FETCH_ASSOC);
         if (!$user) return self::json($res, ['ok' => false, 'error' => 'Session expired or invalid'], 401);
 

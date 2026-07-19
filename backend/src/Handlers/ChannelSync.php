@@ -33,8 +33,8 @@ final class ChannelSync
             if ($token === 'demo-token' || str_starts_with($token, 'demo')) return 'demo';
             try {
                 $pdo = Db::pdo();
-                $s = $pdo->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? LIMIT 1');
-                $s->execute([$token]);
+                $s = $pdo->prepare('SELECT u.plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) LIMIT 1');
+                $s->execute([UserAuth::hashToken($token), $token]);
                 $r = $s->fetch(PDO::FETCH_ASSOC);
                 if ($r) return (string)$r['plan'];
             } catch (\Throwable) {}
@@ -62,9 +62,9 @@ final class ChannelSync
                 $s = $pdo->prepare(
                     'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
                        JOIN app_user u ON u.id = s.user_id
-                      WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
+                      WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1 LIMIT 1'
                 );
-                $s->execute([$m[1], $now]);
+                $s->execute([UserAuth::hashToken($m[1]), $m[1], $now]);
                 $r = $s->fetch(PDO::FETCH_ASSOC);
                 if ($r) {
                     $tid = trim((string)($r['tenant_id'] ?? ''));
@@ -100,8 +100,8 @@ final class ChannelSync
             $tok = $m[1];
             if ($tok === 'demo-token' || str_starts_with($tok, 'demo') || str_starts_with($tok, 'local_demo_')) return null;
             try {
-                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1 LIMIT 1');
-                $st->execute([$tok, gmdate('Y-m-d\TH:i:s\Z')]);
+                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1 LIMIT 1');
+                $st->execute([UserAuth::hashToken($tok), $tok, gmdate('Y-m-d\TH:i:s\Z')]);
                 if ($st->fetchColumn()) return null;
             } catch (\Throwable $e) {}
         }

@@ -74,10 +74,10 @@ final class ChannelCreds
             $stmt = $pdo->prepare(
                 'SELECT u.id, u.tenant_id, u.parent_user_id FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1
                   LIMIT 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             if (!$row) return '';
             $tid = trim((string)($row['tenant_id'] ?? ''));
@@ -114,10 +114,10 @@ final class ChannelCreds
             $stmt = $pdo->prepare(
                 'SELECT u.id, u.plan FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1
                   LIMIT 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($row) {
                 return [(string)$row['id'], (string)($row['plan'] ?? 'demo')];
@@ -142,8 +142,8 @@ final class ChannelCreds
             $tok = $m[1];
             if ($tok === 'demo-token' || str_starts_with($tok, 'demo') || str_starts_with($tok, 'local_demo_')) return null;
             try {
-                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1 LIMIT 1');
-                $st->execute([$tok, gmdate('Y-m-d\TH:i:s\Z')]);
+                $st = Db::pdo()->prepare('SELECT 1 FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1 LIMIT 1');
+                $st->execute([UserAuth::hashToken($tok), $tok, gmdate('Y-m-d\TH:i:s\Z')]);
                 if ($st->fetchColumn()) return null;
             } catch (\Throwable $e) {}
         }

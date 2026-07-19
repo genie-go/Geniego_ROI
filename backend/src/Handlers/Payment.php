@@ -245,9 +245,9 @@ final class Payment
                 'SELECT u.id, u.email, u.name, COALESCE(u.plans,u.plan,\'demo\') AS plan, u.company
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류: ' . $e->getMessage()], 500);
@@ -420,9 +420,9 @@ final class Payment
         try {
             $stmt = $pdo->prepare(
                 'SELECT u.id FROM user_session s JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류'], 500);
@@ -492,9 +492,9 @@ final class Payment
             $stmt = $pdo->prepare(
                 'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS admin_level FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류'], 500);
@@ -552,9 +552,9 @@ final class Payment
             $stmt = $pdo->prepare(
                 'SELECT u.id, u.email, COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS admin_level FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             return self::json($res, ['ok' => false, 'error' => 'DB 오류'], 500);
@@ -1653,8 +1653,8 @@ final class Payment
         if($demoKey && hash_equals($demoKey,$token)) return true;
         try {
             $pdo=Db::pdo(); $now=self::now();
-            $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS lvl FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1');
-            $stmt->execute([$token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
+            $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan, COALESCE(u.admin_level,\'\') AS lvl FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1');
+            $stmt->execute([UserAuth::hashToken($token), $token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
             return $user && $user['plan']==='admin' && $user['lvl']!=='sub';
         } catch(\Throwable $e){ return false; }
     }
@@ -1670,8 +1670,8 @@ final class Payment
         if($demoKey && hash_equals($demoKey,$token)) return true;
         try {
             $pdo=Db::pdo(); $now=self::now();
-            $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>? AND u.is_active=1');
-            $stmt->execute([$token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
+            $stmt=$pdo->prepare('SELECT COALESCE(u.plans,u.plan,\'demo\') AS plan FROM user_session s JOIN app_user u ON u.id=s.user_id WHERE s.token IN (?, ?) AND s.expires_at>? AND u.is_active=1');
+            $stmt->execute([UserAuth::hashToken($token), $token,$now]); $user=$stmt->fetch(\PDO::FETCH_ASSOC);
             // 204차 P0: enterprise 를 admin 으로 인정하던 over-grant 제거(권한상승 차단).
             //   타 핸들러 게이트(UserAuth::requirePlan('admin')·DbAdmin::requireAdmin)와 정합 — admin plan 만 허용.
             return $user && $user['plan']==='admin';

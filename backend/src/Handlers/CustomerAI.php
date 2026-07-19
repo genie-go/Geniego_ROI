@@ -55,9 +55,9 @@ class CustomerAI
                 'SELECT COALESCE(u.plans, u.plan, \'demo\') AS plan
                    FROM user_session s
                    JOIN app_user u ON u.id = s.user_id
-                  WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1'
+                  WHERE s.token IN (?, ?) AND s.expires_at > ? AND u.is_active = 1'
             );
-            $stmt->execute([$token, $now]);
+            $stmt->execute([UserAuth::hashToken($token), $token, $now]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row ? ($row['plan'] ?? 'demo') : 'demo';
         } catch (\Exception $e) {

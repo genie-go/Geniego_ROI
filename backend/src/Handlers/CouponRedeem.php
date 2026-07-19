@@ -241,10 +241,10 @@ final class CouponRedeem
         $stmt = $pdo->prepare(
             'SELECT s.user_id, s.expires_at, u.email FROM user_session s
               JOIN app_user u ON u.id = s.user_id
-              WHERE s.token = ?
+              WHERE s.token IN (?, ?)
               LIMIT 1'
         );
-        $stmt->execute([$token]);
+        $stmt->execute([UserAuth::hashToken($token), $token]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if (!$row) return null;
         $exp = (string)($row['expires_at'] ?? '');
