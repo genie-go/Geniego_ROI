@@ -105,12 +105,15 @@ class DataPlatform
         $s = fn($k, $max = 255) => mb_substr(trim((string)($b[$k] ?? '')), 0, $max);
         $brand = is_array($b['brand'] ?? null) ? $b['brand'] : [];
         $profile = is_array($b['profile'] ?? null) ? $b['profile'] : [];
+        // [현 차수] MEDIUMTEXT blob 캡(2MB) — scalar 필드는 $s() mb_substr 캡되나 brand_json/profile_json 무제한이었음.
+        $brandJson = json_encode($brand, JSON_UNESCAPED_UNICODE); $profileJson = json_encode($profile, JSON_UNESCAPED_UNICODE);
+        if (strlen((string)$brandJson) > 2000000 || strlen((string)$profileJson) > 2000000) return self::json($res, ['ok' => false, 'error' => 'profile_too_large'], 413);
         $cols = [
             'company_name' => $s('company_name', 200), 'biz_reg_no' => $s('biz_reg_no', 60), 'industry' => $s('industry', 120),
             'company_size' => $s('company_size', 60), 'country' => $s('country', 60), 'website' => $s('website', 255),
             'brand_name' => $s('brand_name', 200), 'brand_positioning' => mb_substr(trim((string)($b['brand_positioning'] ?? '')), 0, 2000),
             'brand_tone' => $s('brand_tone', 200),
-            'brand_json' => json_encode($brand, JSON_UNESCAPED_UNICODE), 'profile_json' => json_encode($profile, JSON_UNESCAPED_UNICODE),
+            'brand_json' => $brandJson, 'profile_json' => $profileJson,
             'updated_by' => $by, 'updated_at' => $now,
         ];
         $exists = $pdo->prepare("SELECT 1 FROM tenant_business_profile WHERE tenant_id=?"); $exists->execute([$t]);

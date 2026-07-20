@@ -488,6 +488,7 @@ class EmailMarketing
         if (empty($b['name']) || empty($b['subject']) || empty($b['html_body'])) {
             return self::jsonRes($res, ['ok'=>false,'error'=>'name, subject, html_body 필수'], 400);
         }
+        if (strlen((string)$b['html_body']) > 2000000 || strlen((string)($b['plain_body'] ?? '')) > 2000000) return self::jsonRes($res, ['ok'=>false,'error'=>'body_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $now = self::now();
         $pdo->prepare("INSERT INTO email_templates (tenant_id,name,subject,html_body,plain_body,variables,category,created_at,updated_at)
             VALUES (:t,:n,:s,:h,:p,:v,:c,:ca,:ua)")->execute([
@@ -517,6 +518,7 @@ class EmailMarketing
         $pdo = self::db();
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
+        if (strlen((string)($b['html_body'] ?? '')) > 2000000 || strlen((string)($b['plain_body'] ?? '')) > 2000000) return self::jsonRes($res, ['ok'=>false,'error'=>'body_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $stmt = $pdo->prepare("UPDATE email_templates SET name=:n,subject=:s,html_body=:h,plain_body=:p,variables=:v,category=:c,updated_at=:ua WHERE id=:id AND tenant_id=:t");
         $stmt->execute([
             ':id'=>(int)$args['id'], ':t'=>$tenant, ':n'=>$b['name']??'', ':s'=>$b['subject']??'',

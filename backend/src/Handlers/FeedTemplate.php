@@ -239,6 +239,7 @@ final class FeedTemplate
         if (in_array((string)$r['status'], ['published', 'archived'], true)) return self::json($res, ['ok' => false, 'error' => 'not_editable'], 409);
         $b = (array)$req->getParsedBody();
         $text = (string)($b['text'] ?? '');
+        if (strlen($text) > 2000000) return self::json($res, ['ok' => false, 'error' => 'body_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $by = substr((string)($b['updated_by'] ?? 'user'), 0, 64);
         $pdo->prepare("UPDATE feed_template SET body=?, updated_by=?, updated_at=? WHERE tenant_id=? AND channel=? AND id=?")
             ->execute([$text, $by, self::now(), $t, $ch, $id]);

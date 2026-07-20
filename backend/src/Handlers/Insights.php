@@ -205,6 +205,7 @@ final class Insights {
         $inserted = 0;
         foreach ($rows as $r) {
             if (!is_array($r)) continue;
+            if (strlen(json_encode($r, JSON_UNESCAPED_UNICODE)) > 1000000) continue; // [현 차수] per-row raw_json(LONGTEXT) 캡 1MB — 비정상 대형행 skip(배치 보존)
             $sp = self::normStr($r['source_platform'] ?? null) ?? 'unknown';
             $payload = [
                 ':tenant_id' => $tenant,
@@ -278,6 +279,7 @@ final class Insights {
         $inserted = 0;
         foreach ($rows as $r) {
             if (!is_array($r)) continue;
+            if (strlen(json_encode($r, JSON_UNESCAPED_UNICODE)) > 1000000) continue; // [현 차수] per-row raw_json(LONGTEXT) 캡 1MB — 비정상 대형행 skip(배치 보존)
             $platform = self::normStr($r['platform'] ?? null) ?? 'instagram';
             $influencerId = self::normStr($r['influencer_id'] ?? null);
             if ($influencerId === null) continue;
@@ -350,6 +352,7 @@ final class Insights {
         $inserted = 0;
         foreach ($rows as $r) {
             if (!is_array($r)) continue;
+            if (strlen(json_encode($r, JSON_UNESCAPED_UNICODE)) > 1000000) continue; // [현 차수] per-row raw_json(LONGTEXT) 캡 1MB — 비정상 대형행 skip(배치 보존)
             $channel = self::normStr($r['channel'] ?? null) ?? 'unknown';
             $sku = self::normStr($r['product_sku'] ?? null);
             if ($sku === null) continue;

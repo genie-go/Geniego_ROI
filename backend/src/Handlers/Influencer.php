@@ -76,6 +76,7 @@ class Influencer
         if (!is_array($items)) $items = [];
         $pdo = self::pdo(); $t = self::tenant($req); $now = gmdate('c');
         $payload = json_encode(array_values($items), JSON_UNESCAPED_UNICODE);
+        if (strlen((string)$payload) > 8000000) return self::json($res, ['ok' => false, 'error' => 'payload_too_large'], 413); // [현 차수] LONGTEXT 벌크 blob 캡(8MB·대량 크리에이터 목록 여유)
         $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
         $sql = $isMy
             ? "INSERT INTO influencer_store (tenant_id,kind,payload_json,updated_at) VALUES (?,?,?,?)

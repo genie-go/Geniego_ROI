@@ -139,12 +139,17 @@ class JourneyBuilder
 
         // [255차 심화] 웹훅 트리거용 토큰 생성(인바운드 ingress URL 식별자). 생성 시 항상 발급(트리거 전환 즉시 사용).
         $whTok = bin2hex(random_bytes(16));
+        // [현 차수] blob 캡 — nodes/edges(MEDIUMTEXT)·trigger_config/description(TEXT) 무제한 저장 방지(2MB/500KB).
+        $jbNodes = json_encode($b['nodes'] ?? $defaultNodes); $jbEdges = json_encode($b['edges'] ?? $defaultEdges);
+        $jbTconf = json_encode($b['trigger_config'] ?? []); $jbDesc = (string)($b['description'] ?? '');
+        if (strlen((string)$jbNodes) > 2000000 || strlen((string)$jbEdges) > 2000000 || strlen((string)$jbTconf) > 500000 || strlen($jbDesc) > 500000)
+            return self::json($res, ['ok' => false, 'error' => 'journey_too_large'], 413);
         // [현 차수 보안] webhook_token=암호화 저장(재표시 복호)·webhook_token_hash=조회용 SHA-256. 원문은 응답으로 1회 노출.
         $pdo->prepare("INSERT INTO journeys (tenant_id, name, description, trigger_type, trigger_config, nodes, edges, status, webhook_token, webhook_token_hash, created_at, updated_at)
             VALUES (:t, :name, :desc, :ttype, :tconf, :nodes, :edges, 'draft', :wt, :wth, :ca, :ua)
         ")->execute([
-            ':t'=>$tenant, ':name'=>$b['name'] ?? '새 여정', ':desc'=>$b['description'] ?? '', ':ttype'=>$b['trigger_type'] ?? 'manual',
-            ':tconf'=>json_encode($b['trigger_config'] ?? []), ':nodes'=>json_encode($b['nodes'] ?? $defaultNodes), ':edges'=>json_encode($b['edges'] ?? $defaultEdges),
+            ':t'=>$tenant, ':name'=>$b['name'] ?? '새 여정', ':desc'=>$jbDesc, ':ttype'=>$b['trigger_type'] ?? 'manual',
+            ':tconf'=>$jbTconf, ':nodes'=>$jbNodes, ':edges'=>$jbEdges,
             ':wt'=>\Genie\Crypto::encrypt($whTok), ':wth'=>\Genie\Handlers\UserAuth::hashToken($whTok), ':ca'=>$now, ':ua'=>$now,
         ]);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'webhook_token' => $whTok]);
@@ -180,6 +185,10 @@ class JourneyBuilder
         if (isset($b['status']))         { $fields[] = "status=:status"; $bind[':status'] = $b['status']; }
         $fields[] = "updated_at=:ua"; $bind[':ua'] = self::now();
 
+        // [현 차수] blob 캡 — 설정된 필드만 검사(nodes/edges 2MB·trigger_config/description 500KB).
+        foreach ([':nodes'=>2000000, ':edges'=>2000000, ':tconf'=>500000, ':desc'=>500000] as $bk=>$max) {
+            if (isset($bind[$bk]) && strlen((string)$bind[$bk]) > $max) return self::json($res, ['ok'=>false,'error'=>'journey_too_large'], 413);
+        }
         $stmt = $pdo->prepare("UPDATE journeys SET " . implode(', ', $fields) . " WHERE id=:id AND tenant_id=:t");
         $stmt->execute($bind);
         if ($stmt->rowCount() === 0) return self::json($res, ['ok'=>false,'error'=>'없음'], 404);

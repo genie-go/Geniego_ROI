@@ -557,13 +557,14 @@ final class AdminGrowth
                 return self::json($res, ['captured' => false], 'ok', 200);
             }
             $evt = $event === 'email_capture' ? 'landing' : $event;  // FUNNEL/SCORE_WEIGHTS 정합
+            // [현 차수] 공개 엔드포인트 blob 캡 — name/company/page/ref 무제한 저장(TEXT) 방지(sibling source/channel와 정합).
             $lid = self::recordEvent($pdo, $email, $evt, [
-                'name' => (string)($b['name'] ?? ''), 'company' => (string)($b['company'] ?? ''),
+                'name' => mb_substr((string)($b['name'] ?? ''), 0, 200), 'company' => mb_substr((string)($b['company'] ?? ''), 0, 200),
                 'source' => substr((string)($b['source'] ?? 'landing_popup'), 0, 60),
                 'channel' => substr((string)($b['channel'] ?? 'organic'), 0, 40),
                 'campaign_key' => substr((string)($b['campaign_key'] ?? ''), 0, 60),
                 'variant' => substr((string)($b['variant'] ?? ''), 0, 40),
-                'meta' => ['page' => (string)($b['page'] ?? ''), 'ref' => (string)($b['ref'] ?? '')],
+                'meta' => ['page' => mb_substr((string)($b['page'] ?? ''), 0, 500), 'ref' => mb_substr((string)($b['ref'] ?? ''), 0, 500)],
             ]);
             return self::json($res, ['captured' => $lid > 0, 'lead_id' => $lid], $lid > 0 ? '캡처 완료' : '무시', 200);
         } catch (\Throwable $e) { return self::json($res, ['captured' => false], 'ok', 200); }

@@ -150,6 +150,7 @@ class KakaoChannel
         if (empty($b['template_code']) || empty($b['name']) || empty($b['content'])) {
             return self::jsonRes($res, ['ok'=>false,'error'=>'template_code / name / content 필수'], 400);
         }
+        if (strlen((string)$b['content']) > 2000000) return self::jsonRes($res, ['ok'=>false,'error'=>'content_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $now = self::now();
         try {
             $pdo->prepare("INSERT INTO kakao_templates (tenant_id, template_code, name, content, msg_type, buttons, variables, created_at, updated_at) VALUES (:t,:tc,:n,:c,:mt,:btn,:var,:ca,:ua)")->execute([
@@ -168,6 +169,7 @@ class KakaoChannel
         self::ensureTables();
         $tenant = self::tenant($req);
         $b = (array)$req->getParsedBody();
+        if (strlen((string)($b['content'] ?? '')) > 2000000) return self::jsonRes($res, ['ok'=>false,'error'=>'content_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $stmt = self::db()->prepare("UPDATE kakao_templates SET name=:n, content=:c, msg_type=:mt, buttons=:btn, variables=:var, status=:st, updated_at=:ua WHERE id=:id AND tenant_id=:t");
         $stmt->execute([
             ':id'=>(int)$args['id'], ':t'=>$tenant, ':n'=>$b['name']??'', ':c'=>$b['content']??'',

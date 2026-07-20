@@ -420,13 +420,15 @@ final class EventNorm
         }
 
         // Single event ingest
+        $rawPayload = json_encode($body['payload'] ?? $body, JSON_UNESCAPED_UNICODE);
+        if (strlen((string)$rawPayload) > 2000000) return self::json($res, ['ok' => false, 'error' => 'payload_too_large'], 413); // [현 차수] MEDIUMTEXT blob 캡(2MB)
         $pdo->prepare(
             'INSERT INTO raw_vendor_event(tenant_id,vendor,source_system,event_type,dedup_key,raw_payload,received_at,status)
              VALUES(?,?,?,?,?,?,?,?)'
         )->execute([
             $tenant, $body['vendor'], $body['source_system'] ?? 'manual',
             $body['event_type'] ?? 'unknown', $body['dedup_key'] ?? null,
-            json_encode($body['payload'] ?? $body, JSON_UNESCAPED_UNICODE),
+            $rawPayload,
             $now, 'pending',
         ]);
         $id = (int)$pdo->lastInsertId();
