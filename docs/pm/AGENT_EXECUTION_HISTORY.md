@@ -646,3 +646,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-28 EAGMM 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim 영속. ⓑ 전수조사(maturity/assessment/score/benchmark/certification/readiness grep): 형식 Maturity Model grep 0·PARTIAL substrate(Compliance readiness·DataTrust scoring·SecurityAudit evidence·Db 격리) 확정.
 - 산출 7문서(SPEC+ADR+GT①②+CANONICAL_ENTITIES+GOVERNANCE_MECHANISMS+INDEX). 실 코드/테이블 0·NOT_CERTIFIED 불변. 반날조: file:line 인용 GT①②/ADR 등장분(Compliance/DataPlatform/SecurityAudit/Db/index.php)만·KEEP_SEPARATE 7종 명시.
+
+## [289차 후속] Part 3-29 ERVS 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(validation/conformance/test/smoke/assert/certificate/baseline grep, tools·.github·.githooks 포함): 형식 ERVS grep 0·PARTIAL substrate(E2E smoke·CI·pre-commit·health/metrics·Compliance·SecurityAudit·Db) 확정=검증 자산 비교적 큼.
+- 산출 7문서(SPEC+ADR+GT①②+CANONICAL_ENTITIES+GOVERNANCE_MECHANISMS+INDEX). 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(render.mjs/deploy.yml/Health/Compliance/SecurityAudit/Db)만·KEEP_SEPARATE 7종 명시.

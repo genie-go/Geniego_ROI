@@ -1113,3 +1113,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★확장 대상(중복 신설 금지)**: Control/Certification Assessment=Compliance readiness 승격·Evidence=SecurityAudit::verify 재사용·Isolation=Db 재사용·Runtime Guard=index.php RBAC/writeGuard 위 배치.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~23)+GOVERNANCE_MECHANISMS(§24~33)+INDEX. per-entity 40편 wave 대신 구조화 통합(요청 시 분해 확장). 코드/테이블 0·신규 실결함 0. ★현 플랫폼 자평: 인가 실 구현 견고하나 성숙도 측정 프레임워크 L0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-27 인증 종속. 다음=Part 3-29 Reference Validation Suite.
+
+## [289차 후속] EPIC 06-A Part 3-29 — Reference Validation Suite (ERVS) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 전 구현 표준기준 자동 검증 프레임워크.
+- **★핵심 판정 = PARTIAL / ABSENT-formal / BLOCKED_PREREQUISITE**: 형식 통합 Enterprise Reference Validation(Orchestrator·Reference Assertion·PDP/PEP/Zero Trust/Digital Twin/KG/Mesh Validator·Certificate) grep 0. 단 **PARTIAL substrate 실재·비교적 큼** — E2E smoke(`tools/e2e`·`render.mjs`·119라우트 자동도출·무음사망탐지)·CI(`deploy.yml`·`security-scan.yml`)·pre-commit 게이트(php -l·자격증명·sacred SHA·라우트정합)·Health/SystemMetrics probe·Compliance readiness·SecurityAudit evidence·Db 격리.
+- **★KEEP_SEPARATE**: 기능 E2E smoke≠Enterprise Reference conformance·CI vuln scan(report-only)≠Security Validator 엔진·ModelMonitor drift≠Digital Twin Validator·GraphScore≠Knowledge Graph Validator·sacred SHA/PM baseline≠Reference Baseline·메뉴snapshot(★tamper-evident 아님·정본 SecurityAudit::verify)≠Validation Snapshot.
+- **★확장 대상(중복 러너 신설 금지)**: E2E smoke 승격(매 배포 실행 규율)·pre-commit 확장·Compliance/Health 승격·SecurityAudit::verify 체인·Db 격리·index.php RBAC 재사용. ★Authorization Validator 대상(RBAC/effectiveForUser/writeGuard)은 실 강제 강함=재구현 아닌 검증.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~25 Validators)+GOVERNANCE_MECHANISMS(§26~35)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-28 인증 종속. 다음=Part 3-30 Production Excellence Framework.
