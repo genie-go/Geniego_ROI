@@ -175,6 +175,8 @@ export const ADMIN_MENU = [
       { to: "/admin/growth",       icon: "🚀", labelKey: "gNav.growthCenterLabel", menuKey: "system||growth" },
       { to: "/admin/plan-pricing", icon: "💳", labelKey: "gNav.planPricingLabel",  menuKey: "system||plan_pricing" },
       { to: "/user-management",    icon: "👥", labelKey: "gNav.memberMgmtLabel",  menuKey: "system||user_management" },
+      { to: "/admin/access-review", icon: "🔐", label: "접근 검토", labelKey: "gNav.accessReviewLabel", menuKey: "system||admin" }, // [EPIC 06-A Part3-8] 휴면/만료 api_key 검토·회수
+
       { to: "/admin/sub-admins",   icon: "👤", label: "하위 관리자 관리", labelKey: "gNav.subAdminMgmtLabel", menuKey: "system||sub_admin_mgmt" },
       // [281차 P2] 대행사 계정 발급(최고관리자) — 라우트만 있고 진입점 전무해 URL 직접입력 외 도달불가였다.
       { to: "/admin/agencies",     icon: "🤝", label: "대행사 계정 관리", labelKey: "gNav.agencyMgmtLabel", menuKey: "system||admin" },

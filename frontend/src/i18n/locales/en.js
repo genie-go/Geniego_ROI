@@ -7847,6 +7847,7 @@ export default {
       adminSystem: "System Admin",
       platformEnvLabel: "Platform Environment",
       growthCenterLabel: "Growth Center",
+      accessReviewLabel: "Access Review",
       planPricingLabel: "Plan Pricing",
       siteIntroLabel: "Company & Team",
       memberMgmtLabel: "Members",
@@ -10379,6 +10380,7 @@ export default {
       lastBackup: "Last Backup",
       backupHistory: "Backup History"
     },
+  accessReview: {"pageTitle": "🔐 Access Review","pageSub": "Review and revoke dormant / expired API keys","tabQueue": "Review Queue","tabHistory": "Review History","kpiNeedsReview": "Needs Review","kpiExpired": "Expired","kpiDormant": "Dormant / Unused","kpiExpiringSoon": "Expiring Soon","colLastUsed": "Last used","never": "Never used","daysIdleSuffix": "d idle","useCount": "Calls","approve": "Approve (keep)","revoke": "Revoke","justifyTitle": "Decision justification","justifyPlaceholder": "Enter the rationale (evidence-based, required)","justifyRequired": "Justification is required","confirm": "Confirm","cancel": "Cancel","emptyQueue": "No keys need review — all keys are healthy","emptyHistory": "No review history","decisionApprove": "Approved","decisionRevoke": "Revoked","loadError": "Failed to load data","status_EXPIRED": "Expired","status_STALE_UNUSED": "Unused","status_DORMANT": "Dormant","status_EXPIRING_SOON": "Expiring Soon","status_OK": "Healthy"},
   systemMonitor: {"noLogs": "No error logs collected","noPipeline": "No pipeline job data collected","loadError": "Failed to load metrics","cronAllOk": "Healthy","cronCriticalStale": "Critical Task Stopped","cronTitle": "Automation Scheduler (cron) Status","cronUnknown": "Unknown","cronMissing": "Not Run","cronStale": "Delayed / Stopped","cronOk": "Healthy",
       pageTitle: "🖥️ System Monitor",
       pageSub: "Real-time monitoring of server status, API response times & error rates",

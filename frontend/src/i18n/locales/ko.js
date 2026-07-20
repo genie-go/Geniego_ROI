@@ -5349,6 +5349,7 @@ export default {
 
   
   "gNav": {
+    accessReviewLabel: "접근 검토",
     pmGroup: "프로젝트 관리",
     pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","onsiteCroLabel":"온사이트 CRO","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
 
@@ -20575,6 +20576,7 @@ export default {
 
   },
 
+  "accessReview": {"pageTitle": "🔐 접근 검토","pageSub": "휴면·만료 API 키를 검토하고 회수합니다 (Access Review)","tabQueue": "검토 큐","tabHistory": "검토 이력","kpiNeedsReview": "검토 필요","kpiExpired": "만료됨","kpiDormant": "휴면/미사용","kpiExpiringSoon": "만료 임박","colLastUsed": "마지막 사용","never": "사용 이력 없음","daysIdleSuffix": "일 유휴","useCount": "호출","approve": "승인(유지)","revoke": "회수","justifyTitle": "검토 결정 사유","justifyPlaceholder": "결정 근거를 입력하세요 (증거 기반 필수)","justifyRequired": "사유는 필수입니다","confirm": "확인","cancel": "취소","emptyQueue": "검토 대상 키가 없습니다 — 모든 키가 정상입니다","emptyHistory": "검토 이력이 없습니다","decisionApprove": "승인","decisionRevoke": "회수","loadError": "데이터 로드 실패","status_EXPIRED": "만료됨","status_STALE_UNUSED": "미사용","status_DORMANT": "휴면","status_EXPIRING_SOON": "만료 임박","status_OK": "정상"},
   "systemMonitor": {"noLogs": "수집된 오류 로그가 없습니다","noPipeline": "수집된 파이프라인 작업 데이터가 없습니다","loadError": "지표 로드 실패","cronAllOk": "정상","cronCriticalStale": "핵심 작업 중단","cronTitle": "자동화 스케줄러(cron) 상태","cronUnknown": "확인불가","cronMissing": "미실행","cronStale": "지연/중단","cronOk": "정상",
 
     "pageTitle": "🖥️ 시스템 모니터",

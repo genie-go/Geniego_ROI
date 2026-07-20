@@ -147,6 +147,7 @@ const TeamIntro = lazy(() => import("./pages/public/TeamIntro.jsx"));
 const SiteIntroAdmin = lazy(() => import("./pages/SiteIntroAdmin.jsx"));
 const LegalDocsAdmin = lazy(() => import("./pages/LegalDocsAdmin.jsx"));
 const AdminGrowthCenter = lazy(() => import("./pages/AdminGrowthCenter.jsx"));
+const AccessReview = lazy(() => import("./pages/AccessReview.jsx")); // [EPIC 06-A Part3-8] 접근 검토(휴면/만료 api_key)
 const PricingPublic = lazy(() => import("./pages/public/PricingPublic.jsx"));
 const PartnerPortal = lazy(() => import("./pages/PartnerPortal.jsx"));
 const Terms = lazy(() => import("./pages/public/Terms.jsx"));
@@ -482,6 +483,7 @@ function AppLayout() {
                       <Route path="/admin/site-intro" element={<AdminRouteGuard><SiteIntroAdmin /></AdminRouteGuard>} />
                       <Route path="/admin/legal-docs" element={<AdminRouteGuard><LegalDocsAdmin /></AdminRouteGuard>} />
                       <Route path="/admin/growth" element={<AdminRouteGuard><AdminGrowthCenter /></AdminRouteGuard>} />
+                      <Route path="/admin/access-review" element={<AdminRouteGuard><AccessReview /></AdminRouteGuard>} />{/* [EPIC 06-A Part3-8] 접근 검토 — 휴면/만료 api_key 검토·회수(admin·세션) */}
                       <Route path="/me/menu" element={<UserMenuPreferences />} />
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/portfolio" element={<PMPortfolio />} />
