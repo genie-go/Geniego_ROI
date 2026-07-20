@@ -41,6 +41,31 @@ final class CreativeStore
         return null;
     }
 
+    // [현 차수] 289차후속 실결함 후속: brandAssetUpload data_url MIME 무검증 정합(§Part3-6 D-5 지목건).
+    //   assetAction 프리뷰가 window.open(data_url) 하므로 data:text/html·application/javascript 자산 업로드 시
+    //   실행형 저장 XSS/피싱 벡터(null-origin이라 same-origin 접근은 불가하나 명백한 비의도). 프론트
+    //   accept="image/*,.pdf,.json,.svg,.woff2,.zip" 의도와 정합하는 default-deny allowlist.
+    /** brand asset data_url 검증 — 위반 시 에러코드, 정상 시 null. 빈값·초과·비 data:·비허용 MIME 거부. */
+    private static function validateBrandAssetDataUrl(string $dataUrl): ?string
+    {
+        if ($dataUrl === '' || strlen($dataUrl) > self::MAX_IMAGE_BYTES) return 'invalid_or_too_large'; // 기존 5MB 캡·에러코드 보존
+        // data:<mime>[;params],payload — MIME 부재(data:;base64,…)·비 data: URL = 거부(default-deny·MIME 스니핑 우회 차단).
+        if (!preg_match('~^data:([a-zA-Z0-9.+_-]+/[a-zA-Z0-9.+_-]+)\s*[;,]~', $dataUrl, $m)) {
+            return 'invalid_data_url';
+        }
+        $mime = strtolower($m[1]);
+        // 로고(이미지·svg 포함)/폰트/PDF/JSON/ZIP 만 허용. text/html·javascript·xhtml 등 실행형 차단.
+        $ok = str_starts_with($mime, 'image/')
+           || str_starts_with($mime, 'font/')
+           || in_array($mime, [
+                'application/pdf', 'application/json',
+                'application/zip', 'application/x-zip-compressed', 'application/octet-stream',
+                'application/font-woff', 'application/font-woff2',
+                'application/x-font-ttf', 'application/x-font-otf', 'application/vnd.ms-fontobject',
+              ], true);
+        return $ok ? null : 'unsupported_asset_type';
+    }
+
     /* ── content_hash 생성 ───────────────────────────────────────── */
     private static function makeHash(array $d): string
     {
@@ -292,7 +317,7 @@ final class CreativeStore
         self::ensureBrandAssets();
         $b = (array)($req->getParsedBody() ?? []);
         $dataUrl = (string)($b['data_url'] ?? '');
-        if ($dataUrl === '' || strlen($dataUrl) > 5000000) return self::json($res, ['ok' => false, 'error' => 'invalid_or_too_large'], 422);
+        if ($err = self::validateBrandAssetDataUrl($dataUrl)) return self::json($res, ['ok' => false, 'error' => $err], 422);
         $now = gmdate('c');
         Db::pdo()->prepare("INSERT INTO brand_asset(tenant_id,name,type,size,data_url,updated_at) VALUES(?,?,?,?,?,?)")
             ->execute([self::tenant($req), mb_substr((string)($b['name'] ?? 'asset'), 0, 255), mb_substr((string)($b['type'] ?? ''), 0, 20), mb_substr((string)($b['size'] ?? ''), 0, 30), $dataUrl, $now]);
