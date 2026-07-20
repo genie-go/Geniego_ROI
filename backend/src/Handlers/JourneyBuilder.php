@@ -85,7 +85,18 @@ class JourneyBuilder
         // [현 차수] 전환 목표(goal) 집계 컬럼.
         try { $pdo->exec("ALTER TABLE journeys ADD COLUMN stats_converted INT DEFAULT 0"); } catch (\Throwable $e) {}
         // [255차 심화] 웹훅 트리거 토큰(인바운드 이벤트→여정 진입, Braze API-trigger 정합). 멱등 ALTER.
-        try { $pdo->exec("ALTER TABLE journeys ADD COLUMN webhook_token VARCHAR(64)"); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE journeys ADD COLUMN webhook_token VARCHAR(128)"); } catch (\Throwable $e) {}
+        // [현 차수 보안] webhook_token=Crypto 암호화(GET detail 재표시 복호)+조회용 webhook_token_hash(SHA-256) 이원화(SCIM 패턴).
+        try { $pdo->exec("ALTER TABLE journeys MODIFY webhook_token VARCHAR(128)"); } catch (\Throwable $e) {} // 암호화 봉투(~63자) 수용
+        try { $pdo->exec("ALTER TABLE journeys ADD COLUMN webhook_token_hash VARCHAR(64)"); } catch (\Throwable $e) {}
+    }
+
+    /** [현 차수 보안] journeys.webhook_token 저장값 복호(dual-read). enc: 봉투면 복호, 아니면 레거시 평문. */
+    private static function jbDecWhTok(?string $stored): string
+    {
+        $s = (string)($stored ?? '');
+        if ($s === '' || strncmp($s, 'enc:', 4) !== 0) return $s;
+        try { return \Genie\Crypto::decrypt($s); } catch (\Throwable $e) { return $s; }
     }
 
     /* ─── GET /journey/journeys ─── 목록 ─────────────────────── */
@@ -128,11 +139,13 @@ class JourneyBuilder
 
         // [255차 심화] 웹훅 트리거용 토큰 생성(인바운드 ingress URL 식별자). 생성 시 항상 발급(트리거 전환 즉시 사용).
         $whTok = bin2hex(random_bytes(16));
-        $pdo->prepare("INSERT INTO journeys (tenant_id, name, description, trigger_type, trigger_config, nodes, edges, status, webhook_token, created_at, updated_at)
-            VALUES (:t, :name, :desc, :ttype, :tconf, :nodes, :edges, 'draft', :wt, :ca, :ua)
+        // [현 차수 보안] webhook_token=암호화 저장(재표시 복호)·webhook_token_hash=조회용 SHA-256. 원문은 응답으로 1회 노출.
+        $pdo->prepare("INSERT INTO journeys (tenant_id, name, description, trigger_type, trigger_config, nodes, edges, status, webhook_token, webhook_token_hash, created_at, updated_at)
+            VALUES (:t, :name, :desc, :ttype, :tconf, :nodes, :edges, 'draft', :wt, :wth, :ca, :ua)
         ")->execute([
             ':t'=>$tenant, ':name'=>$b['name'] ?? '새 여정', ':desc'=>$b['description'] ?? '', ':ttype'=>$b['trigger_type'] ?? 'manual',
-            ':tconf'=>json_encode($b['trigger_config'] ?? []), ':nodes'=>json_encode($b['nodes'] ?? $defaultNodes), ':edges'=>json_encode($b['edges'] ?? $defaultEdges), ':wt'=>$whTok, ':ca'=>$now, ':ua'=>$now,
+            ':tconf'=>json_encode($b['trigger_config'] ?? []), ':nodes'=>json_encode($b['nodes'] ?? $defaultNodes), ':edges'=>json_encode($b['edges'] ?? $defaultEdges),
+            ':wt'=>\Genie\Crypto::encrypt($whTok), ':wth'=>\Genie\Handlers\UserAuth::hashToken($whTok), ':ca'=>$now, ':ua'=>$now,
         ]);
         return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'webhook_token' => $whTok]);
     }
@@ -156,7 +169,11 @@ class JourneyBuilder
             // [255차 심화] 웹훅 트리거 전환 시 토큰 없으면 발급(기존 여정 호환).
             if ($b['trigger_type'] === 'webhook') {
                 try { $cur = $pdo->prepare("SELECT webhook_token FROM journeys WHERE id=:id AND tenant_id=:t"); $cur->execute([':id'=>$id, ':t'=>$tenant]);
-                    if (trim((string)($cur->fetchColumn() ?: '')) === '') { $fields[] = "webhook_token=:wt"; $bind[':wt'] = bin2hex(random_bytes(16)); } } catch (\Throwable $e) {}
+                    if (trim((string)($cur->fetchColumn() ?: '')) === '') {   // 빈 경우만 발급(암호화 저장분은 non-empty=보존)
+                        $newWt = bin2hex(random_bytes(16));
+                        $fields[] = "webhook_token=:wt"; $bind[':wt'] = \Genie\Crypto::encrypt($newWt);       // [현 차수 보안] 암호화 저장
+                        $fields[] = "webhook_token_hash=:wth"; $bind[':wth'] = \Genie\Handlers\UserAuth::hashToken($newWt);
+                    } } catch (\Throwable $e) {}
             }
         }
         if (isset($b['trigger_config'])) { $fields[] = "trigger_config=:tconf"; $bind[':tconf'] = json_encode($b['trigger_config']); }
@@ -249,6 +266,9 @@ class JourneyBuilder
         $ns->execute([':id'=>$id, ':t'=>$tenant]);
         $nodes = $ns->fetchAll(\PDO::FETCH_ASSOC);
 
+        // [현 차수 보안] webhook_token 은 암호화 저장 → 재표시 시 복호(레거시 평문 무중단). hash 컬럼은 노출 제거.
+        if (array_key_exists('webhook_token', $j)) $j['webhook_token'] = self::jbDecWhTok($j['webhook_token'] ?? null);
+        unset($j['webhook_token_hash']);
         return self::json($res, ['ok'=>true, 'journey'=>$j, 'by_status'=>$byStatus, 'node_stats'=>$nodes]);
     }
 
@@ -964,8 +984,9 @@ class JourneyBuilder
         $token = (string)($args['token'] ?? '');
         if ($token === '' || strlen($token) < 16) return self::json($res, ['ok'=>false, 'error'=>'invalid token'], 400);
         try {
-            $j = $pdo->prepare("SELECT * FROM journeys WHERE webhook_token=:tk AND trigger_type='webhook' AND status='active' LIMIT 1");
-            $j->execute([':tk'=>$token]);
+            // [현 차수 보안] dual-read — 신규(webhook_token_hash 결정적)/레거시(평문 webhook_token) 모두 매칭.
+            $j = $pdo->prepare("SELECT * FROM journeys WHERE (webhook_token_hash=:h OR webhook_token=:tk) AND trigger_type='webhook' AND status='active' LIMIT 1");
+            $j->execute([':h'=>\Genie\Handlers\UserAuth::hashToken($token), ':tk'=>$token]);
             $journey = $j->fetch(\PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { $journey = null; }
         if (!$journey) return self::json($res, ['ok'=>false, 'error'=>'no active webhook journey'], 404);

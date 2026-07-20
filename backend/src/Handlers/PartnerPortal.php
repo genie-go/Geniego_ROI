@@ -174,8 +174,9 @@ class PartnerPortal
         }
         $token = bin2hex(random_bytes(32));
         $now = self::now(); $exp = gmdate('Y-m-d H:i:s', time() + 12 * 3600);
+        // [현 차수 보안] 세션 토큰 at-rest 해시(user_session P5 동형) — DB덤프 replay 차단. 원문은 클라이언트만 보유.
         $pdo->prepare("INSERT INTO partner_session (token,partner_account_id,tenant_id,expires_at,created_at) VALUES (?,?,?,?,?)")
-            ->execute([$token, (int)$acct['id'], (string)$acct['tenant_id'], $exp, $now]);
+            ->execute([\Genie\Handlers\UserAuth::hashToken($token), (int)$acct['id'], (string)$acct['tenant_id'], $exp, $now]);
         try { $pdo->prepare("UPDATE partner_account SET last_login=? WHERE id=?")->execute([$now, (int)$acct['id']]); } catch (\Throwable $e) {}
         return self::json($res, [
             'ok' => true, 'token' => $token,
@@ -191,8 +192,8 @@ class PartnerPortal
         if ($token === '') return null;
         $pdo = self::db();
         try {
-            $st = $pdo->prepare("SELECT s.token, s.expires_at, a.* FROM partner_session s JOIN partner_account a ON a.id=s.partner_account_id WHERE s.token=? AND a.active=1 LIMIT 1");
-            $st->execute([$token]);
+            $st = $pdo->prepare("SELECT s.token, s.expires_at, a.* FROM partner_session s JOIN partner_account a ON a.id=s.partner_account_id WHERE s.token IN (?, ?) AND a.active=1 LIMIT 1");
+            $st->execute([\Genie\Handlers\UserAuth::hashToken($token), $token]);  // dual-read(신규 해시/레거시 평문)
             $row = $st->fetch(PDO::FETCH_ASSOC);
             if (!$row) return null;
             if (!empty($row['expires_at']) && $row['expires_at'] < self::now()) { return null; }
@@ -205,7 +206,7 @@ class PartnerPortal
     {
         $hdr = $req->getHeaderLine('Authorization');
         $token = (stripos($hdr, 'Bearer ') === 0) ? trim(substr($hdr, 7)) : '';
-        if ($token !== '') { try { self::db()->prepare("DELETE FROM partner_session WHERE token=?")->execute([$token]); } catch (\Throwable $e) {} }
+        if ($token !== '') { try { self::db()->prepare("DELETE FROM partner_session WHERE token IN (?, ?)")->execute([\Genie\Handlers\UserAuth::hashToken($token), $token]); } catch (\Throwable $e) {} }
         return self::json($res, ['ok' => true]);
     }
 

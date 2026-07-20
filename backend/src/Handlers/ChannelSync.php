@@ -5794,6 +5794,22 @@ final class ChannelSync
             $type = $isMy ? ($col === 'last_used_at' ? 'DATETIME NULL' : 'VARCHAR(190) NULL') : 'TEXT';
             try { $pdo->exec("ALTER TABLE channel_webhook_token ADD COLUMN $col $type"); } catch (\Throwable $e) {}
         }
+        // [현 차수 보안] token 을 Crypto 암호화(재표시 복호) + 조회용 token_hash(SHA-256) 이원화(SCIM 패턴).
+        //   token 은 UI 재표시(webhook_url)가 필요해 해시 불가 → 암호화. 인바운드 조회는 결정적 token_hash 사용.
+        try { $pdo->exec("ALTER TABLE channel_webhook_token ADD COLUMN token_hash " . ($isMy ? "VARCHAR(64) NULL" : "TEXT")); } catch (\Throwable $e) {}
+        // 64자 원문 token 을 암호화하면 enc:vN: 봉투가 ~131자라 기존 VARCHAR(128) 초과 → 컬럼 확장(멱등).
+        if ($isMy) {
+            try { $pdo->exec("ALTER TABLE channel_webhook_token MODIFY token VARCHAR(255) NOT NULL"); } catch (\Throwable $e) {}
+            try { $pdo->exec("ALTER TABLE channel_webhook_token ADD INDEX idx_cwt_hash (token_hash)"); } catch (\Throwable $e) {}
+        }
+    }
+
+    /** [현 차수 보안] channel_webhook_token 저장 token 복호(dual-read). enc: 봉투면 복호, 아니면 레거시 평문. */
+    private static function cwtDecToken(?string $stored): string
+    {
+        $s = (string)($stored ?? '');
+        if ($s === '' || strncmp($s, 'enc:', 4) !== 0) return $s;
+        try { return \Genie\Crypto::decrypt($s); } catch (\Throwable $e) { return $s; }
     }
 
     /** 프록시 뒤에서도 정확한 공개 베이스 URL 도출(X-Forwarded-* 우선) */
@@ -5826,7 +5842,7 @@ final class ChannelSync
         $st->execute([$tenant]);
         $rows = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            $tok = (string)$r['token'];
+            $tok = self::cwtDecToken($r['token'] ?? null);   // [현 차수 보안] 암호화 저장 → 재표시 복호(레거시 평문 무중단)
             $rows[] = [
                 'id'           => (int)$r['id'],
                 'channel'      => $r['channel'],
@@ -5862,8 +5878,9 @@ final class ChannelSync
         $label = trim((string)($body['label'] ?? ''));
         $token = bin2hex(random_bytes(32)); // 64 hex — 추측 불가
         $now   = gmdate('Y-m-d H:i:s');
-        $ins = $pdo->prepare("INSERT INTO channel_webhook_token(tenant_id,channel,token,label,created_at) VALUES(?,?,?,?,?)");
-        $ins->execute([$tenant, $channel, $token, $label !== '' ? $label : null, $now]);
+        // [현 차수 보안] token=암호화 저장(재표시 복호)·token_hash=조회용 SHA-256. 원문은 응답으로 1회 전체 노출.
+        $ins = $pdo->prepare("INSERT INTO channel_webhook_token(tenant_id,channel,token,token_hash,label,created_at) VALUES(?,?,?,?,?,?)");
+        $ins->execute([$tenant, $channel, \Genie\Crypto::encrypt($token), \Genie\Handlers\UserAuth::hashToken($token), $label !== '' ? $label : null, $now]);
         $id = (int)$pdo->lastInsertId();
         return TemplateResponder::respond($res->withStatus(201), [
             'ok'          => true,
@@ -5901,8 +5918,9 @@ final class ChannelSync
         if ($token === '' || strlen($token) < 16) return null;
         try {
             self::ensureWebhookTokenTable($pdo);
-            $st = $pdo->prepare("SELECT id,tenant_id FROM channel_webhook_token WHERE token=? AND channel=? LIMIT 1");
-            $st->execute([$token, $channel]);
+            // [현 차수 보안] dual-read — 신규(token_hash 결정적 조회)/레거시(평문 token) 모두 매칭.
+            $st = $pdo->prepare("SELECT id,tenant_id FROM channel_webhook_token WHERE (token_hash=? OR token=?) AND channel=? LIMIT 1");
+            $st->execute([\Genie\Handlers\UserAuth::hashToken($token), $token, $channel]);
             $r = $st->fetch(PDO::FETCH_ASSOC);
             if (!$r) return null;
             // 사용 시각 갱신(베스트-에포트) — UI 의 '최근 수신' 표시용.

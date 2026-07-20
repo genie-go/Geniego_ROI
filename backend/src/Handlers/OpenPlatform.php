@@ -89,6 +89,11 @@ final class OpenPlatform
             last_delivery_at TEXT,
             created_at TEXT, updated_at TEXT
         )");
+        // [현 차수 보안] secret 을 Crypto AES-256-GCM 봉투(enc:vN:...) 로 저장하면 ~119자라 VARCHAR(80) 초과
+        //   → MySQL 컬럼 확장(멱등·기존 데이터 무영향). SQLite 는 길이 미강제라 무관.
+        if ($drv === 'mysql') {
+            try { $pdo->exec("ALTER TABLE webhook_endpoint MODIFY secret VARCHAR(255)"); } catch (\Throwable $e) { /* 이미 확장/미지원 */ }
+        }
 
         // 전달 로그 + 재시도 큐.
         $pdo->exec("CREATE TABLE IF NOT EXISTS webhook_delivery (
@@ -120,6 +125,22 @@ final class OpenPlatform
         return substr($secret, 0, 8) . '••••' . substr($secret, -4);
     }
 
+    /** [현 차수 보안] webhook 서명 secret 저장용 암호화(Crypto AES-256-GCM 봉투). 서명 시 복호 필요하므로 해시가 아닌 암호화. */
+    private static function encSecret(string $plain): string
+    {
+        if ($plain === '') return '';
+        try { return \Genie\Crypto::encrypt($plain); } catch (\Throwable $e) { return $plain; }
+    }
+
+    /** [현 차수 보안] 저장된 secret 복호(dual-read). enc:vN: 봉투면 복호, 아니면(레거시 평문 행) 그대로 반환·무중단. */
+    private static function decSecret(?string $stored): string
+    {
+        $s = (string)($stored ?? '');
+        if ($s === '') return '';
+        if (strncmp($s, 'enc:', 4) !== 0) return $s;          // 레거시 평문 → 그대로
+        try { return \Genie\Crypto::decrypt($s); } catch (\Throwable $e) { return $s; }
+    }
+
     private static function nowIso(): string { return gmdate('c'); }
 
     // ───────────────────────────────────────────────────── 관리 엔드포인트
@@ -135,7 +156,7 @@ final class OpenPlatform
         $st->execute([$tenant]);
         $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
         foreach ($rows as &$r) {
-            $r['secret_masked'] = self::maskSecret((string)($r['secret'] ?? ''));
+            $r['secret_masked'] = self::maskSecret(self::decSecret($r['secret'] ?? null));
             unset($r['secret']);                          // 평문 노출 금지(생성 시 1회만)
             $r['events'] = json_decode((string)($r['events_json'] ?? '[]'), true) ?: [];
             unset($r['events_json']);
@@ -174,7 +195,7 @@ final class OpenPlatform
         $now = self::nowIso();
         $st = $pdo->prepare("INSERT INTO webhook_endpoint(tenant_id,url,secret,events_json,description,is_active,failure_count,created_at,updated_at)
                              VALUES(?,?,?,?,?,1,0,?,?)");
-        $st->execute([$tenant, $url, $secret, json_encode($events), $desc, $now, $now]);
+        $st->execute([$tenant, $url, self::encSecret($secret), json_encode($events), $desc, $now, $now]);
         $id = (int)$pdo->lastInsertId();
 
         return self::json($res, [
@@ -416,7 +437,7 @@ final class OpenPlatform
         $attempts = (int)($del['attempts'] ?? 0) + 1;
         $body = (string)($del['payload_json'] ?? '{}');
         $ts = (string)time();
-        $sig = self::sign((string)($ep['secret'] ?? ''), $ts, $body);
+        $sig = self::sign(self::decSecret($ep['secret'] ?? null), $ts, $body);
         $url = (string)($ep['url'] ?? '');
 
         $httpCode = 0; $err = null; $ok = false;

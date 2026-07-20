@@ -202,8 +202,9 @@ class AgencyPortal
         try { $pdo->prepare("DELETE FROM agency_login_attempt WHERE ident=?")->execute([$ident]); } catch (\Throwable $e) {} // 성공 → 클리어
         $token = 'agt_' . bin2hex(random_bytes(32));
         $now = self::now(); $exp = gmdate('Y-m-d H:i:s', time() + 12 * 3600);
+        // [현 차수 보안] 세션 토큰 at-rest 해시(user_session P5 동형) — DB덤프 replay 차단. 원문은 클라이언트만 보유.
         $pdo->prepare("INSERT INTO agency_session (token,agency_id,active_link_id,active_client_tenant,expires_at,created_at) VALUES (?,?,NULL,NULL,?,?)")
-            ->execute([$token, (int)$acct['id'], $exp, $now]);
+            ->execute([\Genie\Handlers\UserAuth::hashToken($token), (int)$acct['id'], $exp, $now]);
         try { $pdo->prepare("UPDATE agency_account SET last_login=? WHERE id=?")->execute([$now, (int)$acct['id']]); } catch (\Throwable $e) {}
         return self::json($res, [
             'ok' => true, 'token' => $token,
@@ -220,12 +221,13 @@ class AgencyPortal
         if (strncmp($token, 'agt_', 4) !== 0) return null;
         $pdo = self::db();
         try {
-            $st = $pdo->prepare("SELECT s.token, s.agency_id, s.active_link_id, s.active_client_tenant, s.expires_at, a.name, a.login_id, a.active FROM agency_session s JOIN agency_account a ON a.id=s.agency_id WHERE s.token=? LIMIT 1");
-            $st->execute([$token]);
+            // [현 차수 보안] dual-read — 신규 해시행/레거시 평문행 모두 조회(무중단 마이그레이션).
+            $st = $pdo->prepare("SELECT s.token, s.agency_id, s.active_link_id, s.active_client_tenant, s.expires_at, a.name, a.login_id, a.active FROM agency_session s JOIN agency_account a ON a.id=s.agency_id WHERE s.token IN (?, ?) LIMIT 1");
+            $st->execute([\Genie\Handlers\UserAuth::hashToken($token), $token]);
             $row = $st->fetch(PDO::FETCH_ASSOC);
             if (!$row || (int)($row['active'] ?? 0) !== 1) return null;
             if (!empty($row['expires_at']) && $row['expires_at'] < self::now()) return null;
-            $row['_token'] = $token;
+            $row['_token'] = (string)$row['token'];    // ★저장값(해시/레거시평문) — 이후 WHERE token 갱신이 정합
             return $row;
         } catch (\Throwable $e) { return null; }
     }
@@ -235,7 +237,7 @@ class AgencyPortal
     {
         $hdr = $req->getHeaderLine('Authorization');
         $token = (stripos($hdr, 'Bearer ') === 0) ? trim(substr($hdr, 7)) : '';
-        if (strncmp($token, 'agt_', 4) === 0) { try { self::db()->prepare("DELETE FROM agency_session WHERE token=?")->execute([$token]); } catch (\Throwable $e) {} }
+        if (strncmp($token, 'agt_', 4) === 0) { try { self::db()->prepare("DELETE FROM agency_session WHERE token IN (?, ?)")->execute([\Genie\Handlers\UserAuth::hashToken($token), $token]); } catch (\Throwable $e) {} }
         return self::json($res, ['ok' => true]);
     }
 
