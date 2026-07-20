@@ -133,3 +133,11 @@
 - **★"근접≠scope" 오분류 회피**: envLabel(배포환경 라벨)·menu_tree(UI 위계)·parent_user_id(계정)·PM project(별개체계)·reconciliation(금융 정합)·Attribution time_window(마케팅)을 scope로 오흡수하지 않음. 명칭 유사(hierarchy/reconciliation/time)에 속지 않고 코드 실체로 판정.
 - **★능력기반 감사가 실결함 발견(Part 3-2/3-3 계열)**: `putMemberPermissions`(`TeamPermissions.php:648-653`) manager scope 위임상한이 **주석에만 있고 코드 미구현**(menus는 clamp·scope는 무검증)→위임 통한 scope 확대 권한상승. firsthand 확인·설계 코드0 규율상 §D-5 등재(수정아님·후속 fix 세션).
 - **★기수정 재플래그 회피**: 289차 P1~P4·high_value ₩5M(289차 13회차 수정분)·tenant 위조차단(188차)을 결함으로 재플래그하지 않음.
+
+### ★14차 사례 (289차 후속 · 06-A-03-02-03-04 Part 3-5 Dynamic Role) — "이름 같은 마케팅 엔진" 오흡수 회피 + 반날조 정규식 오탐 판별
+
+- **경과**: Part 3-5 스펙 수령 → ⓐ선영속 → ⓑ전수조사(2 Explore 스레드) → ⓒADR+ground-truth 2편 → ⓓper-entity 42편(6 에이전트 wave). 코드 0.
+- **★"이름 같은 다른 도메인 엔진" 오흡수 회피(신규 축·중요)**: `RuleEngine.php`(실존!·"범용 IF-THEN 룰엔진")를 스펙 §6 RBAC Rule Engine으로 오인하지 않고, 조건(channel_roas/sku_stock)·액션(pause_channel/reorder)이 마케팅/재고임을 firsthand 확인해 KEEP_SEPARATE 판정. "이름이 같으니 이미 있다"는 가짜 녹색 회피. Alerting/AutoCampaign/Decisioning/AnomalyDetection/PolicyTreeEditor 동일.
+- **★"필드 존재 ≠ 결정 입력" 구분**: MFA(로그인 게이트)·session(표시용)·risk(정적 심각도 라벨·SIEM 포워딩만)·env(배포라벨)가 컬럼/함수로 실재하나 role 활성 입력으로 조합되는 지점 0임을 확인. "속성 컬럼 있음=ABAC 완성" 착시 회피(TeamPermissions에 mfa 참조 grep 0으로 실증).
+- **★반날조 정규식 오탐 판별(운영 교훈)**: ⓔ 검증서 RuleEngine.php/AutoCampaign.php가 허용목록 밖으로 플래그됐으나, ground-truth의 **분리 표기**(`RuleEngine.php`(`:12`))를 추출 정규식(`.php:[0-9]`)이 놓친 오탐임을 확인(DSAR 인용 라인 :12/:32/:194가 ground-truth 범위 {12,24,32,34,194-220} 내). 자동 검사 결과를 무비판 수용하지 않고 근거 대조로 오탐 판별.
+- **★기수정 재플래그 회피**: AdminMenu required_role↔rank 데드락은 이번 세션 커밋 974ab0db6ff로 이미 수정됨을 인지·하드코딩 rank가 실버그 유발한 "증거"로만 인용하고 미수정 결함으로 재플래그하지 않음.

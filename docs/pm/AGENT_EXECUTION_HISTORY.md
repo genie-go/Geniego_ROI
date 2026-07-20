@@ -466,3 +466,11 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **정직 표기**: Verdict 분포=PARTIAL/PRESENT(data_scope 4차원·tenant·api_key·amount·environment·resource·org·project·resolution·runtime guard)/ABSENT(거버넌스·미실재 차원)·envLabel/menu_tree NOT_SCOPE 명시. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 47(per-entity 45 + EXISTING + DUPLICATE) + ADR 1 = **49 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
 - **★부수 산출=실결함 1건 등재**(manager scope 위임상한 미구현·`TeamPermissions.php:648-653`)—설계 코드0 규율상 수정 아님·후속 fix 세션 후보(DUPLICATE_AUDIT §D-5).
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-5 Dynamic Role Governance 전수조사·전사 (6 에이전트 wave)
+
+- **ⓑ 2 Explore 스레드**: ①Dynamic Role/Rule Engine/ABAC/Runtime Eval(session/conditional role·rule engine·attribute source·runtime context·PDP/PEP·risk·MFA·CONDITIONAL ref) 46 tool-use ②거버넌스/중복(version/snapshot/cache·drift/reval/recon/sim·runtime guard/static lint·MFA/risk·business hours·하드코딩 role 산재) 60 tool-use. 결과=Dynamic Role/Rule Engine/PDP 순신규+근접 3종(ABAC data_scope/MFA 게이트/attribute 필드·전부 role 엔진 아님)+마케팅 RuleEngine KEEP_SEPARATE+하드코딩 role 37+개소.
+- **ⓒ 6 에이전트(단일 wave·A~F 각 7)**: §2 canonical+§3-§35 per-entity DSAR **42편**. 공용 지시(선정독 4파일+GROUND_TRUTH allowlist 22파일+판정 규율[대부분 ABSENT·근접 substrate는 role 엔진 아님 명시·마케팅 RuleEngine KEEP_SEPARATE·UNKNOWN Permit 금지·양방향 회피]).
+- **★반날조 검증(사용자 지시)**: ①42편 존재 100%(누락 0) ②42편 인용 소스 basename 전수 → 허용목록 **24파일**(22+RuleEngine/AutoCampaign·ground-truth 분리표기로 정규식이 놓친 오탐 판별·인용 라인 전부 ground-truth 범위 내)와 정확일치·초과 0·지어낸 file:line 0. ③헤더 일관·코드 무접촉·파일명 충돌 0(DYNAMIC_ 접두 42개 사전확인 신규).
+- **정직 표기**: Verdict 분포=대부분 ABSENT/PARTIAL(ABAC data_scope·MFA 게이트·index.php PEP 근접·effectiveScope projection)·마케팅 automation KEEP_SEPARATE 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 44(per-entity 42 + EXISTING + DUPLICATE) + ADR 1 = **46 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0. 신규 실결함 없음.

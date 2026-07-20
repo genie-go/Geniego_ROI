@@ -842,3 +842,17 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★정직 판정(양방향 회피)**: envLabel≠데이터scope(배제)·Scope Hierarchy≠Org Hierarchy(data_scope FLAT)·menu_tree/parent_user_id는 scope 아님·PM 별개체계·reconciliation 매치는 금융 도메인. 부재 날조·실재 과신 회피.
 - **★반날조**: 45편 인용 소스 허용목록 **14파일** 정확일치·초과0·지어낸 file:line 0(Enterprise.php 이름언급되나 라인인용 0)·헤더 일관·코드 무접촉. 파일명 충돌 0(SCOPE_ 접두 신규).
 - **구현 판정 = PARTIAL/PRESENT-substrate/ABSENT-governance/BLOCKED_PREREQUISITE**. 실엔진="7곳 산재 scope를 Canonical Scope Registry로 통합 + 4/9 차원 정합 + governance 신설". 선행 Permission Engine·Role Registry/Hierarchy/Assignment·Decision Core 실구현 후 RP-002. 다음=Part 3-5 Dynamic Role Governance.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-04 Part 3-5 Dynamic Role Governance(ABAC+Rule Engine) (설계 명세 · 코드 0 · NOT_CERTIFIED)
+
+- **산출**: ⓐ 스펙 verbatim 선영속(`docs/spec/EPIC_06A_PART3_5_DYNAMIC_ROLE_GOVERNANCE_SPEC.md`) → ⓑ 2 Explore 스레드 전수조사(Dynamic/Rule/ABAC+거버넌스·firsthand 재검증) → ground-truth 2편+ADR → ⓓ per-entity DSAR **42편**(6 에이전트 wave A~F 각 7). 총 44 DSAR+1 ADR+1 SPEC. 커밋 `38052a2b22e`(스펙+ADR+ground-truth)+DSAR 42편 커밋. **실 코드·테이블 0**.
+- **★핵심 판정 = 대부분 ABSENT(순신규)**: Dynamic/Runtime/Session/Conditional Role·RBAC Rule Engine·PDP/PEP·Policy Decision(Permit/Deny/Challenge/Escalate)·계산형 Runtime Risk = grep 0. team_role/api_key/admin_level 전부 정적(로그인 시 세션 스냅샷·context 재평가 없음).
+- **★근접 substrate 3종(전부 dynamic role 엔진 아님)**: ① ABAC=data_scope 9차원 행필터(`TeamPermissions.php:236-322`·PARTIAL·유일) ② Require MFA 로그인 게이트(`UserAuth.php:929-1036,3719-3760`·실재·3단계·단 role 활성 입력 아님·TeamPermissions에 mfa 참조 0) ③ MFA/session/risk/env 속성필드(존재하나 개별목적·role 미연결·`auth_audit_log.risk`=정적 심각도 라벨·계산 아님·SIEM 포워딩만).
+- **★거버넌스 계층 완전 부재(ABSENT)**: Version/Snapshot/Digest/Evidence·Projection/Cache(effectiveScope 라이브 재계산·캐시0)·Drift/Revalidation/Reconciliation/Simulation·Runtime Guard/Static Lint 엔진 = grep 0.
+- **★마케팅 automation KEEP_SEPARATE(오흡수 금지)**: `RuleEngine.php`(channel_roas/sku_stock·alert/webhook/pause_channel/reorder·`:12,24,32,34,194-220`)·Alerting·`AutoCampaign.php`(`:14-15,222-226`)·Decisioning·AnomalyDetection·FE PolicyTreeEditor(roas 트리·미배선). 명명(rule/drift/simulate)만 유사·대상 도메인(광고/재고/ML) 전혀 다름·RBAC Rule Engine 아님.
+- **★무통합 정적 rank 4곳(통합 PDP 부재)**: TeamPermissions(ABAC)·index.php RBAC(PEP 근접·이진 `:572-598`)·PlanPolicy(`:19-22`)·AdminMenu(`:337-356`). 하드코딩 role/plan 비교 백엔드 15+FE 22개소 산재(Static Lint 대상·AdminMenu 데드락[커밋 974ab0db6ff·이미 수정]이 실버그 유발 증거·재플래그 아님).
+- **★CONDITIONAL Component Rule Reference**: Part 3-2 enum명만 존재(`EPIC_06A_PART3_2_..._SPEC.md:331`)·코드 부재·이번 Part 3-5가 채울 빈자리. UNKNOWN Permit 금지(fail-closed·effectiveScope DENY_SCOPE substrate).
+- **★반날조**: 42편 인용 소스 허용목록 **24파일**(RuleEngine/AutoCampaign 포함·분리표기 정규식 오탐 판별) 정확일치·초과0·지어낸 file:line 0·헤더 일관·코드 무접촉·파일명 충돌 0(DYNAMIC_ 접두 42개 사전확인). **신규 실결함 발견 없음**(AdminMenu 데드락 이미 수정).
+- **구현 판정 = ABSENT/근접-substrate/BLOCKED_PREREQUISITE**. 실엔진="Dynamic Role Engine 제로 신설 + ABAC(data_scope)·MFA 게이트·attribute 필드를 결정 입력으로 조립 + 정적 rank 4곳 단일 PDP 수렴". 선행 Permission Engine·Role Registry/Hierarchy/Assignment/Scoped·Decision Core 실구현 후 RP-002. 다음=Part 3-6 Service/System Role Governance.
