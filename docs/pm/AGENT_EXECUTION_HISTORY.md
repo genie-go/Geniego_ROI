@@ -501,3 +501,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **★반날조 검증**: ①36편 존재(34 DSAR+2 GT)·전건 NOT_CERTIFIED 헤더·stub 0 ②인용 basename 전수(`comm -23`)→허용목록 23파일 정확일치·허용목록 밖 0·지어낸 file:line 0(각 에이전트 자체 인용목록 반환) ③SOD_ 접두 36개 파일명 충돌 0·기존 추적파일 0(전부 신규).
 - **정직 표기**: Verdict 분포=대부분 ABSENT-순신규(conflict rule/matrix/registry/6 engine/runtime evaluator/temporal/dynamic/static SoD/exception/override/전용 evidence·snapshot·digest·analytics·drift·recon·simulation·guard·lint)·PARTIAL 재활용(transaction=Mapping dual-control·runtime-guard=RBAC PEP·evidence=SecurityAudit)·dual-control≠SoD 반복 명시·Alerting VACUOUS 기존확정 재플래그 금지. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 36(per-entity/contract 34 + EXISTING + DUPLICATE) + ADR 1 = **38 문서** + PM/Agent History. 실 코드·테이블 0. 신규 실결함 없음.
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-11 RBAC Analytics & Governance Dashboard (canonical 원문 + 8 에이전트 DSAR wave)
+
+- **ⓐ canonical SPEC**: 사용자 제공 handbook 원문(Version 1.0) verbatim 영속.
+- **ⓑ 2 Explore 스레드**: ①authz 거버넌스 analytics(SystemMetrics·AccessReview·SecurityAudit·admin 콘솔·Compliance posture·authz KPI)(26 tool-use) ②재사용 인프라(Alert/Export/Cache)+마케팅 analytics 엄격 KEEP_SEPARATE(24 tool-use). 결과=통합 RBAC Control Tower·authz KPI(Least Privilege/ZSP/SoD%/MTTR)·Widget/Forecast/Recommendation(authz) ABSENT·분산 authz 화면 PARTIAL·중립인프라(pushEvent/DataExport/TTL캐시) 재사용·마케팅 analytics 13+ 엔진 전부 KEEP_SEPARATE.
+- **ⓓ 8 에이전트 DSAR wave**: 배치1 Registry/Dashboard(4)·2 Metrics(4)·3 Engines(4)·4 Channels(3)·5 Evidence(4)·6 Advanced(4)·7 Contracts A(5)·8 Contracts B(5) = **33 DSAR**. 공용 지시(committed SPEC+ADR+GT①② 선정독→그 file:line만 인용·마케팅 analytics 흡수 금지·"dashboard"=메뉴 권한키).
+- **★반날조 검증**: ①35편 존재(33 DSAR+2 GT)·전건 NOT_CERTIFIED 헤더·stub 0 ②인용 basename 전수(`comm -23`)→허용목록 37파일 중 36 인용·허용목록 밖 0·지어낸 file:line 0(각 에이전트 자체 인용목록 반환) ③ANALYTICS_ 접두 35개 파일명 충돌 0·기존 추적파일 0(전부 신규).
+- **정직 표기**: Verdict 분포=대부분 ABSENT-순신규(통합 dashboard·authz KPI·widget·forecast·recommendation·trend·snapshot·digest·cache·drift·simulation·reconciliation·static-lint)·PARTIAL 재활용(dashboard-types=분산화면·alert=중립라우터·evidence=SecurityAudit·export=DataExport·audit=감사)·마케팅 analytics 대량 KEEP_SEPARATE 반복 명시. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 35(per-entity/contract 33 + EXISTING + DUPLICATE) + ADR 1 = **37 문서** + PM/Agent History. 실 코드·테이블 0. 신규 실결함 없음.
