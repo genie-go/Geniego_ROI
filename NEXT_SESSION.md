@@ -2846,3 +2846,43 @@ EPIC 06-A-03-02-03 계열 설계 거버넌스를 동일 파이프라인(ⓐSPEC 
 ## E. 규율 재확인
 - 06-A 설계는 **코드 변경 0·"계약 명세 확정"·NOT_CERTIFIED 불변**. 실 엔진=선행 Decision Core 신설 후 별도 승인세션(RP-002).
 - 장식 오인 금지(menu_audit_log.hash_chain verify0·admin_roles DORMANT)·기수정 재플래그 금지(Alerting actor는 닫힘)·부재를 결함으로 날조 금지(하드코딩 email authz 부재).
+
+---
+
+# 289차 후속 (2회차) 세션 종결 인계 — EPIC 06-A-03-02-03-04 Part 3-9~3-25 설계 거버넌스 17개 연속 완결
+
+## A. 이번 세션 산출 (전부 설계 명세 · 코드 변경 0 · NOT_CERTIFIED · BLOCKED_PREREQUISITE)
+사용자 제공 canonical handbook 원문(verbatim) 17건을 파이프라인(SPEC 영속 → 2 Explore ground-truth → GT①②/ADR 정본화 → 8~9 에이전트 DSAR wave → `comm -23` 반날조 → PM/Agent 이력 → 커밋·push)으로 연속 완결. **각 Part = SPEC 1 + GT①② + ADR 1 + per-entity DSAR 35~37 = 39~41 문서. 총 17 Part ≈ 680+ 문서.** feat/n236-admin-growth-automation 브랜치에 Part별 개별 커밋.
+
+| Part | 주제 | 커밋 | 핵심 판정 |
+|---|---|---|---|
+| 3-16 | Unified Authorization Fabric | 64b9e67 | ABSENT-fabric(단일 모놀리스)·멀티테넌트 격리 유일 실체·죽은 terraform PRESENT 금지 |
+| 3-17 | Compliance & Regulatory Governance | b9e354b | ★EXTEND-Compliance.php(SOC2/ISO posture 실재)·SecurityAudit Evidence·SoD/JIT grep0 |
+| 3-18 | Federation & Cross-Domain Governance | 86eec16 | ★EXTEND-EnterpriseAuth.php(SSO OIDC/SAML+SCIM 실재)·cross-domain ABSENT |
+| 3-19 | Autonomous Authorization Control Plane | 1d52fbb | ABSENT(Control/Data Plane 미분리)·app_setting/AdminPlans 미러 PARTIAL |
+| 3-20 | Self-Healing & Continuous Governance | ac885b3 | ABSENT-greenfield·★Alerting executeAction=producer 없는 죽은 스켈레톤·DB self-heal 동음이의 |
+| 3-21 | Knowledge Graph & Semantic Governance | 4b56644 | SOURCE-PRESENT(TeamPermissions 관계)·★graph_node/edge=마케팅 GraphScore PRESENT 오판 금지 |
+| 3-22 | Digital Twin & Predictive Governance | d2c2683 | ABSENT-greenfield·★demo env=별개 라이브 env≠read-only twin·메시지 브로커 부재 |
+| 3-23 | Quantum-Ready Architecture | 28a8d9e | SOURCE-PRESENT(고전 crypto AES/RSA/SHA/HMAC/bcrypt 풍부)·PQC 라이브러리 부재 |
+| 3-24 | Universal Governance Mesh | cec7c8f | ABSENT-greenfield·★approval quorum≠분산 BFT·죽은 terraform Mesh PRESENT 금지 |
+| 3-25 | Final Integration & Operational Readiness | 90da206 | ABSENT-greenfield·★deploy=CODE deploy·SBOM/signing/RUNBOOK/certificate 부재 |
+(3-9~3-15는 직전 세션 완결: JIT/SoD/RBAC Analytics/PDP·PEP/Zero Trust/Observability/AI Governance)
+
+## B. 다음 최우선 (신규 세션) = EPIC 06-A-03-02-03-04 **Part 3-26 — Enterprise Authorization Reference Architecture & Implementation Blueprint**
+- SPEC(사용자 제공 canonical handbook 원문) 대기. 제공 즉시 **동일 파이프라인** 적용:
+  1. `docs/spec/EPIC_06A_PART3_26_*.md`에 원문 verbatim 영속(코드 변경 0).
+  2. 2 Explore ground-truth(①실존 substrate 카탈로그 ②ABSENT grep + KEEP_SEPARATE 동음이의).
+  3. GT①(`DSAR_APPROVAL_<PREFIX>_EXISTING_IMPLEMENTATION.md`)·GT②(`..._DUPLICATE_IMPLEMENTATION_AUDIT.md`)·ADR(`docs/architecture/ADR_DSAR_*.md`) 정본화 — file:line 허용목록 고정.
+  4. 9 에이전트 DSAR wave(엔티티+개념+횡단계약, `DSAR_APPROVAL_<PREFIX>_*.md`).
+  5. **반날조 필수**: `comm -23`로 per-entity DSAR 인용 basename/file:line이 GT①②+ADR 허용목록 안에 있는지 검증. 오버리치는 GT②에 실보고 라인 추가 or DSAR 인용 교정 후 재검증(실 위반 0 필수).
+  6. PM 이력(`docs/pm/PM_CHANGE_HISTORY.md`·`AGENT_EXECUTION_HISTORY.md`) 추가 → Part별 개별 커밋 → push.
+- 이후 SPEC §35 순서: Part 3-27(Long-Term Evolution Roadmap)·3-28(Governance Maturity Model)·3-29(Reference Validation Suite)·3-30(Production Excellence)·3-31(Global Operations Manual)·3-32(Continuous Innovation).
+
+## C. 반날조 파이프라인 트랩 (이번 세션 실측)
+- `comm -23` basename 정규식 `[A-Za-z0-9_]+\.(php|js|jsx|sql)`은 `.php` 확장자 없는 파일명("PgSettlement" vs "PgSettlement.php")·bare 연속 인용(`:64-70`)·세부라인 오버리치(`:697` in `:695-701` 범위)를 놓치거나 오탐. **완전수식 file:line은 별도 `comm -23`로 GT 허용목록과 대조하고, 플래그된 것은 bare 라인 토큰이 GT에 실재하는지 재확인.** 오버리치 실측 다수: Part3-16(9건 bare)·3-17(3건)·3-18(2건)·3-19(1건)·3-20(3건)·3-21(6건)·3-22(2건)·3-24(2건)·3-25(2건) — 전부 GT② 추가 or 허용목록 라인 교정으로 실 위반 0 달성.
+- Explore 에이전트가 KEEP_SEPARATE로 실보고한 파일을 GT②에 `.php` 확장자·라인까지 정확히 등재해야 배치 에이전트 인용이 허용목록 안에 든다.
+
+## D. 배포·자격증명·규율 (불변)
+- 배포=CI inert·수동 plink/pscp·**모든 배포 사용자 승인 의무**(이번 세션 산출물은 전부 docs·배포 없음).
+- 06-A 설계는 **코드 변경 0·NOT_CERTIFIED 불변**. 실 엔진=선행 Decision Core(Part 1~3-25 통째) 인증 후 별도 RP-track 승인세션.
+- 정직 3원칙: 실재 과신 회피·부재 과장 회피·오흡수(동음이의) 회피. 죽은 infra(terraform/ECS/Postgres/Redis)를 PRESENT 근거로 인용 금지. 마케팅/ML/커머스/PM 동음이의를 authz로 흡수 금지.
