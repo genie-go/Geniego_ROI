@@ -492,3 +492,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **★반날조 검증**: ①33편 존재(31 DSAR+2 GT)·전건 NOT_CERTIFIED 헤더·stub 0(전건 25행+) ②인용 basename 전수(`comm -23`) → 허용목록 33파일과 정확일치·**허용목록 밖 0**·지어낸 file:line 0(각 에이전트 자체 인용목록 반환·2건 자가검증 노트 첨부) ③JIT_ 접두 33개 파일명 충돌 0·기존 추적파일 0(전부 신규).
 - **정직 표기**: Verdict 분포=대부분 ABSENT-순신규(elevation registry/request/policy/template/risk/session/monitor/snapshot/digest/analytics/drift/simulation/revalidation/reconciliation/static-lint)·PARTIAL 재활용(approval maker-checker·assignment impersonation·revocation lazy만료·evidence SecurityAudit·runtime-guard 중앙RBAC)·impersonation 하향≠상승·break-glass 무기한≠시한부 명시. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1(canonical 치환) + DSAR 33(per-entity/contract 31 + EXISTING + DUPLICATE) + ADR 1 = **35 문서** + PM/Agent History 갱신. 실 코드·테이블 0. 신규 실결함 없음.
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-10 Runtime SoD Enforcement (canonical 원문 + 8 에이전트 DSAR wave)
+
+- **ⓐ canonical SPEC**: 사용자 제공 handbook 원문(Version 1.0) verbatim 영속.
+- **ⓑ 2 Explore 스레드**: ①maker-checker/self-approval·conflict/matrix·assignment·exception/override·cross-tenant(27 tool-use) ②runtime enforcement/evaluator·session/temporal·audit/evidence·analytics/drift·static-lint(22 tool-use). 결과=SoD 전면 ABSENT(conflict matrix/role-conflict/temporal/runtime evaluator grep 0)·유일 실통제=Mapping self-approval(dual-control)·Alerting VACUOUS(maker 부재·생산자0·기존확정)·"conflict" 41파일=409/sync decoy.
+- **ⓓ 8 에이전트 DSAR wave**: 배치1 Registry/Rule(4)·2 Conflict engines(5)·3 Runtime/Session(4)·4 Exception/Override(3)·5 Evidence(4)·6 Advanced(4)·7 Contracts A(5)·8 Contracts B(5) = **34 DSAR**. 공용 지시(committed SPEC+ADR+GT①② 선정독→그 file:line만 인용·dual-control≠SoD·conflict decoy·Alerting VACUOUS 재플래그 금지).
+- **★반날조 검증**: ①36편 존재(34 DSAR+2 GT)·전건 NOT_CERTIFIED 헤더·stub 0 ②인용 basename 전수(`comm -23`)→허용목록 23파일 정확일치·허용목록 밖 0·지어낸 file:line 0(각 에이전트 자체 인용목록 반환) ③SOD_ 접두 36개 파일명 충돌 0·기존 추적파일 0(전부 신규).
+- **정직 표기**: Verdict 분포=대부분 ABSENT-순신규(conflict rule/matrix/registry/6 engine/runtime evaluator/temporal/dynamic/static SoD/exception/override/전용 evidence·snapshot·digest·analytics·drift·recon·simulation·guard·lint)·PARTIAL 재활용(transaction=Mapping dual-control·runtime-guard=RBAC PEP·evidence=SecurityAudit)·dual-control≠SoD 반복 명시·Alerting VACUOUS 기존확정 재플래그 금지. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 36(per-entity/contract 34 + EXISTING + DUPLICATE) + ADR 1 = **38 문서** + PM/Agent History. 실 코드·테이블 0. 신규 실결함 없음.
