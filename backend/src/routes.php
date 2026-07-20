@@ -53,6 +53,17 @@ return function (App $app): void {
         'POST /v422/ai/live-assist'          => 'Genie\\Handlers\\ClaudeAI::liveAssist',
         'POST /v422/ai/campaign-ad-creative' => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
 
+        // ── v424 Access Review (EPIC 06-A Part 3-8 실 구현 슬라이스) ──────────
+        //   휴면/만료 api_key 검토 큐 · 검토결정(approve|revoke)+증거 · 이력. admin 전용·테넌트격리.
+        //   ★/v424/admin/ 접두 = index.php:196 에서 api_key 미들웨어 bypass(세션 self-auth) — 프론트 세션토큰 호출.
+        //   /api 접두 변형 동반(reference_api_prefix_routing — nginx SPA HTML 폴백 착시 회피).
+        'GET /v424/admin/access-review/keys'         => 'Genie\\Handlers\\AccessReview::keys',
+        'GET /api/v424/admin/access-review/keys'     => 'Genie\\Handlers\\AccessReview::keys',
+        'POST /v424/admin/access-review/decision'    => 'Genie\\Handlers\\AccessReview::decision',
+        'POST /api/v424/admin/access-review/decision'=> 'Genie\\Handlers\\AccessReview::decision',
+        'GET /v424/admin/access-review/history'      => 'Genie\\Handlers\\AccessReview::history',
+        'GET /api/v424/admin/access-review/history'  => 'Genie\\Handlers\\AccessReview::history',
+
         // ── CRM (고객관계관리) ──────────────────────────────────────────
         'GET /crm/customers'                   => 'Genie\\Handlers\\CRM::listCustomers',
         'POST /crm/customers'                  => 'Genie\\Handlers\\CRM::createCustomer',
@@ -2468,6 +2479,10 @@ return function (App $app): void {
     $register('POST', '/v422/ai/agentic/execute'); $register('POST', '/api/v422/ai/agentic/execute');
     $register('POST', '/v422/ai/live-assist');
     $register('POST', '/v422/ai/campaign-ad-creative');
+    // [EPIC 06-A Part 3-8 실 구현 슬라이스] Access Review — 휴면/만료 api_key 검토(admin 세션·테넌트격리)
+    $register('GET',  '/v424/admin/access-review/keys');     $register('GET',  '/api/v424/admin/access-review/keys');
+    $register('POST', '/v424/admin/access-review/decision'); $register('POST', '/api/v424/admin/access-review/decision');
+    $register('GET',  '/v424/admin/access-review/history');  $register('GET',  '/api/v424/admin/access-review/history');
     $register('POST', '/v422/ai/campaign-ad-design');
     $register('POST', '/v422/ai/campaign-ad-chat');
     $register('POST', '/v422/ai/campaign-ad-render');
