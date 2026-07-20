@@ -483,3 +483,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **정직 표기**: Verdict 분포=PARTIAL(api_key identity·Crypto credential·api_key 게이트 runtime guard·Authentication·Integration)/ABSENT(거버넌스·내부 identity)·외부 벤더 JWT 오흡수 경계 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 44(per-entity 42 + EXISTING + DUPLICATE) + ADR 1 = **46 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
 - **★부수 산출=credential at-rest gap 등재**(평문 토큰 산재·`AgencyPortal.php:81`·`OpenPlatform.php:84` 등)—설계 코드0 규율상 수정 아님·후속 Secret Governance fix 세션 후보(DUPLICATE_AUDIT §D-5).
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-9 JIT Access Governance (canonical 원문 정합 + 7 에이전트 DSAR wave)
+
+- **ⓐ canonical 정합**: 사용자 제공 handbook 원문(Version 1.0) verbatim 영속 → 직전 세션 CC 초안(0.9) 치환. GT①②/ADR의 SPEC 참조 헤더 canonical로 갱신.
+- **ⓑ 2 Explore 스레드(교차검증)**: ①break-glass/approval/temporary/eligibility/registry(18 tool-use) ②session/runtime/revocation/monitoring/audit/reconciliation(19 tool-use). 결과=JIT 전용 도메인 ABSENT·재활용 substrate 4축 실측·routes.php 라인 드리프트 교정·Part 3-8 AccessReview 신규 선례 편입·action_request required_approvals 컬럼 부재 정밀교정·mapping_change_request 제2 maker-checker 발견.
+- **ⓓ 7 에이전트 DSAR wave**: 배치1 Request lifecycle(5)·2 Decision(4)·3 Runtime(5)·4 Evidence(4)·5 Advanced(4)·6 Contracts A(5)·7 Contracts B(4) = **31 DSAR**. 공용 지시(committed SPEC+ADR+GT①② 선정독→그 file:line만 인용·ABSENT 정직·KEEP_SEPARATE·NOT_CERTIFIED 헤더).
+- **★반날조 검증**: ①33편 존재(31 DSAR+2 GT)·전건 NOT_CERTIFIED 헤더·stub 0(전건 25행+) ②인용 basename 전수(`comm -23`) → 허용목록 33파일과 정확일치·**허용목록 밖 0**·지어낸 file:line 0(각 에이전트 자체 인용목록 반환·2건 자가검증 노트 첨부) ③JIT_ 접두 33개 파일명 충돌 0·기존 추적파일 0(전부 신규).
+- **정직 표기**: Verdict 분포=대부분 ABSENT-순신규(elevation registry/request/policy/template/risk/session/monitor/snapshot/digest/analytics/drift/simulation/revalidation/reconciliation/static-lint)·PARTIAL 재활용(approval maker-checker·assignment impersonation·revocation lazy만료·evidence SecurityAudit·runtime-guard 중앙RBAC)·impersonation 하향≠상승·break-glass 무기한≠시한부 명시. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1(canonical 치환) + DSAR 33(per-entity/contract 31 + EXISTING + DUPLICATE) + ADR 1 = **35 문서** + PM/Agent History 갱신. 실 코드·테이블 0. 신규 실결함 없음.
