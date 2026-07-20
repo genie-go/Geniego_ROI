@@ -1339,6 +1339,7 @@ class Catalog
     /** curl HTTP 요청(쓰기 어댑터용). 반환 [httpCode, body]. */
     private static function httpReq(string $method, string $url, array $headers, ?string $body): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, '']; // [현 차수] SSRF — 쓰기 어댑터 대상(shop_domain 등 자격증명 유래) 내부IP 차단
         $ch = curl_init($url);
         $hdr = [];
         foreach ($headers as $k => $v) { $hdr[] = $k . ': ' . $v; }

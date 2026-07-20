@@ -111,6 +111,7 @@ final class ChannelSync
     // ── HTTP helper ──────────────────────────────────────────────────────
     private static function httpGet(string $url, array $headers = [], int $timeout = 15): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, [], 'ssrf_blocked']; // [현 차수] 셀프호스트 커넥터(shop_domain/site_url/base_url/mall_url) 내부IP 차단
         $ch = curl_init($url);
         $hdrs = array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers));
         curl_setopt_array($ch, [
@@ -142,6 +143,7 @@ final class ChannelSync
 
     private static function httpPost(string $url, array $headers, string $body, int $timeout = 15): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, [], 'ssrf_blocked']; // [현 차수] 셀프호스트 커넥터 내부IP 차단
         $ch = curl_init($url);
         $hdrs = array_map(fn($k, $v) => "$k: $v", array_keys($headers), array_values($headers));
         curl_setopt_array($ch, [
@@ -2141,6 +2143,7 @@ final class ChannelSync
     /** [현 차수] 원시 본문(XML 등) GET — 국내 오픈마켓 XML API 대응(httpGet 은 JSON 디코드라 부적합). */
     private static function httpGetRaw(string $url, array $headers = [], int $timeout = 15): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, '', 'ssrf_blocked']; // [현 차수] specFetch(admin 등록 제네릭 REST 채널) 내부IP 차단
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout,
@@ -2688,9 +2691,10 @@ final class ChannelSync
         $bin = null;
         if ($local !== null) {
             $bin = @file_get_contents($local);
-        } elseif (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+        } elseif (\Genie\Ssrf::safeUrl($url)) { // [현 차수] SSRF — 상품 이미지 URL(테넌트 유래)·내부IP 차단(기존 str_starts_with http 검사 대체)
             $ch = curl_init($url);
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 3]);
+            \Genie\Ssrf::guardCurl($ch); // 리다이렉트를 http/https 로 제한(file://·gopher:// 차단)
             $r = curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);

@@ -44,6 +44,7 @@ final class Connectors
      */
     private static function httpGet(string $url, array $headers = []): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, [], 'ssrf_blocked']; // [현 차수] SSRF — Freshdesk/Gorgias domain(자격증명 유래) 내부IP 차단
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -70,6 +71,7 @@ final class Connectors
      *  반환 [code, json|null, err, rawBody]. json 디코드 실패 시 rawBody 로 호출측이 gzdecode 처리. */
     private static function httpGetRaw(string $url, array $headers = []): array
     {
+        if (!\Genie\Ssrf::safeUrl($url)) return [0, null, 'ssrf_blocked', '']; // [현 차수] SSRF — 내부IP 차단(벤더 공개호스트는 통과)
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,

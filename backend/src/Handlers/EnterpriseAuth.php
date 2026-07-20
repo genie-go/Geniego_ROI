@@ -647,6 +647,7 @@ class EnterpriseAuth
     private static function httpGet(string $url, array $headers): string
     {
         if (!function_exists('curl_init')) return '';
+        if (!\Genie\Ssrf::safeUrl($url)) return ''; // [현 차수] SSRF — OIDC IdP URL(token/userinfo/jwks)은 테넌트 설정 유래·내부IP 차단
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 15, CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2]);
         $r = curl_exec($ch); curl_close($ch);
@@ -655,6 +656,7 @@ class EnterpriseAuth
     private static function httpPostForm(string $url, array $form): array
     {
         if (!function_exists('curl_init')) return [];
+        if (!\Genie\Ssrf::safeUrl($url)) return []; // [현 차수] SSRF — OIDC token_url 은 테넌트 설정 유래·내부IP 차단
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => http_build_query($form), CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json'],

@@ -91,6 +91,7 @@ final class WebPush
         $p256dh = substr((string)($keys['p256dh'] ?? ''), 0, 200);
         $auth = substr((string)($keys['auth'] ?? ''), 0, 100);
         if ($endpoint === '') return self::json($res, ['ok' => false, 'error' => 'endpoint 누락'], 422);
+        if (!self::isPushServiceEndpoint($endpoint)) return self::json($res, ['ok' => false, 'error' => 'invalid_push_endpoint'], 422); // [현 차수] 공개경로(publicSubscribe)와 동일 푸시서비스 allowlist 를 인증 경로에도 적용(SSRF: 내부 endpoint 저장 차단)
         try {
             $pdo = Db::pdo(); self::ensure($pdo);
             $cid = self::ownedCustomerId($pdo, $t, (int)($b['customer_id'] ?? 0));
