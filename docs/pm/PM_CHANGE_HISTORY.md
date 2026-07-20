@@ -828,3 +828,17 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★중복**: `app_user.team_role` 단일 컬럼에 3핸들러(UserAuth/EnterpriseAuth/TeamPermissions) 독립 write + admin_level 4번째 축·통합 Assignment Service 부재 → Canonical Assignment Registry 중개 대상.
 - **★파일명 충돌 처리**: `DSAR_APPROVAL_ROLE_ASSIGNMENT.md`(06-A-02)·`_POLICY.md`(Part 3-1) 기존 소유 → 내 Definition/Policy를 `_DEFINITION`·`_POLICY_GOVERNANCE`로 분리(기존 2파일 무접촉·git 확인·개념분리 blockquote 명시).
 - **구현 판정 = PARTIAL-substrate/ABSENT-governance/BLOCKED_PREREQUISITE**. 실엔진="5 분산 즉시쓰기를 Canonical Assignment Registry로 통합 + Version/Approval/Lifecycle/Snapshot 거버넌스 신설". 선행 Permission Engine·Role Registry/Hierarchy·Decision Core 실구현 후 RP-002. 다음=Part 3-4 Scoped Role Governance.
+
+---
+
+## 289차 후속 — EPIC 06-A-03-02-03-04 Part 3-4 Scoped Role Governance (설계 명세 · 코드 0 · NOT_CERTIFIED)
+
+- **산출**: ⓐ 스펙 verbatim 선영속(`docs/spec/EPIC_06A_PART3_4_SCOPED_ROLE_GOVERNANCE_SPEC.md`) → ⓑ 2 Explore 스레드 전수조사(scope substrate+거버넌스·firsthand 재검증) → ground-truth 2편+ADR → ⓓ per-entity DSAR **45편**(6 에이전트 wave A8·B8·C8·D7·E7·F7). 총 47 DSAR+1 ADR+1 SPEC. 커밋 `72fdccee952`(스펙+ADR+ground-truth)+DSAR 45편 커밋. **실 코드·테이블 0**.
+- **★핵심 판정 = PARTIAL/PRESENT-substrate/ABSENT-governance**: scope enforcement 실재이나 저강도·차원편중 — data_scope 9차원(`TeamPermissions.php:41`) 중 **실 SQL 강제=4차원(channel/product/brand/warehouse)·전 102핸들러 중 4개소**(`Catalog.php:1001-1003`·`OrderHub.php:261`·`Wms.php:1291`·`AdPerformance.php:26,134`)·5차원(company/team/campaign/partner/own)=정의만·소비자0. effectiveScope fail-closed(`:236-265`). tenant 격리 강함(`index.php:614-619`·188차)·api_key scope 별개축·amount 단일임계 ₩5M(`Catalog.php:1036`)·environment demo/prod(`Db.php:56-61`·단 배포라벨≠데이터scope).
+- **★ABSENT 차원**: field/row/dataset/document·time/device/network/client·session(만료 외)·position/BU·project 단위(PM은 data_scope 미연동). resource=메뉴 단위만.
+- **★거버넌스 계층 완전 부재(ABSENT)**: Version/Projection 영속/Drift/Revalidation/Reconciliation/Simulation/Snapshot/Digest/Evidence/전용 Registry/Cache/Static Lint=grep 0. effectiveScope 라이브 재계산(version 무관)·replaceScope DELETE→INSERT(이력 소실).
+- **★scope 7곳 산재(통합 Registry 부재)**: data_scope·tenant_id·api_key.scopes_json·high_value·wms_permissions.warehouses·menu_key·menu_tree.parent_id. ★warehouse **이중구현**(data_scope 차원↔wms_permissions·`Wms.php:1291`↔`:557-590`). api_key defaultScopes 2곳 중복. company/write:* = 사실상 wildcard.
+- **★부수 발견 실 결함 1건(설계 코드0·수정 아님·후속 fix 세션 후보)**: **manager scope 위임상한 미구현**(`putMemberPermissions` `TeamPermissions.php:648-653`·menus는 assignableMap clamp하나 scope는 무검증 `replaceScope` 직접기록→manager가 팀원에 `company`(무제한) scope 부여 가능=위임 통한 scope 확대 권한상승·스펙 §29 대상·firsthand 확인). DUPLICATE_AUDIT §D-5. (설계리스크: ORG_PRESET 재무팀 `scope='company'`·seedOrg 무승인.)
+- **★정직 판정(양방향 회피)**: envLabel≠데이터scope(배제)·Scope Hierarchy≠Org Hierarchy(data_scope FLAT)·menu_tree/parent_user_id는 scope 아님·PM 별개체계·reconciliation 매치는 금융 도메인. 부재 날조·실재 과신 회피.
+- **★반날조**: 45편 인용 소스 허용목록 **14파일** 정확일치·초과0·지어낸 file:line 0(Enterprise.php 이름언급되나 라인인용 0)·헤더 일관·코드 무접촉. 파일명 충돌 0(SCOPE_ 접두 신규).
+- **구현 판정 = PARTIAL/PRESENT-substrate/ABSENT-governance/BLOCKED_PREREQUISITE**. 실엔진="7곳 산재 scope를 Canonical Scope Registry로 통합 + 4/9 차원 정합 + governance 신설". 선행 Permission Engine·Role Registry/Hierarchy/Assignment·Decision Core 실구현 후 RP-002. 다음=Part 3-5 Dynamic Role Governance.

@@ -125,3 +125,11 @@
 - **★파일명 충돌 실시간 방지(신규 운영 사례)**: 배치 wave 중 `DSAR_APPROVAL_ROLE_ASSIGNMENT.md`(06-A-02 Approval Assignment Engine 소유)·`_POLICY.md`(Part 3-1 소유)와 내 Part 3-3 target 충돌 조기 포착(증분 grep) → SendMessage로 배치 에이전트에 `_DEFINITION`·`_POLICY_GOVERNANCE` 재명명 지시·기존 2파일 무접촉(git status 확인). 06-A "assignment" 3도메인(승인배정 vs RBAC role배정) 명명분리 규율 적용.
 - **★기수정 재플래그 회피**: break-glass MFA우회=289차 BLOCKED_SECURITY 등재분(재플래그 아님·별개 트랙)·admin_roles 폐기 재부활 금지·289차 P1~P4 재플래그 금지.
 - **★"장식화 전례" 반영**: admin_roles/user_roles가 "인가 미소비 DORMANT"로 폐기된 것을 ADR D-3 규율("인가 실소비 role에만 governance 적용")로 명문화 — 소비되지 않는 role 카탈로그 재도입 금지.
+
+### ★13차 사례 (289차 후속 · 06-A-03-02-03-04 Part 3-4 Scoped Role) — "저강도 실재"의 정밀 판정 + 실결함 발견
+
+- **경과**: Part 3-4 스펙 수령 → ⓐ선영속 → ⓑ전수조사(2 Explore 스레드) → ⓒADR+ground-truth 2편 → ⓓper-entity 45편(6 에이전트 wave). 코드 0.
+- **★"저강도 실재" 정밀 판정(신규 축)**: data_scope 9차원이 "존재"하나 실제 SQL 행필터 강제는 4차원·4/102핸들러뿐임을 코드로 확인. "선언=강제"로 오인하지 않고 5 미완성 차원(company/team/campaign/partner/own·소비자0)을 정직 분리. 실재 과신(9차원 다 작동) 회피.
+- **★"근접≠scope" 오분류 회피**: envLabel(배포환경 라벨)·menu_tree(UI 위계)·parent_user_id(계정)·PM project(별개체계)·reconciliation(금융 정합)·Attribution time_window(마케팅)을 scope로 오흡수하지 않음. 명칭 유사(hierarchy/reconciliation/time)에 속지 않고 코드 실체로 판정.
+- **★능력기반 감사가 실결함 발견(Part 3-2/3-3 계열)**: `putMemberPermissions`(`TeamPermissions.php:648-653`) manager scope 위임상한이 **주석에만 있고 코드 미구현**(menus는 clamp·scope는 무검증)→위임 통한 scope 확대 권한상승. firsthand 확인·설계 코드0 규율상 §D-5 등재(수정아님·후속 fix 세션).
+- **★기수정 재플래그 회피**: 289차 P1~P4·high_value ₩5M(289차 13회차 수정분)·tenant 위조차단(188차)을 결함으로 재플래그하지 않음.

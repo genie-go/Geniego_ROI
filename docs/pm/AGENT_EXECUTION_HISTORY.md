@@ -457,3 +457,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **★반날조 검증(사용자 지시)**: ①53편 존재 100%(누락 0) ②53편 인용 소스 basename 전수 → 허용목록(13소스: AdminGrowth/AdminMenu/Assignees/EnterpriseAuth/index/Keys/SecurityAudit/Shared/TeamPermissions/teamRolePolicy/UserAdmin/UserAuth/Wms)와 **정확히 일치·초과 0**. **지어낸 file:line 0**(증분 검사서 Catalog/Omnichannel 플래그는 06-A-02 충돌파일에서 온 것·새 이름 사용으로 배제). ③헤더 일관(전편 NOT_CERTIFIED+상위 ADR 링크)·코드 무접촉·충돌 원본 2파일 보존.
 - **정직 표기**: Verdict 분포=PARTIAL(Direct/Group/Effective/Revocation/Suspension/Expiration/Runtime Guard 등 실행 substrate)/ABSENT(순수 거버넌스)·근접 3종 "assignment 미적용" 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 55(per-entity 53 + EXISTING + DUPLICATE) + ADR 1 = **57 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-4 Scoped Role Governance 전수조사·전사 (6 에이전트 wave)
+
+- **ⓑ 2 Explore 스레드**: ①scope substrate(data_scope 9차원·effectiveScope·tenant격리·api_key scope·amount high_value·environment·resource/dataset/field·time/device/network/session·org/project/position) 51 tool-use ②거버넌스/중복(expansion guard·hierarchy·effective engine·version/snapshot/drift·cache/lint·중복 산재·wildcard) 55 tool-use. 결과=scope enforcement 실재(4/9차원 실강제)+거버넌스 순신규+7곳 산재+실결함 1건(manager scope 위임상한 미구현).
+- **ⓒ 6 에이전트(단일 wave·A~F)**: §2 canonical+§3-§47 per-entity DSAR **45편**. 공용 지시(선정독 4파일+GROUND_TRUTH allowlist 14파일+판정 규율[enforcement=PARTIAL/PRESENT·거버넌스=ABSENT·envLabel≠scope·Scope Hierarchy≠Org·근접≠scope·양방향 회피]). 배치 A8·B8·C8·D7·E7·F7.
+- **★반날조 검증(사용자 지시)**: ①45편 존재 100%(누락 0) ②45편 인용 소스 basename 전수 → 허용목록(14소스: AdminMenu/AdPerformance/Attribution/Catalog/Db/index/Keys/MediaHost/OrderHub/Projects/Shared/TeamPermissions/UserAuth/Wms)와 **정확일치·초과 0**·지어낸 file:line 0(Enterprise.php는 이름언급만·라인인용 0). ③헤더 일관·코드 무접촉·파일명 충돌 0(SCOPE_ 접두 사전확인 45개 전부 신규).
+- **정직 표기**: Verdict 분포=PARTIAL/PRESENT(data_scope 4차원·tenant·api_key·amount·environment·resource·org·project·resolution·runtime guard)/ABSENT(거버넌스·미실재 차원)·envLabel/menu_tree NOT_SCOPE 명시. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 47(per-entity 45 + EXISTING + DUPLICATE) + ADR 1 = **49 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+- **★부수 산출=실결함 1건 등재**(manager scope 위임상한 미구현·`TeamPermissions.php:648-653`)—설계 코드0 규율상 수정 아님·후속 fix 세션 후보(DUPLICATE_AUDIT §D-5).
