@@ -1105,3 +1105,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★확장 대상(중복 신설 금지)**: Version Lifecycle/Deprecation 형식화=기존 버전 라우팅 승격·Immutable History=`SecurityAudit::verify` 체인 재사용·Tenant Isolation=`Db.php` 격리 재사용·Dependency Lifecycle=composer/npm 목록 소스.
 - **산출(정직 표기·문서구성 정정)**: 이전 Part(3-25)는 per-entity 40+편 wave였으나 **본 Part는 형식 거버넌스가 전건 ABSENT/greenfield라 근-동일 ABSENT 스텁 남발을 피하고 구조화 통합**: SPEC 1 + ADR 1 + GT① EXISTING + GT② DUPLICATE + CANONICAL_ENTITIES(§2 20엔티티+§3~24 도메인) + GOVERNANCE_MECHANISMS(§25~34) + INDEX = **7 문서**. 실질 내용은 20 엔티티·10 도메인·10 메커니즘 전건 판정 포함(요청 시 per-entity 파일 분해 확장 가능). 코드/테이블 0·신규 실결함 없음.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-26 인증(현재 전부 NOT_CERTIFIED) 후 RP-track. 다음=Part 3-28 Governance Maturity Model.
+
+## [289차 후속] EPIC 06-A Part 3-28 — Governance Maturity Model (EAGMM) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 거버넌스 성숙도(Level 0~5) 정량 측정 프레임워크 설계.
+- **★핵심 판정 = PARTIAL / ABSENT-formal / BLOCKED_PREREQUISITE**: 형식 Maturity Model(레벨·Domain/Control 스코어·Benchmark·Executive Scorecard·Certification Readiness Engine) grep 0. 단 **PARTIAL substrate 실재** — Compliance readiness(`Compliance.php` control inventory·SOC2)·DataTrust scoring(`DataPlatform.php` trust/quality score)·Evidence(`SecurityAudit::verify` 해시체인)·Tenant Isolation(`Db.php`). Part3-27 LTER(전건 greenfield)보다 substrate 실재 큼.
+- **★KEEP_SEPARATE**: DataTrust/GraphScore/AbTesting 스코어≠Governance Maturity Score·ModelMonitor drift≠Maturity Drift·경쟁 스코어이력(COMPETITIVE_SCORE_HISTORY)≠Assessment History·PriceOpt kc_cert≠ISO/SOC Certification·메뉴 snapshot(★tamper-evident 아님·정본 SecurityAudit::verify)≠Maturity Snapshot.
+- **★확장 대상(중복 신설 금지)**: Control/Certification Assessment=Compliance readiness 승격·Evidence=SecurityAudit::verify 재사용·Isolation=Db 재사용·Runtime Guard=index.php RBAC/writeGuard 위 배치.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~23)+GOVERNANCE_MECHANISMS(§24~33)+INDEX. per-entity 40편 wave 대신 구조화 통합(요청 시 분해 확장). 코드/테이블 0·신규 실결함 0. ★현 플랫폼 자평: 인가 실 구현 견고하나 성숙도 측정 프레임워크 L0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-27 인증 종속. 다음=Part 3-29 Reference Validation Suite.
