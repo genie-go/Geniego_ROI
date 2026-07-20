@@ -141,3 +141,11 @@
 - **★"필드 존재 ≠ 결정 입력" 구분**: MFA(로그인 게이트)·session(표시용)·risk(정적 심각도 라벨·SIEM 포워딩만)·env(배포라벨)가 컬럼/함수로 실재하나 role 활성 입력으로 조합되는 지점 0임을 확인. "속성 컬럼 있음=ABAC 완성" 착시 회피(TeamPermissions에 mfa 참조 grep 0으로 실증).
 - **★반날조 정규식 오탐 판별(운영 교훈)**: ⓔ 검증서 RuleEngine.php/AutoCampaign.php가 허용목록 밖으로 플래그됐으나, ground-truth의 **분리 표기**(`RuleEngine.php`(`:12`))를 추출 정규식(`.php:[0-9]`)이 놓친 오탐임을 확인(DSAR 인용 라인 :12/:32/:194가 ground-truth 범위 {12,24,32,34,194-220} 내). 자동 검사 결과를 무비판 수용하지 않고 근거 대조로 오탐 판별.
 - **★기수정 재플래그 회피**: AdminMenu required_role↔rank 데드락은 이번 세션 커밋 974ab0db6ff로 이미 수정됨을 인지·하드코딩 rank가 실버그 유발한 "증거"로만 인용하고 미수정 결함으로 재플래그하지 않음.
+
+### ★15차 사례 (289차 후속 · 06-A-03-02-03-04 Part 3-6 Service/System) — 외부 벤더 자격증명 오흡수 회피 + 평문 토큰 산재 발견
+
+- **경과**: Part 3-6 스펙 수령 → ⓐ선영속 → ⓑ전수조사(2 Explore 스레드) → ⓒADR+ground-truth 2편 → ⓓper-entity 42편(6 에이전트 wave). 코드 0.
+- **★"외부 벤더 자격증명 ≠ 내부 identity" 구분(신규 축)**: Google GCP 서비스계정 JWT·Snowflake 키페어(`Connectors.php`/`DataExport.php`)를 "Service Account identity 실재"로 오인하지 않고 **아웃바운드 인증(우리→벤더)**임을 firsthand 확인해 오흡수 금지. api_key(내부 identity)만 PARTIAL·나머지 내부 identity(Service/System/Machine/Robot/AI Agent) ABSENT 정직 판정.
+- **★"필드/함수 존재 ≠ 거버넌스"**: rotate 함수(api_key/KEK/scim)·expires_at·Crypto 암호화가 실재하나 정책/스케줄/Trust Level/Cert Governance는 부재. "회전 함수 있음=Secret Governance 완성" 착시 회피(bin cron grep 0으로 정책 부재 실증).
+- **★평문 토큰 산재 발견(부수·수정 아님)**: agency_session/partner_session/channel_webhook_token/journeys.webhook_token/webhook_endpoint.secret 평문 저장(user_session/api_key는 P5 해시)·DB덤프 replay 가능. P5 범위 밖이었음을 인지·Secret Governance 통합 대상으로 §D-5 등재(수정 아님·후속 fix).
+- **★기수정 재플래그 회피**: 279차 db_restore 하드코딩 root 비번은 이미 제거(commit a04252b4)·git 히스토리 잔존으로만 존재·기존 등재분으로 인용(재플래그 아님). 289차 P1~P5도 재플래그하지 않음.

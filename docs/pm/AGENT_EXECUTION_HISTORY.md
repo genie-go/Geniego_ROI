@@ -474,3 +474,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **★반날조 검증(사용자 지시)**: ①42편 존재 100%(누락 0) ②42편 인용 소스 basename 전수 → 허용목록 **24파일**(22+RuleEngine/AutoCampaign·ground-truth 분리표기로 정규식이 놓친 오탐 판별·인용 라인 전부 ground-truth 범위 내)와 정확일치·초과 0·지어낸 file:line 0. ③헤더 일관·코드 무접촉·파일명 충돌 0(DYNAMIC_ 접두 42개 사전확인 신규).
 - **정직 표기**: Verdict 분포=대부분 ABSENT/PARTIAL(ABAC data_scope·MFA 게이트·index.php PEP 근접·effectiveScope projection)·마케팅 automation KEEP_SEPARATE 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 44(per-entity 42 + EXISTING + DUPLICATE) + ADR 1 = **46 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0. 신규 실결함 없음.
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-6 Service/System Role Governance 전수조사·전사 (6 에이전트 wave)
+
+- **ⓑ 2 Explore 스레드**: ①identity/credential(api_key·서비스계정·credential 종류·secret rotation·cert/oauth/jwt·AI agent·integration·batch/cron·trust level) 57 tool-use ②거버넌스/secret/cert/중복(rotation policy·cert governance·static lint·snapshot/drift·runtime guard·Crypto·api_key 2경로·credential 산재·AI agent) 74 tool-use. 결과=api_key 유일 실 비인간 identity(PARTIAL)+Crypto 암호화 substrate+거버넌스 순신규+외부 벤더 JWT 오흡수 경계+평문 토큰 산재.
+- **ⓒ 6 에이전트(단일 wave·A~F 각 7)**: §2 canonical+§3-§37 per-entity DSAR **42편**. 공용 지시(선정독 4파일+GROUND_TRUTH allowlist 22파일+SystemMetrics+판정 규율[api_key PARTIAL·거버넌스 ABSENT·외부 벤더≠내부 identity·AI Agent=인간설정·양방향 회피]).
+- **★반날조 검증(사용자 지시)**: ①42편 존재 100%(누락 0) ②42편 인용 소스 basename 전수 → 허용목록(22파일+SystemMetrics)와 정확일치·초과 0·지어낸 file:line 0(배치C가 프롬프트의 envLabel 유추 제안조차 ground-truth 미등장으로 거부=반날조 규율 우선). ③헤더 일관·코드 무접촉·파일명 충돌 0(SERVICE_ 접두·기존 06-A-01 SERVICE_ACCOUNT_IDENTITY/SYSTEM_ACTOR_IDENTITY와 미충돌 사전확인).
+- **정직 표기**: Verdict 분포=PARTIAL(api_key identity·Crypto credential·api_key 게이트 runtime guard·Authentication·Integration)/ABSENT(거버넌스·내부 identity)·외부 벤더 JWT 오흡수 경계 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 44(per-entity 42 + EXISTING + DUPLICATE) + ADR 1 = **46 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
+- **★부수 산출=credential at-rest gap 등재**(평문 토큰 산재·`AgencyPortal.php:81`·`OpenPlatform.php:84` 등)—설계 코드0 규율상 수정 아님·후속 Secret Governance fix 세션 후보(DUPLICATE_AUDIT §D-5).
