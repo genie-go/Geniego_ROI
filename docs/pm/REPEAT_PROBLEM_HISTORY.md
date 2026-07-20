@@ -115,3 +115,13 @@
 - **★hash_chain tamper-evident 오인 회피(메모리 규율 적용)**: 서브에이전트가 `menu_audit_log` hash_chain을 "tamper-evident"로 낙관 표기한 것을 [[reference_menu_audit_log_not_tamper_evident]]에 따라 "verify 0·장식·정본=SecurityAudit::verify"로 정정 후 ground-truth 반영. 낙관적 표현 무비판 수용 회피.
 - **★기수정 재플래그 회피**: 289차 P1~P4(writeGuard·featurePlan·admin폐기·resolveAdminByToken)를 결함으로 재플래그하지 않음. 폐기 admin_roles 재부활 금지 유지.
 - **★부수 실 결함 발견(수정 아님)**: AdminMenu required_role↔rank 데드락·SSO group→role 부분배선 — 설계 거버넌스(코드0) 규율상 자립수정 대신 §D-8 등재·후속 fix 세션 후보로 분리(13회차 high_value 대조: 통제기계 자체 부재/도메인 밖이라 이번 세션 유형 부적합).
+
+### ★12차 사례 (289차 후속 · 06-A-03-02-03-04 Part 3-3 Role Assignment) — PARTIAL 실재 정직판정·파일명 충돌 방지·근접≠적용 구분
+
+- **경과**: Part 3-3 스펙 수령 → ⓐ선영속 → ⓑ전수조사(2 Explore 스레드) → ⓒADR+ground-truth 2편 → ⓓper-entity 53편(7 에이전트 wave). 코드 0.
+- **★"실재 과신" 회피(Part 3-2와 반대 상황)**: Part 3-2는 전건 순신규였으나 Part 3-3은 **할당 실행 substrate가 5자원에 실재**. 이를 "완성"으로 오인하지 않고 **PARTIAL(실행 실재)/ABSENT(거버넌스 순신규)로 정밀 분리**. 동시에 거버넌스 부재를 "할당 자체가 없다"로 과장하지도 않음(양방향 회피).
+- **★"근접≠적용" 구분(신규 축)**: `effectiveForUser`(effective 계산)·`SecurityAudit::verify`(tamper-evident 체인)·writeGuard(runtime 게이트)가 **실재하나 전부 assignment governance에 미적용**임을 코드로 확인. "비슷한 게 있으니 됐다"는 착시 회피 — SecurityAudit는 role assignment 이벤트 미기록·effectiveForUser는 version 무참조·writeGuard는 생애주기 무관 정적게이트.
+- **★"인접 개념 오분류" 회피**: `assignableMap`/`DELEGATION_EXCEEDED`=acl 위임상한이지 role 위임 아님(289차 06-A-01 정합·재확인)·break-glass=인증우회지 role 부여 아님·impersonation=대행이지 role 발급 아님. 단어 유사성(delegation/emergency)에 속지 않고 코드 실체로 판정.
+- **★파일명 충돌 실시간 방지(신규 운영 사례)**: 배치 wave 중 `DSAR_APPROVAL_ROLE_ASSIGNMENT.md`(06-A-02 Approval Assignment Engine 소유)·`_POLICY.md`(Part 3-1 소유)와 내 Part 3-3 target 충돌 조기 포착(증분 grep) → SendMessage로 배치 에이전트에 `_DEFINITION`·`_POLICY_GOVERNANCE` 재명명 지시·기존 2파일 무접촉(git status 확인). 06-A "assignment" 3도메인(승인배정 vs RBAC role배정) 명명분리 규율 적용.
+- **★기수정 재플래그 회피**: break-glass MFA우회=289차 BLOCKED_SECURITY 등재분(재플래그 아님·별개 트랙)·admin_roles 폐기 재부활 금지·289차 P1~P4 재플래그 금지.
+- **★"장식화 전례" 반영**: admin_roles/user_roles가 "인가 미소비 DORMANT"로 폐기된 것을 ADR D-3 규율("인가 실소비 role에만 governance 적용")로 명문화 — 소비되지 않는 role 카탈로그 재도입 금지.

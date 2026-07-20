@@ -448,3 +448,12 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 - **정직 표기**: Verdict 분포=전건 ABSENT/순신규/BLOCKED_PREREQUISITE(부재 도메인 정직 반영). 근접 substrate는 "비-Role·조립 참조"로만 표기·실 구현으로 오계상 0. 과대주장(cover100/CERTIFIED/구현완료) 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
 - **총 산출**: SPEC 1 + DSAR 63(per-entity 61 + EXISTING + DUPLICATE) + ADR 1 = **65 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
 - **★부수 산출=실 결함 2건 등재**(AdminMenu required_role↔rank 데드락·SSO group→role 부분배선) — 설계 코드0 규율상 수정 아님·후속 fix 세션 후보(DUPLICATE_AUDIT §D-8).
+
+### 289차 후속 — 06-A-03-02-03-04 Part 3-3 Role Assignment Governance 전수조사·전사 (7 에이전트 wave)
+
+- **ⓑ 2 Explore 스레드**: ①할당 쓰기경로(team_role 3핸들러·SSO/SCIM provisionUser·api_key 2경로·wms·pm·sub-admin·라이프사이클·승인게이트·Subject유형·감사) 71 tool-use ②거버넌스 계층(version/snapshot/digest/evidence·temporary/emergency/break-glass/delegated·effective resolution·approval·conflict/SoD·cache/guard/lint·migration·중복) 70 tool-use. 결과=실행 substrate 5자원 실재(PARTIAL)+거버넌스 순신규+근접 3종(assignment 미적용)+team_role 3핸들러 분산.
+- **ⓒ 7 에이전트(단일 wave·A~G)**: §2 canonical entity+§4-§49 개념 per-entity DSAR **53편**. 공용 지시(선정독 4파일[ADR+ground-truth 2편+SPEC]+GROUND_TRUTH allowlist 13파일+판정 규율[실행=PARTIAL·거버넌스=ABSENT·근접≠적용·break-glass/assignableMap 정직분리·부재 날조·실재 과신 양방향 금지]). 배치 A8·B7·C7·D7·E8·F8·G8.
+- **★파일명 충돌 실시간 대응**: 증분 grep으로 `DSAR_APPROVAL_ROLE_ASSIGNMENT.md`(06-A-02)·`_POLICY.md`(Part 3-1) 충돌 조기포착 → SendMessage로 배치A에 `_DEFINITION`·`_POLICY_GOVERNANCE` 재명명 지시. 기존 2파일 무접촉(git status M 없음)·stray 파일 제거·개념분리 blockquote 명시.
+- **★반날조 검증(사용자 지시)**: ①53편 존재 100%(누락 0) ②53편 인용 소스 basename 전수 → 허용목록(13소스: AdminGrowth/AdminMenu/Assignees/EnterpriseAuth/index/Keys/SecurityAudit/Shared/TeamPermissions/teamRolePolicy/UserAdmin/UserAuth/Wms)와 **정확히 일치·초과 0**. **지어낸 file:line 0**(증분 검사서 Catalog/Omnichannel 플래그는 06-A-02 충돌파일에서 온 것·새 이름 사용으로 배제). ③헤더 일관(전편 NOT_CERTIFIED+상위 ADR 링크)·코드 무접촉·충돌 원본 2파일 보존.
+- **정직 표기**: Verdict 분포=PARTIAL(Direct/Group/Effective/Revocation/Suspension/Expiration/Runtime Guard 등 실행 substrate)/ABSENT(순수 거버넌스)·근접 3종 "assignment 미적용" 명시·실 구현 오계상 0. 과대주장 스캔 0. **"설계 명세 확정" · 06-A NOT_CERTIFIED 불변.**
+- **총 산출**: SPEC 1 + DSAR 55(per-entity 53 + EXISTING + DUPLICATE) + ADR 1 = **57 신규 문서** + PM/Repeat/Agent History 갱신. 실 코드·테이블 0.
