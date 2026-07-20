@@ -654,3 +654,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-30 EAPEF 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(health/metrics/reliability/sre/slo/incident/capacity/mttr/runbook grep): 형식 SRE grep 0·PARTIAL substrate(Health/SystemMetrics·Alerting·fpm튜닝·deploy·runbook·SecurityAudit·env) 확정.
 - 산출 7문서. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(Health/SystemMetrics/Alerting/ChannelSync/deploy/SecurityAudit/Db)만. KEEP_SEPARATE 9종(죽은 terraform PRESENT 오판 금지 포함) 명시. 285차 502 오진 교훈 반영.
+
+## [289차 후속] Part 3-31 EAGOM 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(noc/soc/runbook/incident/change/backup/dr/cmdb/cron/failover grep, backend/bin·infra 포함): 형식 Global Operations grep 0·PARTIAL substrate(Health/SystemMetrics·Alerting·deploy·cron·Compliance·SecurityAudit·migration·runbook) 확정=3-25/3-30 공유. 실 인프라=단일 호스트.
+- 산출 7문서. ★핵심 결정=상위 Part 3-25/3-30 엔진 재정의 금지·운영절차 계층 참조. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(Health/SystemMetrics/Alerting/deploy/backend/bin cron/Compliance/SecurityAudit/Db/migrate)만. KEEP_SEPARATE 7종(db_restore 재부활·WMS 운영 흡수 금지 포함) 명시.

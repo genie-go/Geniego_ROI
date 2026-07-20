@@ -1129,3 +1129,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★확장 대상(엔진 난립 금지)**: Health/SystemMetrics·Alerting·deploy·fpm튜닝 승격·SecurityAudit::verify 체인·Db 격리·index.php RBAC/deploy.yml 게이트 재사용. ★285차 502 오진 교훈=Capacity Manager는 max_children 상향 전 upstream timeout 대상 진단.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-29 인증 종속. 다음=Part 3-31 Global Operations Manual.
+
+## [289차 후속] EPIC 06-A Part 3-31 — Global Operations Manual (EAGOM) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 글로벌 24x365 운영 조직·절차·표준(NOC/SOC/Incident/Change/DR/BCP).
+- **★핵심 판정 = PARTIAL / ABSENT-formal / BLOCKED_PREREQUISITE + 상위 Part 대거중복**: Incident/Change/Capacity/Backup/DR Operations는 **Part 3-25(Operational Readiness)·3-30(Production Excellence) 엔진의 운영절차 계층**(엔진 재정의 금지·상위 참조). 고유 순신설=NOC/SOC 조직·CMDB·Multi-Region·BCP·통합 Operations Dashboard 뿐.
+- **★PARTIAL substrate(3-25/3-30 공유)**: Health/SystemMetrics·Alerting·deploy·cron 러너(`backend/bin/*_cron.php`·`install_crontab.sh`·`check_cron_ssot.sh`)·Compliance·SecurityAudit·schema migration·비형식 runbook(NEXT_SESSION).
+- **★실 배포 현실 명시**: 단일 호스트(운영 roi.geniego.com·데모 roidemo·[[reference_ops_host]])·pscp 수동 배포·fpm 2 pool. Multi-Region/NOC/SOC/Air-Gapped=조직/인프라 신설 종속(설계까지만).
+- **★KEEP_SEPARATE**: 279차 제거 db_restore=Backup 엔드포인트 아님(재부활 금지)·WMS 운영/CCTV/물류(WmsCctv/Logistics)≠플랫폼 Operations·마케팅 automation cron≠Automation Ops 엔진·ModelMonitor≠Service Stability·비즈니스 KPI≠Operations Analytics·메뉴snapshot(정본 SecurityAudit::verify)≠Operations Snapshot.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~25)+GOVERNANCE_MECHANISMS(§26~35)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-30 인증+인프라 종속. 다음=Part 3-32 Continuous Innovation Framework.
