@@ -346,6 +346,33 @@ class TeamPermissions
     }
 
     /**
+     * [현 차수 실결함 수정] manager 의 데이터범위(scope) 위임상한 — manager 가 본인 실효 scope 보다 넓은
+     *   scope 를 팀원에게 부여하는 것을 차단(scope 확대 권한상승 봉인). ★menus 는 assignableMap 으로 clamp
+     *   되나 scope 는 미검증(putMemberPermissions:648 주석만 있고 코드 부재)이던 결함을 이 헬퍼로 봉인.
+     *   owner/admin·미설정·company(무제한) manager = 제한 없음(무회귀). restricted manager 는 동일 scope_type +
+     *   values 부분집합만 허용하고, 무제한/전사(company)/교차차원/값초과 부여는 fail-closed 거부.
+     * @return true=허용, false=상한초과(거부).
+     */
+    private static function scopeWithinCap(\PDO $pdo, array $caller, string $tenant, ?array $requested): bool
+    {
+        if (self::isOwnerAdmin($caller)) return true;                       // owner/admin = 무제한
+        $cap = self::subjectScope($pdo, $tenant, 'user', (int)($caller['id'] ?? 0));
+        if (!$cap && !empty($caller['team_id'])) $cap = self::subjectScope($pdo, $tenant, 'team', (int)$caller['team_id']);
+        $capType = (string)($cap['scope_type'] ?? '');
+        if (!$cap || $capType === '' || $capType === 'company') return true; // manager 무제한(미설정/전사)
+        // manager 는 restricted → 아래 조건은 전부 상한 초과(거부).
+        if ($requested === null) return false;                             // 무제한 부여 금지
+        $reqType = (string)($requested['scope_type'] ?? '');
+        if ($reqType === '' || $reqType === 'company') return false;       // 무제한/전사 부여 금지
+        if ($reqType !== $capType) return false;                          // 교차차원 = 포함검증 불가(fail-closed)
+        $capVals = array_map('strval', (array)($cap['values'] ?? []));
+        $reqVals = array_map('strval', (array)($requested['values'] ?? []));
+        if (empty($capVals)) return empty($reqVals);                      // manager values 없음이면 값 추가 불가
+        foreach ($reqVals as $v) { if (!in_array($v, $capVals, true)) return false; } // values 부분집합만
+        return true;
+    }
+
+    /**
      * caller 가 위임 가능한 권한 상한.
      *   - owner/admin → null(무제한, 전 메뉴×전 동작).
      *   - manager     → 본인 팀(team_id)의 팀 권한 맵.
@@ -645,8 +672,12 @@ class TeamPermissions
             return self::fail($req, $res, 'DELEGATION_EXCEEDED',
                 '본인에게 부여되지 않은 권한은 위임할 수 없습니다: ' . implode(', ', array_slice($violations, 0, 12)), 403);
         }
-        // 데이터 범위도 manager 상한 이내로(간단 정책: manager 가 본인 범위보다 넓은 scope_type 부여 금지)
+        // 데이터 범위도 manager 상한 이내로(manager 가 본인 범위보다 넓은 scope 부여 금지 — 실코드 봉인).
         $scope = array_key_exists('scope', $b) && is_array($b['scope']) ? $b['scope'] : null;
+        if (array_key_exists('scope', $b) && !self::scopeWithinCap($pdo, $c, $tenant, $scope)) {
+            return self::fail($req, $res, 'SCOPE_DELEGATION_EXCEEDED',
+                '본인 데이터 범위보다 넓은 스코프는 위임할 수 없습니다.', 403);
+        }
         try {
             $pdo->beginTransaction();
             self::replacePerms($pdo, $tenant, 'member', $mid, $clean);
