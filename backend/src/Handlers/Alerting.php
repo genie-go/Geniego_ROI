@@ -71,6 +71,17 @@ final class Alerting {
         return '__anon__';
     }
 
+    /** [현 차수] 쓰기 경로 anon 차단 — /v418/alert_policies·/v423/approvals 는 api_key 미들웨어 bypass 라
+     *   미인증 요청이 __anon__ 센티넬 버킷에 정책을 무제한 INSERT(junk-write/DoS)할 수 있었다. 세션 미해결 시 401.
+     *   인증 사용자는 실테넌트로 해석되어 통과(무회귀). 읽기(listPolicies)는 __anon__=빈결과라 무해·미적용. */
+    private static function denyAnonWrite(Request $request, Response $response): ?Response {
+        if (self::tenantOf($request) === '__anon__') {
+            $response->getBody()->write(json_encode(["ok"=>false, "detail"=>"authentication required"], JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(401)->withHeader('Content-Type','application/json');
+        }
+        return null;
+    }
+
     public static function actionPresets(Request $request, Response $response, array $args): Response {
         $presets = json_decode(self::PRESETS_JSON, true);
         if (!is_array($presets)) $presets = [];
@@ -105,6 +116,7 @@ final class Alerting {
 
     public static function createPolicy(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        if ($d = self::denyAnonWrite($request, $response)) return $d; // [현 차수] anon junk-write 차단
         $actor = self::actor($request);
         $body = $request->getParsedBody();
         if (!is_array($body)) $body = [];
@@ -150,6 +162,7 @@ final class Alerting {
 
     public static function updatePolicy(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        if ($d = self::denyAnonWrite($request, $response)) return $d; // [현 차수] anon junk-write 차단
         $actor = self::actor($request);
         $id = (int)($args["policy_id"] ?? 0);
         $body = $request->getParsedBody();
@@ -194,6 +207,7 @@ final class Alerting {
 
     public static function deletePolicy(Request $request, Response $response, array $args): Response {
         $pdo = Db::pdo();
+        if ($d = self::denyAnonWrite($request, $response)) return $d; // [현 차수] anon junk-write 차단
         $actor = self::actor($request);
         $id = (int)($args["policy_id"] ?? 0);
         $tenant = self::tenantOf($request);
