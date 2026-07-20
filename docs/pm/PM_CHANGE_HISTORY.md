@@ -1138,3 +1138,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: 279차 제거 db_restore=Backup 엔드포인트 아님(재부활 금지)·WMS 운영/CCTV/물류(WmsCctv/Logistics)≠플랫폼 Operations·마케팅 automation cron≠Automation Ops 엔진·ModelMonitor≠Service Stability·비즈니스 KPI≠Operations Analytics·메뉴snapshot(정본 SecurityAudit::verify)≠Operations Snapshot.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~25)+GOVERNANCE_MECHANISMS(§26~35)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-30 인증+인프라 종속. 다음=Part 3-32 Continuous Innovation Framework.
+
+## [289차 후속] EPIC 06-A Part 3-32 — Continuous Innovation Framework (EACIF) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 운영후 지속적응(Discovery/Experimentation/Delivery/Learning/Governance) Innovation Lifecycle.
+- **★핵심 판정 = PARTIAL-strong / ABSENT-formal / BLOCKED_PREREQUISITE**: 형식 Innovation Governance(Lifecycle Discover~Standardize·Idea Management·Feature Flag Governance·Innovation KPI velocity/MTTI) grep 0. 단 **실험 substrate 실재·이번 시리즈 중 최강** — ★`AbTesting`(베이지안 A/B pickBest·다목표 UCB)·Onsite CRO(변형배정/전환)·WebPopup A/B(264차)·pending_approval/maker-checker(승인)·plan/IS_DEMO 게이트(비형식 flag)·NEXT_SESSION(백로그)·SecurityAudit evidence.
+- **★핵심 결정**: Experimentation Framework=`AbTesting` 베이지안 엔진 **공용 재사용**(별도 실험 엔진 신설 절대 금지). Approval=pending_approval/maker-checker 확장. Feature Flag=plan 게이트 형식화.
+- **★KEEP_SEPARATE**: 마케팅 A/B(소재최적화)≠플랫폼 Innovation Experiment(엔진은 공용)·AutoRecommend/Decisioning≠Innovation Decision·비즈니스 ROI≠Innovation ROI/KPI·ModelMonitor drift≠Innovation Drift·죽은 terraform blue-green(default off)=Controlled Rollout PRESENT 오판 금지·메뉴snapshot(정본 SecurityAudit::verify)≠Innovation Snapshot.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-31 인증 종속. 다음=Part 3-33 Strategic Architecture Lifecycle Management.
