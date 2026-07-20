@@ -595,6 +595,7 @@ final class AdAdapters
         $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
         if ($dev === '' || $token === '' || $extId === '') return ['ok' => false, 'status' => 'no_credentials'];
         if (!preg_match('#customers/(\d+)/#', $extId, $mm)) return ['ok' => false, 'error' => 'bad_external_id'];
+        if (!preg_match('#^[A-Za-z0-9/_-]+$#', $extId)) return ['ok' => false, 'error' => 'bad_external_id']; // [현 차수] 리소스명 문자셋 검증(GAQL 리터럴 삽입 전 따옴표/구문 차단·resource_name 정당문자만)
         $cid = $mm[1];
         $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
         $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";
@@ -609,6 +610,7 @@ final class AdAdapters
         $token = self::cred($pdo, $tenant, 'google_ads', 'access_token');
         if ($dev === '' || $token === '' || $extId === '') return ['ok' => false, 'status' => 'no_credentials'];
         if (!preg_match('#customers/(\d+)/#', $extId, $mm)) return ['ok' => false, 'error' => 'bad_external_id'];
+        if (!preg_match('#^[A-Za-z0-9/_-]+$#', $extId)) return ['ok' => false, 'error' => 'bad_external_id']; // [현 차수] 리소스명 문자셋 검증(GAQL 리터럴 삽입 전 따옴표/구문 차단·resource_name 정당문자만)
         $cid = $mm[1];
         $hdr = ['Authorization: Bearer ' . $token, 'developer-token: ' . $dev, 'Content-Type: application/json', 'login-customer-id: ' . $cid];
         $base = "https://googleads.googleapis.com/" . self::GOOGLE_VER . "/customers/{$cid}";

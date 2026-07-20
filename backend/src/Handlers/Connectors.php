@@ -93,6 +93,15 @@ final class Connectors
         return [$code, is_array($json) ? $json : null, $err, $rawStr];
     }
 
+    /**
+     * [현 차수] GAQL 인젝션 방지 — 요청 유래 날짜(start_date/end_date)를 GAQL WHERE 절 리터럴에 삽입 전 검증.
+     *   YYYY-MM-DD 엄격 매칭 통과분만 그대로 사용, 위반(따옴표/GAQL 구문 등)은 오늘 날짜로 폴백(정상 날짜 무회귀).
+     */
+    private static function gaqlDate(string $d): string
+    {
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) ? $d : date('Y-m-d');
+    }
+
     private static function httpPost(string $url, array $payload, array $headers = []): array
     {
         $ch = curl_init($url);
@@ -1122,7 +1131,7 @@ final class Connectors
                          metrics.ctr, metrics.average_cpc, metrics.conversions,
                          segments.date
                   FROM campaign
-                  WHERE segments.date BETWEEN '$startDate' AND '$endDate'
+                  WHERE segments.date BETWEEN '" . self::gaqlDate($startDate) . "' AND '" . self::gaqlDate($endDate) . "'
                     AND campaign.status != 'REMOVED'
                   ORDER BY segments.date DESC LIMIT 100";
 
@@ -2112,7 +2121,7 @@ final class Connectors
                         metrics.impressions, metrics.clicks, metrics.cost_micros,
                         metrics.conversions, metrics.conversions_value, segments.date
                  FROM ad_group_ad
-                 WHERE segments.date BETWEEN '$start' AND '$end' AND ad_group_ad.status != 'REMOVED'
+                 WHERE segments.date BETWEEN '" . self::gaqlDate($start) . "' AND '" . self::gaqlDate($end) . "' AND ad_group_ad.status != 'REMOVED'
                  ORDER BY segments.date DESC LIMIT $LIMIT";
         $url = "https://googleads.googleapis.com/v17/customers/{$customerId}/googleAds:searchStream";
         [$code, $body, $err] = self::httpPost($url, ['query' => $gaql], [
@@ -3252,7 +3261,7 @@ final class Connectors
                         ad_group_criterion.criterion_id, customer.currency_code,
                         metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value, segments.date
                  FROM keyword_view
-                 WHERE segments.date BETWEEN '$start' AND '$end' AND ad_group_criterion.status != 'REMOVED'
+                 WHERE segments.date BETWEEN '" . self::gaqlDate($start) . "' AND '" . self::gaqlDate($end) . "' AND ad_group_criterion.status != 'REMOVED'
                  ORDER BY segments.date DESC LIMIT 10000";
         [$code, $body, $err] = self::httpPost("https://googleads.googleapis.com/v17/customers/{$customerId}/googleAds:searchStream", ['query' => $gaql],
             ['Authorization' => "Bearer {$accessToken}", 'developer-token' => $devToken, 'Content-Type' => 'application/json']);
