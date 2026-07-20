@@ -1121,3 +1121,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★확장 대상(중복 러너 신설 금지)**: E2E smoke 승격(매 배포 실행 규율)·pre-commit 확장·Compliance/Health 승격·SecurityAudit::verify 체인·Db 격리·index.php RBAC 재사용. ★Authorization Validator 대상(RBAC/effectiveForUser/writeGuard)은 실 강제 강함=재구현 아닌 검증.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~25 Validators)+GOVERNANCE_MECHANISMS(§26~35)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-28 인증 종속. 다음=Part 3-30 Production Excellence Framework.
+
+## [289차 후속] EPIC 06-A Part 3-30 — Production Excellence Framework (EAPEF) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → Production 운영 우수성(SRE·Reliability·Continuous Improvement) 프레임워크.
+- **★핵심 판정 = PARTIAL / ABSENT-formal / BLOCKED_PREREQUISITE**: 형식 SRE/Production Excellence(Error Budget·SLI/SLO/SLA·Reliability Score·Capacity Forecast·Incident Excellence P0~P4·Production Health Index Bronze~Elite) grep 0. 단 **PARTIAL substrate 실재** — Health/SystemMetrics probe(ok/degraded/down)·Alerting(alert_policy/action_request/maker-checker)·php-fpm pool 튜닝/502 방어(CONNECTTIMEOUT)·deploy 파이프라인·비형식 runbook(NEXT_SESSION)·SecurityAudit evidence·env baseline.
+- **★KEEP_SEPARATE**: 비즈니스 ROI/P&L KPI≠Operational KPI/Health Index·ModelMonitor drift≠Reliability Score·CustomerAI churn≠Customer Impact·마케팅 A/B/AutoCampaign≠Change/Release Excellence·PM/비즈니스 risk≠Operational Risk·메뉴snapshot(★tamper-evident 아님·정본 SecurityAudit::verify)≠Production Snapshot·★죽은 terraform blue-green(default off)=Release Excellence PRESENT 오판 금지.
+- **★확장 대상(엔진 난립 금지)**: Health/SystemMetrics·Alerting·deploy·fpm튜닝 승격·SecurityAudit::verify 체인·Db 격리·index.php RBAC/deploy.yml 게이트 재사용. ★285차 502 오진 교훈=Capacity Manager는 max_children 상향 전 upstream timeout 대상 진단.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-29 인증 종속. 다음=Part 3-31 Global Operations Manual.

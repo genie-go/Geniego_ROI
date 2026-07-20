@@ -650,3 +650,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-29 ERVS 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(validation/conformance/test/smoke/assert/certificate/baseline grep, tools·.github·.githooks 포함): 형식 ERVS grep 0·PARTIAL substrate(E2E smoke·CI·pre-commit·health/metrics·Compliance·SecurityAudit·Db) 확정=검증 자산 비교적 큼.
 - 산출 7문서(SPEC+ADR+GT①②+CANONICAL_ENTITIES+GOVERNANCE_MECHANISMS+INDEX). 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(render.mjs/deploy.yml/Health/Compliance/SecurityAudit/Db)만·KEEP_SEPARATE 7종 명시.
+
+## [289차 후속] Part 3-30 EAPEF 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(health/metrics/reliability/sre/slo/incident/capacity/mttr/runbook grep): 형식 SRE grep 0·PARTIAL substrate(Health/SystemMetrics·Alerting·fpm튜닝·deploy·runbook·SecurityAudit·env) 확정.
+- 산출 7문서. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(Health/SystemMetrics/Alerting/ChannelSync/deploy/SecurityAudit/Db)만. KEEP_SEPARATE 9종(죽은 terraform PRESENT 오판 금지 포함) 명시. 285차 502 오진 교훈 반영.
