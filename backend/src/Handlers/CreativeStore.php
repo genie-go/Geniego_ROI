@@ -24,6 +24,23 @@ final class CreativeStore
         return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 
+    // [현 차수] 289차후속 실결함 수정: create/update 의 image_data 무검증(무제한 크기·비이미지 스킴 허용) 정합.
+    //   sibling brandAssetUpload(259차)는 이미 5MB 캡을 강제하나 원조 create/update 경로엔 아무 가드도 없어
+    //   인증 테넌트가 거대 blob 적재(저장소 고갈·max_allowed_packet 실패) / data:text/html 등 비이미지 스킴 저장이 가능했다.
+    private const MAX_IMAGE_BYTES = 5000000; // 5MB — brandAssetUpload 컨벤션과 정합(base64 data_url 문자열 길이 캡)
+
+    /** image_data 검증 — 위반 시 에러코드 문자열, 정상/미제공 시 null. 비파괴(빈 값=이미지 없는 title 크리에이티브 허용). */
+    private static function validateImageData(string $img): ?string
+    {
+        if ($img === '') return null;                                   // 이미지 없음 = 허용
+        if (strlen($img) > self::MAX_IMAGE_BYTES) return 'image_too_large';
+        // data: URL 이면 image/* 만 허용 — data:text/html·application/* 등 비이미지 스킴 저장 차단.
+        if (str_starts_with($img, 'data:') && !str_starts_with($img, 'data:image/')) {
+            return 'invalid_image_type';
+        }
+        return null;
+    }
+
     /* ── content_hash 생성 ───────────────────────────────────────── */
     private static function makeHash(array $d): string
     {
@@ -98,6 +115,9 @@ final class CreativeStore
         if ($title === '' && $imageData === '') {
             return self::json($res, ['error' => 'title or image_data required'], 400);
         }
+        if ($err = self::validateImageData((string)$imageData)) {
+            return self::json($res, ['error' => $err], 422);
+        }
 
         // ── 중복 방지: content_hash 계산 ───────────────
         $hash = self::makeHash($body);
@@ -147,6 +167,10 @@ final class CreativeStore
         $check = $pdo->prepare('SELECT id FROM creative_asset WHERE id = ? AND user_id = ?');
         $check->execute([$id, $userId]);
         if (!$check->fetch()) return self::json($res, ['error' => 'Not found'], 404);
+
+        if (isset($body['image_data']) && ($err = self::validateImageData((string)$body['image_data']))) {
+            return self::json($res, ['error' => $err], 422);
+        }
 
         $sets = [];
         $vals = [];
