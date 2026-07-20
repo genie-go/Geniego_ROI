@@ -1,3 +1,38 @@
+ # ★★세션 종결 요약 (289차 후속 2회차 · 2026-07-20)
+
+**이 세션 성과**: **부수 실결함 #2(평문 토큰/시크릿 5종) 자립수정·운영+데모 배포·마이그레이션 완결** + **EPIC 06-A-03-02-03-04 Part 3-7(Effective Role Resolution Engine) 설계 거버넌스 완결**. 커밋 3개 전부 feat/n236 push(master 미접촉·자동배포 무관).
+
+## ★A. 보안 실결함 #2 — 평문 토큰/시크릿 5종 at-rest 봉인 (실 코드·운영+데모 배포·마이그레이션·커밋 `19139bb13e2`)
+Part 3-6 감사 부수발견 credential at-rest gap. DB덤프 replay/서명위조 가능하던 평문 5종을 P5(user_session) 동형 패턴으로 봉인. 전부 dual-read 무중단.
+- **성격별 3패턴**: ①세션토큰(재표시 없음)=**HASH**(SHA-256) — `agency_session.token`(AgencyPortal)·`partner_session.token`(PartnerPortal). ②서명키(복호 필요·조회는 id)=**암호화**(Crypto AES-256-GCM) — `webhook_endpoint.secret`(OpenPlatform·컬럼 VARCHAR(255)). ③재표시 인바운드 토큰=**SCIM 이원화**(암호화 token[재표시 복호]+token_hash[결정적 조회]) — `channel_webhook_token`(ChannelSync·token VARCHAR(255)+token_hash)·`journeys.webhook_token`(JourneyBuilder·VARCHAR(128)+webhook_token_hash).
+- **★컬럼폭 실측**: channel 64자원문→암호문 131자(→255 확장 필수)·journeys 32자→87자(128 적합)·webhook_secret 54자→119자(255). 세션토큰(hash 64hex)은 기존 폭 적합.
+- **검증·배포**: php -l 5파일 OK·로컬 하네스 16/17 PASS(`-d extension=openssl`로 로컬 openssl 활성·1 FAIL=구 컬럼폭 가정)·out-of-band 0·백업 `.bak.n289toksec`·pscp 10목적지·post-fix sha 5×2 일치·fpm 2서비스 reload·health200·webhook-tokens 401·fatal0.
+- **Phase 2 마이그레이션**(서버 PHP+Crypto): 컬럼확장 ALTER(멱등)+기존 평문행 암호화/해시. 운영 `channel_webhook_token` **1행**·나머지 대상0·데모 전부0·**평문잔여=0 전건 확인**. 세션토큰은 12h 만료 자연소멸이라 migration 불요.
+- ★(직전 세션 완결분: 실결함 #1 manager scope 위임상한 `scopeWithinCap` 커밋 `b5fea4a74a7`·배포완료.)
+
+## ★B. EPIC 06-A Part 3-7 Effective Role Resolution Engine(ERRE) 설계 거버넌스 (코드 0·NOT_CERTIFIED·docs만)
+동형 파이프라인(ⓐ스펙영속→ⓑ 2 Explore 전수조사→ADR+ground-truth 2편→ⓓ per-entity DSAR wave). 커밋 `a64dbd325ec`(SPEC+ADR+ground-truth 2)+`9b04cb7546a`(DSAR **48편**·6에이전트 A~F 각8+PM이력). 총 50 DSAR+1 ADR+1 SPEC.
+- **★판정=PARTIAL-substrate/ABSENT-governance**(Part3-6 동형·substrate 더 좁음): effective 실존=**`TeamPermissions::effectiveForUser`**(`:393`·팀 한정 live·유일 통합 generator)+effectiveScope/clampActions/scopeWithinCap/assignableMap. **3-rank(plan `PlanPolicy.php:19`·api_key roleRank `index.php:573`[+`AdminMenu.php:74` 중복]·team_role) 통합 단일 PDP 부재**·직교 병렬.
+- **★거버넌스 12개념=ABSENT 8**(Pipeline/Planner/Optimizer/Executor·Graph(DAG)/Cycle·Snapshot/Digest/Version·Cache/Invalidation·Drift/Reval/Reconciliation·Sim/Explain·Risk Calc·Conflict/SoD)·**PARTIAL 3**(Constraint[amount `Catalog.php:1036`·MFA `UserAuth.php:941`·api_key expires `Keys.php:99`·data_scope 분산]·Runtime Guard[writeGuard.js:61·guardTeamWrite `UserAuth.php:1167`·guardWarehouse `Wms.php:557`·**Static Lint ABSENT**]·DB substrate[RBAC 런타임생성 `TeamPermissions.php:139`·version binding 부재])·**PRESENT 1**(하드코딩 authz **233개소** BE106/FE127).
+- **★deny**: 통합 "deny beats allow" 부재·`__deny__` 센티넬만(`:234`→`:272`→`:286` `AND 1=0`)·negative-ACL 부재. ADR D-4=전역 Deny Calculator 승격.
+- **★KEEP_SEPARATE(오흡수 금지·동음이의 최다)**: SecurityAudit 해시체인(≠snapshot)·Risk churn ML(≠role risk)·ModelMonitor model drift(≠resolution drift)·PgSettlement/Connectors reconciliation·menu_tree wouldCycle(`AdminMenu.php:504`)·PM DFS·GraphScore·RuleEngine/Decisioning/AnomalyDetection/Alerting·PriceOpt/AdminGrowth/CustomerAI simulate·폐기 `legacy_v338_pkg` Python effective_role_for_user 재부활 금지.
+- **★부수 아키텍처 부채 3건(ADR D-8·설계 코드0·라이브 실결함 아님·수정 대상 아님)**: ①하드코딩 authz 233개소 중앙게이트 미강제(Static Lint 완화책) ②api_key roleRank 중복정의(`index.php:573`↔`AdminMenu.php:74` diverge 가능) ③RBAC substrate 마이그레이션 밖(ensureSchema 런타임 CREATE·이력 부재).
+- **★반날조**: 48편 인용 17파일 정확일치·**허용목록 밖 인용 0종**·지어낸 file:line 0·NOT_CERTIFIED 헤더 전건·중복 파일명0·ERRE 접두 격리(기존 EFFECTIVE/RESOLUTION 41편과 사전점검 후 무충돌·stub0).
+- ★EPIC06-A 진척: Part1(58)·2(84)·3-1(56)·3-2(63)·3-3(55)·3-4(47)·3-5(46)·3-6(46)·**3-7(50)** 완결. 미배포·docs만.
+
+## ★C. 다음 세션 최우선 (사용자 지정)
+1. **★EPIC 06-A-03-02-03-04 Part 3-8 — Role Certification & Access Review Governance**(SPEC §38 추천순서). 설계 거버넌스(코드 0·NOT_CERTIFIED)·**동일 wave 파이프라인**(ⓐ스펙 verbatim 영속→ⓑ 2 Explore 전수조사→ADR+ground-truth 2편→ⓓ per-entity DSAR 멀티에이전트 wave→반날조 검증→PM이력→커밋/push). **스펙 원문 대기**.
+2. (후속 추천순서 SPEC §38) Part 3-9 JIT Access → 3-10 Runtime SoD Enforcement → 3-11 RBAC Analytics Dashboard → 3-12 PDP/PEP Governance → 3-13 Zero Trust Continuous Authz → 3-14 Authz Observability & Forensics.
+3. (실구현 트랙·별도 승인세션 RP-track) Part 1~3-7 설계 인증 후 ERRE 실엔진(effectiveForUser 승격+plan/api_key 차원 확장→단일 PDP·Snapshot/Cache/Graph/Drift/Sim/Explain 신규·deny>allow 전역·233개소 Static Lint 수렴). plan 'admin' god flag 분리.
+4. (후속 fix 후보·라이브 실결함 아님·판단 필요) Part 3-7 부수 아키텍처 부채 3건(§B) — api_key roleRank SSOT화·RBAC substrate 마이그레이션 정합·Static Lint 도입.
+
+## ★D. 규율 (불변)
+- 06-A 설계=코드0·NOT_CERTIFIED·BLOCKED_PREREQUISITE. 실엔진=선행 실구현 후 RP-track 별도 승인세션. **폐기 admin_roles 재부활 금지·289차 P1~P5 재플래그 금지·부재를 결함으로 날조 금지·ground-truth 외 인용 금지·KEEP_SEPARATE 오흡수 금지.**
+- per-entity DSAR wave 패턴: committed SPEC+ADR+ground-truth 2문서를 에이전트가 Read→file:line은 그 문서들만 인용→반날조. 검증=basename 전수대조(허용목록 밖 0)·헤더 전건·중복0·stub0·접두격리. **파일명 충돌 사전점검 필수**(EFFECTIVE/RESOLUTION 등 기존 접두와 겹치면 전용 접두로 격리·ERRE가 그 사례).
+- 배포=수동 plink/pscp·CI inert·매번 승인. 자격증명=메모리 reference·평문노출 금지. 백엔드 양쪽동일·프론트 분리빌드. dual-read=무중단 배포 후 Phase2 마이그레이션.
+
+---
+
 > # ★★세션 종결 요약 (289차 후속 대규모 세션 · 2026-07-19)
 >
 > **이 세션 성과**: **보안 실구현 P1~P5 전량 운영+데모 배포·라이브검증·커밋·push** + **EPIC 06-A-03-02-03-04 Part 2(Permission Engine)·Part 3-1(Role Registry) 설계 거버넌스 완결**. 커밋 9개 전부 feat/n236 push(master 미접촉·자동배포 무관).
