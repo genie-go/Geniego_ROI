@@ -1867,17 +1867,11 @@ final class UserAuth
         $cycle = in_array($body['cycle'] ?? 'monthly', ['monthly', 'quarterly', 'yearly'], true)
                  ? ($body['cycle'] ?? 'monthly') : 'monthly';
 
-        // 구독 만료일 계산 (213차: 모든 유료 플랜 대상)
+        // 구독 만료일/주기 — ★289차후속 보안: 클라이언트 cycle 로 계산하지 않는다(무료 연장 남용 차단).
+        //   유료 플랜의 만료/주기는 아래 결제 게이트에서 검증된 payment_history 행(Payment::confirm 이
+        //   Toss 금액검증 후 기록한 expires_at·cycle)에서 파생한다.
         $now = self::now();
         $expiresAt = null;
-        if ($plan !== 'demo') {
-            $days = match ($cycle) {
-                'quarterly' => 90,
-                'yearly'    => 365,
-                default     => 30,  // monthly
-            };
-            $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + $days * 86400);
-        }
 
         $id = $user['id'] ?? $user['idx'] ?? 0;
         $pdo = Db::pdo();
@@ -1903,23 +1897,33 @@ final class UserAuth
         //   (frontend PaymentSuccess.jsx: payment/confirm 성공 후 upgrade()).
         //   따라서 demo(다운그레이드)는 항상 허용하되, 유료(pro/enterprise)는
         //   검증된 결제 증거가 있어야만 부여한다. 증거 없으면 402.
+        //   ★289차후속: 기존 게이트는 (a) cycle/금액/소비 무관한 stale payment_history 매칭 +
+        //   (b) "동일 플랜 보유(curPlan===plan)"를 결제 증명으로 오인해, 트라이얼/쿠폰으로 plan 컬럼만
+        //   유료로 세팅된 사용자가 무료로 연/분기 구독을 자가부여(월결제→연구독 포함)할 수 있었다.
+        //   → 만료일/주기를 결제내역 행에서 파생(클라이언트 cycle 무시)하고, "plan 보유" 지름길 제거(admin 만 유지).
         if ($plan !== 'demo') {
             $verified = false;
-            // (1) confirm()/PG 가 기록한 성공 결제 내역
+            // (1) Payment::confirm()/PG 가 기록한 성공 결제 내역 — 그 행의 expires_at·cycle 으로 부여기간 확정.
             try {
                 $chk = $pdo->prepare(
-                    "SELECT 1 FROM payment_history WHERE user_id=? AND plan=? AND status IN ('success','active','paid') LIMIT 1"
+                    "SELECT cycle, expires_at FROM payment_history
+                       WHERE user_id=? AND plan=? AND status IN ('success','active','paid')
+                       ORDER BY id DESC LIMIT 1"
                 );
                 $chk->execute([$id, $plan]);
-                if ($chk->fetchColumn()) $verified = true;
-            } catch (\Throwable $e) { /* 테이블 부재 등 → 다음 단계 */ }
-            // (2) 이미 검증된 서버 플로우(웹훅 등)가 동일 유료플랜/admin 을 부여해 둔 경우
+                $payRow = $chk->fetch(\PDO::FETCH_ASSOC) ?: null;
+                if ($payRow) {
+                    $verified = true;
+                    if (!empty($payRow['expires_at'])) $expiresAt = $payRow['expires_at']; // 결제 증거 만료(우선)
+                    if (!empty($payRow['cycle']))       $cycle     = (string)$payRow['cycle']; // 결제 주기(클라이언트 무시)
+                }
+            } catch (\Throwable $e) { /* 테이블 부재 등 → 아래 admin 예외/402 */ }
+            // (2) admin 계정만 예외(내부 신뢰) — "동일 플랜 보유"는 더 이상 결제 증명이 아니다.
             if (!$verified) {
                 try {
                     $cur = $pdo->prepare("SELECT COALESCE(plans,plan,'demo') AS p FROM app_user WHERE id=?");
                     $cur->execute([$id]);
-                    $curPlan = (string)$cur->fetchColumn();
-                    if ($curPlan === $plan || $curPlan === 'admin') $verified = true;
+                    if ((string)$cur->fetchColumn() === 'admin') $verified = true;
                 } catch (\Throwable $e) { /* ignore */ }
             }
             if (!$verified) {
@@ -1927,6 +1931,11 @@ final class UserAuth
                     'ok'    => false,
                     'error' => '결제 확인이 필요합니다. 결제를 완료한 후 다시 시도해 주세요.',
                 ], 402);
+            }
+            // 레거시 payment_history 행에 expires_at 이 없던 경우만 결제 주기 기반 폴백(verified 후에만 도달).
+            if ($expiresAt === null) {
+                $days = match ($cycle) { 'quarterly' => 90, 'yearly' => 365, default => 30 };
+                $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + $days * 86400);
             }
         }
 
@@ -4069,6 +4078,21 @@ final class UserAuth
             $label = $method === 'sms' ? 'SMS' : ($method === 'kakao' ? '카카오톡' : '이메일');
             return ['sent'=>false,'error'=>'provider_not_configured','msg'=>"{$label} 인증 제공자가 아직 설정되지 않았습니다. 관리자에게 문의하거나 다른 인증 방식을 선택하세요."];
         }
+        // [289차후속 보안] 재발송 스로틀(비용남용 방어) — 형제 issueLoginOtp(4009행)의 90초 스로틀이 이
+        //   경로엔 누락돼, 인증 사용자가 POST /auth/mfa/otp/send 를 반복하면 플랫폼 부담 SMS(NaverSMS 실비용)/
+        //   이메일이 무제한 발송됐다. 최근 90초 내 발급된 유효 코드가 있으면 재발송하지 않는다
+        //   (mfa_otp_expires=발급+300 으로 발급시각 역산·별도 컬럼 불필요·동일 패턴).
+        $THROTTLE = 90;
+        try {
+            $tst = $pdo->prepare('SELECT mfa_otp_hash, mfa_otp_expires FROM app_user WHERE id=?');
+            $tst->execute([$user['id']]);
+            $prevOtp = $tst->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $prevOtpExp = strtotime((string)($prevOtp['mfa_otp_expires'] ?? '')) ?: 0;
+            if (!empty($prevOtp['mfa_otp_hash']) && ($prevOtpExp - time()) > (300 - $THROTTLE)) {
+                $label = $method === 'sms' ? '문자' : ($method === 'kakao' ? '카카오톡' : '이메일');
+                return ['sent'=>true,'throttled'=>true,'msg'=>"인증 코드를 방금 {$label}(으)로 보냈습니다. 잠시 후 다시 시도하세요. (5분 유효)"];
+            }
+        } catch (\Throwable $e) { /* 스로틀 조회 실패는 무시하고 정상 발급 */ }
         $code = self::genOtp6();
         $exp  = gmdate('Y-m-d\TH:i:s\Z', time() + 300); // 5분
         try {
