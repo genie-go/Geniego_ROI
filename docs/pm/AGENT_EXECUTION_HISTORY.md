@@ -702,3 +702,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-42 EACCRL 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(capability/catalog/reference/pattern/registry/knowledge/semantic-search/reusable-component grep, docs/tools 포함): 형식 통합 라이브러리 grep 0. PARTIAL substrate(비교적 큼)=docs/architecture·docs/registry·routes/openapi·공용 클래스(Crypto/SecurityAudit/Ssrf/Mapping/MediaHost)·gen_chatbot_knowledge.mjs·git·SecurityAudit.
 - 산출 7문서. ★핵심=상위 Part 3-33/3-37/3-27 저장소 재정의 금지·본 DSAR 세트 자체가 인스턴스·Reuse Before Build. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(docs/architecture/registry/CONSTITUTION/CLAUDE.md/memory/routes/OpenPlatform/TeamPermissions/Crypto/SecurityAudit/Mapping/Ssrf/MediaHost/gen_chatbot_knowledge/GraphScore/Db/git)만. KEEP_SEPARATE 명시.
+
+## [289차 후속] Part 3-43 EAFTAF 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(technology/radar/poc/pilot/vendor/adoption/maturity/dependency grep, 매니페스트 포함): 형식 기술채택 grep 0. PARTIAL substrate=composer/npm·AbTesting(마케팅)·docs/architecture·CI 스캔·SecurityAudit. 상위 Part 3-27/3-32/3-33 대거중복·조직/프로세스(Review Board/Vendor).
+- 산출 7문서. ★핵심=상위 Part 재정의 금지·제품 벤더≠기술 벤더·마케팅 A/B=POC 패턴만. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(composer/package/AbTesting/docs architecture/CHANGE_GATE/security-scan/ChannelSync/PgSettlement/Pnl/CLAUDE.md/registry/SecurityAudit/Db/git)만. KEEP_SEPARATE 명시.

@@ -1235,3 +1235,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: GraphScore(마케팅 그래프)≠Knowledge Graph Integration(IAM)·챗봇 고객지식≠내부 기술 Knowledge Asset(파이프라인만 재사용)·제품 UI 컴포넌트≠재사용 authz 컴포넌트·메뉴snapshot(정본 SecurityAudit::verify)≠Reference Snapshot. Duplicate Canonical Asset 방지=중복금지 규율([[feedback_no_duplicate_features]]) 형식화.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-41 인증 종속. 다음=Part 3-43 Future Technology Adoption Framework.
+
+## [289차 후속] EPIC 06-A Part 3-43 — Future Technology Adoption Framework (EAFTAF) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 미래 기술 탐색/검증/채택/운영 전 생명주기 거버넌스.
+- **★핵심 판정 = PARTIAL / ABSENT-formal + 상위 Part 대거중복 + 조직/프로세스**: §4 Technology Radar/Discovery=Part 3-27 LTER(Future Standards Tracker)·§7~8 POC/Pilot=Part 3-32 EACIF·§12 Architecture Compatibility=Part 3-33 EASALM·§13 Vendor/§16 Lifecycle=Part 3-27. 재정의 금지·통합.
+- **★PARTIAL substrate**: composer.json/package.json(Dependency/Technology 목록·기술 스택)·AbTesting(POC 패턴·★마케팅)·docs/architecture+CHANGE_GATE(Architecture Compat)·CI 스캔 security-scan.yml(Security Before Adoption)·SecurityAudit evidence.
+- **★조직/프로세스(비-코드)**: Review Board·Vendor Evaluation·Executive Approval·POC governance.
+- **★KEEP_SEPARATE**: 제품 벤더(채널/PG·ChannelSync/PgSettlement)≠기술 Vendor Evaluation(플랫폼 인프라/SDK)·마케팅 A/B(AbTesting)=POC 패턴만 참조·비즈니스 ROI(Pnl)≠Technology Business Value·메뉴snapshot(정본 SecurityAudit::verify)≠Technology Snapshot. Duplicate Technology Entry 방지=중복금지 규율.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-42 인증 + 조직 신설 종속. 다음=Part 3-44 Enterprise Strategic Sustainability Framework.
