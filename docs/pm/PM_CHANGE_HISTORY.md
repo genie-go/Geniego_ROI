@@ -1208,3 +1208,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: PM 테넌트 포트폴리오(PM/Enterprise·테넌트 PM)≠플랫폼 Transformation Program(패턴 참조)·비즈니스 ROI(Pnl)/마케팅 예측(Mmm)≠Benefits/Investment(플랫폼)·ClaudeAI/AutoRecommend/Decisioning(마케팅)≠AI Transformation Advisor(거버넌스)·메뉴snapshot(정본 SecurityAudit::verify)≠Transformation Snapshot. Invalid Dependency=PM/Dependencies.php DFS 재사용.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~20)+GOVERNANCE_MECHANISMS(§21~30)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-38 인증 + 조직 신설 종속. 다음=Part 3-40 Autonomous Enterprise Governance Platform.
+
+## [289차 후속] EPIC 06-A Part 3-40 — Autonomous Enterprise Governance Platform (EAAEGP) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 사람정책+AI의사결정+자동제어 Autonomous Control Plane.
+- **★핵심 안전 판정(중요)**: 무인 authz(인가) 자율 집행은 부재이며 안전원칙(데이터/마케팅 헌법: 검증데이터+승인정책+로그+롤백+Human Oversight)과 충돌. Human Oversight·PAUSED-by-default·Explainable·fail-closed 절대 전제로만 설계.
+- **★PARTIAL substrate(마케팅 자율)**: RuleEngine(channel_roas→pause_channel/reorder·★마케팅)·AutoRecommend/Decisioning(마케팅 의사결정)·Alerting::executeAction(★287/288차 action_request 생산자 부재=부분 정직-pending)·AnomalyDetection(예측)·self-heal(ensureTables/consolidateOrphanStock/MenuPricingSync graceful)·PAUSED/킬스위치/pending_approval(사람-인-루프 안전)·SecurityAudit evidence.
+- **★KEEP_SEPARATE(안전 최대 위험)**: 마케팅 자동화(RuleEngine/AutoRecommend/Decisioning/Mmm/AnomalyDetection)를 authz 자율로 재사용 절대 금지(오흡수=인가 무인집행 위험)·ModelMonitor(ML drift)≠Autonomous Drift·WMS/스키마 self-heal≠authz Self-Healing·break-glass(UserAuth·인증우회)≠Executive Override·메뉴snapshot(정본 SecurityAudit::verify)≠Autonomous Snapshot.
+- **★안전 규율 반영**: 마케팅 헌법 V5 안전Rule(신뢰도/권한/동기화/통계신뢰 부족→자동집행 금지·경고)·[[reference_platform_growth_actas_tenant_hijack]]·Human Escalation 필수·AI Manipulation/Policy Injection=최우선 보안테스트.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-39 인증 + Human Oversight 안전검증 종속. 다음=Part 3-41 Next Generation Platform Vision.

@@ -690,3 +690,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-39 EASTF 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(transformation/portfolio/roadmap/capability/value-stream/benefits/raid grep): 형식 Transformation Governance grep 0. PARTIAL substrate=PM/Enterprise(pm_portfolio/pm_raid/baseline PPM·테넌트 PM)·Part 3-27/3-32/3-34 참조·ClaudeAI/AutoRecommend·SecurityAudit. 조직요소(Steering Committee·Organizational Readiness)=비-코드.
 - 산출 7문서. ★핵심=PM 테넌트 PPM≠플랫폼 프로그램(패턴 참조)·상위 Part 재정의 금지·마케팅 AI≠거버넌스 Advisor. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(PM/Enterprise/ClaudeAI/AutoRecommend/Pnl/Mmm/Catalog/Alerting/PM Dependencies/SecurityAudit/Db)만. KEEP_SEPARATE 명시.
+
+## [289차 후속] Part 3-40 EAAEGP 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(autonomous/rule-engine/decision/self-healing/optimization/predictive/override grep): 형식 authz 자율 grep 0. PARTIAL substrate=RuleEngine/AutoRecommend/Decisioning/AnomalyDetection/executeAction/self-heal(★전부 마케팅·사람-인-루프). 무인 authz 자율=부재·안전원칙 충돌.
+- 산출 7문서. ★핵심 안전=마케팅 자동화≠authz 자율(오흡수=인가 무인집행 위험)·Human Oversight/PAUSED/Explainable 절대 전제·마케팅 헌법 V5 안전Rule 반영. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(RuleEngine/AutoRecommend/Decisioning/Alerting/AnomalyDetection/Wms/AdAdapters/Catalog/Insights/Mmm/AbTesting/UserAuth/SecurityAudit/Db)만. KEEP_SEPARATE(마케팅 자율·ModelMonitor·break-glass·메뉴snapshot) 명시.
