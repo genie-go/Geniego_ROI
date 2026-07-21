@@ -1182,3 +1182,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **ABSENT-formal**: 통합 Certification Lifecycle/Renewal/Dashboard·Reference Signature(artifact signing).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~18)+GOVERNANCE_MECHANISMS(§19~28)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-35 실 구현·인증 종속. 다음=Part 3-37 Global Center of Excellence Framework.
+
+## [289차 후속] EPIC 06-A Part 3-37 — Global Center of Excellence (EAGCoE) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 아키텍처/보안/정책/AI/운영/품질/교육/혁신 총괄 Global CoE 운영체계.
+- **★근본 정직 판정**: 본 Part는 **대부분 조직/인력/커뮤니티 체계**(CoE Organization·Excellence Office 7종·Global Advisory Board·Community Forum/Hackathon/Global Summit·Training & Certification Office). 소프트웨어 제품엔 미존재=코드가 아닌 **조직 신설 대상**. grep 무의미.
+- **★PARTIAL substrate(문서형만)**: ★Best Practice Repository=docs/CONSTITUTION.md(사명·Golden Rule·9절대원칙)+`.claude` 메모리(feedback/reference=오탐레지스트리·트랩)·Standards Management=CLAUDE.md/CHANGE_GATE/registry·Knowledge Integrity=git/SecurityAudit·Isolation=Db.
+- **★상위 Part 참조(재정의 금지)**: Architecture Excellence=Part 3-33 EASALM·Innovation Incubation=Part 3-32 EACIF·Training=Part 3-35 EAPCKT·Compliance=3-28/3-29.
+- **★KEEP_SEPARATE**: 제품 고객(테넌트)≠CoE 내부 기술 커뮤니티·메뉴snapshot(정본 SecurityAudit::verify)≠Knowledge Integrity·중복 Best Practice/Standards 저장소 신설 금지([[feedback_no_duplicate_features]] 정합).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-36 인증 + 조직 신설(비-코드) 종속. 다음=Part 3-38 Operational Excellence Benchmark.

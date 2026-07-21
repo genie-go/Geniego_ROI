@@ -678,3 +678,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-36 EAERPC 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(certification/reference-platform/evidence/signature/renewal/benchmark grep): 형식 Certification 엔진 grep 0. ★근본=06-A 자체 NOT_CERTIFIED라 인증 결과=Not Certified. PARTIAL substrate=NOT_CERTIFIED 라벨·Compliance·E2E/CI·pending_approval·SecurityAudit·deploy(3-25/3-28/3-29 공유).
 - 산출 7문서. ★핵심 정직=자기참조 역설(인증 프레임워크가 06-A=Not Certified 판정)·상위 Part Validator 재정의 금지. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(DSAR_APPROVAL 라벨/Compliance/tools e2e/deploy/Catalog/Alerting/SecurityAudit/Db/PriceOpt)만. KEEP_SEPARATE(제품 인증·Maturity·ModelMonitor·메뉴snapshot) 명시.
+
+## [289차 후속] Part 3-37 EAGCoE 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(coe/excellence-office/advisory-board/community/best-practice/standards/training grep): ★대부분 조직/인력/커뮤니티(비-코드)라 grep 무의미. 문서형 substrate만=Constitution/CLAUDE.md/메모리(feedback/reference)/CHANGE_GATE/registry/git/SecurityAudit.
+- 산출 7문서. ★핵심 정직=조직 신설 대상(코드 아님)·문서형 Best Practice/Standards만 재사용·상위 Part(3-32/3-33/3-35) 참조. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(CONSTITUTION/CLAUDE.md/memory/CHANGE_GATE/registry/git/SecurityAudit/Db)만. KEEP_SEPARATE(제품 고객·메뉴snapshot·중복저장소) 명시.
