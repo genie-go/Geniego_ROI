@@ -1397,3 +1397,10 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★재사용(중복 신설 절대 금지)**: DataPlatform(DataTrust/Lineage)·Db.php(격리)·Crypto(암호)·SecurityAudit(감사)·28 DSAR canonical(사전). Unified Intelligence(Volume 4·마케팅) 오흡수 금지. AI=Canonical Data 직접수정 불가(헌법 V3). 표준 필드=무후퇴 점진 도입(기존 테이블 파괴 금지·ensureTables 병행).
 - **산출 7문서**: SPEC(baseline·§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6 도메인매핑·§7~12)+GOVERNANCE_MECHANISMS(§10~18)+INDEX. docs/spec·docs/architecture·docs/data. 코드/테이블 0·신규 실결함 0.
 - 다음=MEA Part 002 Enterprise Data Lake Architecture(상속·확장).
+
+## [289차 후속] MEA Part 002 — Enterprise Data Lake Architecture 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- MEA Part 001 Foundation 상속·확장(재정의 금지·Golden Rule=Extend). Data Lake 저장 계층 정의.
+- **★핵심 판정 = ABSENT-aspirational(Data Lake/5 Zone/Parquet/Feature Store/CDC·단일 호스트 인프라 부재) / PARTIAL-narrow(seed 실재)**: ★Raw Zone/Object Storage/Immutable Raw/Store-Once=MediaHost.php:21,93,211(dataURL→sha256 내용주소·/api/media/{sha}.{ext}·수정불가·경로조작 SAFE)·Object Version(해시=버전)=MediaHost·Encryption(AES-256)=Crypto(비밀)·Tenant Partition=Db.php(tenant_id·Part 001 표준)·Immutable/Access Log=SecurityAudit·Ingestion(Batch/API/File)=ChannelSync/DataPlatform/MediaHost·Retention seed=media_gc·Quality/Anomaly=DataPlatform/AnomalyDetection·Export=CSV/JSON.
+- **★ABSENT-aspirational**: Enterprise Data Lake(형식)·Standardized/Curated/AI Feature/Archive Zone·Parquet/ORC/Avro(컬럼너)·Feature Store·CDC/Streaming/Event Subscription·Partition Manager(Region/Domain/시간)·Compression Manager·형식 Object Versioning/Storage Policy/Metric/Recovery Job·Data Lake Monitoring·Event 표준.
+- **★핵심**: MediaHost가 유일 실 Object/Raw seed(content-addressed=Store Once/Immutable/버전=해시). 형식 Data Lake는 오브젝트스토리지/빅데이터 인프라 전제라 조기구현 금지(현행 분석=MySQL 집계 Rollup/Pnl/DataPlatform가 Curated 대체). MediaHost/Crypto/SecurityAudit/Db/DataPlatform 재사용(중복 파일저장/암호/감사/격리/AI 신설 절대 금지). AI=Raw 수정불가(헌법 V3). Part 001/헌법/DATA_ARCHITECTURE 재정의 금지.
+- **산출 7문서**: SPEC(§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6~16)+GOVERNANCE_MECHANISMS(§11~18)+INDEX. 코드/테이블 0·신규 실결함 0. 다음=MEA Part 003 Data Warehouse.
