@@ -746,3 +746,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-53 EAACGP 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(constitution/charter/amendment/rule-engine/validation-gate/audit grep + CONSTITUTION.md·데이터 헌법 6볼륨·CHANGE_GATE·pre-commit 게이트·SecurityAudit 판독): 실 개발 거버넌스 헌법 강함=CONSTITUTION.md+6볼륨+CHANGE_GATE+pre-commit G-게이트(sacred SHA/중복금지)+SecurityAudit::verify(Immutable Audit 완벽 정합). executable Policy Engine·런타임 Validation·Conflict Resolver=ABSENT.
 - 산출 7문서. ★핵심=실 헌법/게이트/SecurityAudit 재사용(중복 헌법/게이트/체인 신설 절대 금지)·개발 헌법≠런타임 authz 헌법 엔진(핵심 구분)·마케팅 AI KEEP_SEPARATE·KG=Part3-49. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(CONSTITUTION.md/CHANGE_GATE/데이터 헌법 6볼륨/pre-commit 게이트/SecurityAudit/AgencyPortal/approvals/index/docs/registry/ClaudeAI/EnterpriseAuth/Db/git)만.
+
+## [289차 후속] Part 3-54 EAUPIN 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(policy/rule/writeGuard/RBAC/RuleEngine/OPA/XACML/knowledge-graph/simulation grep): 런타임 authz 정책 집행 실재=index.php RBAC/writeGuard(289차 서버전역)·Alerting alert_policy·UserAuth tenant_security_policy·AgencyPortal scope. 형식 Policy Network/KG/Simulation/Conflict/OPA/XACML=ABSENT. 마케팅 RuleEngine.php=세그먼트용(KEEP_SEPARATE).
+- 산출 7문서. ★핵심=런타임 enforcement 재사용(중복 정책엔진 절대 금지)·개발헌법(3-53)과 달리 매 요청 집행·마케팅 RuleEngine 분리(동음이의)·Federation/KG/시뮬 조기구현 금지. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(index.php/Alerting/UserAuth/AgencyPortal/RuleEngine/CHANGE_GATE/GdprConsent/Compliance/SecurityAudit/Db/git)만.
