@@ -1226,3 +1226,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: DataTrust(데이터 신뢰)≠Digital Trust Blueprint(authz·패턴만 참조)·마케팅 personalization(AutoRecommend 추천)≠Behavioral Authorization·비즈니스 ROI(Pnl)≠Platform Evolution Score·메뉴snapshot(정본 SecurityAudit::verify)≠Vision Snapshot.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-40 인증 + 미래 기술 성숙 종속. 다음=Part 3-42 Enterprise Capability Catalog & Reference Library.
+
+## [289차 후속] EPIC 06-A Part 3-42 — Capability Catalog & Reference Library (EACCRL) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 전 기능/서비스/정책/컴포넌트/API/패턴/운영지식 재사용 표준 라이브러리.
+- **★핵심 판정 = PARTIAL / ABSENT-formal + 상위 Part 저장소 중복**: §5~6 Architecture/Pattern·§10 ADR=Part 3-33 EASALM·§12 Best Practice=Part 3-37 EAGCoE·§3 Registry=Part 3-27 LTER. 저장소 재정의 금지·통합 카탈로그/검색 계층.
+- **★PARTIAL substrate(비교적 큼)**: docs/architecture(ADR 수십편)·docs/registry+ChannelRegistry(Registry)·routes.php/OpenPlatform openapi(API)·TeamPermissions(Policy)·★공용 클래스 Crypto/SecurityAudit/Mapping/Ssrf(289차후속 신설)/MediaHost(Reusable Component)·gen_chatbot_knowledge.mjs(Semantic Search seed·[[reference_chatbot_knowledge_pipeline]])·git(Version)·SecurityAudit evidence.
+- **★자기참조 정직**: 본 EPIC 06-A DSAR 세트+docs/=EACCRL의 수동/문서형 인스턴스(Reuse Before Build 이미 적용중).
+- **★KEEP_SEPARATE**: GraphScore(마케팅 그래프)≠Knowledge Graph Integration(IAM)·챗봇 고객지식≠내부 기술 Knowledge Asset(파이프라인만 재사용)·제품 UI 컴포넌트≠재사용 authz 컴포넌트·메뉴snapshot(정본 SecurityAudit::verify)≠Reference Snapshot. Duplicate Canonical Asset 방지=중복금지 규율([[feedback_no_duplicate_features]]) 형식화.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-41 인증 종속. 다음=Part 3-43 Future Technology Adoption Framework.
