@@ -1404,3 +1404,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★ABSENT-aspirational**: Enterprise Data Lake(형식)·Standardized/Curated/AI Feature/Archive Zone·Parquet/ORC/Avro(컬럼너)·Feature Store·CDC/Streaming/Event Subscription·Partition Manager(Region/Domain/시간)·Compression Manager·형식 Object Versioning/Storage Policy/Metric/Recovery Job·Data Lake Monitoring·Event 표준.
 - **★핵심**: MediaHost가 유일 실 Object/Raw seed(content-addressed=Store Once/Immutable/버전=해시). 형식 Data Lake는 오브젝트스토리지/빅데이터 인프라 전제라 조기구현 금지(현행 분석=MySQL 집계 Rollup/Pnl/DataPlatform가 Curated 대체). MediaHost/Crypto/SecurityAudit/Db/DataPlatform 재사용(중복 파일저장/암호/감사/격리/AI 신설 절대 금지). AI=Raw 수정불가(헌법 V3). Part 001/헌법/DATA_ARCHITECTURE 재정의 금지.
 - **산출 7문서**: SPEC(§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6~16)+GOVERNANCE_MECHANISMS(§11~18)+INDEX. 코드/테이블 0·신규 실결함 0. 다음=MEA Part 003 Data Warehouse.
+
+## [289차 후속] MEA Part 003 — Enterprise Data Warehouse Architecture 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- MEA Part 001/002 상속·확장(재정의 금지). EDW(경영/ROI 분석 통합 저장소).
+- **★핵심 판정 = PARTIAL-strong(KPI/ROI 값 SSOT 실재·제품 핵심) / ABSENT-formal(형식 차원모델/시맨틱/레지스트리)**: Revenue/Gross·Net Profit/VAT=Rollup.php(서버 P&L SSOT+집계)/Pnl.php·ROAS/ROI/Conversion=Attribution.php·LTV/CAC/Retention=CRM.php(취소/반품 역분개)·ROI 예측/마케팅믹스=Mmm.php(frontier)·Aggregate=Rollup(GROUP BY)·Fact=관계형(orders/channel_orders/performance_metrics)·Dimension=tenant/time/product 컬럼·RLS/Tenant=Db.php·Query Audit=SecurityAudit·AI 이상/품질=AnomalyDetection/DataPlatform.
+- **★핵심 구분**: KPI/ROI 값은 이미 서버 SSOT로 산출·광범위 감사(무후퇴 단일소스·제품 핵심)이나 정의는 코드 내재 — 형식 차원 모델/Semantic Layer/메트릭 정의 레지스트리 부재. 값 재계산 없이 정의 계층만 신설.
+- **★ABSENT-formal**: Star/Snowflake Schema·Fact/Dimension Repository·Semantic Layer(Business Glossary/Metric Mapping)·metadata-driven KPI Definition Registry·SCD Type 2·Analytical Query Engine(OLAP)·Column Level Security·Event 표준.
+- **★재사용(★중복 KPI 계산 절대 금지·값 분산=회귀)**: Rollup/Pnl/Attribution/CRM/Mmm(KPI/ROI 값)·Db.php(RLS)·SecurityAudit(감사)·AnomalyDetection/DataPlatform(AI). Part 001/002·헌법·DATA_ARCHITECTURE 재정의 금지. AI=Warehouse 직접수정 불가(헌법 V3). 값 무후퇴 단일소스([[feedback_no_regression_value_unification]]).
+- **산출 7문서**: SPEC(§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6~16)+GOVERNANCE_MECHANISMS(§11~18)+INDEX. 코드/테이블 0·신규 실결함 0. 다음=MEA Part 004 Metadata Management.
