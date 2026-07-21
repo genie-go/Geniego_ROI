@@ -1261,3 +1261,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE + 교훈**: DataTrust(데이터)≠Digital Trust Score(파트너/조직)·ClaudeAI(마케팅)≠AI Trust Advisor·[[reference_platform_growth_actas_tenant_hijack]](위임접근 tenant 요청시점 검증·고착 방지·Cross-Tenant Trust Leakage 차단). ★중복 SSO/연합 신설 절대 금지(EnterpriseAuth 승격). 메뉴snapshot(정본 SecurityAudit::verify)≠Trust Snapshot.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-44 인증 종속. 다음=Part 3-46 Enterprise AI-Native Governance Architecture.
+
+## [289차 후속] EPIC 06-A Part 3-46 — Enterprise AI-Native Governance Architecture (EAINGA) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → Authorization Platform을 AI-Native로 재설계(Policy/Decision/Compliance/Risk/Operations/Audit를 AI·사람 협업). 원칙: AI-Native by Design·Human-in-the-Loop·Explainability First·Responsible AI·Trustworthy AI·Secure AI Lifecycle.
+- **★핵심 판정 = PARTIAL(마케팅/데이터 AI 실재) / ABSENT-formal(authz AI 거버넌스 greenfield)**: AI Model=ClaudeAI.php:20(claude-sonnet-4-6)·AiGenerate.php:27(claude-haiku-4-5)·모델은퇴 처리(AiGenerate.php:25=lifecycle rollback seed)·ModelMonitor/AnomalyDetection(드리프트)·Decisioning(집계전용 confidence·No-PII)·Explainability=헌법 V4 근거/신뢰도 강제·Evidence=SecurityAudit·Isolation=Db.php.
+- **★ABSENT-formal/greenfield**: 형식 Model Registry/Model Card·Prompt Governance(버전/승인/롤백)·**AI Safety Engine(★Prompt Injection Defense·Hallucination Detection·Model Boundary=실 갭)**·AI Explainability 엔진(Decision Trace)·AI Risk/Compliance Validator(ISO 42001/NIST AI RMF/EU AI Act)·AI Trust Index·Executive AI Dashboard·authz 판단 AI 자체.
+- **★KEEP_SEPARATE + 교훈**: 마케팅/데이터 AI(ClaudeAI/AiGenerate/Insights/AutoCampaign/CustomerAI/Mmm/CreativeStudio) ≠ authz 거버넌스 AI(오흡수·재정의 금지). 중복 드리프트/해시체인/신뢰 엔진 신설 금지(V3 엔진 난립 금지). [[reference_platform_growth_actas_tenant_hijack]](Cross-Tenant Context Leakage)·[[reference_menu_audit_log_not_tamper_evident]](AI Evidence 정본=SecurityAudit::verify).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-45 인증 종속. 다음=Part 3-47 Universal Trust Computing Framework.

@@ -714,3 +714,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-45 EAGDTEF 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(trust/federation/sso/saml/oidc/scim/cross-org/delegated/continuous-verification/did grep): 연합/크로스조직 substrate 실재·강함=EnterpriseAuth(SSO)·AgencyPortal/PartnerPortal(크로스조직)·fail-closed 재검증(Zero Trust)·DataTrust·Crypto·GdprConsent/Dsar. DID/Sovereign/Cross-Cloud=미래(Part 3-41).
 - 산출 7문서. ★핵심=EnterpriseAuth/Agency/Partner 재사용(중복 SSO 신설 절대 금지)·위임 tenant 고착 방지(act-as hijack 교훈)·DataTrust≠파트너 신뢰. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(EnterpriseAuth/AgencyPortal/PartnerPortal/index/DataPlatform/Crypto/GdprConsent/Dsar/TeamPermissions/ClaudeAI/SecurityAudit/Db/git)만. KEEP_SEPARATE 명시.
+
+## [289차 후속] Part 3-46 EAINGA 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(ai/claude/model/prompt/confidence/hallucinat/explainab/drift grep): 마케팅/데이터 AI substrate 실재=ClaudeAI(claude-sonnet-4-6)·AiGenerate(claude-haiku-4-5·모델은퇴)·ModelMonitor/AnomalyDetection(드리프트)·Decisioning(집계 confidence)·헌법 V4 Explainable AI 강제·DataTrust READY 게이트. 형식 authz AI 거버넌스·Prompt Injection Defense=ABSENT.
+- 산출 7문서. ★핵심=마케팅/데이터 AI KEEP_SEPARATE(오흡수 금지)·ModelMonitor/Decisioning/DataTrust 승격(중복 엔진 금지)·Prompt Injection Defense 순신설·AI Evidence=SecurityAudit::verify. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(ClaudeAI:20/AiGenerate:25,27/ModelMonitor/AnomalyDetection/Decisioning/Db/SecurityAudit/헌법)만.
