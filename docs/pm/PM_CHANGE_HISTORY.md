@@ -1191,3 +1191,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: 제품 고객(테넌트)≠CoE 내부 기술 커뮤니티·메뉴snapshot(정본 SecurityAudit::verify)≠Knowledge Integrity·중복 Best Practice/Standards 저장소 신설 금지([[feedback_no_duplicate_features]] 정합).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-36 인증 + 조직 신설(비-코드) 종속. 다음=Part 3-38 Operational Excellence Benchmark.
+
+## [289차 후속] EPIC 06-A Part 3-38 — Operational Excellence Benchmark (EAOEB) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 운영 품질 지속 측정·비교·개선 벤치마크 체계.
+- **★핵심 판정 = PARTIAL / ABSENT-formal + 상위 Part 대거중복**: §14 Maturity=Part 3-28 EAGMM·§6~7 SLA/SLO/Reliability/MTTR/MTBF=Part 3-30 EAPEF·§21 Executive Dashboard=Part 3-34 EAEGD·§9 Security=Part 3-29/3-36. **측정엔진 재정의 금지·본 Part=측정치 벤치마크(비교/순위/목표대비) 집계 계층**.
+- **★PARTIAL substrate**: docs/COMPETITIVE_SCORE_HISTORY.md(benchmark history 패턴·★경쟁 도메인)·SystemMetrics/Health(운영 KPI)·Compliance(Compliance Benchmark)·DataTrust scoring 패턴·SecurityAudit evidence. ★이번 세션 보안 5클래스 감사=Security Benchmark(Vulnerability Closure/Zero Trust Maturity/Policy Compliance) 수동 실행 인스턴스.
+- **★KEEP_SEPARATE**: 경쟁 스코어(COMPETITIVE_SCORE_HISTORY·마케팅/경쟁력)≠Operational Excellence Benchmark(운영)·비즈니스 ROI(Pnl)≠Cost Optimization Benchmark(플랫폼 비용)·DataTrust/GraphScore/AbTesting≠운영 벤치·ModelMonitor≠AI Operations Benchmark·메뉴snapshot(정본 SecurityAudit::verify)≠Benchmark Snapshot. Score=서버 집계 SSOT([[reference_real_value_autoderive]]·임의 하드코딩 금지).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-37 인증 종속. 다음=Part 3-39 Strategic Transformation Framework.
