@@ -1269,3 +1269,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE + 교훈**: 마케팅/데이터 AI(ClaudeAI/AiGenerate/Insights/AutoCampaign/CustomerAI/Mmm/CreativeStudio) ≠ authz 거버넌스 AI(오흡수·재정의 금지). 중복 드리프트/해시체인/신뢰 엔진 신설 금지(V3 엔진 난립 금지). [[reference_platform_growth_actas_tenant_hijack]](Cross-Tenant Context Leakage)·[[reference_menu_audit_log_not_tamper_evident]](AI Evidence 정본=SecurityAudit::verify).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-45 인증 종속. 다음=Part 3-47 Universal Trust Computing Framework.
+
+## [289차 후속] EPIC 06-A Part 3-47 — Universal Trust Computing Framework (EAUTCF) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 클라우드/온프렘/엣지/모바일/AI에이전트/IoT 전반 일관된 신뢰 기반 권한(Universal Trust Fabric·Zero Trust Everywhere).
+- **★핵심 판정 = PARTIAL-narrow(암호/identity/federation 실재) / ABSENT-aspirational(컴퓨팅주체 신뢰·단일 호스트)**: Cryptographic Trust=Crypto.php:9,113(AES-256-GCM·openssl_encrypt fail-closed)·Machine/Service Identity=api_key(SHA-256·RBAC·유일 실 비인간 identity·Part3-6)·Human Federation=EnterpriseAuth·Continuous Trust=매 요청 approved 재검증 fail-closed(Zero Trust)·Context=Geo(IP)/Attribution(device_sig)/UserAuth(session/MFA)·Evidence=SecurityAudit·Isolation=Db·Edge-seed=WmsCctv(온프렘 CCTV).
+- **★ABSENT-aspirational(단일 호스트 PHP 앱이라 부재)**: Universal Trust Fabric·Distributed/Multi-Node/Consensus·Device Trust(endpoint/secure-boot)·Workload Trust(container/K8s/VM/serverless)·Service Mesh/mTLS·AI Agent Trust(Part3-46)·범용 Edge Trust·HSM·Post-Quantum(Part3-23/3-41).
+- **★KEEP_SEPARATE**: Digital Trust(조직/파트너·Part3-45)≠컴퓨팅주체 신뢰·AI Agent(3-46)·Post-Quantum(3-23/3-41). WmsCctv 온프렘 브리지는 CCTV용(범용 Edge 확대 금지·[[project_n274_wms_cctv_bridge]]). 중복 암호/신뢰/체인 엔진 신설 금지.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-46 인증 + 컴퓨팅 인프라(container/edge) 전제. 다음=Part 3-48 Long-Term Strategic Evolution Blueprint.
