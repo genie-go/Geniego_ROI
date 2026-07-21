@@ -666,3 +666,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-33 EASALM 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(architecture/adr/review-board/pattern/dependency/impact/standard grep, docs/architecture·docs/registry 포함): 형식 런타임 Architecture Governance grep 0·PARTIAL substrate(docs/architecture ADR·Constitution/CHANGE_GATE/registry·Dependencies DFS·본 DSAR 파이프라인·SecurityAudit·git 불변이력) 확정.
 - 산출 7문서. ★자기참조 정직=본 DSAR 파이프라인 자체가 EASALM 수동 인스턴스·Golden Rule 정합. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(docs/architecture/CONSTITUTION/CHANGE_GATE/registry/PM Dependencies/AdminMenu/SecurityAudit/Db)만. KEEP_SEPARATE 명시(PM Dependencies·GraphScore·마케팅·메뉴snapshot).
+
+## [289차 후속] Part 3-34 EAEGD 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(dashboard/kpi/scorecard/forecast/executive/control-tower grep): 형식 authz 거버넌스 대시보드 grep 0. ★비즈니스 대시보드(제품)=강하나 오흡수 금지. PARTIAL substrate=SystemMetrics/Health/Compliance/Alerting/SecurityAudit 재사용.
+- 산출 7문서. ★핵심=제품 대시보드(Pnl/AdminGrowth/Mmm/116 프론트) 오흡수 절대 금지·거버넌스 KPI 순신설. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(SystemMetrics/Health/Compliance/Alerting/Pnl/Mmm/CustomerAI/UserAdmin/SecurityAudit/Db)만. 교훈 반영(act-as tenant hijack·real value autoderive).

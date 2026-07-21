@@ -1154,3 +1154,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: PM Dependencies DFS(태스크 의존)≠Architecture Dependency Graph(알고리즘만 참조)·GraphScore(마케팅)≠Architecture Graph·마케팅 A/B/AutoRecommend≠Architecture Review/Decision·메뉴snapshot(정본 SecurityAudit::verify)≠Architecture Snapshot.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-32 인증 종속. 다음=Part 3-34 Executive Governance Dashboard.
+
+## [289차 후속] EPIC 06-A Part 3-34 — Executive Governance Dashboard (EAEGD) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 최고경영진 Executive Control Tower.
+- **★핵심 판정 = PARTIAL / ABSENT-formal + 제품 대시보드 오흡수 위험 최대**: GeniegoROI 자체가 다중테넌트 ROI 분석 대시보드 **제품**이라 비즈니스/재무 대시보드 강함(Pnl P&L/ROI·AdminGrowth funnel·Mmm forecast·116 프론트)이나 **이는 테넌트 대상 제품이지 플랫폼 authz 거버넌스 Control Tower 아님**. authz 거버넌스 KPI(Zero Trust Score·PDP Latency·PEP Health·SoD Violations·Policy Drift·Enterprise Health Index·Governance Score) grep 0.
+- **★KEEP_SEPARATE(절대·최대 위험)**: 테넌트 P&L/ROI/마케팅 대시보드(제품)를 Executive Governance Dashboard로 흡수/재라벨 절대 금지. Mmm/DemandForecast(마케팅 예측)≠Executive Forecast(거버넌스)·CustomerAI(비즈니스)≠Governance Analytics·Risk.php(비즈니스)≠Enterprise Governance Risk·Digital Twin/Multi-Region=대상 부재.
+- **★재사용(승격)**: SystemMetrics/Health(Operational)·Compliance(Compliance)·Alerting(Notification email/sms/push 실배선·Threshold)·SecurityAudit(Evidence)·Db(Isolation)·pending_approval(Decision). Executive=admin 게이트(requirePlan admin·requireMasterAdmin2).
+- **★교훈 반영**: [[reference_platform_growth_actas_tenant_hijack]](admin 크로스테넌트 Executive View=X-Act-As-Tenant 고착 방지·요청시점 tenant 검증)·[[reference_real_value_autoderive]](KPI=서버 집계 SSOT·임의 하드코딩 금지).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-33 인증 종속. 다음=Part 3-35 Program Closure & Knowledge Transfer.
