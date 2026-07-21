@@ -1420,3 +1420,10 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★ABSENT-formal**: Enterprise Metadata Repository/Registry(형식)·Version Manager·Validation/Search Engine(Full Text)·Approval Workflow·Sync Service·API Gateway·Dashboard·Event 표준·Owner 지정(Part 001 Ownership 부재)·형식 Tag.
 - **★재사용(중복 신설 절대 금지)**: 33 DSAR canonical+docs/registry(카탈로그)·CHANGE_GATE+중복금지 게이트(거버넌스)·SecurityAudit(감사)·git(버전)·DataPlatform(lineage)·RBAC/tenant/Crypto. Part 001 Metadata Framework·3-49 Reference·3-55 Knowledge 재정의 금지. AI=승인 없이 변경 불가(헌법 V3)·마케팅 AI KEEP_SEPARATE.
 - **산출 7문서**: SPEC(§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6~16)+GOVERNANCE_MECHANISMS(§11~18)+INDEX. 코드/테이블 0·신규 실결함 0. 다음=MEA Part 005 MDM.
+
+## [289차 후속] MEA Part 005 — Enterprise Master Data Management(MDM) Architecture 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- MEA Part 001~004 상속·확장(재정의 금지). 기준 데이터 단일화·중복 제거.
+- **★핵심 판정 = PARTIAL(아이덴티티 해석·dedup·기준 도메인 실재) / ABSENT-formal(형식 MDM 엔진)**: ★Entity Resolution/Match=Attribution.php:133,176(attribution_identity_link·tenant/identity_hash/session·confidence 스코어=확률적 매칭·UNIQUE dedup)·고객 아이덴티티=CRM.php(identity360)·Dedup/Merge=231차 DB SSOT dedup·Wms(consolidateOrphanStock)·중복 생성 금지=UNIQUE 제약+pre-commit 중복금지 게이트·Master Domain=실 핸들러(User/Role/Customer/Supplier/Partner/Product/Warehouse)·Reference Data=currency/country/status enum·st11_notice_types.json·Sync=ChannelSync·Audit=SecurityAudit.
+- **★ABSENT-formal**: Master Data Repository(형식)·Golden Record Manager·형식 Match/Merge Engine(Fuzzy)·Survivorship Engine·Reference Data Manager·Sync Service(Event/CDC)·Distribution·Dashboard·Event 표준·Owner 지정.
+- **★핵심**: MDM 취지(중복 제거·SSOT)는 이미 실 강제(231차 SSOT·중복금지 게이트·UNIQUE)+확률적 아이덴티티 해석(confidence) 실재 — 형식 Golden Record/Match-Merge/Survivorship 엔진만 신설. ★중복 아이덴티티/dedup 로직 재구현 절대 금지(MDM 취지 위반). Attribution/231 SSOT/UNIQUE/중복금지게이트/Reference enum/ChannelSync/SecurityAudit/Db/Crypto 재사용. Part 001/004·헌법 재정의 금지. AI=Golden Record 직접변경 불가(헌법 V3)·마케팅 AI KEEP_SEPARATE.
+- **산출 7문서**: SPEC(§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6~16)+GOVERNANCE_MECHANISMS(§11~18)+INDEX. 코드/테이블 0·신규 실결함 0. 다음=MEA Part 006 Data Quality.
