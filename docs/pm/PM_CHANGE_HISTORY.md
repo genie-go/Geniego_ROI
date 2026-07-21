@@ -1277,3 +1277,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: Digital Trust(조직/파트너·Part3-45)≠컴퓨팅주체 신뢰·AI Agent(3-46)·Post-Quantum(3-23/3-41). WmsCctv 온프렘 브리지는 CCTV용(범용 Edge 확대 금지·[[project_n274_wms_cctv_bridge]]). 중복 암호/신뢰/체인 엔진 신설 금지.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-46 인증 + 컴퓨팅 인프라(container/edge) 전제. 다음=Part 3-48 Long-Term Strategic Evolution Blueprint.
+
+## [289차 후속] EPIC 06-A Part 3-48 — Long-Term Strategic Evolution Blueprint (EALTSEB) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 수십년 기술/규제/비즈니스 진화 청사진(기술진화·조직성숙도·운영혁신·AI발전·글로벌표준).
+- **★핵심 판정 = ABSENT-formal(형식 Evolution 거버넌스 greenfield) / PARTIAL-informal(비형식 substrate)**: 버전 라우팅 진화(routes.php /v377→/v431·stub 보존)·migrations(21편·172정지→자가치유)·NEXT_SESSION(세션 진화 로그)·IMPLEMENTATION_STATUS/COMPETITIVE_SCORE_HISTORY(Capability/KPI ledger)·composer/package(현대화)·git·SecurityAudit·Db.
+- **★ABSENT-aspirational(코드/재무·인사 시스템 부재)**: Enterprise Evolution Engine·Roadmap Manager(1/3/5/10/20년)·Emerging Trend Analyzer·Future Scenario Simulator·Strategic Investment Planner(포트폴리오/ROI)·Organizational Evolution(스킬/리더십)·Platform Modernization(Cloud/K8s·Part3-47)·AI Evolution Advisor.
+- **★중복 최상 — 재설계 금지**: ★Part 3-27 LTER(Long-Term Evolution Roadmap) 도메인과 거의 동일(상위집합) — 조직/투자/시나리오/AI Advisor 델타만 신규. Maturity(3-28)·Trend(3-46/3-23/3-45)·Modernization(3-47)·AI Advisor(3-46) 상위 Part 참조.
+- **★KEEP_SEPARATE**: 마케팅 AI(ClaudeAI/AiGenerate)≠Evolution 자문 AI. clean_src 읽기전용(수정 금지). COMPETITIVE_SCORE_HISTORY 채점기준 283차 변경(구기준 비교 금지·[[project_n283_competitive_overhaul]]). 중복 버전체계/이력/체인 신설 금지.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~20)+GOVERNANCE_MECHANISMS(§21~30)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-47 인증 종속. 다음=Part 3-49 Infinite Governance Reference Model.
