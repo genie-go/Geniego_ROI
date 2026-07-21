@@ -342,11 +342,18 @@ final class Connectors
             ]);
         }
 
+        // [289차후속 보안] raw 응답에 access_token/refresh_token 평문이 담겨 응답 body·네트워크탭에
+        //   불필요 노출된다(토큰은 이미 saveToken 으로 암호화 저장). 장기 refresh_token 등 민감 필드만
+        //   제거 후 반환(advertiser_ids/scope/만료 등 비민감 진단정보는 유지).
+        $rawSafe = $resp;
+        if (isset($rawSafe['data']) && is_array($rawSafe['data'])) {
+            unset($rawSafe['data']['access_token'], $rawSafe['data']['refresh_token']);
+        }
         return TemplateResponder::respond($response, [
             'ok'          => true,
             'provider'    => 'tiktok',
             'access_token_stored' => $accessToken !== null,
-            'raw'         => $resp,
+            'raw'         => $rawSafe,
         ]);
     }
 

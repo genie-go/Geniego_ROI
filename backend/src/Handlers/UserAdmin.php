@@ -973,6 +973,20 @@ final class UserAdmin
         // [272차 H-P1] plans 컬럼 동반 갱신 — 전 시스템 read 는 COALESCE(plans,plan,'demo') 이므로 plan 만 바꾸면
         //   effective plan 이 구 plans 로 고정돼 메뉴접근 미반영(241차 회귀 클래스). 형제 경로(CouponEngine·UserAuth·
         //   가입 INSERT)는 모두 plan,plans 동반 → 여기만 누락이었다.
+        // [289차후속 보안] 원자 선점(TOCTOU 방어) — 922행 사전체크와 use_count 증가가 분리돼 동시 리딤 시
+        //   전역 max_uses 초과 소진(1회용/한정 프로모 코드를 다계정이 이중사용)이 가능했다. 정본
+        //   CouponRedeem::redeem 과 동일하게 use_count<max_uses 조건부 UPDATE+rowCount 로 원자화하고,
+        //   ★플랜 지급 前에 선점해 실패 시 무상 지급을 막는다.
+        $claim = $pdo->prepare("UPDATE free_coupons SET use_count = use_count + 1, redeemed_at = " .
+            ($driver === 'mysql' ? "NOW()" : "datetime('now')") .
+            ", redeemed_by_user_id = ? WHERE id = ? AND use_count < max_uses"
+        );
+        $claim->execute([$user['id'], $coupon['id']]);
+        if ($claim->rowCount() === 0) {
+            return self::json($res, ['ok' => false, 'error' => '이미 사용 완료된 쿠폰입니다'], 409);
+        }
+
+        // 플랜 적용(선점 성공 후에만) — 만료일은 위에서 계산
         $pdo->prepare("
             UPDATE app_user
                SET plan = ?,
@@ -980,12 +994,6 @@ final class UserAdmin
                    subscription_expires_at = $expiresAt
              WHERE id = ?
         ")->execute([$coupon['plan'], $coupon['plan'], $user['id']]);
-
-        // use_count 증가 + 사용자 기록
-        $pdo->prepare("UPDATE free_coupons SET use_count = use_count + 1, redeemed_at = " .
-            ($driver === 'mysql' ? "NOW()" : "datetime('now')") .
-            ", redeemed_by_user_id = ? WHERE id = ?"
-        )->execute([$user['id'], $coupon['id']]);
 
         // 상세 redemption 기록
         try {

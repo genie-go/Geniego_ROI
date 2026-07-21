@@ -388,14 +388,24 @@ class LiveCommerce
             return self::json($res, ['ok' => false, 'error' => '재고가 부족합니다.', 'stock' => (float)$prod['stock']], 409);
         }
 
+        // [289차후속 보안] 재고 오버셀(TOCTOU) 방어 — 384/387 사전체크와 주문 생성/차감이 분리돼 동시 구매 시
+        //   마지막 재고를 다중 결제주문이 통과했다(팬텀 매출·WMS 오버셀). 추적재고(stock>0)는 원자 조건부
+        //   차감+rowCount 로 선점한 뒤에만 주문을 만든다. 미추적(stock<=0·sold==0=무제한)은 sold 만 증가(종전대로).
+        if ($prod && (float)$prod['stock'] > 0) {
+            $dec = $pdo->prepare("UPDATE live_products SET stock=stock-:q, sold=sold+:q2, updated_at=:u WHERE id=:id AND tenant_id=:t AND stock>=:q3");
+            $dec->execute([':q' => $qty, ':q2' => $qty, ':u' => $now, ':id' => $productId, ':t' => $t, ':q3' => $qty]);
+            if ($dec->rowCount() === 0) {
+                return self::json($res, ['ok' => false, 'error' => '재고가 부족합니다.', 'stock' => 0], 409);
+            }
+        } elseif ($prod) {
+            $pdo->prepare("UPDATE live_products SET sold=sold+:q, updated_at=:u WHERE id=:id AND tenant_id=:t")
+                ->execute([':q' => $qty, ':u' => $now, ':id' => $productId, ':t' => $t]);
+        }
+
+        // 재고 선점 성공 후에만 결제주문 생성
         $st = $pdo->prepare("INSERT INTO live_orders (tenant_id,session_id,sku,name,qty,price,total,buyer,channel,status,created_at) VALUES (:t,:s,:sku,:name,:qty,:price,:total,:buyer,:ch,'paid',:ca)");
         $st->execute([':t' => $t, ':s' => $sid, ':sku' => $sku, ':name' => $name, ':qty' => $qty, ':price' => $price, ':total' => $total, ':buyer' => $buyer, ':ch' => (string)($b['channel'] ?? 'live'), ':ca' => $now]);
         $orderId = (int)$pdo->lastInsertId();
-
-        if ($prod) {
-            $pdo->prepare("UPDATE live_products SET stock=CASE WHEN stock>=:q THEN stock-:q2 ELSE 0 END, sold=sold+:q3, updated_at=:u WHERE id=:id AND tenant_id=:t")
-                ->execute([':q' => $qty, ':q2' => $qty, ':q3' => $qty, ':u' => $now, ':id' => $productId, ':t' => $t]);
-        }
         // 채팅 피드에 구매 알림(SSE 전파)
         self::sysChat($t, $sid, '🛒 ' . $buyer . '님이 ' . $name . ' ' . $qty . '개 구매', 'order', ['total' => $total, 'sku' => $sku]);
 

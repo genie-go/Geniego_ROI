@@ -2310,23 +2310,28 @@ final class UserAuth
             $stmt->execute([$keyHash]);
             $lrow = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($lrow) {
-                // 이미 사용된 키인지 확인
+                // 이미 사용된 키인지 확인(빠른 실패용 — 확정은 아래 원자 선점)
                 if (!empty($lrow['used_by']) && (int)$lrow['used_by'] !== $userId) {
                     return self::json($res, ['ok' => false, 'error' => '이미 다른 계정에서 활성화된 키입니다.'], 409);
                 }
-                $valid = true;
                 $licenseId = $lrow['id'];
                 if (!empty($lrow['plan'])) $licensePlan = $lrow['plan'];
                 if (!empty($lrow['expires_at'])) {
                     // 라이선스 키에 만료일이 있으면 그것 사용, 없으면 10년
                     $licenseExpiry = $lrow['expires_at'];
                 }
-                // 키 사용 처리
-                try {
-                    $pdo->prepare(
-                        'UPDATE license_key SET used_by=?, used_at=?, use_count=COALESCE(use_count,0)+1 WHERE id=?'
-                    )->execute([$userId, $now, $licenseId]);
-                } catch (\Throwable $e) { /* non-fatal */ }
+                // [289차후속 보안] 원자 선점(TOCTOU 방어) — 사전체크와 사용처리(UPDATE)가 분리돼 동시 활성화 시
+                //   라이선스 1개가 N 계정에 enterprise 를 부여할 수 있었다(직접 매출 손실). used_by 미선점
+                //   (NULL/빈값) 또는 본인일 때만 원자적으로 claim + rowCount 로 확정하고, 성공 후에만 valid 처리한다.
+                $claim = $pdo->prepare(
+                    "UPDATE license_key SET used_by=?, used_at=?, use_count=COALESCE(use_count,0)+1
+                       WHERE id=? AND (used_by IS NULL OR used_by='' OR used_by=?)"
+                );
+                $claim->execute([$userId, $now, $licenseId, $userId]);
+                if ($claim->rowCount() === 0) {
+                    return self::json($res, ['ok' => false, 'error' => '이미 다른 계정에서 활성화된 키입니다.'], 409);
+                }
+                $valid = true;
             }
         } catch (\Throwable $e) {
             // license_key 테이블 없음 — 환경변수 마스터키로 폴백

@@ -5847,12 +5847,16 @@ final class ChannelSync
         $rows = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $tok = self::cwtDecToken($r['token'] ?? null);   // [현 차수 보안] 암호화 저장 → 재표시 복호(레거시 평문 무중단)
+            // [289차후속 보안] webhook_url 에 평문 토큰을 넣으면 token_masked 마스킹이 무력화된다
+            //   — 리스트 조회만으로 시크릿 전체 복원 가능(하위권한 팀원 포함). 전체 토큰/URL 은 발급 시
+            //   1회만 노출(createWebhookToken). 리스트에서는 마스킹된 토큰으로 URL 형태만 표시.
+            $masked = strlen($tok) > 12 ? substr($tok, 0, 6) . '…' . substr($tok, -4) : '••••';
             $rows[] = [
                 'id'           => (int)$r['id'],
                 'channel'      => $r['channel'],
                 'label'        => $r['label'],
-                'token_masked' => strlen($tok) > 12 ? substr($tok, 0, 6) . '…' . substr($tok, -4) : '••••',
-                'webhook_url'  => self::webhookUrlFor($req, (string)$r['channel'], $tok), // 소유자 한정(자기 시크릿)
+                'token_masked' => $masked,
+                'webhook_url'  => self::webhookBaseUrl($req) . '/api/channel-sync/webhooks/' . rawurlencode((string)$r['channel']) . '?token=' . $masked,
                 'last_used_at' => $r['last_used_at'],
                 'created_at'   => $r['created_at'],
             ];
