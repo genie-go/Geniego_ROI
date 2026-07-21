@@ -1,9 +1,10 @@
 # MEA Part 053 — Enterprise Generative AI, LLM & Prompt Engineering Architecture · SPEC v1.0 (원문 verbatim 영속)
 
-> **거버넌스 상태**: **원문 명세 verbatim 영속만 완료 · ground-truth 전수조사 미실시 · 판정 미실시 · 7문서 세트 미완** · 코드 변경 0 · NOT_CERTIFIED · 289차 후속(2026-07-21).
-> **★다음 차수 최우선 작업**(사용자 지정): 본 원문 기준으로 동일 파이프라인 실행 — ⓐ SPEC 재기술(§1~19 요약본) → ⓑ ground-truth grep 전수(부재증명) → ⓒ ADR + GT①EXISTING + GT②DUPLICATE + CANONICAL_ENTITIES + GOVERNANCE_MECHANISMS + INDEX → PM 이력 2편 → 커밋/push(feat/n236·master 금지).
-> ★사전 유의(다음 차수 주입): **반날조**(file:line은 GT①②/ADR 등장분만)·**부재증명 후에만 ABSENT**·**과대주장 금지**·**오흡수 금지**·**정직 표기**·**중복 엔진 절대 금지**(헌법 V4 단일 Intelligence Layer)·**★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI는 승인 없이 기업 정책 변경/미검증 생성물 업무 시스템 자동 반영 불가(헌법 V5 + `CHANGE_GATE`).
-> ★상속 관계 주의: **Part 054(AI Agent/Multi-Agent/Autonomous Workflow)가 본 Part보다 먼저 작성됨**(053 명세 미수령 상태였음 · 커밋 `eccc0841a3a`). 054는 051/052를 직접 상속하고 053 상속분을 "미확정"으로 표기했으므로, 본 Part 완결 시 **054의 053 상속분을 소급 정합**할 것.
+> **거버넌스 상태**: **✅ 7문서 세트 완결 · ground-truth 전수조사 완료 · 판정 완료** · 코드 변경 0 · NOT_CERTIFIED · 289차 후속(원문 영속 2026-07-21 → 설계 완결 2026-07-22).
+> **판정 = PARTIAL(LLM 실행계층 실재 / 형식 Prompt·RAG·Gateway·Governance 계층 ABSENT).** 문서 세트 인덱스 = [`docs/data/MEA_PART053_INDEX.md`](../data/MEA_PART053_INDEX.md) · 결정 = [`ADR`](../architecture/ADR_MEA_GENERATIVE_AI_LLM_PROMPT_ENGINEERING_ARCHITECTURE.md)(D-1~D-6) · 근거지 = [`GT① EXISTING`](../data/MEA_PART053_EXISTING_IMPLEMENTATION.md) / [`GT② DUPLICATE`](../data/MEA_PART053_DUPLICATE_AUDIT.md).
+> ★적용 원칙(완결분에 반영됨): **반날조**(file:line은 GT①②/ADR 등장분만)·**부재증명 후에만 ABSENT**·**과대주장 금지**·**오흡수 금지**·**정직 표기**·**중복 엔진 절대 금지**(헌법 V4 단일 Intelligence Layer)·**★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI는 승인 없이 기업 정책 변경/미검증 생성물 업무 시스템 자동 반영 불가(헌법 V5 + `CHANGE_GATE`).
+> ★상속 관계: **Part 054가 본 Part보다 먼저 작성**되어(커밋 `eccc0841a3a`) 053 상속분을 "미확정"으로 남겼던 갭은 **ADR D-6으로 소급 정합 완료**(054 문서 5종 갱신·판정 변경 아님). 동일 substrate 판정 고정 — Function Calling(053 §11)=Tool Calling(054) **PARTIAL-strong 동일** · CONTEXT/LLM_SESSION(053)=AGENT_MEMORY(054 §D-3) **ABSENT 동일** · AI Workflow=**054 소관**.
+> ★**1순위 통합 대상**(ADR D-2): 텍스트 LLM 호출 경로 **2개 병존**(`ClaudeAI` 공용키·quota 경유·`ai_analyses` ↔ `AiGenerate` BYO 키·**quota 미경유**·`ai_generate_log`) = 명세 §10 LLM Gateway 부재의 직접 증거. **`ClaudeAI::complete` 승격이며 신설 금지** · 흡수 시 **최대집합 승계 4조건**(quota 게이트·BYO 우선·`Crypto` 복호·감사 스키마) 필수.
 
 ---
 

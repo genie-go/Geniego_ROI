@@ -13,7 +13,7 @@
 | AI 사용 데이터 신뢰(READY만) | ★데이터 헌법 V3·`DataPlatform` | ★재정의 금지·재사용 |
 | Agent Security(테넌트·RBAC·감사·암호화) | ★MEA Part 047/048/049 | ★재정의 금지·재사용 |
 | Role/Permission 거버넌스 | ★EPIC 06-A Part1~3-6 | ★재정의 금지(Agent Identity는 그 위에) |
-| Generative AI/LLM 계층 | ★MEA Part 053 **미작성**(명세 미수령) | ★미확정·날조 금지 |
+| Generative AI/LLM 계층 | ★MEA Part 053 **완결**(289차 후속 2026-07-22·`MEA_PART053_INDEX.md`) | ★재정의 금지·재사용(Function Calling=본 Part Tool Calling과 동일 substrate) |
 
 ## ★동음이의(코드베이스) — 재사용 vs 오흡수 (★중복 Agent/Workflow 엔진 절대 금지)
 | MEA 개념 | 자산 | 인용 | 판정 |
@@ -51,4 +51,4 @@
 - **순신설**: ★Multi-Agent Orchestrator(Coordinator/Planner/Reviewer)·Agent Registry(AI_AGENT·버전·폐기)·Planning Engine(Goal Decomposition·AGENT_PLAN)·Agent Memory Service(암호화·영속)·Agent Session·Agent Runtime(Isolation·Task Queue·Scaling)·형식 Tool Registry/Permission Control·Agent Identity(AGENT_ROLE)·Agent Metric/Operations Dashboard/Advisor·Event 표준 8종·Workflow Recovery.
 
 ## 판정
-**중복 위험 高(에이전트·워크플로·규칙·승인 substrate 전부 실재).** ★핵심=`ClaudeAI`(단일 tool-use 코파일럿+HITL)·`JourneyBuilder`(자율 워크플로 엔진)·`RuleEngine`(규칙 자동화)·`Alerting`(Maker-Checker)·`AdAdapters`(agent_mode·액추에이터·킬스위치)·`AutoCampaign`/`Decisioning`/`AutoRecommend`(의사결정)·`Crypto`/`SecurityAudit`/`index.php`(보안)는 **재사용/승격**(★중복 Agent/Workflow 엔진 신설 절대 금지=헌법 V4·값 분산=회귀·정본 재구현 금지). 헌법 V4/V5·데이터 헌법 V3·Part 047/048/049/051/052·EPIC 06-A **재정의 금지**. 본 Part 고유 순신설=★Multi-Agent Orchestrator·Agent Registry·Planning Engine·Agent Memory/Session·Agent Runtime·형식 Tool Permission·Agent Identity·Agent Metric/Dashboard·Event 표준(부재·grep 0·부재증명 완료)뿐. ★오흡수 금지(단일 루프≠Multi-Agent·프론트 history≠Memory Service·도구 반복≠Planning·캔버스≠Goal Planning·cron≠Runtime·"Planner" UI≠Planner Agent·CCTV `agent_version`≠AI Agent)·★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE·★승인 없는 파괴적 자동집행 불가(V5+CHANGE_GATE)·★Part 053 미작성 갭(명세 미수령·날조 금지).
+**중복 위험 高(에이전트·워크플로·규칙·승인 substrate 전부 실재).** ★핵심=`ClaudeAI`(단일 tool-use 코파일럿+HITL)·`JourneyBuilder`(자율 워크플로 엔진)·`RuleEngine`(규칙 자동화)·`Alerting`(Maker-Checker)·`AdAdapters`(agent_mode·액추에이터·킬스위치)·`AutoCampaign`/`Decisioning`/`AutoRecommend`(의사결정)·`Crypto`/`SecurityAudit`/`index.php`(보안)는 **재사용/승격**(★중복 Agent/Workflow 엔진 신설 절대 금지=헌법 V4·값 분산=회귀·정본 재구현 금지). 헌법 V4/V5·데이터 헌법 V3·Part 047/048/049/051/052/**053**·EPIC 06-A **재정의 금지**. 본 Part 고유 순신설=★Multi-Agent Orchestrator·Agent Registry·Planning Engine·Agent Memory/Session·Agent Runtime·형식 Tool Permission·Agent Identity·Agent Metric/Dashboard·Event 표준(부재·grep 0·부재증명 완료)뿐. ★오흡수 금지(단일 루프≠Multi-Agent·프론트 history≠Memory Service·도구 반복≠Planning·캔버스≠Goal Planning·cron≠Runtime·"Planner" UI≠Planner Agent·CCTV `agent_version`≠AI Agent)·★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE·★승인 없는 파괴적 자동집행 불가(V5+CHANGE_GATE)·★**Part 053 완결·갭 해소**(2026-07-22·053 ADR D-6): 053 LLM 계층(호출·프롬프트·quota·RAG)과 본 Part Agent 계층의 경계 확정 — Function Calling/Tool Calling은 **동일 substrate 단일 기술**·중복 도구 레지스트리 신설 금지.

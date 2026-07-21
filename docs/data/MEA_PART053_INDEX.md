@@ -1,0 +1,26 @@
+# MEA Part 053 — Enterprise Generative AI, LLM & Prompt Engineering Architecture · INDEX
+
+> **거버넌스 상태**: 설계 문서 세트 인덱스 · 코드 변경 0 · NOT_CERTIFIED · 289차 후속(2026-07-22).
+> ★부재증명 완료(grep 0)·정직 표기(단일 벤더·어휘검색·감사 비-tamper-evident·마스킹 부재)·과대주장 금지·오흡수 금지·헌법 V4/V5·데이터 헌법 V3/V4 우선. **★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE.**
+
+## 문서 세트 (7)
+| # | 문서 | 경로 | 역할 |
+|---|---|---|---|
+| 1 | SPEC v1.0 | `docs/spec/MEA_PART053_GENERATIVE_AI_LLM_PROMPT_ENGINEERING_ARCHITECTURE_SPEC.md` | 원문 명세 §1~§19(verbatim) |
+| 2 | ADR | `docs/architecture/ADR_MEA_GENERATIVE_AI_LLM_PROMPT_ENGINEERING_ARCHITECTURE.md` | 결정 D-1~D-6 |
+| 3 | GT① EXISTING | `docs/data/MEA_PART053_EXISTING_IMPLEMENTATION.md` | 전수조사 근거지 |
+| 4 | GT② DUPLICATE | `docs/data/MEA_PART053_DUPLICATE_AUDIT.md` | 중복 경계 |
+| 5 | CANONICAL | `docs/data/MEA_PART053_CANONICAL_ENTITIES.md` | 15 엔티티 §5~§17 |
+| 6 | GOVERNANCE | `docs/data/MEA_PART053_GOVERNANCE_MECHANISMS.md` | §7~§17 메커니즘 |
+| 7 | INDEX | `docs/data/MEA_PART053_INDEX.md` | 본 문서 |
+
+## 한 줄 판정
+**PARTIAL(★LLM 실행계층 실재 / 형식 Prompt·RAG·Gateway·Governance 계층=ABSENT).** ★실재=**Anthropic LLM 호출 스택**(`ClaudeAI::callClaude`:597·모델/엔드포인트 상수:20~21)+**중앙 호출 래퍼와 실 소비자 3핸들러**(`complete`:70←`Reviews`:424·`AdminGrowth`:1092·`CreativeStudio`:139=중복 클라이언트 억제 선례)+**Function Calling**(`callClaudeTools`:648·tools 배열:849~870·디스패치:919~926·읽기도구 6종:667~808)+**토큰 미터링·테넌트 일일 레이트리밋**(`ai_usage_quota`:529~539·:637~639·캡 600/3M/100:519~521·env 오버라이드:523~527·BYO 비대상:592)+**프롬프트 캐싱**(`cache_control: ephemeral`:607·:652)+**키 AES-256-GCM**(:53·`AiGenerate`:125)+**어휘 기반 지식검색 top-N 주입 + 반날조 grounding**(`geniegoFeatureDetails`:206~276·상위40% 컷:245~248·"지어내지 마라":271·"존재하지 않는 URL 발명 금지":309)+**자동 재생성 지식 코퍼스**(`tools/gen_chatbot_knowledge.mjs`:40·`chatbot_feature_details.json` 203KB·`chatbot_feature_map.md`)+**멀티모달**(비전 입력 최대4:2836~2845·이미지 2 provider:2969/:2986·영상:3010)+**15개국 응답**(`REPORT_LANGS`:3653·현지어 렌더 지시:307)+**출력 XSS 정화·SSRF 가드**(:32~43·:2865·:2770)+**무허위 규칙 폴백**(:1199·:3299·`AdminGrowth`:1073·`MmmReportI18n`:13 정직 고지)+**AI 응답 영속**(`ai_analyses` model/tokens_used/status/error_msg:469~502·`ai_generate_log`:59~78). ★**ABSENT(grep 0·부재증명 완료)**: Prompt Registry/Template(형식)/**Versioning**/Testing/Evaluation/Optimization·Prompt Analytics·AI Prompt Advisor·**RAG Engine**(임베딩·벡터 인덱스·Semantic/Hybrid Retrieval·Chunk·**구조화 Citation**)·**LLM Gateway**(Multi-LLM Routing·**텍스트 Provider Abstraction**·Load Balancing·**Response Cache**·중앙 Model Selection)·Context Management Engine·**LLM_SESSION**·SAFETY_POLICY·**Hallucination Detection**·Response Validation(형식)·**민감정보 전송前 마스킹**·**Prompt Encryption**(`ai_generate_log.prompt` 평문:63)·LLM Governance Manager·Compliance Validation·LLM_AUDIT 엔티티·**Event 표준 8종**·성능 SLA(§18·99.99%). ★★**내부 중복 실재**: 텍스트 LLM 호출 경로 **2개 병존**(`ClaudeAI` 공용키·모델상수·**quota 경유**·`ai_analyses` ↔ `AiGenerate` BYO키·모델 DB값·**quota 미경유**·`ai_generate_log`) = 명세 §10 Gateway 부재의 직접 증거이자 본 Part 1순위 통합 대상(ADR D-2 · **`complete()` 승격이며 신설 금지** · 흡수 시 quota 게이트·BYO 우선·Crypto 복호·감사 스키마 **최대집합 승계** 필수). ★**오흡수 금지**: 하드코딩 시스템 프롬프트 9종≠Prompt Template Registry · `ai_generate_log.prompt`(렌더된 실행 로그)≠Versioning · 어휘 점수 top-N≠벡터/시맨틱 RAG · **Vite `manualChunks`≠RAG Chunk** · **협업필터링 `cosine`≠임베딩 검색** · **`ChatGPT Search`/`google_gemini`(`MarketingDataHub`:18/:43=AI 검색채널 점유율 데이터)≠LLM Provider 통합** · **이미지 provider 2종≠텍스트 LLM Provider Abstraction**(모달리티 상이) · 입력측 `cache_control`≠Response Cache · 프론트 제공 history(10턴/4000자:878~903)≠서버 LLM_SESSION · i18n 15개국/`REPORT_LANGS`≠업무별 Persona 체계 · **반날조 지시문≠Hallucination Detector** · JSON 파싱 폴백≠Response Validation 엔진 · SVG 정화≠AI Safety Content Filter · `ai_analyses`/`ai_generate_log`≠tamper-evident LLM Audit(정본=`SecurityAudit::verify`). ★**강점 정직 기술**: 명세 §17 "검증되지 않은 생성 결과를 업무 시스템에 자동 반영하지 않는다"·헌법 V5는 **현행 설계가 이미 충족**(생성물=초안·제안 저장 + HITL 집행·★Part 054 §D-2와 동일 게이트)—후퇴 금지. ★**정직 병기**: 도구가 집계값만 반환(No-PII v418.1:853)해 프롬프트 노출면이 좁다는 강점으로 **마스킹 계층 부재를 상쇄하지 않는다**. ★중복 LLM 클라이언트·프롬프트 저장소·지식 파이프라인 신설 절대 금지(헌법 V4). 코드 변경 0.
+
+## 상속·정합·다음
+- **상속**: AI Platform Foundation(051)+ML/MLOps(052)+**AI Agent(054)**+헌법 Volume 4/5+데이터 헌법 V3/V4(READY·XAI)+Enterprise Security(047~049)+Developer Platform(042 API GW·046 Observability)+가용성(044/045/050)+EPIC 06-A(Role/Permission·`api_key`).
+- ★**선행 갭 해소(소급 정합·ADR D-6)**: Part 054가 053 명세 미수령 상태로 선행 작성되어 남긴 "053 미작성·상속분 미확정"을 본 Part로 해소. **동일 substrate 판정 고정** — Function Calling(053 §11)=Tool Calling(054)=**PARTIAL-strong 동일** · CONTEXT/LLM_SESSION(053)=AGENT_MEMORY(054 §D-3)=**ABSENT 동일**(프론트 history) · AI Workflow=**054 소관**(`JourneyBuilder`·재정의 금지) · 미검증 생성물 자동반영 금지=**양쪽 이미 충족·후퇴 금지**. 054 문서 4종의 관련 문구는 소급 갱신(판정 변경 아님).
+- **다음**: **MEA Part 055 — Enterprise Knowledge Graph, Vector Database & RAG Architecture**(본 Part의 RAG 순신설분을 직접 상속 · ★기존 지식 파이프라인 `tools/gen_chatbot_knowledge.mjs`+`GeniegoKnowledge`+`backend/data/chatbot_feature_*`를 **인덱싱 소스로 재사용**하고 별도 코퍼스 신설 금지 · 벡터DB/임베딩/청크/인용은 부재 확정 → 순신설 · **RAG 인덱스 테넌트 격리 절대**).
+
+## ★AI Platform 진행 (Part 051~054)
+Part 051 AI Foundation(PARTIAL) · 052 ML & MLOps(ABSENT-heavy·드리프트 스캐폴드) · **053 Generative AI/LLM/Prompt(★PARTIAL — LLM 실행스택·토큰미터링·레이트리밋·Function Calling·어휘 grounding·멀티모달·15개국 실재 / Prompt Registry·RAG 벡터·LLM Gateway·Governance 부재 / ★호출경로 2개 병존=Gateway 1순위 통합 대상)** · 054 AI Agent/Multi-Agent/Autonomous Workflow(PARTIAL-strong) → 다음 **055 Knowledge Graph/Vector DB/RAG**.
