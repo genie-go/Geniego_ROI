@@ -12,7 +12,11 @@
 - **★재감사 금지**: `action_request` 생산자(INSERT) grep 0 = **287/288차 확정·보류 등재분** — 본 Part는 상태 기술만, 재플래그 안 함.
 
 ## ★B. 다음 세션 최우선 (사용자 지정)
-1. **★★Part 053 갭 소급 작성 — MEA Part 053 Enterprise Generative AI, LLM & Prompt Engineering Architecture**. **본 저장소 미작성 확정**(`docs/**/MEA_PART053*` grep 0·원문 명세 미수령). 054는 051/052를 직접 상속하고 053 상속분을 **미확정**으로 표기해 둠(날조 금지). **스펙 원문 제공 시 동일 7문서 파이프라인 즉시 적용.** ★예상 판정=PARTIAL(`ClaudeAI`(Anthropic LLM)·`AiGenerate`(소재/프롬프트)·챗봇 지식 자동화 파이프라인(`tools/gen_chatbot_knowledge.mjs`·270차) 실재 / 형식 LLMOps·Prompt Registry·RAG·Vector Store 부재).
+1. **★★[1순위·즉시 착수] MEA Part 053 — Enterprise Generative AI, LLM & Prompt Engineering Architecture 소급 완결**. **★원문 명세 수령·영속 완료** → `docs/spec/MEA_PART053_GENERATIVE_AI_LLM_PROMPT_ENGINEERING_ARCHITECTURE_SPEC.md`(verbatim·본 세션 저장). **남은 작업 = ⓑ ground-truth grep 전수 → ⓒ 나머지 6문서**(ADR·GT①EXISTING·GT②DUPLICATE·CANONICAL_ENTITIES(15엔티티)·GOVERNANCE_MECHANISMS·INDEX) + SPEC에 §1~19 재기술/판정 요지 추가 → PM 이력 2편 → 커밋/push(feat/n236).
+   - 전수조사 후보(가설·인용 금지): `ClaudeAI`(Anthropic 호출·시스템 프롬프트·quota/token cap·tool-use)·`AiGenerate`·`CreativeStudio`·`MmmReportI18n`·`I18n`·챗봇 지식 파이프라인(`tools/gen_chatbot_knowledge.mjs`·270차).
+   - 부재 예상(★반드시 grep 부재증명 후 판정): 형식 Prompt Registry/Versioning/Testing·RAG Engine·Vector Search·LLM Gateway(Multi-LLM Routing/Provider Abstraction)·Prompt Analytics·Hallucination Detection·Response Cache·Event 표준 8종.
+   - ★오흡수 금지: 하드코딩 시스템 프롬프트≠Prompt Template Registry · i18n 15개국≠LLM Multi-language Persona · 챗봇 지식 블록 주입≠RAG/Vector Retrieval · 일일 quota cap≠LLM Gateway Rate Limiting/Cost Optimization · 단일 provider 상수≠Provider Abstraction.
+   - ★**054 정합 의무**: 054(커밋 `eccc0841a3a`)가 053보다 먼저 작성돼 053 상속분을 "미확정"으로 표기해 둠 → 053 완결 시 **소급 정합**. 054의 Tool Calling/Agent Memory 판정과 053의 Function Calling/Context Management 판정이 **동일 substrate를 다르게 기술하면 회귀**(교차 검증 필수).
 2. **MEA Part 055 — Enterprise Knowledge Graph, Vector Database & RAG Architecture**(054 SPEC 지정 다음 Part). ★예상=챗봇 지식 파이프라인(`ClaudeAI::geniegoKnowledgeBlock`:282·`geniegoFeatureDetails`:206) 실재 / 형식 KG·Vector DB·임베딩·RAG 검색 부재. ★`GraphScore`(마케팅 그래프)=오흡수 금지 동음이의 주의.
 
 ## ★C. 규율 (불변·MEA 시리즈)
@@ -22,7 +26,7 @@
 - **★중복 절대 금지**(헌법 V4 단일 Intelligence Layer): 착수 전 grep 전수·기존 정본 재사용/승격·재구현 금지. Multi-Agent 구현 시 `agenticAsk`=Executor 승격·Reviewer는 action_request 통합·도구는 기존 tools 배열 증설(신규 엔드포인트/메뉴 0).
 - **★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI 자동 정책 변경/단독 의사결정 불가(헌법 V5+CHANGE_GATE).
 - 커밋 프리픽스 `docs(289차후속 MEA PartNNN): ... (설계 명세·코드0·NOT_CERTIFIED)` + Co-Authored-By. push=feat/n236-admin-growth-automation only(★master 금지=자동배포). git add=해당 Part 7문서 + PM 2편 + NEXT_SESSION.md만(선존 uncommitted 제외). 배포 없음(docs만).
-- **★MEA 진척**: Part 015~048 + 049~052(직전) + **054(본 세션)** 완결. **★053=미작성 갭(명세 대기)**. 다음=053 소급 or 055.
+- **★MEA 진척**: Part 015~048 + 049~052(직전) + **054(본 세션)** 완결. **★053=원문 명세 수령·SPEC verbatim 영속 완료 / 나머지 6문서 미완 = 다음 차수 1순위**. 이후 055(Knowledge Graph/Vector DB/RAG).
 
 ---
 
