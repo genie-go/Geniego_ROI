@@ -1388,3 +1388,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: 마케팅 AI(ClaudeAI)≠AI Trust Advisor·DataTrust(데이터 신뢰)≠Reputation(평판·패턴만)·AgencyPortal/PartnerPortal(크로스조직)/EnterpriseAuth(연합) 재사용(중복 신뢰/연합 신설 절대 금지).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~20)+GOVERNANCE_MECHANISMS(§21~30)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-58 인증 + reputation/멀티클라우드 신설. 다음=Part 3-60 Infinite Enterprise Governance Nexus.
+
+## [289차 후속] MEA Part 001 — Enterprise Data Platform Foundation 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- ★신규 시리즈 시작: Master Enterprise Architecture(MEA). Part 001=Data Platform 전체 Baseline(이후 Part는 상속·확장·중복 정의 금지).
+- **★상위 규범 정합(Golden Rule=Extend not Replace)**: 데이터 최상위 규범=데이터 헌법 6볼륨(DATA_INTELLIGENCE/SOURCE_ARCHITECTURE/TRUST_QUALITY/UNIFIED_INTELLIGENCE/MARKETING_AUTOMATION)·구현 정본=docs/data/DATA_ARCHITECTURE.md. 본 MEA는 재정의 안 하고 상속·정합(아키텍처 계층 한정 SSOT). "중복 인텔리전스 금지"·"수집≠사용(Trust First)" 정합.
+- **★핵심 판정 = PARTIAL-strong(규범/정본/플랫폼/표준관례 실재) / ABSENT-formal(형식 Registry/Framework·미정착 표준)**: Data Platform/DataTrust/Quality=DataPlatform.php·Data Lineage=DataPlatform.php:316(data-lineage 실재)·Tenant Isolation(RLS)=Db.php(tenant_id 2961 사용)·표준필드 관례=created_at(875)/updated_at(863)/status·Encryption at Rest=Crypto(AES-256-GCM)·Immutable/Audit=SecurityAudit·도메인=15개 실 핸들러 매핑(Identity/Authz/Commerce/Logistics/Finance/ROI/AI/Analytics/Ops).
+- **★ABSENT-formal**: Enterprise Data/Metadata Registry·Canonical Data Dictionary(형식·28 DSAR canonical seed)·Data Ownership Framework(5역할 전무)·Data Classification Framework(5-tier Public~Secret 전무)·표준필드 UUID(6)/version(6)/created_by(13)/updated_by(27) 미정착(현행 auto-increment id 다수)·GraphQL/Event 표준(DataCreated 등)·Trace ID.
+- **★재사용(중복 신설 절대 금지)**: DataPlatform(DataTrust/Lineage)·Db.php(격리)·Crypto(암호)·SecurityAudit(감사)·28 DSAR canonical(사전). Unified Intelligence(Volume 4·마케팅) 오흡수 금지. AI=Canonical Data 직접수정 불가(헌법 V3). 표준 필드=무후퇴 점진 도입(기존 테이블 파괴 금지·ensureTables 병행).
+- **산출 7문서**: SPEC(baseline·§1~18)+ADR(D-1~5)+GT①②+CANONICAL_ENTITIES(§5 15엔티티·§6 도메인매핑·§7~12)+GOVERNANCE_MECHANISMS(§10~18)+INDEX. docs/spec·docs/architecture·docs/data. 코드/테이블 0·신규 실결함 0.
+- 다음=MEA Part 002 Enterprise Data Lake Architecture(상속·확장).
