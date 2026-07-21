@@ -4048,8 +4048,12 @@ final class UserAuth
 
     private static function genOtp6(): string
     {
+        // [289차후속 보안] 로그인/MFA OTP 는 보안 토큰 — CSPRNG 실패 시 예측 가능한 mt_rand 로 폴백하면
+        //   OTP 추측이 가능해진다. random_int 는 엔트로피 부족 시에만 예외 → 예측가능 코드 발급 대신
+        //   fail-closed(발급 중단)한다. 콜러는 try 밖 호출이라 예외가 상위 500 으로 안전 처리(우회 없음).
+        //   (Crypto.php 의 "refusing to store secret as plaintext (fail-closed)" 철학 정합.)
         try { return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT); }
-        catch (\Throwable $e) { return str_pad((string)mt_rand(0, 999999), 6, '0', STR_PAD_LEFT); }
+        catch (\Throwable $e) { throw new \RuntimeException('[UserAuth] secure RNG unavailable — refusing to issue predictable OTP (fail-closed)'); }
     }
 
     /** OTP 생성·저장(해시+5분 만료)·발송. 반환 ['sent'=>bool,'error'=>?,'msg'=>string]. */
