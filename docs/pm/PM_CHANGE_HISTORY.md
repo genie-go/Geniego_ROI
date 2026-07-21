@@ -1146,3 +1146,11 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: 마케팅 A/B(소재최적화)≠플랫폼 Innovation Experiment(엔진은 공용)·AutoRecommend/Decisioning≠Innovation Decision·비즈니스 ROI≠Innovation ROI/KPI·ModelMonitor drift≠Innovation Drift·죽은 terraform blue-green(default off)=Controlled Rollout PRESENT 오판 금지·메뉴snapshot(정본 SecurityAudit::verify)≠Innovation Snapshot.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-31 인증 종속. 다음=Part 3-33 Strategic Architecture Lifecycle Management.
+
+## [289차 후속] EPIC 06-A Part 3-33 — Strategic Architecture Lifecycle Management (EASALM) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 전 아키텍처 기획~폐기 생명주기 관리(EASALM).
+- **★핵심 판정 = PARTIAL / ABSENT-formal / BLOCKED_PREREQUISITE**: 형식 런타임 Architecture Governance(ARB Engine·Lifecycle 상태머신 Strategy~Retirement·Pattern Catalog·Impact Analysis Engine·런타임 Dependency Graph) grep 0. 단 **아키텍처 거버넌스 substrate가 문서형으로 상당 실재** — ★`docs/architecture/`(ADR 리포지토리 수십편·`ADR_DSAR_*`·git 불변=ADR Manager)·`docs/CONSTITUTION.md`(Golden Rule "Replace 아니라 Extend"=Architecture Principle)·`docs/CHANGE_GATE.md`·`docs/registry/`·CLAUDE.md(Standards)·`PM/Dependencies.php` DFS·`AdminMenu` wouldCycle(Dependency 알고리즘)·SecurityAudit evidence.
+- **★자기참조 정직**: 본 EPIC 06-A DSAR 파이프라인(SPEC/ADR/GT/DUPLICATE_AUDIT) 자체가 EASALM의 **수동/문서형 인스턴스**. Golden Rule "Reuse Before Build·Evolution Before Replacement" 이미 적용중=본 프레임워크는 신 원칙 도입이 아닌 형식화.
+- **★KEEP_SEPARATE**: PM Dependencies DFS(태스크 의존)≠Architecture Dependency Graph(알고리즘만 참조)·GraphScore(마케팅)≠Architecture Graph·마케팅 A/B/AutoRecommend≠Architecture Review/Decision·메뉴snapshot(정본 SecurityAudit::verify)≠Architecture Snapshot.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-32 인증 종속. 다음=Part 3-34 Executive Governance Dashboard.

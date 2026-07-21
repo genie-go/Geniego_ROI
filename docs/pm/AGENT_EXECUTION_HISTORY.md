@@ -662,3 +662,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-32 EACIF 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(innovation/experiment/ab-test/feature-flag/pilot/rollout/kpi grep): 형식 Innovation Governance grep 0·PARTIAL-strong substrate(AbTesting 베이지안 A/B·Onsite CRO·WebPopup A/B·pending_approval·plan 게이트·SecurityAudit) 확정=이번 시리즈 최강 substrate.
 - 산출 7문서. ★핵심 결정=AbTesting 베이지안 엔진 공용 재사용(별도 실험 엔진 신설 금지). 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(AbTesting/Onsite/WebPopupCampaign/Catalog/Alerting/PlanPolicy/AutoRecommend/SecurityAudit/Db)만. KEEP_SEPARATE 8종(죽은 terraform PRESENT 오판 금지 포함) 명시.
+
+## [289차 후속] Part 3-33 EASALM 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(architecture/adr/review-board/pattern/dependency/impact/standard grep, docs/architecture·docs/registry 포함): 형식 런타임 Architecture Governance grep 0·PARTIAL substrate(docs/architecture ADR·Constitution/CHANGE_GATE/registry·Dependencies DFS·본 DSAR 파이프라인·SecurityAudit·git 불변이력) 확정.
+- 산출 7문서. ★자기참조 정직=본 DSAR 파이프라인 자체가 EASALM 수동 인스턴스·Golden Rule 정합. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(docs/architecture/CONSTITUTION/CHANGE_GATE/registry/PM Dependencies/AdminMenu/SecurityAudit/Db)만. KEEP_SEPARATE 명시(PM Dependencies·GraphScore·마케팅·메뉴snapshot).
