@@ -1369,3 +1369,13 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★특기**: pre-commit G-게이트(sacred SHA immutability·중복금지·php -l·정적자산)가 Control Catalog·Static Lint의 실 seed — 본 시리즈 전 커밋이 이 게이트 통과(실 표준 강제).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~19)+GOVERNANCE_MECHANISMS(§20~29)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-56 인증 + 형식 Standard 엔진. 다음=Part 3-58 Global Autonomous Governance Constitution.
+
+## [289차 후속] EPIC 06-A Part 3-58 — Global Autonomous Governance Constitution (EAGAGC) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 전 세계 조직·정부·AI·플랫폼을 헌법적 거버넌스로 통합(Constitution Above Policy·Federated Sovereignty·Immutable Governance).
+- **★핵심 판정 = PARTIAL-strong informal(실 헌법·위계·runtime 집행 강함) / ABSENT-formal/aspirational(executable Rule/Conflict 엔진·글로벌 Sovereignty/Government Federation)**: Constitutional Governance=CONSTITUTION.md+데이터 헌법 6볼륨·★Constitutional Hierarchy 실재=CONSTITUTION.md(§11→CHANGE_GATE→registry)→index.php RBAC/writeGuard(Runtime Rule)·Rule Engine=CHANGE_GATE+pre-commit(dev)+writeGuard 289차(runtime)·Integrity/Immutable=SecurityAudit::verify+G2 sacred SHA·Amendment=git+CHANGE_GATE+PM 승인·Isolation=Db.
+- **★핵심 구분**: 실 헌법=개발 거버넌스 헌법+runtime RBAC/writeGuard 정책집행(Part 3-53/3-54 정합)이나 글로벌 Sovereignty/Government Federation·executable Constitutional Rule Engine은 미래.
+- **★ABSENT-formal/aspirational**: executable Constitutional Rule Engine·Sovereignty Coordination(Regional/Regulatory/AI/Digital)·Conflict Resolution Engine·Constitutional Federation(Government/Industry/International)·Analytics·AI Constitutional Advisor·Publication Manager.
+- **★중복 최상 — 재설계 금지**: ★Part 3-53 EAACGP 도메인과 거의 동일(글로벌·주권·연합 상위집합) — Sovereignty Coordination/Constitutional Federation(Government/International) 델타만 신규. Governance Reference(3-49)·Standard(3-57)·AI Advisor(3-46)·Sovereignty(3-45/3-51) 상위 Part 참조.
+- **★KEEP_SEPARATE**: 마케팅 AI(ClaudeAI)≠AI Constitutional Advisor·CONSTITUTION.md/위계/게이트/SecurityAudit 재사용(중복 헌법/위계/무결성 신설 절대 금지).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~20)+GOVERNANCE_MECHANISMS(§21~30)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-57 인증 + 형식 엔진/글로벌 인프라. 다음=Part 3-59 Universal Autonomous Trust Civilization Platform.
