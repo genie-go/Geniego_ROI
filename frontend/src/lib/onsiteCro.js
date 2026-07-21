@@ -34,12 +34,20 @@ function visitorCtx() {
  *   action: text|html|css(prop)|hide|remove|attr(prop=속성명)|class(prop=add|remove)|insert(prop=before|after|prepend|append)|img|redirect.
  *   graceful(요소 없으면 skip). 실 방문자 변형 B 적용기 — 에디터·백엔드 화이트리스트와 3자 정합.
  */
+// [289차후속 XSS] 위험 URL 스킴(javascript:/data:/vbscript:) 차단 — redirect/img 값이
+//   CRO 에디터에서 저자되므로 저권한 팀원이 스토어프론트/미리보기에 스크립트 URL 을 주입하지 못하게 한다.
+//   (attr 의 on* 가드와 동일한 경량 방어 · lib 독립 유지 위해 외부 의존성 미도입.)
+function _croSafeUrl(v) {
+  const s = String(v ?? '').trim();
+  return /^(javascript|data|vbscript):/i.test(s) ? '' : s;
+}
+
 export function applyChanges(changes) {
   if (!Array.isArray(changes)) return;
   for (const c of changes) {
     try {
       if (!c || !c.action) continue;
-      if (c.action === 'redirect' && c.value) { location.href = String(c.value); return; }
+      if (c.action === 'redirect' && c.value) { const u = _croSafeUrl(c.value); if (u) location.href = u; return; }
       const els = c.selector ? document.querySelectorAll(c.selector) : [];
       els.forEach(el => {
         switch (c.action) {
@@ -57,7 +65,7 @@ export function applyChanges(changes) {
             el.insertAdjacentHTML(pos, String(c.value ?? ''));
             break;
           }
-          case 'img': if (c.value) { el.setAttribute('src', String(c.value)); el.removeAttribute('srcset'); } break;
+          case 'img': if (c.value) { const iu = _croSafeUrl(c.value); if (iu) { el.setAttribute('src', iu); el.removeAttribute('srcset'); } } break;
           default: break;
         }
       });

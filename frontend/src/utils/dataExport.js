@@ -5,6 +5,8 @@
  * Used across all table components
  */
 
+import { escapeHtml } from './xssSanitizer.js';
+
 /**
  * Export data as CSV file download
  * @param {Array<Object>} data - Array of objects to export
@@ -72,7 +74,7 @@ export function printTable(data, title = 'Report', columns) {
   const html = `
     <!DOCTYPE html>
     <html><head>
-      <title>${title}</title>
+      <title>${escapeHtml(String(title ?? ''))}</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; }
         h1 { font-size: 18px; margin-bottom: 4px; }
@@ -84,11 +86,11 @@ export function printTable(data, title = 'Report', columns) {
         @media print { body { padding: 0; } }
       </style>
     </head><body>
-      <h1>${title}</h1>
+      <h1>${escapeHtml(String(title ?? ''))}</h1>
       <div class="meta">Generated: ${new Date().toLocaleString()} · ${data.length} records · GeniegoROI</div>
       <table>
-        <thead><tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr></thead>
-        <tbody>${data.map(row => `<tr>${keys.map(k => `<td>${row[k] ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
+        <thead><tr>${keys.map(k => `<th>${escapeHtml(String(k))}</th>`).join('')}</tr></thead>
+        <tbody>${data.map(row => `<tr>${keys.map(k => `<td>${escapeHtml(String(row[k] ?? ''))}</td>`).join('')}</tr>`).join('')}</tbody>
       </table>
     </body></html>
   `;

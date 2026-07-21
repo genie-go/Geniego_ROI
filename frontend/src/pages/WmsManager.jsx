@@ -9,6 +9,7 @@ import { handlePlanLimit } from '../utils/planLimit.js';
 import { useI18n } from '../i18n';
 import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 import { detectXSS, sanitizeInput } from '../security/SecurityGuard.js';
+import { escapeHtml as _esc } from '../utils/xssSanitizer.js'; // [289차후속] 인쇄창 document.write 저장데이터 이스케이프
 
 import ApprovalModal from '../components/ApprovalModal.jsx';
 import { useCurrency } from '../contexts/CurrencyContext.jsx';
@@ -1484,17 +1485,17 @@ const InvoiceTab = memo(function InvoiceTab() {
     const totalQty = inv.items.reduce((s, it) => s + Number(it.qty), 0);
 
     const printInvoice = () => {
-        const html = `<!DOCTYPE html><html><head><title>Commercial Invoice - ${inv.no}</title>
+        const html = `<!DOCTYPE html><html><head><title>Commercial Invoice - ${_esc(String(inv.no ?? ''))}</title>
 <style>body{font-family:Arial,sans-serif;font-size:10pt;color:#000;margin:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:5px 8px;font-size:9pt}th{background:#f0f0f0;text-align:center}.info{vertical-align:top;width:50%}.right{text-align:right}.center{text-align:center}</style></head>
 <body><h2>COMMERCIAL INVOICE</h2>
-<table><tr><td class="info"><b>SHIPPER:</b><br>${inv.shipper.name}<br>${inv.shipper.addr}<br>TEL: ${inv.shipper.phone}<br>${inv.shipper.email}</td>
-<td class="info"><b>CONSIGNEE:</b><br>${inv.consignee.name || '—'}<br>${inv.consignee.addr || '—'}<br>TEL: ${inv.consignee.phone || '—'}<br>${inv.consignee.email || '—'}</td></tr>
-<tr><td><b>Invoice No:</b> ${inv.no}</td><td><b>Date:</b> ${inv.date}</td></tr>
-<tr><td><b>Carrier:</b> ${inv.carrier} &nbsp; <b>Tracking:</b> ${inv.tracking || '—'}</td><td><b>INCOTERM:</b> ${inv.incoterm} &nbsp; <b>Currency:</b> ${inv.currency}</td></tr></table>
+<table><tr><td class="info"><b>SHIPPER:</b><br>${_esc(String(inv.shipper.name ?? ''))}<br>${_esc(String(inv.shipper.addr ?? ''))}<br>TEL: ${_esc(String(inv.shipper.phone ?? ''))}<br>${_esc(String(inv.shipper.email ?? ''))}</td>
+<td class="info"><b>CONSIGNEE:</b><br>${_esc(String(inv.consignee.name || '—'))}<br>${_esc(String(inv.consignee.addr || '—'))}<br>TEL: ${_esc(String(inv.consignee.phone || '—'))}<br>${_esc(String(inv.consignee.email || '—'))}</td></tr>
+<tr><td><b>Invoice No:</b> ${_esc(String(inv.no ?? ''))}</td><td><b>Date:</b> ${_esc(String(inv.date ?? ''))}</td></tr>
+<tr><td><b>Carrier:</b> ${_esc(String(inv.carrier ?? ''))} &nbsp; <b>Tracking:</b> ${_esc(String(inv.tracking || '—'))}</td><td><b>INCOTERM:</b> ${_esc(String(inv.incoterm ?? ''))} &nbsp; <b>Currency:</b> ${_esc(String(inv.currency ?? ''))}</td></tr></table>
 <br><table><tr><th>#</th><th>Description of Goods</th><th>HS Code</th><th>Origin</th><th class="center">Qty</th><th class="right">Unit Price</th><th class="right">Amount</th></tr>
-${inv.items.map((it, i) => `<tr><td class="center">${i + 1}</td><td>${it.desc}</td><td>${it.hsCode}</td><td class="center">${it.origin}</td><td class="center">${it.qty}</td><td class="right">${Number(it.unit).toFixed(2)}</td><td class="right">${Number(it.total).toFixed(2)}</td></tr>`).join('')}
-<tr><td colspan="4"><b>TOTAL</b></td><td class="center"><b>${totalQty}</b></td><td></td><td class="right"><b>${inv.currency} ${totalAmt.toFixed(2)}</b></td></tr></table>
-${inv.remark ? `<br><b>Remarks:</b> ${inv.remark}` : ''}
+${inv.items.map((it, i) => `<tr><td class="center">${i + 1}</td><td>${_esc(String(it.desc ?? ''))}</td><td>${_esc(String(it.hsCode ?? ''))}</td><td class="center">${_esc(String(it.origin ?? ''))}</td><td class="center">${_esc(String(it.qty ?? ''))}</td><td class="right">${Number(it.unit).toFixed(2)}</td><td class="right">${Number(it.total).toFixed(2)}</td></tr>`).join('')}
+<tr><td colspan="4"><b>TOTAL</b></td><td class="center"><b>${totalQty}</b></td><td></td><td class="right"><b>${_esc(String(inv.currency ?? ''))} ${totalAmt.toFixed(2)}</b></td></tr></table>
+${inv.remark ? `<br><b>Remarks:</b> ${_esc(String(inv.remark))}` : ''}
 <br><br><div style="display:flex;justify-content:space-between"><div><b>Shipper's Signature:</b><br><br>___________________</div><div><b>Date:</b><br><br>___________________</div></div>
 </body></html>`;
         const w = window.open("", "_blank");
@@ -1718,7 +1719,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
 
     const printSlip = (pk) => {
         const w = window.open('','_blank','width=400,height=600');
-        w.document.write(`<html><body style=\"font-family:sans-serif;padding:20px\"><h3>📋 Picking / Packing Slip</h3><p>Orders: ${pk.orderId}</p><p>SKU: ${pk.sku}</p><p>Product: ${pk.name}</p><p>Quantity: ${pk.qty}</p><p>Warehouse: ${pk.wh}</p><p>Create: ${pk.createdAt}</p><hr><p style=\"font-size:11px;color:#666\">☐ Pick ☐ Pack ☐ Ship</p></body></html>`);
+        w.document.write(`<html><body style=\"font-family:sans-serif;padding:20px\"><h3>📋 Picking / Packing Slip</h3><p>Orders: ${_esc(String(pk.orderId ?? ''))}</p><p>SKU: ${_esc(String(pk.sku ?? ''))}</p><p>Product: ${_esc(String(pk.name ?? ''))}</p><p>Quantity: ${_esc(String(pk.qty ?? ''))}</p><p>Warehouse: ${_esc(String(pk.wh ?? ''))}</p><p>Create: ${_esc(String(pk.createdAt ?? ''))}</p><hr><p style=\"font-size:11px;color:#666\">☐ Pick ☐ Pack ☐ Ship</p></body></html>`);
         w.print();
     };
 
@@ -2235,7 +2236,7 @@ const InventoryAuditTab = memo(function InventoryAuditTab({ inventory }) {
         setStatus('completed');
     };
     const printAuditSheet = () => {
-        const rows = filtered.map(i => `<tr><td>${i.sku}</td><td>${i.name}</td><td style="text-align:center">${i.bookQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.countedQty===''?'—':i.countedQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.diff===null?'—':i.diff>0?'+'+i.diff:i.diff}</td></tr>`).join('');
+        const rows = filtered.map(i => `<tr><td>${_esc(String(i.sku ?? ''))}</td><td>${_esc(String(i.name ?? ''))}</td><td style="text-align:center">${i.bookQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.countedQty===''?'—':i.countedQty}</td><td style="text-align:center;color:${i.diff===null?'#000':i.diff===0?'green':i.diff>0?'blue':'red'}">${i.diff===null?'—':i.diff>0?'+'+i.diff:i.diff}</td></tr>`).join('');
         const w = window.open('','_blank');
         w.document.write(`<!DOCTYPE html><html><head><title>${t('wms.auditTitle')} - ${auditDate}</title><style>body{font-family:sans-serif;font-size:10pt;margin:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 8px;font-size:9pt}.pass{color:green}.plus{color:blue}.minus{color:red}</style></head><body><h2>📋 ${t('wms.auditTitle')} (${auditDate})</h2><table><tr><th>SKU</th><th>${t('wmsPage.productName', '상품명')}</th><th>${t('wms.auditColBook')}</th><th>${t('wms.auditColInput')}</th><th>${t('wms.auditColDiff')}</th></tr>${rows}<tr style="background:#f5f5f5;font-weight:bold"><td colspan="4">${t('wms.auditTotalDiff')}</td><td style="text-align:center;color:${hasDiscrepancy?'red':'green'}">${hasDiscrepancy?'±'+totalDiff:t('wms.auditNoDiff')}</td></tr></table></body></html>`);
         w.document.close(); w.print();

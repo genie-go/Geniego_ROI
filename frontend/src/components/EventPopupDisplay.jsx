@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { sanitizeHtml } from '../utils/xssSanitizer.js';
+import { sanitizeHtml, getSafeUrl } from '../utils/xssSanitizer.js';
 import { getJsonAuth } from '../services/apiClient.js';
 
 
@@ -99,7 +99,7 @@ function PopupModal({ popup, onClose, onDismissToday, onDismissWeek }) {
                     {popup.cta_text && (
                         <div style={{ textAlign: "center", marginTop: 20 }}>
                             <a
-                                href={popup.cta_url || "#"}
+                                href={getSafeUrl(popup.cta_url || "#")}
                                 target={popup.cta_new_tab ? "_blank" : "_self"}
                                 rel="noopener noreferrer"
                                 onClick={() => handleClose(null)}
