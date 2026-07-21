@@ -1172,3 +1172,13 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **ABSENT-formal**: Training Management·Competency Validation·Support Transition·Vendor Handover·Operational Readiness Certification Engine.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-34 실 구현·인증이 종료의 절대 전제. 다음=Part 3-36 Reference Platform Certification.
+
+## [289차 후속] EPIC 06-A Part 3-36 — Reference Platform Certification (EAERPC) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 플랫폼 Reference Platform 공식 인증 전사 표준.
+- **★근본 정직 판정**: EAERPC를 EPIC 06-A에 적용 시 결과=Not Certified(Part1~3-35 전건 NOT_CERTIFIED·코드0). 인증 프레임워크 설계 가능·대상 플랫폼(06-A) 인증 불가. "Certified" 표기 절대 금지.
+- **★상위 Part 중복(핵심)**: Functional/Security/Performance/Compliance Certification=Part 3-29(Validation Suite) Validator 실행·집계 계층·Production Certification=Part 3-25·Certification Readiness=Part 3-28 참조. 새 Validator/인증엔진 재정의 금지.
+- **★PARTIAL substrate**: NOT_CERTIFIED 라벨(비형식 상태)·Compliance.php(SOC2 readiness)·E2E smoke/CI(Functional/Security 검증·3-29 공유)·pending_approval/handoff approval(Approval)·deploy build(SBOM/signing 부재)·SecurityAudit evidence. ★이번 세션 보안 5클래스 감사=Functional/Security Certification 수동 실행.
+- **★KEEP_SEPARATE**: 채널/제품 인증(kc_cert·PriceOpt)≠Platform Reference Certification·Part3-28 Maturity Readiness(성숙도)≠Platform Certification(합격판정)·ModelMonitor≠AI Governance Certification·메뉴snapshot(정본 SecurityAudit::verify)≠Certification Snapshot.
+- **ABSENT-formal**: 통합 Certification Lifecycle/Renewal/Dashboard·Reference Signature(artifact signing).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~18)+GOVERNANCE_MECHANISMS(§19~28)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-35 실 구현·인증 종속. 다음=Part 3-37 Global Center of Excellence Framework.

@@ -674,3 +674,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-35 EAPCKT 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(closure/knowledge-transfer/deliverable/training/handover/archive grep): 형식 Program Closure grep 0. ★근본=EPIC 06-A 전건 NOT_CERTIFIED·코드0라 종료 대상 미존재→종료 실행 불가·Operational Readiness=Not Certified. PARTIAL substrate=NEXT_SESSION/메모리/docs/ADR archive/git/pre-commit/handoff approval/SecurityAudit(비형식 인계·아카이브).
 - 산출 7문서. ★핵심 정직=종료 대상 부재로 "완료" 표기 금지·선행 구현·인증 절대 전제. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(NEXT_SESSION/memory/docs/git/githooks/e2e/Catalog/Alerting/SecurityAudit/Db)만. KEEP_SEPARATE(세션인계·PM·AI메모리·제품벤더·메뉴snapshot) 명시.
+
+## [289차 후속] Part 3-36 EAERPC 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(certification/reference-platform/evidence/signature/renewal/benchmark grep): 형식 Certification 엔진 grep 0. ★근본=06-A 자체 NOT_CERTIFIED라 인증 결과=Not Certified. PARTIAL substrate=NOT_CERTIFIED 라벨·Compliance·E2E/CI·pending_approval·SecurityAudit·deploy(3-25/3-28/3-29 공유).
+- 산출 7문서. ★핵심 정직=자기참조 역설(인증 프레임워크가 06-A=Not Certified 판정)·상위 Part Validator 재정의 금지. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(DSAR_APPROVAL 라벨/Compliance/tools e2e/deploy/Catalog/Alerting/SecurityAudit/Db/PriceOpt)만. KEEP_SEPARATE(제품 인증·Maturity·ModelMonitor·메뉴snapshot) 명시.
