@@ -1163,3 +1163,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★교훈 반영**: [[reference_platform_growth_actas_tenant_hijack]](admin 크로스테넌트 Executive View=X-Act-As-Tenant 고착 방지·요청시점 tenant 검증)·[[reference_real_value_autoderive]](KPI=서버 집계 SSOT·임의 하드코딩 금지).
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-33 인증 종속. 다음=Part 3-35 Program Closure & Knowledge Transfer.
+
+## [289차 후속] EPIC 06-A Part 3-35 — Program Closure & Knowledge Transfer (EAPCKT) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 프로그램 공식 종료·인수인계 프레임워크.
+- **★근본 정직 판정(중요)**: EPIC 06-A Part1~3-34 전건 NOT_CERTIFIED·코드 0·설계 명세 → **종료 대상(구현 산출물 소스/DB/인프라)이 미존재** → Closure는 설계 가능·**실행 종료 불가**. Operational Readiness Certification=Not Certified·Closure Certificate 발급 불가. Deliverable Verification 대상=문서(DSAR/ADR/SPEC)뿐. **종료를 "완료"로 표기 절대 금지**.
+- **★PARTIAL substrate(비형식·재사용)**: NEXT_SESSION.md(Knowledge Transfer)·`.claude` 메모리(Lessons Learned)·docs/(Documentation)·docs/architecture/(ADR Archive)·git(Project Archive 불변)·pre-commit/E2E smoke(Deliverable Verification 일부)·pending_approval/handoff approval(Sign-off·[[feedback_handoff_approval]])·SecurityAudit evidence.
+- **★KEEP_SEPARATE**: 세션 인계(개발 프로세스)≠형식 프로그램 종료·PM 프로젝트(PM/Enterprise.php)≠EPIC 06-A 종료·AI 메모리≠조직 Training Record·제품 벤더(채널/PG)≠프로그램 벤더 인계·메뉴snapshot(정본 SecurityAudit::verify)≠Closure Snapshot.
+- **ABSENT-formal**: Training Management·Competency Validation·Support Transition·Vendor Handover·Operational Readiness Certification Engine.
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~31)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-34 실 구현·인증이 종료의 절대 전제. 다음=Part 3-36 Reference Platform Certification.
