@@ -1244,3 +1244,12 @@ Static Lint 19 + Runtime Guard 30 = **전부 `CONTRACT_ONLY`** → **"승인 Lin
 - **★KEEP_SEPARATE**: 제품 벤더(채널/PG·ChannelSync/PgSettlement)≠기술 Vendor Evaluation(플랫폼 인프라/SDK)·마케팅 A/B(AbTesting)=POC 패턴만 참조·비즈니스 ROI(Pnl)≠Technology Business Value·메뉴snapshot(정본 SecurityAudit::verify)≠Technology Snapshot. Duplicate Technology Entry 방지=중복금지 규율.
 - **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~21)+GOVERNANCE_MECHANISMS(§22~32)+INDEX. 코드/테이블 0·신규 실결함 0.
 - **BLOCKED_PREREQUISITE**: 선행 Part1~3-42 인증 + 조직 신설 종속. 다음=Part 3-44 Enterprise Strategic Sustainability Framework.
+
+## [289차 후속] EPIC 06-A Part 3-44 — Strategic Sustainability Framework (EASSF) 설계 (코드0·NOT_CERTIFIED·2026-07-21)
+- 사용자 제공 handbook(v1.0) verbatim → 장기 지속가능 역량(ESG+기술부채+운영효율+에너지+비용+지속혁신).
+- **★성격 정직 판정**: 대부분 인프라 텔레메트리(Green Computing/Carbon/Energy=제품 자체 인프라 미소유·단일 호스트)·조직(ESG Committee/Workforce Capability). 소프트웨어 제품에 미존재 정상(ABSENT).
+- **★PARTIAL-seed substrate**: ★Responsible AI=V4/V5 헌법(UNIFIED_INTELLIGENCE_LAYER_CONSTITUTION·Explainable/Human Oversight/Bias)·ClaudeAI/Insights/Decisioning 근거표시(신 원칙 아닌 형식화)·Technical Debt=NEXT_SESSION(비형식)·Operational Sustainability=Health/SystemMetrics(Part 3-30)·Business Continuity=migration/DR(Part 3-25)·Knowledge=docs/메모리(Part 3-35/3-42)·Cost=Part 3-34·SecurityAudit.
+- **★상위 Part 참조**: Technical Debt/Platform Lifecycle=Part 3-27·Operational=Part 3-30·BC=Part 3-25·Knowledge=Part 3-35/3-42·Cost=Part 3-34.
+- **★KEEP_SEPARATE**: 비즈니스 ROI(Pnl)≠Cost Sustainability(플랫폼 FinOps)·마케팅 A/B(AbTesting)≠Sustainability 실험·CustomerAI(고객)≠Workforce Capability(내부 인력)·메뉴snapshot(정본 SecurityAudit::verify)≠Sustainability Snapshot. Carbon Metric=서버 집계 SSOT([[reference_real_value_autoderive]]·데이터 헌법 Trust First).
+- **산출 7문서**: SPEC+ADR+GT①②+CANONICAL_ENTITIES(§2 20엔티티·§3~22)+GOVERNANCE_MECHANISMS(§23~32)+INDEX. 코드/테이블 0·신규 실결함 0.
+- **BLOCKED_PREREQUISITE**: 선행 Part1~3-43 인증 + 인프라 텔레메트리/조직 신설 종속. 다음=Part 3-45 Global Digital Trust Ecosystem Framework.

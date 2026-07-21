@@ -706,3 +706,7 @@ requireAdmin 가드→403(UserAdmin.php:474-475) · **admin 대상 대행 차단
 ## [289차 후속] Part 3-43 EAFTAF 설계 실행 (2026-07-21)
 - ⓐ SPEC verbatim. ⓑ 전수조사(technology/radar/poc/pilot/vendor/adoption/maturity/dependency grep, 매니페스트 포함): 형식 기술채택 grep 0. PARTIAL substrate=composer/npm·AbTesting(마케팅)·docs/architecture·CI 스캔·SecurityAudit. 상위 Part 3-27/3-32/3-33 대거중복·조직/프로세스(Review Board/Vendor).
 - 산출 7문서. ★핵심=상위 Part 재정의 금지·제품 벤더≠기술 벤더·마케팅 A/B=POC 패턴만. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(composer/package/AbTesting/docs architecture/CHANGE_GATE/security-scan/ChannelSync/PgSettlement/Pnl/CLAUDE.md/registry/SecurityAudit/Db/git)만. KEEP_SEPARATE 명시.
+
+## [289차 후속] Part 3-44 EASSF 설계 실행 (2026-07-21)
+- ⓐ SPEC verbatim. ⓑ 전수조사(esg/carbon/green/energy/sustainability/technical-debt/workforce/responsible-ai grep): Green/Carbon/Energy/ESG/Workforce ABSENT(인프라 텔레메트리/조직·미존재 정상). PARTIAL-seed=Responsible AI(V4/V5 헌법)·Technical Debt(NEXT_SESSION)·Operational(Health)·Knowledge(docs/메모리)·상위 Part 참조·SecurityAudit.
+- 산출 7문서. ★핵심=인프라/조직 대부분 비-코드·Responsible AI=헌법 형식화(신 원칙 금지)·상위 Part(3-27/3-30/3-35) 통합. 실 코드/테이블 0. 반날조: file:line 인용 GT①②/ADR 등장분(UNIFIED_INTELLIGENCE_LAYER_CONSTITUTION/ClaudeAI/Insights/Decisioning/NEXT_SESSION/Health/SystemMetrics/migrate/docs/Pnl/CustomerAI/AbTesting/SecurityAudit/Db)만. KEEP_SEPARATE 명시.
