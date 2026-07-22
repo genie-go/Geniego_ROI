@@ -1,3 +1,55 @@
+# ★★세션 종결 요약 (289차 후속 MEA Part 058 · 2026-07-22)
+
+**이 세션 성과**: **MEA Part 058 — Enterprise AI Decision Intelligence & Autonomous Business Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 Part 053 완결+054 소급정합 → 055 → 056 → 057과 연속.)
+
+## ★A. MEA Part 058 완결 (7문서·코드 0·NOT_CERTIFIED·docs만)
+- **판정 = PARTIAL (도메인별 의사결정·최적화 스택 다수 실재 / ★통합 Decision Registry·Engine·Rule 거버넌스 = ABSENT).** ★AI 시리즈에서 **054 다음으로 실재도가 높다.**
+- **★★본 Part의 성격 규정(ADR D-1·가장 중요)**: **"결정 엔진이 없다"가 아니라 "결정 엔진이 7개인데 통합 Registry가 없다."** 의사결정 로직이 **`Decisioning`(세그먼트 추천)·`AutoRecommend`(채널 추천·학습)·`Mmm`(예산 최적화)·`PriceOpt`(가격 결정)·`RuleEngine`(임계 규칙)·`AutoCampaign`(자율 실행)·`JourneyBuilder`(여정 결정·054 소관)** 7개에 분산돼 **각자 자기 추천·자기 규칙·자기 실행 로그**를 가진다 → §6 "모든 의사결정 자산은 **Enterprise Decision Registry** 기준"·§7 "모든 의사결정은 **추적 가능**" **미충족**("오늘 이 테넌트에서 어떤 의사결정이 몇 건 났고 무엇이 승인/거부/보류됐는가"를 답할 **단일 지점 없음**). ★★**위험은 "중복 신설"보다 "8번째 엔진을 만드는 것"** — Decision Platform은 **기존 7개 위의 얇은 통합 계층(Registry+표준 계약+뷰+디스패처)**이어야 한다(헌법 V4).
+- **★실재(재사용·승격 대상·재구현 금지)**: ① **★ROI 최적화가 수식 수준으로 실동작** — `Mmm::frontier`(:349~352)가 **한계이익 수식**(:281 `margin_c·(β/κ)·exp(−x/κ)−1`·`x*_c=κ·ln(margin_c·β/κ)`·`T*=Σx*_c`·`profitOptSpend`:337~338)으로 **적정 총예산 T\*·PROFIT(T) 곡선·증액여력** 산출(:386~391·:437) + **모델·원가 없으면 `optimized:false`+사유 정직 반환**(:375·:378) → **§10 "최적화 결과는 정량적 근거를 제공해야 한다" 충족** ② **가격 결정 스택 완비** `PriceOpt`(탄력성:81·**추천**:91·**시뮬레이션**:105·**리프라이서 규칙**:121·**실행 이력**:132·경쟁사:114·캘린더:137) ③ **폐루프 학습 추천** `AutoRecommend`(벤치마크:114·**학습 prior**:185·**`learnFromOutcomes`**:247·:369·:506) ④ **세그먼트 추천·우선순위** `Decisioning`(:432·:466~470·:486~487) ⑤ **규칙 평가·daypart·frequency** `RuleEngine`(:41~66·:181) ⑥ **★자율 실행 + 정직 보류** `AutoCampaign`(:345~350 — auto면 사람 클릭 없이 추천→실행하되 **킬스위치·결제수단·딜리버리 미충족 시 활성화 보류 + 사유 반환**) ⑦ **승인 정책** `agent_mode` 기본 approval fail-safe(054:42~50)·2인 정족수(`Alerting`:602·:626~632) ⑧ **What-if 5레버** `PnLDashboard.jsx`(:538~556·**클라이언트**) ⑨ **실행 로그 4종** `optimization_log`(:77)·`rule_engine_log`(:47)·`po_repricer_history`(:132)·`journey_node_logs`(054) ⑩ Explainable 공시·Risk drivers·테넌트 fail-closed·전역 writeGuard·해시체인 감사.
+- **★ABSENT(grep 0·부재증명 완료·단어경계 적용·축소 금지)**: **Enterprise Decision Registry**(§6 근간)·**Canonical Entity 15종 형식 계약 전량**·통합 Decision Engine/Analytics/Dashboard/Governance Manager/Audit Service/Advisor·**Business Rule Engine(§9) 대부분**(**Rule Versioning·Simulation·Validation·Deployment·Conflict Detection·Optimization·Analytics**)·**Multi-Criteria(형식)·Scenario Comparison(서버 통합)**·**Resource·Schedule·Route Optimization**·Decision Policy 6종·Compliance Validation·**Decision Data Encryption·형식 ACL**·**API 8종·Event 8종**·§17 Scenario Simulation(통합)/KPI Impact Analysis(형식)/Responsible Decision Validation·성능 SLA(§18).
+- **★§9 정직 표기**: "모든 Rule은 **버전과 변경 이력**을 관리한다" → **미충족**. `rule_engine`은 **UPDATE 덮어쓰기·현재값만**이고 **`rule_engine_log`(:47)는 실행 로그이지 변경 이력이 아니다**(오흡수 금지). ★Rule Versioning은 **중복이 아니라 결여 보강**(append-only 이력 신설·기존은 현재값 뷰로 유지=무회귀).
+- **★정직 구분(057 규율 승계)**: §18 성능(Decision Evaluation ≤500ms·Rule Execution ≤100ms·Decision API ≤300ms)은 **측정 장치 부재** → **"미달"이 아니라 "측정 기반 부재"**. 계측은 **`SystemMetrics` 확장**으로(057 D-1·별도 수집기 금지).
+- **★★구현 착수 시 설계 제약 7종(ADR)**:
+  1. **8번째 결정 엔진 신설 금지**(D-1) — 추천/최적화/규칙/승인/실행로그 **전부 기존 정본 재사용**. 통합 Engine은 **디스패처**.
+  2. **실행 로그 원본 파괴 금지**(D-1) — 기존 4종을 **DECISION_EXECUTION 뷰/참조로 통합**(원본 유지=무회귀).
+  3. **통합 Engine도 자율 실행 게이트 반드시 경유**(D-4) — `agent_mode`·킬스위치·결제수단/딜리버리 우회 시 **명세 §11/§17 + 헌법 V5 동시 위반**.
+  4. **Rule Simulation은 실 액추에이터 호출 금지**(D-3) — 드라이런 격리·킬스위치/`agent_mode` 우회 금지.
+  5. **Rule Conflict Detection은 `AdAdapters` 진입점에서 최종 상충 검사**(D-3) — 현행은 다중 규칙 동시 발화 시 **상충 액션(예산 증액 vs 캠페인 중지)을 막을 장치가 없다**. 중복 게이트 신설 금지.
+  6. **산출 불가 시 0/임의값이 아니라 명시적 미산출+사유**(D-2) — `Mmm::frontier` `optimized:false` 패턴 승계(057 "0은 정상으로 오독" 규율과 동일).
+  7. **Decision API는 인증 필수 접두 + 테넌트 격리 절대**(D-6) — 의사결정 데이터에 **예산·가격·마진·탄력성**이 담겨 노출 시 **영업 기밀 유출**. 감사는 `SecurityAudit` 확장이되 **고빈도 결정 로그는 앵커링**(체인 직접 유입 금지).
+  ※What-if 서버 승격 시 **클라이언트 즉시성 유지**(하이브리드)·기존 프론트 계산 제거는 회귀(D-5).
+- **★오흡수 금지(동음이의 실측)**: **`whatif` 11히트=`PnLDashboard.jsx`(:538~556) 클라이언트 슬라이더≠서버 Decision Optimization 서비스** · **`autonomous` 1히트=`AIInsights.jsx`(:599) 마케팅 카피**("Autonomous orchestration…")**≠자율 운영 구현**(054 확정과 동일) · `RuleEngine`(metric/op/threshold)≠**Business Rule Engine**(버전·시뮬레이션·충돌탐지) · **`rule_engine_log`(실행 로그)≠Rule 변경 이력** · `Decisioning`(광고 세그먼트)≠Decision Intelligence 플랫폼 · `AutoCampaign`(캠페인 자동화)≠Autonomous **Business** · `Mmm::frontier`(마케팅 예산)≠범용 Decision Optimization · `JourneyBuilder`(마케팅 여정·**054 소관**)≠비즈니스 의사결정 엔진 · `Risk`(사업 리스크·056)≠Decision Risk Assessment · `po_simulations`(가격)≠통합 Scenario Simulation · `SecurityAudit`≠DECISION_AUDIT 엔티티.
+- **★강점 정직 기술(후퇴 금지 자산)**: 명세 §11 "자율 운영은 **승인 정책을 준수**해야 한다"·§17 "AI는 **승인 정책 없이 중요 경영 의사결정을 자동 확정**하거나 기업 정책을 변경하지 않는다"는 **현행이 구조적으로 충족** — auto도 **킬스위치+결제수단/딜리버리 게이트 종속**·미충족 시 **정직 보류+사유 반환**·**기본값 approval**·기업 정책이 문서/코드·제안-only+HITL·2인 정족수. ★"중요 경영 의사결정" 범위를 넓힐수록(예산 재배분·가격 변경·재고 발주) **승인 게이트를 더 엄격히**.
+- **★Part 054 판정 상속·재판정 금지**(경계: **054=Agent/Workflow 실행 계층, 058=Decision 계층**). ★재감사 금지: `action_request` 생산자(287/288차)·`AutoCampaign` auto 모드(279차 사용자 요구)=**확정분**.
+
+## ★★B. AI 시리즈 반복 결론 (실 구현 1순위)
+**053(Gateway 부재) → 056(감사 구멍) → 057(AI 미프로브) → 058(Decision 파편화).**
+앞의 셋은 **같은 뿌리(단일 통과점 부재)**이고, **058은 같은 병리의 의사결정판**이다.
+→ **통합 계약(Gateway·감사·계측·Decision Registry)이 AI 시리즈 전체의 일관된 처방**이며 **053 ADR D-2 Gateway 일원화가 실 구현 1순위**다. Gateway가 단일 통과점이 되면 **감사(056)·계측(057)이 자동으로 따라온다**. 흡수 시 **최대집합 승계 4조건**(quota 게이트·BYO 키 우선·`Crypto` 복호·감사 스키마) 준수.
+
+## ★C. 다음 세션 최우선 (사용자 지정)
+1. **★★[1순위] MEA Part 059 — Enterprise Digital Twin, Simulation & Scenario Intelligence Architecture**(058 SPEC 지정 다음 Part). 동일 7문서 파이프라인.
+   - 조사 후보(가설·**인용 금지**): `PriceOpt`(`po_simulations`:105)·`PnLDashboard.jsx`(What-if:538~556)·`Mmm`(PROFIT(T) 곡선:437)·`DemandForecast`(Holt-Winters)·`JourneyBuilder`(Thompson:1130~1152·054)·`WmsCctv`(온프렘 브리지·274차).
+   - ★★**053 선례 필독**: 직전 차수 "부재 예상" 가설이 **대부분 틀렸다**. **가설을 근거로 인용하지 말고 전량 grep 재실증**. 뭉뚱그린 평가절하 금지.
+   - ★오흡수 금지 사전 주의: `po_simulations`(가격 시뮬레이션)≠Digital Twin · What-if 슬라이더≠Simulation Engine · `Mmm` 이익곡선≠Scenario Intelligence · **`WmsCctv`(CCTV 브리지)≠물리 Digital Twin** · `journey_decision_arm`(Thompson)≠시나리오 시뮬레이션.
+2. (실 구현 후보·별도 승인세션) **★053 Gateway 일원화 + 감사 스키마 통일 + AI 프로브 추가** — 053 D-2 + 056 D-4 + 057 D-1 **동시 해결**. AI 시리즈 최대 부채.
+3. (실 구현 후보·별도 승인세션) **Knowledge/RAG 구현**(055 선행조건 4종·특히 테넌트 격리+Knowledge ACL).
+
+## ★D. 규율 (불변·MEA 시리즈)
+- MEA 전 문서=**설계 명세·코드 변경 0·NOT_CERTIFIED**. 신규 테이블/핸들러 0. 실 구현=별도 승인세션.
+- **반날조**: file:line 인용은 committed GT①EXISTING/GT②DUPLICATE/ADR 등장분만.
+- **부재증명(grep 0)** 후에만 ABSENT·**과대주장 금지**·**부재 축소 금지**·**뭉뚱그린 평가절하 금지**·**오흡수 금지**·**정직 표기**.
+- ★**판정 어휘 구분**(057·058): **"미달" vs "측정 기반 부재"** · **"미구현" vs "인프라 선행 종속"** · **"중복" vs "결여 보강"**(Rule Versioning은 중복이 아니라 보강).
+- ★**cross-cutting Part 규율**(056): 상위/하위 Part가 이미 판정한 substrate는 **재판정하지 않는다**. 모순이 보이면 **판정 기준 차이를 명시**해 정합.
+- ★**grep 범위+단어경계**(056·057·058): 범위를 `backend/src`·`backend/bin`·`backend/data`·`tools`·`frontend/src`로 좁히고(`i18n/**`·`*.json`·`locales_backup` 제외) **단어경계 `\b`를 쓸 것**(056 `shap` 955→0 / 057 `telemetry`·`datadog`·`ai_event` 전부 주석·벤더명·i18n 키 / 058 `whatif`·`autonomous`).
+- **★중복 절대 금지**(헌법 V4): Gateway=`ClaudeAI::complete` · Retriever=`geniegoFeatureDetails` · KNOWLEDGE_SOURCE=`gen_chatbot_knowledge.mjs` · KG=`graph_node.node_type` 확장 · **감사 체인=`SecurityAudit`(정본 하나)** · 승인=`action_request`+`agent_mode` · 모델 모니터링=`ModelMonitor` · **메트릭 수집기=`SystemMetrics`** · 로그 포워더=`Compliance` SIEM · 알림=`Alerting` · **ROI 최적화=`Mmm::frontier`** · 가격=`PriceOpt` · 추천=`AutoRecommend`/`Decisioning` · 규칙=`RuleEngine` · 워크플로=`JourneyBuilder`.
+- **★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI 자동 정책 변경/미검증 생성물 자동 반영/승인 없는 모델 자동 배포/운영 환경 자동 변경/**승인 정책 없는 중요 경영 의사결정 자동 확정** 불가(헌법 V5+CHANGE_GATE).
+- 커밋 프리픽스 `docs(289차후속 MEA PartNNN): ... (설계 명세·코드0·NOT_CERTIFIED)` + Co-Authored-By. push=feat/n236-admin-growth-automation only(★master 금지=자동배포). git add=해당 Part 7문서 + PM 2편 + NEXT_SESSION.md만(선존 uncommitted 제외). 배포 없음(docs만).
+- ★**NEXT_SESSION.md 크기**: pre-commit 게이트 **B3 상한 500KB**. 초과 시 `--no-verify` 우회 금지 — 선례(`NEXT_SESSION_ARCHIVE_251_268.md` 등 7종)대로 **과거 인계를 아카이브로 이동**(삭제 금지·바이트 합 일치 검증).
+- **★MEA 진척**: Part 015~052 + 053~057 + **058(본 세션)** 완결. **AI 시리즈 051~058 전량 종결.** 다음 = **059(Digital Twin/Simulation/Scenario Intelligence)**.
+
+---
+
 # ★★세션 종결 요약 (289차 후속 MEA Part 057 · 2026-07-22)
 
 **이 세션 성과**: **MEA Part 057 — Enterprise AI Analytics, AI Observability & AI Operations Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 Part 053 완결+054 소급정합 → 055 → 056과 연속.)
