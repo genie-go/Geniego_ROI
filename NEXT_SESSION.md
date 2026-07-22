@@ -1,3 +1,59 @@
+# ★★세션 종결 요약 (289차 후속 MEA Part 061 · 2026-07-22)
+
+**이 세션 성과**: **MEA Part 061 — Enterprise IoT, Edge AI & Intelligent Device Platform Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 053 완결+054 소급정합 → 055 → 056 → 057 → 058 → 059 → 060과 연속.)
+
+## ★A. MEA Part 061 완결 (7문서·코드 0·NOT_CERTIFIED·docs만)
+- **판정 = PARTIAL-weak (CCTV 카메라 도메인 Device Management는 실재 / ★Sensor·Telemetry·Edge AI·Firmware·Device Command·Predictive Maintenance = 전면 ABSENT).**
+- **★★성격 규정(ADR D-2)**: **"IoT가 없다"가 아니라 "CCTV 카메라 한 종류의 Device 관리만 있고 Sensor·Telemetry·Edge AI는 없다."** 현행은 **조회 전용 스트림 릴레이**이며 **제어 명령·펌웨어·센서 수집이 전무**. `mqtt`/`coap`/`lorawan`/`zigbee`/`modbus`/`opcua`/`firmware`/`edge_ai`/`edge_inference`/`edge_model`/`edge_node`/`sensor_reading`/`device_command`/`device_registry` **전부 0**.
+- **★★`WmsCctv` 스코프 전환(ADR D-1·중요)**: 동일 자산이 **세 Part에서 다르게 취급**된다 — **054**는 `agent_version`≠AI Agent, **059**는 비디오월≠Asset Twin으로 **배제**, **061은 Device 축으로 편입**(**Device Management 축에만 한정**·Edge AI/Telemetry/Predictive Maintenance로 확대 해석 금지). 054·059 판정은 **각자 스코프에서 여전히 유효·재판정 금지**. ★**060 D-2 "스코프를 분리해 둘 다 참으로 만든다"의 두 번째 적용 사례** — 같은 자산이 Part마다 다른 스코프로 평가되는 것은 **모순이 아니라 정상**이며, **어느 판정이 적용되는 스코프를 명시**하는 것이 표준 처리법.
+- **★실재(재사용·승격 대상·재구현 금지)**: ① **DEVICE 레지스트리** `wms_cameras`(**vendor·protocol**·host·port·rtsp_port·channel·**model**·active·**source**·**bridge_id**·**test_status**/`test_message`/`last_tested_at` `WmsCctv`:124~151) ② **DEVICE_PROFILE** 벤더 접속 프로파일(**ONVIF 표준 포함** `VENDORS`:55~79·`vendors`:350) ③ **Registration/Inventory/Retirement/Remote Diagnostics**(`saveCamera`:384·`listCameras`:364·`deleteCamera`:497·**`testCamera`**:739) ④ **온프렘 브리지** `wms_cctv_bridges`(**pair_code·token_hash·status·agent_version·discovered·last_seen_at**:152~166) ⑤ **Device Provisioning(페어링)**(`tools/cctv-bridge/bridge.js`:92) ⑥ **Device Authentication(토큰)**(:202) ⑦ **Device Health(heartbeat+version/discovered)**(:200~206·VERSION:36) ⑧ **★Device Discovery — LAN WS-Discovery ONVIF 자동발견**(:21·**명세 §8에 항목이 없으나 실재**) ⑨ **세션/재생토큰 TTL 3600s**(:46·:672·:722) ⑩ **★자원 폭주 방어** 응답 상한 **25MB**(:47)·**무시청 90초 후 ffmpeg 종료**(:48) ⑪ **자격 AES-256-GCM**(`Crypto` 049·274차)·테넌트 격리·전역 writeGuard·**SSRF 이중검증** ⑫ 스트림 전달(:811·:902·:922).
+- **★ABSENT(grep 0·부재증명 완료)**: **IoT 표준 프로토콜 전무**·**Firmware 전 계층**·**Edge AI Platform 전량**(§9)·**Telemetry Platform 전량**(§10)·**SENSOR·SENSOR_READING·TELEMETRY·DEVICE_COMMAND·DEVICE_EVENT·DEVICE_POLICY·DEVICE_FIRMWARE·DEVICE_ANALYTICS 엔티티**·**Enterprise Device Registry**(§6 근간)·**IoT Gateway**·**§11 Analytics 전량**·**§12 IoT Governance 전량**·**mTLS·Secure Boot·Firmware Integrity**·Remote Configuration·**API 6종·Event 8종**·**§17 AI 8종**·성능 SLA(**"미달"이 아니라 "측정 기반 부재"**).
+- **★미충족 정직 기술**: §7 "Lifecycle 전 과정 관리" → **6/10 부분**(Telemetry Collection·Edge Processing·Firmware Update·Archive 부재) · §9 "**네트워크 장애 시에도 독립 동작**" → **릴레이가 끊기면 조회 불가**로 미충족 · §11 "**장비 이상 사전 예측**" → **예측 계층 전무**(`test_status`는 **수동 테스트 결과**) · §13 "**신뢰 기반 인증**" → 브리지는 토큰이나 **카메라는 평문 프로토콜 자격**·mTLS 부재.
+- **★★구현 착수 시 설계 제약 9종(ADR)**:
+  1. **Device 레지스트리 이원화 금지** — **`wms_cameras`를 `device_type` 확장으로 일반화**(★**058 Decision·059 Twin·060 Automation에 이은 Registry 부재 4연속**·**처방 동일=기존 위의 얇은 통합 계층**).
+  2. **온프렘 에이전트 이원화 금지** — `cctv-bridge` 재사용. 새 Edge Agent = **현장 설치 부담 + 보안 표면 이중화**.
+  3. **Device identity는 `api_key` 위에** — EPIC 06-A Part3-6·별도 계정 체계 금지·자격은 **`Crypto` Vault**.
+  4. **관측=`SystemMetrics`(057)·감사=`SecurityAudit`(056)** — 별도 수집기 금지·**고빈도 텔레메트리는 앵커링**.
+  5. **Device Discovery는 기존 WS-Discovery 재사용** — **명세에 없다고 부재로 기록하면 실재 자산을 잃는다**.
+  6. **지표는 실 heartbeat/`test_status`/`last_seen_at` 파생만·산출 불가 시 0이 아니라 null·명시적 사유** — ★057·058·059 **3연속 모범** 승계. **본 Part 특히 위험: 장비 헬스 0%를 "정상"으로 오독하면 물리 장애를 은폐**.
+  7. **Time-Series 도입 시 보존 정책 선행** — 단일호스트 제약·059 D-5 무한 누적 교훈.
+  8. **★★테넌트 격리 절대 — 본 Part 최고 위험도** — 카메라 **자격(user/pass)·현장 IP·창고 배치**가 담겨 교차 노출 시 **물리 보안 침해 직결**(다른 Part의 영업 기밀보다 위험도 높음)·신규 API는 **인증 필수 접두**.
+  9. **★★Execute Device Command·Firmware OTA는 최고 수위 게이트** — **물리 제어는 오작동이 물리 세계에 즉시 반영**되므로 058·059·060**보다 더 엄격히**: **승인 정족수 + 킬스위치 + 롤백 경로 + 작업 창(maintenance window)** 함께 설계.
+  ※ **후퇴 금지**: `IDLE_KILL` 제거 시 **ffmpeg 프로세스 무한 누적 → 장애 직결**. ※ **Edge 추론은 GPU/연산 인프라 선행 종속**(051)·AI Model Distribution은 **053 Gateway·052 Model Registry 부재 동반 해결** 필요.
+- **★오흡수 금지(광의 히트 대부분 오탐)**: **`iot` 11히트=`ioTransferDest`/`ioTypeLabel`(WMS 입출고 i18n 키) 완전 오탐** · **`edge` 18히트=`GraphScore` 그래프 엣지 + `WebPush`/`CctvPlayer` 브라우저 Edge 완전 오탐** · **`sensor` 1=`AIInsights.jsx`(:144) "Sensors" UI 라벨** · **`telemetry` 3=`plans.js` 주석**(057) · `provisioning` 2=**SCIM SSO 계정** · `time_series` 1=**픽셀 시계열** · **`device` 81 대부분=`Attribution` 크로스디바이스 식별(280차)·매뉴얼 라벨** · **`tools/cctv-bridge`=스트림 릴레이≠Edge Runtime/추론기** · **영상 릴레이≠센서 텔레메트리** · `Wms` 재고(060)≠Smart Warehouse Device · `SystemMetrics`(057)≠Device Monitoring · `connector_health`≠Device Health · **`agent_version`≠AI Agent**(054 유지) · **비디오월≠Asset Twin**(059 유지).
+- **★강점 정직 기술(후퇴 금지)**: 명세 §17("승인 없이 Firmware 자동 변경·제어 명령 무단 실행 금지")은 **현행이 구조적으로 충족** — ⓐ**Firmware 개념 자체가 없다** ⓑ**제어 명령(DEVICE_COMMAND)이 없다**(조회 전용) ⓒAI가 Device에 접근하는 경로 자체가 없다 ⓓ제안-only+HITL·기본값 approval.
+- **★모범 사례 기록**: **274차가 착수 전 자체 부재증명을 남겼다** — `WmsCctv`(:13) "착수 전 부재증명(CHANGE_GATE): `cctv|rtsp|nvr|onvif|m3u8|hls` 소스 전수 grep 매치 0건" = **`CHANGE_GATE` 준수 모범**.
+- **★Part 054·059 판정 상속·재판정 금지**. ★재감사 금지: 274차 산출물=**데모 검증·운영 미배포** 상태 기술만.
+
+## ★★B. AI 시리즈 누적 결론
+- **053(Gateway 부재) → 056(감사 구멍) → 057(AI 미프로브)** = **같은 뿌리(단일 통과점 부재)**. **053 `ClaudeAI::complete` Gateway 일원화가 최대 부채·실 구현 1순위**.
+- **★★Registry 부재 4연속**: **058 Decision · 059 Twin · 060 Automation · 061 Device** = **같은 구조적 병리**·처방 동일(**기존 위의 얇은 통합 계층·새 엔진 금지**).
+- **★정직 미산출 3연속 모범**(057 `SystemMetrics` null · 058 `Mmm` `optimized:false` · 059 `PriceOpt` null/422) = **저장소 최강 문화 자산**.
+- **★스코프 분리 표준 처리법 2연속 적용**(060 D-2 054↔EPIC06-A · **061 D-1 `WmsCctv` 054/059↔061**).
+
+## ★C. 다음 세션 최우선 (사용자 지정)
+1. **★★[1순위] MEA Part 062 — Enterprise Blockchain, Distributed Ledger & Smart Contract Architecture**(061 SPEC 지정 다음 Part). 동일 7문서 파이프라인.
+   - 조사 후보(가설·**인용 금지**): **`SecurityAudit`**(append-only **해시체인**·prev_hash·`verify` — 056 확정 **유일 tamper-evident**)·`menu_audit_log`·`Crypto`(049)·`Paddle`(결제)·`Compliance`(SIEM).
+   - ★★**053 선례 필독**: 직전 차수 "부재 예상" 가설이 **대부분 틀렸다**. **가설을 근거로 인용하지 말고 전량 grep 재실증**. 뭉뚱그린 평가절하 금지.
+   - ★오흡수 금지 사전 주의: **`SecurityAudit` 해시체인 ≠ Blockchain/DLT**(단일 노드·**합의 없음**·불변성은 append-only **코드 규율**에 의존) · **`menu_audit_log.hash_chain` ≠ tamper-evident**([[reference_menu_audit_log_not_tamper_evident]] **재오염 금지**·289차 116편 정정 확정) · 결제 트랜잭션 ≠ Smart Contract · `Crypto` 암호화 ≠ 암호화폐/서명.
+2. (실 구현 후보·별도 승인세션) **★053 Gateway 일원화 + 감사 스키마 통일 + AI 프로브 추가** — 053 D-2 + 056 D-4 + 057 D-1 **동시 해결**.
+3. (실 구현 후보·별도 승인세션) **Knowledge/RAG 구현**(055 선행조건 4종).
+
+## ★D. 규율 (불변·MEA 시리즈)
+- MEA 전 문서=**설계 명세·코드 변경 0·NOT_CERTIFIED**. 실 구현=별도 승인세션.
+- **반날조**: file:line 인용은 committed GT①EXISTING/GT②DUPLICATE/ADR 등장분만.
+- **부재증명(grep 0)** 후에만 ABSENT·**과대주장 금지**·**부재 축소 금지**·**뭉뚱그린 평가절하 금지**·**오흡수 금지**·**정직 표기**.
+- ★**판정 어휘 4종**: "미달"vs"측정 기반 부재" · "미구현"vs"인프라 선행 종속" · "중복"vs"결여 보강" · "부실"vs"선행 개념 부재".
+- ★**cross-cutting 규율**: 기판정 substrate **재판정 금지**. ★**상충·중복 판정을 만나면 스코프를 분리해 둘 다 참으로**(060 D-2·061 D-1 2연속 적용).
+- ★**grep 규율**: 범위=`backend/src`·`backend/bin`·`backend/data`·`tools`·`frontend/src`(`i18n/**`·`*.json`·`locales_backup` 제외) + **단어경계 `\b`** + **광의 히트는 파일 단위 전수 분류**(056 `shap` 955→0 / 059 137건 / 060 `rpa`=`rPass` 오탐 / **061 `iot`=`ioTypeLabel`·`edge`=그래프 엣지+브라우저 완전 오탐**).
+- **★중복 절대 금지**(헌법 V4): Gateway=`ClaudeAI::complete` · Retriever=`geniegoFeatureDetails` · KNOWLEDGE_SOURCE=`gen_chatbot_knowledge.mjs` · KG=`graph_node.node_type` · **감사체인=`SecurityAudit`(하나)** · 승인=`action_request`+`agent_mode` · 모델감시=`ModelMonitor` · **메트릭=`SystemMetrics`** · 로그포워더=`Compliance` SIEM · 알림=`Alerting` · **ROI최적화=`Mmm::frontier`** · 가격/시뮬=`PriceOpt` · 추천=`AutoRecommend`/`Decisioning` · 규칙=`RuleEngine` · **워크플로=`JourneyBuilder`** · **Device=`wms_cameras`/`cctv-bridge`** · identity=`api_key`.
+- **★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI 자동 정책 변경/미검증 생성물 자동 반영/승인 없는 모델 자동 배포/운영 환경 자동 변경/중요 경영 의사결정 자동 확정/Simulation 결과 운영 자동 반영/핵심 프로세스 자동 변경/**Firmware 자동 변경·제어 명령 무단 실행** 불가(헌법 V5+CHANGE_GATE).
+- 커밋 프리픽스 `docs(289차후속 MEA PartNNN): ...` + Co-Authored-By. push=feat/n236 only(★master 금지). git add=해당 Part 7문서+PM 2편+NEXT_SESSION.md만. 배포 없음(docs만).
+- ★**NEXT_SESSION.md 크기**: pre-commit **B3 상한 500KB**. 초과 시 `--no-verify` 금지 — 아카이브 이동(삭제 금지·바이트 합 검증).
+- **★MEA 진척**: Part 015~052 + 053~060 + **061(본 세션)** 완결. 다음 = **062(Blockchain/DLT/Smart Contract)**.
+
+---
+
 # ★★세션 종결 요약 (289차 후속 MEA Part 060 · 2026-07-22)
 
 **이 세션 성과**: **MEA Part 060 — Enterprise Cognitive Enterprise, Hyperautomation & Autonomous Enterprise Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 053 완결+054 소급정합 → 055 → 056 → 057 → 058 → 059와 연속.)
