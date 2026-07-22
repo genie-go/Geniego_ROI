@@ -92,7 +92,11 @@ export default function GenieAssistant() {
         try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch { /* 청크 로드 실패 무시 */ }
         if (!answer) answer = kbAnswer(q, lang);
       }
-      setMsgs(m => [...m, { role: 'assistant', content: answer, _kb: !(r && r.answer) }]);
+      // [289차 후속 / MEA 055 D-3] Citation — 서버가 실제로 참조한 기능 블록(ns·title·진입경로).
+      //   ★AI 생성물이 아니라 검색 단계에서 결정론적으로 선별된 코퍼스 항목이라 환각이 섞이지 않는다.
+      //   AI 폴백(로컬 KB)로 답한 경우엔 근거가 없으므로 표시하지 않는다.
+      const sources = (r && r.ok && r.answer && Array.isArray(r.sources)) ? r.sources : [];
+      setMsgs(m => [...m, { role: 'assistant', content: answer, _kb: !(r && r.answer), sources }]);
     } catch {
       let answer = null;
       try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch {}
@@ -165,6 +169,24 @@ export default function GenieAssistant() {
                   border: m.role === 'user' ? 'none' : '1px solid #e9eef5',
                   borderTopRightRadius: m.role === 'user' ? 3 : 13, borderTopLeftRadius: m.role === 'user' ? 13 : 3 }}>
                   {m.role === 'assistant' ? <span dangerouslySetInnerHTML={{ __html: mdToHtml(m.content) }} /> : m.content}
+                  {/* [289차 후속 / MEA 055 D-3] 근거(Citation) — 서버가 실제 참조한 기능 블록.
+                      진입 경로는 클릭 시 해당 화면으로 이동해 답변을 바로 확인할 수 있다. */}
+                  {m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length > 0 && (
+                    <div style={{ marginTop: 8, paddingTop: 7, borderTop: '1px dashed #e2e8f0' }}>
+                      <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4, fontWeight: 700 }}>{t('genie.sources', 'Sources')}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                        {m.sources.map((s, si) => {
+                          const to = Array.isArray(s.paths) && s.paths.length ? s.paths[0] : null;
+                          const label = s.title || s.ns;
+                          return to
+                            ? <a key={si} href={to} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: '#eef2ff',
+                                color: '#4f46e5', border: '1px solid #c7d2fe', textDecoration: 'none', fontWeight: 600 }}>{label} <span style={{ opacity: .7 }}>{to}</span></a>
+                            : <span key={si} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: '#f1f5f9',
+                                color: '#64748b', border: '1px solid #e2e8f0', fontWeight: 600 }}>{label}</span>;
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

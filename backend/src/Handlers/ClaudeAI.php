@@ -106,7 +106,9 @@ final class ClaudeAI {
         // [현 차수] 질문과 관련된 기능의 상세 인벤토리만 선별 주입(소형 결정적 검색 — 모델 호출 없음).
         //   전량(약 100KB)을 상시 주입하면 매 질문 토큰이 폭증하므로 상위 3개만 넣는다.
         //   대화 맥락도 매칭 근거에 포함 → "그거 어떻게 설정해?" 같은 후속 질문도 직전 기능을 유지한다.
-        $sys .= self::geniegoFeatureDetails($q . "\n" . $ctx);
+        // [289차 후속 055 D-3] Citation 승격 — 선별된 근거를 구조화 수집해 응답에 함께 실어보낸다.
+        $srcs = [];
+        $sys .= self::geniegoFeatureDetails($q . "\n" . $ctx, 3, $srcs);
         $userMsg = ($ctx ? "[대화 맥락]\n{$ctx}\n" : '') . "[질문]\n{$q}";
         // [289차 후속 P0 귀속] ★tenant 전달 누락 수정 — 저장소 전 AI 진입점 15곳 중 **여기 하나만** 빠져 있었다.
         //   결과: 챗봇 호출이 전부 공용 'unknown' quota 버킷에 누적돼
@@ -121,7 +123,10 @@ final class ClaudeAI {
             $res->getBody()->write(json_encode(['ok' => true, 'ai' => false, 'answer' => null], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type', 'application/json');
         }
-        $res->getBody()->write(json_encode(['ok' => true, 'ai' => true, 'answer' => $ans], JSON_UNESCAPED_UNICODE));
+        // [289차 후속 055 D-3] sources — AI 답변의 근거가 된 기능 블록(ns·title·진입경로).
+        //   ★AI 가 생성한 것이 아니라 **검색 단계에서 결정론적으로 선별된 실제 코퍼스 항목**이라
+        //     환각이 섞이지 않는다(설명가능성의 핵심). 근거가 없으면 빈 배열 — 지어내지 않는다.
+        $res->getBody()->write(json_encode(['ok' => true, 'ai' => true, 'answer' => $ans, 'sources' => $srcs], JSON_UNESCAPED_UNICODE));
         return $res->withHeader('Content-Type', 'application/json');
     }
 
@@ -211,7 +216,22 @@ TERMS;
      * 다국어: 별칭에 15개 로케일의 기능명 + 라틴 대문자 토큰(CCTV·RTSP·HLS…)이 들어 있어 어떤 언어로 물어도 매칭된다.
      * 매칭 실패 시 빈 문자열 → 기존 FEATURE MAP 만으로 동작(무회귀).
      */
-    private static function geniegoFeatureDetails(string $question, int $topN = 3): string {
+    /**
+     * [289차 후속 / MEA 055 D-3] ★Citation 승격 — 선별된 근거 블록을 **구조화해 함께 반환**한다.
+     *
+     * 종전엔 선별 결과가 **프롬프트 문자열 안에만** 존재해, 응답을 받은 쪽은 "AI가 무엇을 근거로
+     * 답했는지" 알 수 없었다(설명가능성 공백). 055 ADR D-3 이 명시한 대로 **블록→출처 매핑
+     * (`ns`·`title`·`paths`)이 이미 코퍼스에 존재**하므로 **신규 수집 없이 반환 계약만 추가**한다.
+     * → 헌법 V4 §15 Explainable AI("근거 표시") 직접 충족 · 신규 provider·비용·인프라 0.
+     *
+     * ★테넌트 안전: 이 코퍼스는 **제품 기능 설명(전역·테넌트 무관)**이라 출처를 노출해도
+     *   크로스테넌트 누출이 없다. 테넌트 문서가 코퍼스에 편입되는 순간부터는
+     *   **055 ADR D-4(테넌트 격리·Knowledge ACL)가 선행 조건**이며 그 전엔 편입 금지.
+     *
+     * @param array|null $sources out — [['ns'=>..,'title'=>..,'paths'=>[..],'score'=>int], ...]
+     */
+    private static function geniegoFeatureDetails(string $question, int $topN = 3, ?array &$sources = null): string {
+        $sources = [];
         $raw = null;
         try { $raw = @file_get_contents(__DIR__ . '/../../data/chatbot_feature_details.json'); } catch (\Throwable $e) {}
         if (!is_string($raw) || $raw === '') return '';
@@ -262,6 +282,13 @@ TERMS;
                 $arr = array_values(array_filter(array_map('strval', (array)$arr), fn($v) => trim($v) !== ''));
                 return $arr ? "- {$label}: " . implode(' / ', $arr) . "\n" : '';
             };
+            // [289차 후속 055 D-3] 프롬프트에 넣는 것과 **동일한 선별 결과**를 출처로 반환(불일치 방지).
+            $sources[] = [
+                'ns'    => (string)$ns,
+                'title' => (string)($ft['title'] ?? $ns),
+                'paths' => array_values(array_filter(array_map('strval', (array)($ft['paths'] ?? [])), fn($p) => trim($p) !== '')),
+                'score' => (int)($scored[$ns] ?? 0),
+            ];
             $b  = "### {$ft['title']}  (진입 경로: " . implode(', ', (array)($ft['paths'] ?? [])) . ")\n";
             if (trim((string)($ft['subtitle'] ?? '')) !== '') $b .= "- 한 줄 요약: {$ft['subtitle']}\n";
             $b .= $line('화면에서 할 수 있는 행동(버튼)', $ft['actions'] ?? []);
