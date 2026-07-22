@@ -108,7 +108,15 @@ final class ClaudeAI {
         //   대화 맥락도 매칭 근거에 포함 → "그거 어떻게 설정해?" 같은 후속 질문도 직전 기능을 유지한다.
         $sys .= self::geniegoFeatureDetails($q . "\n" . $ctx);
         $userMsg = ($ctx ? "[대화 맥락]\n{$ctx}\n" : '') . "[질문]\n{$q}";
-        $ans = self::complete($sys, $userMsg, 60); // [현 차수] 상세 단계별 답변 생성시간 여유(기존 22초→초과로 ai:false 나던 것 해소).
+        // [289차 후속 P0 귀속] ★tenant 전달 누락 수정 — 저장소 전 AI 진입점 15곳 중 **여기 하나만** 빠져 있었다.
+        //   결과: 챗봇 호출이 전부 공용 'unknown' quota 버킷에 누적돼
+        //     ① 테넌트별 일일 캡(225차 P1-4)이 이 경로에서 무력화되고
+        //     ② 한 테넌트가 챗봇을 과다 호출하면 **다른 테넌트까지 함께 차단**되며
+        //     ③ 사용량이 실제 테넌트에 귀속되지 않았다(감사·과금 근거 상실).
+        //   ※`/v422/ai/*` 는 공개 bypass 경로지만 세션 Bearer 가 오면 index.php 게이트가
+        //     auth_tenant 를 주입하므로 self::tenant($req) 로 정상 해석된다(289차 후속 세션 hash 정정으로 실효).
+        //     미인증 호출은 종전대로 'unknown' — 이는 정상(귀속할 테넌트가 실제로 없다).
+        $ans = self::complete($sys, $userMsg, 60, self::tenant($req)); // [현 차수] 상세 단계별 답변 생성시간 여유(기존 22초→초과로 ai:false 나던 것 해소).
         if ($ans === null || $ans === '') {
             $res->getBody()->write(json_encode(['ok' => true, 'ai' => false, 'answer' => null], JSON_UNESCAPED_UNICODE));
             return $res->withHeader('Content-Type', 'application/json');
