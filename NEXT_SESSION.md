@@ -1,3 +1,57 @@
+# ★★세션 종결 요약 (289차 후속 MEA Part 060 · 2026-07-22)
+
+**이 세션 성과**: **MEA Part 060 — Enterprise Cognitive Enterprise, Hyperautomation & Autonomous Enterprise Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 053 완결+054 소급정합 → 055 → 056 → 057 → 058 → 059와 연속.)
+
+## ★A. MEA Part 060 완결 (7문서·코드 0·NOT_CERTIFIED·docs만)
+- **판정 = PARTIAL (마케팅 워크플로 자동화 축은 실재[054 정본] / ★전사 BPA·RPA·Process Mining·Cognitive·Automation Registry = 전면 ABSENT).**
+- **★★성격 규정(ADR D-1)**: **"자동화가 없다"가 아니라 "마케팅 도메인 자동화는 있고 전사 프로세스 자동화(BPA/RPA)는 없다."** `hyperautomation`·`rpa_bot`·`process_mining`·`bpmn`·`camunda`·`zeebe`·`flowable`·`cognitive`·`ocr` **전부 단어 자체 0**이나, 워크플로 축은 **엔티티 수준으로 대응**된다.
+- **★★판정 정합(ADR D-2·cross-cutting 표준 처리법)**: **054**("`JourneyBuilder`=자율 워크플로 엔진 PARTIAL-strong")와 **EPIC 06-A 5-3-1**("BPMN/Temporal/Camunda/Flowable/Zeebe/StepFunctions grep 0 → 워크플로 엔진 자체가 부재")은 **상충이 아니라 스코프 차이** — 054=**마케팅 여정 실행 엔진 실재**, EPIC 06-A=**범용 BPM 엔진 부재**. **양쪽 판정 모두 유지**하고 기준 차이 명시(재판정 아님). ★**cross-cutting Part에서 상충 판정을 만났을 때의 표준 처리법 = 어느 한쪽을 뒤집지 말고 스코프를 분리해 둘 다 참으로 만든다.**
+- **★실재(재사용·승격 대상·재구현 금지)**: ① **워크플로 엔티티 대응** — `journeys`(AUTOMATION_WORKFLOW `JourneyBuilder`:35)·**`journey_enrollments`(PROCESS_INSTANCE:42)**·`journey_node_logs`(:48)·`journey_decision_arm`/`_log`(AUTOMATION_DECISION:54·:60) ② 054 확정 기능(조건분기·delay resume·event wait+timeout·트리거 detector·발송 안전게이트·Thompson) ③ **규칙**(`RuleEngine` 058)·**스케줄**(cron **36 파일**·daypart) ④ **Human Approval**(2인 정족수·**`agent_mode` 기본 approval fail-safe**·킬스위치) ⑤ **AI Decision Integration**(058 7엔진) ⑥ **Automation Chaining**(email/sms/kakao/webhook) ⑦ **도메인 자동화 토글**(`ReturnsPortal::toggleAutomation`:387) ⑧ **자체 마케팅 자동화**(236차 `routes.php`:1324·:2655) ⑨ **★PPM 축** — **작업 의존성 그래프**(`PM/Dependencies.php` `predecessor_id`/`successor_id`/**`dep_type` FS**/`lag_days`:22~39 + **DFS 순환 검출**:77~79)·**CPM 임계경로**(`PM/Gantt.php` ES/EF/LS/LF·**`slack=LS−ES`**·**`critical=slack 0`**:10·:17~18·:181~183)·`pm_portfolio`/`pm_raid`/`pm_time_log`/`pm_baseline`(:33~53)+핸들러 12+프론트 13 ⑩ **도메인 SLA**(정산 대사 티켓 upsert/조회/**sweep** `routes.php`:1980~1982·DSAR `Dsar`:388) ⑪ 보안 상속.
+- **★ABSENT(grep 0·부재증명 완료·단어경계+파일 단위 전수 분류)**: **Enterprise Automation Registry**(§6 근간)·Cognitive Process Engine·**RPA 전량**(Bot·Desktop/Web/Legacy·**OCR**·Monitoring/Analytics)·**Process Mining·Bottleneck(프로세스)·Cycle Time·Automation Opportunity Detection**·**Intelligent Document Processing**·BUSINESS_PROCESS·**RPA_BOT**·**AUTOMATION_VERSION**+형식 PROCESS_STEP/TASK/POLICY/AUDIT·**Process Discovery/Modeling(BPMN)**·Parallel Processing(형식)·**SLA Management(워크플로)**·Recovery Automation·Runtime Optimization·**Workflow Encryption·Bot Credential Vault**·**API 8종·Event 8종**·§17 AI 5종·성능 SLA(**"미달"이 아니라 "측정 기반 부재"**).
+- **★§7 핵심 미충족**: "모든 자동화 프로세스는 **변경 이력**을 관리한다" → `journeys`·`rule_engine` 모두 **현재값 덮어쓰기**·실행 로그≠변경 이력(058 §9 **동일 병리**). ★**AUTOMATION_VERSION은 "중복"이 아니라 "결여 보강"**.
+- **★★구현 착수 시 설계 제약 9종(ADR)**:
+  1. **Automation Orchestrator는 새 실행 엔진이 아니라 디스패처** — ★**058 D-1 "8번째 결정 엔진 금지" · 059 D-3 "통합 Simulation Engine=디스패처" · 060 "Orchestrator=디스패처" = 동일 원칙 3연속**.
+  2. **범용 BPM 필요 시 `JourneyBuilder` 노드 타입 확장이 1순위 검토** — 별도 엔진은 경계·데이터 이중화 비용 **정량 비교 후**에만.
+  3. **실행 로그 이원화 금지** — `journey_node_logs`·`rule_engine_log`·`optimization_log`·`po_repricer_history` **뷰 통합**(058 D-1 승계).
+  4. **AUTOMATION_VERSION은 결여 보강** — append-only 이력 신설·기존은 **현재값 뷰 유지**.
+  5. **Bot identity는 `api_key` 위에** — **`api_key`가 유일 비인간 identity**(EPIC 06-A Part3-6)·별도 계정 체계 금지·자격은 **`Crypto` Vault**.
+  6. **PM CPM을 프로세스 병목으로 오흡수 금지** — 프로젝트 임계경로≠Process Mining 병목·`pm_time_log`≠사이클 타임.
+  7. **Process Intelligence 지표는 실 실행 로그 파생만·산출 불가 시 0이 아니라 null·명시적 사유** — ★**057 null · 058 `optimized:false` · 059 null/422 = 3연속 모범** 승계(**0은 "정상"으로 오독되어 병목을 은폐**).
+  8. **도메인 SLA를 워크플로 SLA로 흡수 금지** — 정산 대사·DSAR SLA는 **축이 다르다**.
+  9. **Automation API는 인증 필수 접두 + 테넌트 격리 절대** — 프로세스 정의·승인 이력·실행 로그 = **조직 기밀**. 감사는 `SecurityAudit` 확장이되 **고빈도 실행 로그는 앵커링**.
+  ※ **§17 게이트는 범위가 넓을수록 더 엄격히** — Hyperautomation은 자동화 범위를 넓히는 일이라 **무게이트 사고의 파급이 크다**(059 D-7과 같은 논리).
+- **★오흡수 금지(동음이의 실측)**: **`rpa` 1히트=`DataTrustDashboard.jsx`(:197) i18n 키 `rPass` 완전 오탐** · **`bot` 1히트=`Line.php`(:24) LINE Messaging API URL≠RPA_BOT** · **`bottleneck` 2히트=아카이브 i18n 문구+`PMGanttView.jsx`(:130) CPM 임계경로 범례≠Process Mining 병목** · **`workflow` 61=`tools/ci_watch.sh` GitHub Actions·라벨** · `automation` 75·`sla` 80 **대부분 메뉴명·i18n 라벨** · **cron 36≠Hyperautomation** · `JourneyBuilder`(마케팅 여정·**054 소관**)≠Enterprise BPA · **PM 도메인=PPM≠BPA** · **`PM/Gantt` CPM=프로젝트 임계경로≠Process Mining 병목** · `pm_time_log`=프로젝트 공수≠사이클 타임 · **`AIInsights.jsx`:599 마케팅 카피≠Autonomous Enterprise** · `RuleEngine` 임계값≠Automation Policy 객체 · 챗봇≠RPA_BOT · 도메인 SLA≠워크플로 SLA.
+- **★강점 정직 기술(후퇴 금지 자산)**: 명세 §17("승인 정책 없이 핵심 비즈니스 프로세스 자동 변경·조직 정책 임의 수정 금지")은 **현행이 구조적으로 충족** — **프로세스 정의(`journeys` 캔버스)는 사람이 설계**·auto도 킬스위치+결제/딜리버리 게이트 종속·미충족 시 **정직 보류+사유**·**기본값 approval**·제안-only+HITL·**조직 정책이 문서/코드**.
+- **★Part 054·058 판정 상속·재판정 금지**. ★재감사 금지: `ReturnsPortal` SQL 인젝션=**기수정분**(:13).
+
+## ★★B. AI 시리즈 누적 결론 (실 구현 1순위)
+- **053(Gateway 부재) → 056(감사 구멍) → 057(AI 미프로브)** = **같은 뿌리(단일 통과점 부재)**. **053 `ClaudeAI::complete` Gateway 일원화가 최대 부채·실 구현 1순위**(감사·계측 자동 확보·최대집합 승계 4조건).
+- **★★Registry 부재 3연속**: **058 Decision Registry · 059 Twin Registry · 060 Automation Registry** = **같은 구조적 병리**. 처방도 같다 — **기존 엔진 위의 얇은 통합 계층(Registry+표준 계약+뷰+디스패처)**이며 **새 엔진 신설 금지**.
+- **★정직 미산출 3연속 모범**(057 `SystemMetrics` null · 058 `Mmm` `optimized:false`+사유 · 059 `PriceOpt` null/422+사유) = **저장소 최강 문화 자산**. 신규 구현 필수 승계.
+
+## ★C. 다음 세션 최우선 (사용자 지정)
+1. **★★[1순위] MEA Part 061 — Enterprise IoT, Edge AI & Intelligent Device Platform Architecture**(060 SPEC 지정 다음 Part). 동일 7문서 파이프라인.
+   - 조사 후보(가설·**인용 금지**): **`WmsCctv`**(274차 온프렘 CCTV 브리지·`tools/cctv-bridge` Node 무의존 에이전트·ONVIF 자동발견·`agent_version`)·`Wms`(창고 장비)·`MediaHost`·`SystemMetrics`(057).
+   - ★★**053 선례 필독**: 직전 차수 "부재 예상" 가설이 **대부분 틀렸다**. **가설을 근거로 인용하지 말고 전량 grep 재실증**. 뭉뚱그린 평가절하 금지.
+   - ★오흡수 금지 사전 주의: **`WmsCctv.agent_version`(온프렘 브리지)≠AI Agent**(054 확정)**이자 ≠Edge AI** · CCTV 스트림 릴레이≠IoT Device Platform · **`tools/cctv-bridge`(Node 무의존 에이전트)≠Edge Runtime** · **059에서 "CCTV 비디오월≠Asset Twin" 확정** — 같은 자산이 **3개 Part에서 반복 오흡수 후보**이므로 특히 주의.
+2. (실 구현 후보·별도 승인세션) **★053 Gateway 일원화 + 감사 스키마 통일 + AI 프로브 추가** — 053 D-2 + 056 D-4 + 057 D-1 **동시 해결**. AI 시리즈 최대 부채.
+3. (실 구현 후보·별도 승인세션) **Knowledge/RAG 구현**(055 선행조건 4종·특히 테넌트 격리+Knowledge ACL).
+
+## ★D. 규율 (불변·MEA 시리즈)
+- MEA 전 문서=**설계 명세·코드 변경 0·NOT_CERTIFIED**. 실 구현=별도 승인세션.
+- **반날조**: file:line 인용은 committed GT①EXISTING/GT②DUPLICATE/ADR 등장분만.
+- **부재증명(grep 0)** 후에만 ABSENT·**과대주장 금지**·**부재 축소 금지**·**뭉뚱그린 평가절하 금지**·**오흡수 금지**·**정직 표기**.
+- ★**판정 어휘 4종**: "미달"vs"측정 기반 부재" · "미구현"vs"인프라 선행 종속" · "중복"vs"결여 보강" · "부실"vs"선행 개념 부재".
+- ★**cross-cutting 규율**: 기판정 substrate **재판정 금지**. ★**상충 판정을 만나면 어느 한쪽을 뒤집지 말고 스코프를 분리해 둘 다 참으로 만든다**(060 D-2 표준 처리법).
+- ★**grep 규율**: 범위=`backend/src`·`backend/bin`·`backend/data`·`tools`·`frontend/src`(`i18n/**`·`*.json`·`locales_backup` 제외) + **단어경계 `\b`** + **광의 히트는 파일 단위 전수 분류**(056 `shap` 955→0 / 059 137건 대부분 E2E·i18n·데모문구 / 060 `rpa`=i18n 키 `rPass` 오탐·`bot`=LINE API URL).
+- **★중복 절대 금지**(헌법 V4): Gateway=`ClaudeAI::complete` · Retriever=`geniegoFeatureDetails` · KNOWLEDGE_SOURCE=`gen_chatbot_knowledge.mjs` · KG=`graph_node.node_type` · **감사체인=`SecurityAudit`(하나)** · 승인=`action_request`+`agent_mode` · 모델감시=`ModelMonitor` · **메트릭=`SystemMetrics`** · 로그포워더=`Compliance` SIEM · 알림=`Alerting` · **ROI최적화=`Mmm::frontier`** · 가격/시뮬=`PriceOpt`(+`po_simulations`) · 추천=`AutoRecommend`/`Decisioning` · 규칙=`RuleEngine` · **워크플로=`JourneyBuilder`** · Bot identity=`api_key`.
+- **★★마케팅 AI(`ClaudeAI`)/dev AI(Claude Code) KEEP_SEPARATE**·AI 자동 정책 변경/미검증 생성물 자동 반영/승인 없는 모델 자동 배포/운영 환경 자동 변경/중요 경영 의사결정 자동 확정/Simulation 결과 운영 자동 반영/**핵심 비즈니스 프로세스 자동 변경** 불가(헌법 V5+CHANGE_GATE).
+- 커밋 프리픽스 `docs(289차후속 MEA PartNNN): ... (설계 명세·코드0·NOT_CERTIFIED)` + Co-Authored-By. push=feat/n236-admin-growth-automation only(★master 금지=자동배포). git add=해당 Part 7문서+PM 2편+NEXT_SESSION.md만. 배포 없음(docs만).
+- ★**NEXT_SESSION.md 크기**: pre-commit **B3 상한 500KB**. 초과 시 `--no-verify` 금지 — 선례대로 **아카이브 이동**(삭제 금지·바이트 합 검증).
+- **★MEA 진척**: Part 015~052 + 053~059 + **060(본 세션)** 완결. **AI Platform 시리즈 051~060 전량 종결.** 다음 = **061(IoT/Edge AI/Intelligent Device)**.
+
+---
+
 # ★★세션 종결 요약 (289차 후속 MEA Part 059 · 2026-07-22)
 
 **이 세션 성과**: **MEA Part 059 — Enterprise Digital Twin, Simulation & Scenario Intelligence Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 Part 053 완결+054 소급정합 → 055 → 056 → 057 → 058과 연속.)
