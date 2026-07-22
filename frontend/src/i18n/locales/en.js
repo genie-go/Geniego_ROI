@@ -8149,6 +8149,7 @@ export default {
     "esgPackaging": "Eco Packaging",
     "esgRecycleRate": "Recycling Rate",
     "esgNotReady": "Coming soon — ESG metric calculation is not available yet",
+    "rightsExpiryAlert": "Copyright expiring soon",
     "guideTabPerfDesc": "Guide to the Performance Hub’s comprehensive analytics features.",
     "guideTitle": "Performance Hub Guide",
     "guideSub": "Comprehensively analyze sales, ads, influencers, settlements, and SKU profit & loss.",

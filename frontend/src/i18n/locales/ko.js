@@ -23493,6 +23493,7 @@ export default {
     "esgPackaging": "친환경 포장",
     "esgRecycleRate": "재활용률",
     "esgNotReady": "준비 중인 기능입니다 — ESG 지표 산출은 아직 제공되지 않습니다",
+    "rightsExpiryAlert": "저작권 만료 임박",
     "guideTabPerfDesc": "성과 허브의 종합 분석 기능을 안내합니다.",
     "guideTitle": "성과 허브 가이드",
     "guideSub": "매출·광고·인플루언서·정산·SKU 손익을 종합 분석합니다.",
