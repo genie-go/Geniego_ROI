@@ -445,8 +445,23 @@ $app->add(function (Request $request, $handler) {
                         // [현 차수 P1 보안] 세션 만료/비활성 검증 추가 — userByToken·EventPopup::requireAdmin 과 동일하게
                         //   s.expires_at > now AND u.is_active=1 강제. 기존엔 토큰 존재만 확인해 만료·해지 세션으로도
                         //   공용 AI(/v422/ai)·결제(/v427/billing)·MMM·Attribution 경로 우회가 가능했다(세션수명 무력화).
+                        // [289차 후속 P0 보안] ★세션 토큰 hash-only 조회로 정정.
+                        //   `user_session.token` 은 289차에 **sha256 해시로 저장**(UserAuth::hashToken 정본,
+                        //   기존 평문행도 in-place UPDATE 해시화)되는데 여기만 **raw $bearer 로 비교**하고 있었다.
+                        //   바로 위 api_key 조회는 hash('sha256',$bearer) 를 쓰는 것과 대비되는 누락이다.
+                        //   결과 2가지:
+                        //   ① 기능: 정상 로그인 세션이 이 게이트 대상 경로에서 401
+                        //      (실측: 데모에 신규 로그인해 발급받은 토큰으로 /api/v424/orderhub/claims 호출 →
+                        //       raw Bearer = 401 Unauthorized).
+                        //   ② 보안: 저장된 **해시 자체를 Bearer 로 보내면 인증 통과**(s.token = 저장해시 일치)
+                        //      → DB 덤프 유출 시 그대로 replay 가능. UserAuth 주석이 선언한 replay 방어
+                        //      (`token=hashToken(해시)≠저장`)가 이 경로에서만 무효였다.
+                        //      (실측: 동일 토큰의 sha256 을 Bearer 로 보내니 200 OK — 저장이 해시임과
+                        //       replay 가능성이 동시에 증명됨.)
+                        //   ★무회귀: 저장이 이미 hash-only 이므로 입력을 해시해 비교하는 것이 정상 경로다
+                        //     (다른 핸들러의 hash-only 조회와 동일 정본 함수 사용).
                         $ss = $pdoAi->prepare('SELECT u.tenant_id FROM user_session s JOIN app_user u ON u.id = s.user_id WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1 LIMIT 1');
-                        $ss->execute([$bearer, gmdate('Y-m-d\TH:i:s\Z')]);
+                        $ss->execute([\Genie\Handlers\UserAuth::hashToken($bearer), gmdate('Y-m-d\TH:i:s\Z')]);
                         $sessTenant = $ss->fetchColumn();
                         if ($sessTenant !== false) {
                             $aiOk = true;
