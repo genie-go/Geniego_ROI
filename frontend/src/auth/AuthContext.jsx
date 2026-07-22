@@ -2,6 +2,7 @@ import React, { useEffect, createContext, useCallback, useContext, useRef, useSt
 import { tChannelName } from '../utils/tenantStorage.js'; // 180차: 회원 격리 크로스탭
 import { allowNavigation } from '../services/unsavedGuard.js'; // [현 차수] 앱 주도 이탈 시 미저장 경고 통과
 import { planRank, setPlanLabels } from "./plans.js";
+import { setSessionReadyGate } from "./authGate.js"; // [P3] 세션 검증 게이트(트리 밖 프로바이더 공유)
 import { menuAllowedByTier, isAdminOnlyMenu } from "./planMenuPolicy.js"; // 181차 플랜별 메뉴접근 초고도화
 import { normalizeTeamRole, canWrite as canTeamRoleWrite, isReadOnlyRole } from "./teamRolePolicy.js"; // 183차 Phase3 팀역할 RBAC
 
@@ -92,6 +93,20 @@ export function AuthProvider({ children }) {
         } catch { return null; }
     });
     const [loading, setLoading] = useState(false);
+    // [현 차수 P3] 세션 검증 게이트 — 인증 fetch 는 서버가 세션을 확인(/auth/me 200)한 뒤에만 발사한다.
+    //   목적: 만료/stale 토큰이 localStorage 에 남아 로그인 화면에서 인증 API 를 난사(401 폭풍)하던 것 차단.
+    //   ★clean 방문자(토큰 없음)는 기존 토큰 가드로 이미 0건이었고, 이 게이트는 "토큰은 있으나 만료" 케이스 전용이다.
+    //   열림/닫힘 정책: /auth/me 200 → 열림 · 5xx/타임아웃/네트워크오류 → 열림(토큰 유효 가능성·복원력 유지) ·
+    //   명시적 401/404 → 닫힘. ★로그아웃 정책(캐시 user 유지로 대량 로그아웃 방어)은 불변 — 데이터 fetch 만 지연.
+    const [sessionReady, setSessionReady] = useState(() => {
+        const t = restorableToken();
+        if (!t) return false;                                          // 토큰 없음 → 검증 대상 아님(효과는 토큰 가드로 skip)
+        if (t.startsWith('local_admin_') || t.startsWith('local__') || t.startsWith('agt_')) return true; // /auth/me 미호출 토큰 → 즉시 열림
+        if (IS_DEMO_MODE) return true;                                 // 데모는 서버 401 무시·세션 유지 → 열림
+        return false;                                                  // 운영 실토큰 → /auth/me 200 확인 전까지 닫힘
+    });
+    // [P3] 상태 → 모듈 게이트 미러링 — AuthProvider 밖(NotificationProvider 등)도 동일 값을 본다.
+    useEffect(() => { setSessionReadyGate(sessionReady); }, [sessionReady]);
     // 실제 API 키 등록 여부 (채널 크레덴셜 저장 성공 시 true)
     const [hasRealKeys, setHasRealKeys] = useState(() => localStorage.getItem(REAL_KEYS_FLAG) === "1");
     // 플랜별 허용 메뉴 목록: { free: [...keys], growth: [...keys], pro: [...keys], enterprise: [...keys] }
@@ -263,6 +278,7 @@ export function AuthProvider({ children }) {
     const saveSession = useCallback((tok, usr, remember) => {
         setToken(tok);
         setUser(usr);
+        setSessionReady(true); // [P3] 방금 발급된 토큰은 유효 → 인증 fetch 게이트 즉시 열기(로그인 후 지연 제거)
         localStorage.setItem(TOKEN_KEY, tok);
         localStorage.setItem(USER_KEY, JSON.stringify(usr));
         // 189차 자동 로그인: remember 미지정(세션 중 갱신 저장)은 기존 영속 설정 유지.
@@ -321,6 +337,7 @@ export function AuthProvider({ children }) {
                 });
 
                 if (r.ok) {
+                    setSessionReady(true); // [P3] 서버가 세션을 확인함 → 인증 fetch 게이트 열기
                     const text = await r.text();
                     if (!text || !text.trim()) return; // 빈 응답은 무시, 캐시 유지
                     try {
@@ -369,11 +386,14 @@ export function AuthProvider({ children }) {
                     localStorage.removeItem(TOKEN_KEY);
                     localStorage.removeItem(USER_KEY);
                     return;
+                    // ★401/404 는 게이트를 열지 않는다(닫힘 유지) → 만료 토큰이 인증 fetch 를 난사하지 않음.
                 }
                 // 5xx, 503, 네트워크 오류 → 로컬 캐시 유지 (서버 문제일 뿐, 로그아웃 안 함)
+                setSessionReady(true); // [P3] 서버 일시장애로 판단 → 토큰 유효 가능성 유지, 게이트 열기(복원력)
 
             } catch {
                 /* 타임아웃 또는 네트워크 오류 → 로컬 캐시 유지 */
+                setSessionReady(true); // [P3] 네트워크/타임아웃 → 토큰 유효 가능성 유지, 게이트 열기(복원력)
             }
         })();
     }, [token]);
@@ -538,6 +558,7 @@ export function AuthProvider({ children }) {
             }).catch(() => { });
         }
         setToken(null); setUser(null);
+        setSessionReady(false); // [P3] 로그아웃 → 인증 fetch 게이트 닫기
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REMEMBER_KEY);            // 189차 자동 로그인 플래그 정리
@@ -840,7 +861,7 @@ export function AuthProvider({ children }) {
 
     return (
         <AuthContext.Provider value={{
-            user, token, loading,
+            user, token, loading, sessionReady, // [P3] 인증 fetch 게이트(서버 세션 확인 후 true)
             login, register, logout, upgrade, upgradeToPro,
             onPaymentSuccess, refreshPlan, updateProfile, canAccess, hasMenuAccess,
             autoLogoutMin, setAutoLogoutMin,

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { IS_DEMO } from "../utils/demoEnv";
+import { isSessionReady, onSessionReadyChange } from "../auth/authGate.js"; // [P3] 세션 확인 전 인증 fetch 금지(AuthProvider 밖이라 모듈 게이트 사용)
 
 const NotificationContext = createContext(null);
 
@@ -107,13 +108,17 @@ export function NotificationProvider({ children }) {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
+  // [P3] 세션 검증 게이트 구독 — 서버가 세션을 확인한 뒤에만 서버 알림 동기화(만료 토큰 401 차단).
+  const [sessReady, setSessReady] = useState(isSessionReady());
+  useEffect(() => onSessionReadyChange(setSessReady), []);
+
   useEffect(() => {
     saveToStorage(notifications);
   }, [notifications]);
 
   /* 189차+ 마운트 시 서버에서 알림 로드(실 로그인·비데모). 실패 시 로컬 유지. */
   useEffect(() => {
-    if (!_serverBacked()) return;
+    if (!_serverBacked() || !sessReady) return; // [P3] 세션 확인 후에만 — 미확인 시 로컬/seed 유지
     let cancelled = false;
     _notifApi("").then(d => {
       if (!cancelled && d && d.ok && Array.isArray(d.notifications)) {
@@ -121,7 +126,7 @@ export function NotificationProvider({ children }) {
       }
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [sessReady]);
 
   /* 새 Notification Add */
   const pushNotification = useCallback((item) => {

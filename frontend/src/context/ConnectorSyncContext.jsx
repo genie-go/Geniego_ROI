@@ -80,7 +80,7 @@ async function testChannelConn(channel) {
 
 /* ─── Provider ─────────────────────────────────────────────────────────────── */
 export function ConnectorSyncProvider({ children }) {
-  const { token, user } = useAuth();
+  const { token, user, sessionReady } = useAuth(); // [P3] 세션 확인 전 인증 fetch 금지
 
   // connectedChannels: { [channelKey]: { connected: bool, keyCount: int, lastTest: Date|null, testStatus: 'ok'|'error'|null } }
   const [connectedChannels, setConnectedChannels] = useState({});
@@ -92,7 +92,7 @@ export function ConnectorSyncProvider({ children }) {
 
   /* DB에서 Channel 자격증명 요약 로드 */
   const refresh = useCallback(async () => {
-    if (!token) return;
+    if (!token || !sessionReady) return; // [P3] 세션 확인(sessionReady) 후에만
     if (_IS_DEMO) {
       // 데모: 가상 연동 상태 시드 (실제 API 호출 없이 연동된 것처럼 체험)
       setConnectedChannels(DEMO_CONNECTED);
@@ -120,11 +120,11 @@ export function ConnectorSyncProvider({ children }) {
       setLoading(false);
       setLastRefresh(new Date());
     }
-  }, [token]);
+  }, [token, sessionReady]); // [P3] 세션 확인 후 발사
 
   /* 레지스트리 SSOT 로드 → 자격증명 채널(ad/commerce/messaging) 키를 KNOWN_CHANNELS 에 additive merge */
   useEffect(() => {
-    if (!token) return;
+    if (!token || !sessionReady) return; // [P3] 세션 확인(sessionReady) 후에만
     loadChannelRegistry().then((reg) => {
       const regKeys = registryBySyncKind(reg, ['ad', 'commerce', 'messaging']).map((c) => c.channel_key);
       if (!regKeys.length) return;
@@ -134,11 +134,11 @@ export function ConnectorSyncProvider({ children }) {
         return merged.size === prev.length ? prev : Array.from(merged);
       });
     });
-  }, [token]);
+  }, [token, sessionReady]); // [P3] 세션 확인 후 발사
 
   /* 마운트 시 + 토큰 변경 시 자동 갱신 */
   useEffect(() => {
-    if (token) {
+    if (token && sessionReady) { // [P3] 세션 확인 후에만 갱신·폴링 시작
       refresh();
       // 5분마다 자동 갱신
       refreshTimerRef.current = setInterval(refresh, 300_000);
@@ -146,7 +146,7 @@ export function ConnectorSyncProvider({ children }) {
     return () => {
       if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
     };
-  }, [token, refresh]);
+  }, [token, refresh, sessionReady]); // [P3] 세션 확인 후 갱신·폴링 시작
 
   /* [현 차수] 감사 B-1: 크로스탭 채널 연결/해제 즉시 반영 — ApiKeys 가 발신하던 genie_connector_sync
      BroadcastChannel(CHANNEL_REGISTERED/REMOVED)을 SSOT 컨텍스트가 미구독해 connectedChannels 배지가 최대 5분 stale.

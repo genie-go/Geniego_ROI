@@ -64,7 +64,7 @@ function saveAdminTreeCache(data) {
 }
 
 export function MenuVisibilityProvider({ children }) {
-  const { token } = useAuth() || {};
+  const { token, sessionReady } = useAuth() || {}; // [P3] 세션 확인 전 menu-tree fetch 금지(401 차단)
 
   const [globalVisibility, setGlobalVisibility] = useState(() => loadAdminTreeCache() || {});
   const [userPrefs, setUserPrefs] = useState(loadUserPrefs);
@@ -78,7 +78,7 @@ export function MenuVisibilityProvider({ children }) {
    * 본 skeleton: 백엔드 미배포 환경에서 fail-silent (캐시 fallback).
    */
   const fetchGlobal = useCallback(async () => {
-    if (!token) return;
+    if (!token || !sessionReady) return; // [P3] 세션 확인(sessionReady) 후에만
     setLoading(true);
     setError(null);
     try {
@@ -121,7 +121,7 @@ export function MenuVisibilityProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, sessionReady]); // [P3] 세션 확인 후 발사(가드로 세션 전에는 skip)
 
   useEffect(() => { fetchGlobal(); }, [fetchGlobal]);
 

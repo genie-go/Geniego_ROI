@@ -12,6 +12,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
 import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
+import { useAuth } from '../auth/AuthContext.jsx'; // [P3] 세션 검증 게이트(sessionReady)
 
 // [276차] 미인증(로그인 화면) 상태에서 인증 필요 EP 를 호출해 401 을 만들지 않기 위한 게이트.
 //   로그인 시 TenantScopedProviders 의 key(tenantKey) 가 'anon'→tenant 로 바뀌며 Provider 가
@@ -271,6 +272,8 @@ const INIT_AI_RECOMMENDATIONS = loadDemoState('ai_recommendations', DEMO_AI_RECO
 const INIT_CHANNEL_PRICES = loadDemoState('channel_prices', DEMO_CHANNEL_PRICES);
 
 export function GlobalDataProvider({ children }) {
+    // [P3] 서버가 세션을 확인(/auth/me 200)하기 전에는 인증 EP 를 호출하지 않는다(만료 토큰 401 폭풍 차단).
+    const { sessionReady } = useAuth();
     const [AdCamps, setAdCamps] = useState(INIT__AD_CAMPAIGNS);
 
     /* ── 핵심 공유 상태 ─────────────────────────── */
@@ -463,7 +466,7 @@ export function GlobalDataProvider({ children }) {
     useEffect(() => {
         if (_isDemo) return; // ★ 데모 모드: 시드 데이터 유지, API 스킵
         const token = authToken();
-        if (!token) return;
+        if (!token || !sessionReady) return; // [P3] 세션 확인(sessionReady) 전에는 인증 fetch 금지
         const BASE = import.meta.env.VITE_API_BASE || '';
         fetch(`${BASE}/api/channel-sync/inventory`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -476,14 +479,14 @@ export function GlobalDataProvider({ children }) {
                 if (built.length > 0) setInventory(built);
             })
             .catch(() => { /* Error 시 INIT_INVENTORY 유지 */ });
-    }, [syncTick]); // [현 차수] 마운트 1회 + triggerSync 시 재고 즉시 재pull(자격증명/동기화 등록 반영)
+    }, [syncTick, sessionReady]); // [현 차수] 마운트 1회 + triggerSync 시 재고 즉시 재pull + [P3] 세션 확인 후 발사
 
     // ── [165차 PM Phase 2-B] OrderHub Aggregator API → orders / claimHistory / settlement
     //    spec: docs/spec/backend_orderhub_aggregator_165_v3.md §8 (v1 §7 동일 패턴)
     //    데모 모드: 시드 데이터 유지 (API 스킵). 운영 모드: /api/v424/orderhub/* 호출.
     useEffect(() => {
         if (_isDemo) return;
-        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
+        if (!authToken() || !sessionReady) return; // [276차] 미인증 401 차단 + [P3] 세션 확인 전 fetch 금지
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/orders?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setOrders(res.items); })
@@ -498,11 +501,11 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setInfluencerCostServer(res); })
             .catch(() => { /* 실패 시 0(영향 없음) */ });
         return () => { cancelled = true; };
-    }, [syncTick]); // [현 차수] 마운트 1회 + triggerSync 즉시 재fetch(폴링은 별도 useEffect 보존)
+    }, [syncTick, sessionReady]); // [현 차수] 마운트 1회 + triggerSync 즉시 재fetch(폴링은 별도) + [P3] 세션 확인 후 발사
 
     useEffect(() => {
         if (_isDemo) return;
-        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
+        if (!authToken() || !sessionReady) return; // [276차] 미인증 401 차단 + [P3] 세션 확인 전 fetch 금지
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/claims?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setClaimHistory(res.items); })
@@ -512,11 +515,11 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setClaimStatsServer(res); })
             .catch(() => { /* 클라 배열 폴백 */ });
         return () => { cancelled = true; };
-    }, [syncTick]); // [현 차수] triggerSync 즉시 재fetch
+    }, [syncTick, sessionReady]); // [현 차수] triggerSync 즉시 재fetch + [P3] 세션 확인 후 발사
 
     useEffect(() => {
         if (_isDemo) return;
-        if (!authToken()) return; // [276차] 로그인 화면 미인증 401 차단
+        if (!authToken() || !sessionReady) return; // [276차] 미인증 401 차단 + [P3] 세션 확인 전 fetch 금지
         let cancelled = false;
         getJsonAuth('/api/v424/orderhub/settlements?limit=200')
             .then(res => { if (!cancelled && res?.ok && Array.isArray(res.items)) setSettlement(res.items); })
@@ -526,14 +529,14 @@ export function GlobalDataProvider({ children }) {
             .then(res => { if (!cancelled && res?.ok) setSettlementStatsServer(res); })
             .catch(() => { /* 실패 시 클라(200캡) 집계 폴백 */ });
         return () => { cancelled = true; };
-    }, [syncTick]); // [현 차수] triggerSync 즉시 재fetch
+    }, [syncTick, sessionReady]); // [현 차수] triggerSync 즉시 재fetch + [P3] 세션 확인 후 발사
 
     // ── [208차 동기화 P1] 운영 홈/성과 대시보드 실시간성: orders/settlement/inventory 30초 주기 폴링.
     //    기존엔 마운트 시 1회만 fetch → 신규 주문/정산 롤업이 새로고침 전까지 미반영이던 갭 해소.
     useEffect(() => {
         if (_isDemo) return;
         const token = authToken();
-        if (!token) return;
+        if (!token || !sessionReady) return; // [P3] 세션 확인(sessionReady) 전에는 인증 fetch 금지
         let cancelled = false;
         const BASE = import.meta.env.VITE_API_BASE || '';
         const poll = () => {
@@ -600,7 +603,7 @@ export function GlobalDataProvider({ children }) {
         const onRefresh = () => poll();
         window.addEventListener('genie:data-refresh', onRefresh);
         return () => { cancelled = true; clearInterval(iv); window.removeEventListener('genie:data-refresh', onRefresh); };
-    }, []);
+    }, [sessionReady]); // [P3] 세션 확인 후 폴링 시작(가드로 세션 전에는 skip)
 
     // ── [DEMO v15] 데모 모드: 시드 데이터가 풍부하므로 Rollup API는 완전 삭제 처리 (운영 환경 오염 방지) ──
 
