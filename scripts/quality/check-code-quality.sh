@@ -167,6 +167,27 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
+section "6. PHP — 정적분석 (PHPStan · 베이스라인 대비)"
+# ─────────────────────────────────────────────────────────────
+# 레벨 5. 레거시 기존 위반은 backend/phpstan-baseline.neon 으로 고정하고 신규/증가분만 차단한다.
+#   (프론트 ESLint 베이스라인과 동일한 CCIS Part004 원칙. 레벨 0 위반=중복키 5건은 이미 수정해 0.)
+if ! command -v php >/dev/null 2>&1; then
+  warn "php 미설치 — PHPStan 게이트 건너뜀"
+elif [ ! -x backend/vendor/bin/phpstan ] && [ ! -f backend/vendor/bin/phpstan ]; then
+  warn "PHPStan 미설치 — 'cd backend && composer install'(require-dev) 후 게이트가 작동합니다"
+else
+  PHPSTAN_OUT="$( (cd backend && php vendor/bin/phpstan analyse --no-progress --memory-limit=1G) 2>&1 )"
+  PHPSTAN_RC=$?
+  if [ "$PHPSTAN_RC" -eq 0 ]; then
+    pass "PHPStan level 5 — 베이스라인 대비 신규 위반 0"
+  else
+    fail "PHPStan 신규 위반 감지 (레벨 5 · 베이스라인 초과)" \
+         "$(printf '%s\n' "$PHPSTAN_OUT" | grep -E ' [0-9]+ +[^ ]|Found [0-9]+ error' | head -10)"
+    echo "         (기존 위반을 줄였다면 'cd backend && php vendor/bin/phpstan analyse --generate-baseline=phpstan-baseline.neon' 로 baseline 하향)" >&2
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  결과 요약"

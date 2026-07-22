@@ -12,7 +12,7 @@
 #   make compose-up     — Docker Compose 시작
 #   make compose-down   — Docker Compose 종료
 
-.PHONY: help bootstrap validate lint test quality quality-baseline build build-frontend build-backend \
+.PHONY: help bootstrap validate lint test quality quality-baseline phpstan phpstan-baseline build build-frontend build-backend \
         compose-up compose-down validate-layout validate-boundaries \
         validate-generated validate-large-files validate-env
 
@@ -101,11 +101,17 @@ lint-backend: ## Backend PHP 구문 검사 (전 파일)
 	echo "[lint-backend] $$tot files checked, $$fail error(s)."; \
 	[ $$fail -eq 0 ]
 
-quality: ## 통합 품질 게이트 (ESLint 베이스라인 · PHP · Shell · JSON · Git)
+quality: ## 통합 품질 게이트 (ESLint · PHP구문 · Shell · JSON · Git · PHPStan 정적분석)
 	@bash scripts/quality/check-code-quality.sh
 
-quality-baseline: ## 위반을 줄인 뒤 베이스라인 갱신 (상향 금지)
+quality-baseline: ## 위반을 줄인 뒤 ESLint 베이스라인 갱신 (상향 금지)
 	@bash scripts/quality/check-code-quality.sh --update-baseline
+
+phpstan: ## Backend PHPStan 정적분석 (레벨 5 · 베이스라인 대비)
+	cd $(BACKEND_DIR) && php vendor/bin/phpstan analyse --memory-limit=1G
+
+phpstan-baseline: ## 위반을 줄인 뒤 PHPStan 베이스라인 갱신 (상향 금지)
+	cd $(BACKEND_DIR) && php vendor/bin/phpstan analyse --generate-baseline=phpstan-baseline.neon --memory-limit=1G
 
 # ─────────────────────────────────────────────────────────────
 # Build

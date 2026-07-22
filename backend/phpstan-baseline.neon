@@ -1,0 +1,1315 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Function runForDb invoked with 4 parameters, 2\-3 required\.$#'
+			identifier: arguments.count
+			count: 5
+			path: bin/alerts_cron.php
+
+		-
+			message: '#^Parameter \#3 \$allowActuate of function runForDb expects bool, string given\.$#'
+			identifier: argument.type
+			count: 5
+			path: bin/alerts_cron.php
+
+		-
+			message: '#^Offset ''channels'' on array\{tenant_id\: string, window\: array, persisted\: int, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/analytics_sync_cron.php
+
+		-
+			message: '#^Offset ''persisted'' on array\{tenant_id\: string, window\: array, persisted\: int, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/analytics_sync_cron.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: bin/analytics_sync_cron.php
+
+		-
+			message: '#^Offset ''channel'' on array\{tenant_id\: string, channel\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: bin/commerce_sync_cron.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: bin/commerce_sync_cron.php
+
+		-
+			message: '#^Offset ''order_count'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/commerce_sync_cron.php
+
+		-
+			message: '#^Offset ''product_count'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/commerce_sync_cron.php
+
+		-
+			message: '#^Offset ''tenant_id'' on array\{tenant_id\: string, channel\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 4
+			path: bin/commerce_sync_cron.php
+
+		-
+			message: '#^Offset ''channels'' on array\{tenant_id\: string, window\: array, persisted\: int, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/connectors_sync_cron.php
+
+		-
+			message: '#^Offset ''persisted'' on array\{tenant_id\: string, window\: array, persisted\: int, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/connectors_sync_cron.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: bin/connectors_sync_cron.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: bin/cs_sync_cron.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: bin/esp_sync_cron.php
+
+		-
+			message: '#^Offset ''failed'' on array\{sent\: int, failed\: int, skipped\: int, tenants_deferred\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/omni_dispatch_cron.php
+
+		-
+			message: '#^Offset ''sent'' on array\{sent\: int, failed\: int, skipped\: int, tenants_deferred\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/omni_dispatch_cron.php
+
+		-
+			message: '#^Offset ''skipped'' on array\{sent\: int, failed\: int, skipped\: int, tenants_deferred\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/omni_dispatch_cron.php
+
+		-
+			message: '#^Offset ''tenants_deferred'' on array\{sent\: int, failed\: int, skipped\: int, tenants_deferred\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/omni_dispatch_cron.php
+
+		-
+			message: '#^Offset ''awaiting''\|''done''\|''failed''\|''pending''\|''processed'' on array\{processed\: int, done\: int, awaiting\: int, pending\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/shipment_confirm_cron.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: bin/sns_live_sync_cron.php
+
+		-
+			message: '#^Offset ''delivered'' on array\{processed\: int, delivered\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/webhook_dispatch_cron.php
+
+		-
+			message: '#^Offset ''failed'' on array\{processed\: int, delivered\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/webhook_dispatch_cron.php
+
+		-
+			message: '#^Offset ''processed'' on array\{processed\: int, delivered\: int, failed\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: bin/webhook_dispatch_cron.php
+
+		-
+			message: '#^Constant Genie\\Crypto\:\:PREFIX is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: src/Crypto.php
+
+		-
+			message: '#^Constant Genie\\Handlers\\AbTesting\:\:UCB_C is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: src/Handlers/AbTesting.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/AdAdapters.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between array\{__file__\: mixed, name\: mixed, mime\: mixed\}\|non\-empty\-string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/AdAdapters.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/AdAdapters.php
+
+		-
+			message: '#^Property Genie\\Handlers\\AdPerformance\:\:\$userPlan is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Handlers/AdPerformance.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 3
+			path: src/Handlers/AdPerformance.php
+
+		-
+			message: '#^Offset ''active''\|''demo''\|''download''\|''inquiry''\|''landing''\|''onboarded''\|''paid''\|''trial''\|''upsell''\|''visitor'' on array\{upsell\: int, active\: int, paid\: int, onboarded\: int, trial\: int, demo\: int, inquiry\: int, download\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset ''count'' on array\{index\: 0, count\: int, convFromPrev\: null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset ''count'' on array\{index\: 5, count\: int, convFromPrev\: float\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset ''count'' on array\{index\: 7, count\: int, convFromPrev\: float\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Offset 0\|1\|2\|3\|4\|5\|6\|7\|8\|9 on array\{''visitor'', ''landing'', ''download'', ''inquiry'', ''demo'', ''trial'', ''onboarded'', ''paid'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AdminGrowth.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Handlers/AdminPlans.php
+
+		-
+			message: '#^Offset ''1'' on array\<string, non\-empty\-array\<int, array\{price_usd\: mixed, discount_pct\: int\<0, 100\>, paddle_price_id\: string, is_active\: 0\|1, display_order\: int\}\>\> in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Handlers/AdminPlans.php
+
+		-
+			message: '#^Variable \$rl might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Handlers/AgencyPortal.php
+
+		-
+			message: '#^Static method Genie\\TemplateResponder\:\:respond\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Handlers/AiGenerate.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{array\{id\: ''meta\.pause_campaign'', platform\: ''meta'', action\: ''pause_campaign'', http\: array\{method\: ''POST'', path\: ''/\{campaign_id\}'', query\: array\{status\: ''PAUSED''\}\}, placeholders\: array\{''campaign_id''\}, notes\: ''Set campaign status…''\}, array\{id\: ''meta\.budget_change'', platform\: ''meta'', action\: ''budget_change'', http\: array\{method\: ''POST'', path\: ''/\{adset_id\}'', body\: array\{daily_budget\: ''\{daily_budget\}''\}\}, placeholders\: array\{''adset_id'', ''daily_budget''\}, notes\: ''Update ad set daily…''\}, array\{id\: ''google_ads\.pause…'', platform\: ''google_ads'', action\: ''pause_campaign'', rpc\: array\{service\: ''CampaignService'', method\: ''MutateCampaigns'', update\: array\{status\: ''PAUSED''\}\}, placeholders\: array\{''customer_id'', ''campaign_resource…''\}, notes\: ''Mutate campaign…''\}, array\{id\: ''tiktok\.pause…'', platform\: ''tiktok'', action\: ''pause_campaign'', http\: array\{method\: ''POST'', path\: ''/open_api/v1\.3…'', body\: array\{campaign_id\: ''\{campaign_id\}'', operation_status\: ''DISABLE''\}\}, placeholders\: array\{''campaign_id''\}, notes\: ''Disable campaign…''\}, array\{id\: ''amazon_ads\.pause…'', platform\: ''amazon_ads'', action\: ''pause_campaign'', http\: array\{method\: ''PUT'', path\: ''/\{ad_type\}/campaigns'', body\: array\{array\{campaignId\: ''\{campaign_id\}'', state\: ''paused''\}\}\}, placeholders\: array\{''ad_type'', ''campaign_id''\}, notes\: ''Set campaign state…''\}, array\{id\: ''naver_searchad…'', platform\: ''naver_searchad'', action\: ''pause_campaign'', http\: array\{method\: ''PUT'', path\: ''/ncc/campaigns/…'', body\: array\{userLock\: true\}\}, placeholders\: array\{''campaign_id''\}, notes\: ''Lock campaign …''\}, array\{id\: ''coupang\.modify…'', platform\: ''coupang'', action\: ''modify_product'', http\: array\{method\: ''PUT'', path\: ''/v2/providers…'', body\: ''\{full_product_json\}''\}, placeholders\: array\{''sellerProductId'', ''full_product_json''\}, notes\: ''Modify product…''\}\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/Alerting.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Alerting.php
+
+		-
+			message: '#^Variable \$attributedChannel on left side of \?\? always exists and is always null\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: src/Handlers/Attribution.php
+
+		-
+			message: '#^Comparison operation "\<\=" between int\<1, max\> and 0 is always false\.$#'
+			identifier: smallerOrEqual.alwaysFalse
+			count: 1
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Comparison operation "\>" between 0\.0 and 0 is always false\.$#'
+			identifier: greater.alwaysFalse
+			count: 4
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Offset ''channels'' on array\{models\: array, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Offset ''models'' on array\{models\: array, channels\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Offset ''total_conversions'' on array\{models\: array, channels\: array\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Offset ''total_revenue'' on array\{models\: array, channels\: array\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Variable \$channels in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Handlers/AttributionEngine.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''action'' on array\{channel\: mixed, action\: ''billing_required''\|''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''action'' on array\{channel\: mixed, action\: ''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''drift'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''new'' on array\{channel\: mixed, action\: ''billing_required''\|''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''new'' on array\{channel\: mixed, action\: ''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''old'' on array\{channel\: mixed, action\: ''billing_required''\|''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''old'' on array\{channel\: mixed, action\: ''drift_warning''\|''pause''\|''realloc'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''reason'' on array\{channel\: mixed, action\: ''pause'', old\: float\|int, new\: int, roas\: mixed, ctr\: mixed, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Offset ''scaling''\|''stable''\|''urgent''\|''volatile'' on array\{urgent\: non\-falsy\-string, scaling\: non\-falsy\-string, volatile\: non\-falsy\-string, stable\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\AutoCampaign\:\:monthlySpentToDate\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/AutoCampaign.php
+
+		-
+			message: '#^Comparison operation "\>" between 30\|90\|180\|365 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/AutoRecommend.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 2
+			path: src/Handlers/AutoRecommend.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1000, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/AutoRecommend.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<1, max\> and 0 will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/AutoRecommend.php
+
+		-
+			message: '#^Variable \$rows in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Handlers/AutoRecommend.php
+
+		-
+			message: '#^Anonymous function has an unused use \$find\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: src/Handlers/CRM.php
+
+		-
+			message: '#^Comparison operation "\<\=" between 1\|2 and 2 is always true\.$#'
+			identifier: smallerOrEqual.alwaysTrue
+			count: 1
+			path: src/Handlers/CRM.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/CRM.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<2, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/CRM.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Offset ''price'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Offset ''status'' on array\{sku\: string, status\: mixed, requires_approval\?\: true, error\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Offset 0 on array\{list\<string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\Catalog\:\:latestJobResult\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between ''airpods''\|''apparel''\|''baby''\|''beverage''\|''boots''\|''camping''\|''coffee''\|''cosmetic''\|''cream''\|''dress''\|''earbuds''\|''fitness''\|''food''\|''galaxy''\|''headphone''\|''iphone''\|''jacket''\|''kids''\|''kitchen''\|''laptop''\|''lotion''\|''macbook''\|''outdoor''\|''pan''\|''pants''\|''pc''\|''phone''\|''serum''\|''shirt''\|''shoes''\|''skincare''\|''smartphone''\|''snack''\|''sneaker''\|''speaker''\|''sports''\|''tablet''\|''toy''\|''tumbler''\|''간식''\|''갤럭시''\|''과자''\|''구두''\|''그릇''\|''냄비''\|''노트북''\|''등산''\|''로션''\|''맥북''\|''바지''\|''부츠''\|''세럼''\|''셔츠''\|''스마트폰''\|''스킨케어''\|''스포츠''\|''스피커''\|''식품''\|''신발''\|''아기''\|''아이폰''\|''어린이''\|''운동''\|''운동화''\|''원피스''\|''유아''\|''음료''\|''의류''\|''이어폰''\|''자켓''\|''장난감''\|''조리''\|''주방''\|''캠핑''\|''커피''\|''컴퓨터''\|''크림''\|''태블릿''\|''텀블러''\|''티셔츠''\|''헤드폰''\|''화장품''\|''휴대폰'' and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: src/Handlers/Catalog.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/ChannelCreds.php
+
+		-
+			message: '#^Offset ''kind'' on array\{kind\: ''ad''\|''analytics''\|''commerce''\|''cs''\|''esp''\|''logistics''\|''pg''\|''review''\|''sns_live'', result\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ChannelCreds.php
+
+		-
+			message: '#^Offset ''result'' on array\{kind\: ''ad''\|''analytics''\|''commerce''\|''cs''\|''esp''\|''logistics''\|''pg''\|''review''\|''sns_live'', result\: array\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ChannelCreds.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\ChannelCreds\:\:isDemoRequest\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/ChannelCreds.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 3
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Offset ''background'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Offset ''pending'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Offset ''total_available'' on array\{ok\: bool, product_count\: int, order_count\: int, synced_at\: string, note\: string\|null, error\: string\|null\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(\[''scanned''\=\>n, ''enriched''\=\>n, ''skipped_cr''\=\>n\] 처리 통계\.\)\: Unexpected token "\[", expected type at offset 1098 on line 13$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 2
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\ChannelSync\:\:naverProducts\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between '''' and '''' will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-empty\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Handlers/ChannelSync.php
+
+		-
+			message: '#^Comparison operation "\<" between 0\|1 and 4 is always true\.$#'
+			identifier: smaller.alwaysTrue
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Method Genie\\Handlers\\ClaudeAI\:\:geniegoFeatureDetails\(\) never assigns null to &\$sources so it can be removed from the by\-ref type\.$#'
+			identifier: parameterByRef.unusedType
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Offset ''headline'' on non\-empty\-array\<mixed, mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\ClaudeAI\:\:campaignAdCreativePrompt\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\ClaudeAI\:\:campaignSearchPrompt\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Static method Genie\\TemplateResponder\:\:json\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 3
+			path: src/Handlers/ClaudeAI.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Handlers/Connectors.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-falsy\-string&uppercase\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/Handlers/Connectors.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-falsy\-string and ''0'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/CouponAdmin.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/CreativeStore.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: src/Handlers/CustomerAI.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 2
+			path: src/Handlers/CustomerAI.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\DataExport\:\:encryptConfig\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/DataExport.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/DataPlatform.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 4
+			path: src/Handlers/Decisioning.php
+
+		-
+			message: '#^Offset ''total'' on array\{name\: string, days\: non\-empty\-array\<string, float\>, total\: float\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/DemandForecast.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 2
+			path: src/Handlers/DemandForecast.php
+
+		-
+			message: '#^Offset ''harvest_note'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/DigitalShelf.php
+
+		-
+			message: '#^Offset ''harvest_source'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/DigitalShelf.php
+
+		-
+			message: '#^Offset ''harvest_status'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/DigitalShelf.php
+
+		-
+			message: '#^Offset ''harvested_at'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/DigitalShelf.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/DigitalShelf.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{ok\: bool, mode\: string, detail\: string\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/Dsar.php
+
+		-
+			message: '#^Left side of \|\| is always false\.$#'
+			identifier: booleanOr.leftAlwaysFalse
+			count: 1
+			path: src/Handlers/EmailMarketing.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/EmailMarketing.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/EmailMarketing.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:getAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Handlers/EnterpriseAuth.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Geo.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/InstagramDM.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Handlers/InstagramDM.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/InstagramDM.php
+
+		-
+			message: '#^Match arm comparison between ''push'' and ''push'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''mode'' on \*NEVER\* on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, code\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\: string, code\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\?\: ''unconfigured''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Handlers/JourneyBuilder.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\Line\:\:plan\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/Line.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/Line.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src/Handlers/LiveCommerce.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/LiveCommerce.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: src/Handlers/Logistics.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/Logistics.php
+
+		-
+			message: '#^Comparison operation "\>" between 2\|int\<4, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/Mmm.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<int\|string, array\<mixed\>\|string\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/OAuth.php
+
+		-
+			message: '#^Offset ''error'' on array\{ok\: false, mode\?\: ''unconfigured''\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, code\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: bool, mode\: string, status\?\: string, error\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: true, mode\: string, code\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Offset ''status'' on array\{ok\: bool, status\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between '''' and ''invalid'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/Omnichannel.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/Handlers/OrderHub.php
+
+		-
+			message: '#^Variable \$body in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Handlers/OrderHub.php
+
+		-
+			message: '#^Anonymous function has an unused use \$db\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: src/Handlers/Paddle.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Handlers/Paddle.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/Paddle.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Handlers/Payment.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/Payment.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/Payment.php
+
+		-
+			message: '#^Variable \$http_response_header in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: src/Handlers/Payment.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/PixelTracking.php
+
+		-
+			message: '#^Offset ''email''\|''kakao''\|''push''\|''sms''\|''whatsapp'' on array\{email\: ''이메일'', sms\: ''문자\(SMS\)'', kakao\: ''카카오 알림톡'', whatsapp\: ''WhatsApp'', push\: ''웹푸시''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/PreferenceCenter.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(array\<string sku, array\{on_hand\:float, velocity\:float, days_cover\:\?float\}\>\)\: Unexpected token "sku", expected ''\>'' at offset 404 on line 5$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Handlers/PriceOpt.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\PriceOpt\:\:optimalPrice\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/PriceOpt.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/Handlers/PriceOpt.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/PriceOpt.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Handlers/Reports.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Handlers/ReturnsPortal.php
+
+		-
+			message: '#^Offset ''mode'' on array\{ok\: false, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Reviews.php
+
+		-
+			message: '#^Offset ''가품''\|''건조함''\|''광고과장''\|''냄새''\|''누수''\|''늦음''\|''따가움''\|''뜯김''\|''뭉침''\|''밀림''\|''반품''\|''발진''\|''배송''\|''백탁''\|''번짐''\|''불량''\|''비추''\|''실망''\|''자극''\|''트러블''\|''파손''\|''환불''\|''효과없'' on array\{번짐\: int\<0, max\>, 뭉침\: int\<0, max\>, 트러블\: int\<0, max\>, 백탁\: int\<0, max\>, 따가움\: int\<0, max\>, 건조함\: int\<0, max\>, 밀림\: int\<0, max\>, 반품\: int\<0, max\>, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/Reviews.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between ''가품''\|''건조함''\|''광고과장''\|''냄새''\|''누수''\|''늦음''\|''따가움''\|''뜯김''\|''뭉침''\|''밀림''\|''반품''\|''발진''\|''배송''\|''백탁''\|''번짐''\|''불량''\|''비추''\|''실망''\|''자극''\|''트러블''\|''파손''\|''환불''\|''효과없'' and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/Handlers/Reviews.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string&uppercase\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Handlers/Reviews.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 2
+			path: src/Handlers/Rollup.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\Rollup\:\:isDemo\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/Rollup.php
+
+		-
+			message: '#^Variable \$pdo might not be defined\.$#'
+			identifier: variable.undefined
+			count: 6
+			path: src/Handlers/Rollup.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''\\\\Genie\\\\Handlers…'' and ''pauseChannel'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Method Genie\\Handlers\\RuleEngine\:\:countUsersOverCap\(\) never returns float so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Parameter \#1 \$array \(non\-empty\-list\<0\|1\|2\|3\|4\|5\|6\|7\|8\|9\|10\|11\|12\|13\|14\|15\|16\|17\|18\|19\|20\|21\|22\|23\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Parameter \#1 \$pdo of static method Genie\\Db\:\:audit\(\) expects PDO, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Parameter \#3 \$action of static method Genie\\Db\:\:audit\(\) expects string, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\RuleEngine\:\:countUsersOverCap\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between ''skipped'' and ''skipped'' will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 1
+			path: src/Handlers/RuleEngine.php
+
+		-
+			message: '#^Comparison operation "\<" between int\<0, 9\> and 95 is always true\.$#'
+			identifier: smaller.alwaysTrue
+			count: 2
+			path: src/Handlers/SmsMarketing.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Handlers/SmsMarketing.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\SmsMarketing\:\:demoMessages\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/SmsMarketing.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/SmsMarketing.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Genie\\\\Db'' and ''env'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Handlers/SystemMetrics.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\SystemMetrics\:\:isAuthed\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/SystemMetrics.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(true\=허용, false\=상한초과\(거부\)\.\)\: Unexpected token "\=", expected TOKEN_HORIZONTAL_WS at offset 679 on line 7$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/Handlers/TeamPermissions.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\UserAdmin\:\:redeemCoupon__legacy_unused\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/UserAdmin.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\UserAdmin\:\:requireMasterAdmin\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/UserAdmin.php
+
+		-
+			message: '#^Offset ''admin''\|''all''\|''off'' on array\{off\: 0, admin\: 1, all\: 2\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Offset ''applied'' on array\{applied\: bool, reason\?\: string, reward_coupon\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Offset ''detail'' on array\{ok\: false, mode\?\: ''unconfigured''\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Offset ''error'' on array\{ok\: false, mode\: string, detail\: string\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Offset ''request_id'' on array\{ok\: true, mode\?\: ''unconfigured''\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Offset ''status'' on array\{ok\: bool, status\: string, detail\?\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^Variable \$mfaTenant on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/Handlers/UserAuth.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Handlers/WebPush.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/WebPush.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/WebPush.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Handlers/Webhooks.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Handlers/WhatsApp.php
+
+		-
+			message: '#^Left side of && is always false\.$#'
+			identifier: booleanAnd.leftAlwaysFalse
+			count: 1
+			path: src/Handlers/WhatsApp.php
+
+		-
+			message: '#^Static method Genie\\Handlers\\WhatsApp\:\:demoMessages\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Handlers/WhatsApp.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-falsy\-string and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Handlers/WhatsApp.php
+
+		-
+			message: '#^Offset ''selected'' on array\{selected\: string, selected_name\: string, ship_region\: string, ship_geocoded\: bool, covered\: bool, candidates\: array, reason\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Handlers/Wms.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 2
+			path: src/Handlers/Wms.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Mailer.php
+
+		-
+			message: '#^Offset ''configured'' on array\{ok\: bool, configured\: bool, error\?\: string, msg_id\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/NotifyEngine.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, configured\: bool, error\?\: string, msg_id\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/NotifyEngine.php
+
+		-
+			message: '#^Offset ''ok'' on array\{ok\: bool, mode\: string, detail\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/NotifyEngine.php
+
+		-
+			message: '#^Cannot call method getHeaderLine\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/SecurityAudit.php
+
+		-
+			message: '#^PHPDoc tag @return has invalid value \(array\{days,demo\:\{signup,login,tenants\},subscriber\:\{signup,login,tenants\},trend\:array\<\{date,count\}\>\}\)\: Unexpected token "\:", expected ''\}'' at offset 413 on line 5$#'
+			identifier: phpDoc.parseError
+			count: 1
+			path: src/SecurityAudit.php
+
+		-
+			message: '#^Offset ''trace'' on array\{ok\: bool, sent\: int, failed\: int, results\: array\<int, array\>, trace\: array\<string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/SmtpClient.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/TemplateResponder.php
+
+		-
+			message: '#^Anonymous function has an unused use \$notImpl\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: src/routes.php

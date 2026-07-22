@@ -1,0 +1,22 @@
+# PHPStan 정적분석 설정 — CCIS Part004(코딩표준/품질게이트) 백엔드 확장.
+#
+# 설계 원칙(프론트 ESLint 베이스라인과 동일):
+#   · 규칙을 끄지 않는다. 레거시 기존 위반은 phpstan-baseline.neon 으로 고정하고
+#     **신규/변경 코드의 증가분만 차단**한다(명세 §23 "Baseline 또는 단계적 개선").
+#   · 레벨 5 = 프로덕션급 타입검사(메서드/프로퍼티 존재·인자 타입·null 접근 등).
+#     레벨 0(미정의 심볼·중복키·인자수)은 이미 0건으로 해소함(routes.php 중복키 5건 수정).
+#   · 위반을 줄인 뒤 `--generate-baseline` 으로 baseline 을 낮춘다(늘리는 방향 금지).
+#
+# 실행: cd backend && php vendor/bin/phpstan analyse --memory-limit=1G
+#   (설정·경로·레벨·baseline 은 이 파일에서 읽는다)
+
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - bin
+    # 생성물/이관 완료 마이그레이션 등은 소스가 아니다(현재는 제외 대상 없음 — 필요 시 추가).
+    excludePaths: []

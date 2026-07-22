@@ -695,10 +695,6 @@ return function (App $app): void {
 
 'POST /v4182/insights/audience-breakdowns' => 'Genie\Handlers\Insights::ingestAdAudience',
 'POST /v4182/insights/influencer-audience' => 'Genie\Handlers\Insights::ingestInfluencerAudience',
-'GET /v4182/decisioning/segment/{gender}/{age}/{region}/affinity' => 'Genie\\Handlers\\Decisioning::segmentAffinity',
-
-'POST /v4182/insights/audience-breakdowns' => 'Genie\\Handlers\\Insights::ingestAdAudience',
-'POST /v4182/insights/influencer-audience' => 'Genie\\Handlers\\Insights::ingestInfluencerAudience',
 'POST /v4182/insights/commerce-aggregates' => 'Genie\\Handlers\\Insights::ingestCommerceDaily',
 'POST /v4182/insights/creative-sku-map' => 'Genie\\Handlers\\Insights::upsertCreativeSkuMap',
 'GET /v4182/insights/target-performance' => 'Genie\\Handlers\\Insights::targetPerformance',
@@ -839,7 +835,6 @@ return function (App $app): void {
         'GET /v422/ai/channel-kpi-config'    => 'Genie\\Handlers\\ClaudeAI::getChannelKpiConfig',
         'POST /v422/ai/channel-kpi-config'   => 'Genie\\Handlers\\ClaudeAI::saveChannelKpiConfig',
         'POST /v422/ai/campaign-recommend'   => 'Genie\\Handlers\\ClaudeAI::campaignRecommend',
-        'POST /v422/ai/campaign-ad-creative'  => 'Genie\\Handlers\\ClaudeAI::campaignAdCreative',
         'POST /v422/ai/campaign-ad-design'    => 'Genie\\Handlers\\ClaudeAI::campaignAdDesign',
         'POST /v422/ai/campaign-ad-chat'      => 'Genie\\Handlers\\ClaudeAI::campaignAdChat',
         'POST /v422/ai/campaign-ad-render'    => 'Genie\\Handlers\\ClaudeAI::campaignAdRender',
@@ -872,7 +867,6 @@ return function (App $app): void {
         'GET /api/v424/workspace'              => 'Genie\\Handlers\\WorkspaceState::get',
         'POST /v424/workspace'                 => 'Genie\\Handlers\\WorkspaceState::put',
         'POST /api/v424/workspace'             => 'Genie\\Handlers\\WorkspaceState::put',
-        'POST /v422/ai/campaign-search'        => 'Genie\\Handlers\\ClaudeAI::campaignSearch',
 
         // ── v421 API Key Management (admin:keys scope) ─────────────────────────
         'GET /v421/keys/whoami'              => 'Genie\\Handlers\\Keys::whoami',

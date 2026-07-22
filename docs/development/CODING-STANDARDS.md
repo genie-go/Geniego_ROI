@@ -172,6 +172,17 @@ try {
 - 크리덴셜 하드코딩. 설정은 루트 `.env`(`GENIE_*`)에서 읽는다.
 - 응답에 PII 를 불필요하게 싣는 것. 이 서비스는 집계 코호트 설계를 유지한다.
 
+### 4.6 정적분석 (PHPStan · 290차후속 도입)
+
+프론트 ESLint 베이스라인과 동일한 원칙을 백엔드에 적용한다 — **규칙을 끄지 않고, 레거시 기존 위반은 baseline 으로 고정하고 신규/증가분만 차단**한다.
+
+- 도구: `phpstan/phpstan`(composer `require-dev`). 실행: `make phpstan` 또는 `cd backend && php vendor/bin/phpstan analyse --memory-limit=1G`.
+- 설정: `backend/phpstan.neon` — **레벨 5**(메서드/프로퍼티 존재·인자 타입·null 접근 등 프로덕션급 타입검사), 경로 `src`·`bin`.
+- 베이스라인: `backend/phpstan-baseline.neon`(도입 시점 288건 고정). `make quality`(§게이트)가 이를 대비로 검사하며, **베이스라인을 초과하는 신규 위반이 생기면 FAIL**.
+- 위반을 줄인 뒤에는 `make phpstan-baseline` 으로 **하향만** 갱신한다(늘리는 방향 금지).
+- ★레벨 0(미정의 심볼·중복 배열키·인자 수)은 도입 시 5건(전부 `routes.php` 중복 라우트 키, 동일 핸들러)을 수정해 **0 으로 유지**한다. 레벨 0 위반은 baseline 대상이 아니라 즉시 수정 대상이다.
+- 로컬에 `composer` 가 없으면 게이트는 `[WARN]` 으로 건너뛴다(`vendor/bin/phpstan` 부재). `cd backend && composer install` 후 작동한다.
+
 ---
 
 ## 5. SQL / Migration
