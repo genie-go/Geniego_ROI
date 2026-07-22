@@ -271,9 +271,20 @@ TERMS;
         }
         if (!$scored) return '';
         arsort($scored);
+        /* [289차 후속 / MEA 055] ★절대 최소 점수 게이트 — 허위 근거 방지.
+         * 종전엔 `$s > 0` 이면 후보에 남아, **약한 단서(match 어휘 +2)만 걸린 항목이 근거로 승격**됐다.
+         * Citation 승격(D-3) 전에는 프롬프트 안에서만 소비돼 눈에 안 띄었으나, 근거를 화면에
+         * 표시하는 순간 **"반품 포털"을 물었는데 옴니채널·P&L 이 근거로 붙는** 형태로 드러났다(실측).
+         * 점수 체계: 기능명 완전일치 +6 / 기능명 토큰일치 +5 / 진입경로 일치 +4 / 변별어휘 +2.
+         *   → 5점 미만은 **강한 단서가 하나도 없다**는 뜻이므로 근거로 내보내지 않는다.
+         *   (경로 일치 4 + 어휘 2 = 6 은 통과 / 어휘 2개만 = 4 는 탈락)
+         * ★근거가 없으면 없는 대로 빈 결과를 반환한다 — 지어내지 않는다(정직 미산출 원칙).
+         *   모델은 일반 지식으로 답하되 **허위 출처가 붙지 않는다**. */
+        $scored = array_filter($scored, fn($v) => $v >= 5);
+        if (!$scored) return '';
         // 압도적 1위가 있으면 잡음 후보를 버린다(상위 점수의 40% 미만은 제외).
         $best = reset($scored);
-        $scored = array_filter($scored, fn($v) => $v >= max(2, (int)floor($best * 0.4)));
+        $scored = array_filter($scored, fn($v) => $v >= max(5, (int)floor($best * 0.4)));
 
         $blocks = [];
         foreach (array_slice(array_keys($scored), 0, max(1, $topN)) as $ns) {

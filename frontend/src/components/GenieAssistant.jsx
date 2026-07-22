@@ -173,7 +173,7 @@ export default function GenieAssistant() {
                       진입 경로는 클릭 시 해당 화면으로 이동해 답변을 바로 확인할 수 있다. */}
                   {m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length > 0 && (
                     <div style={{ marginTop: 8, paddingTop: 7, borderTop: '1px dashed #e2e8f0' }}>
-                      <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4, fontWeight: 700 }}>{t('genie.sources', 'Sources')}</div>
+                      <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4, fontWeight: 700 }}>{t('assistant.sources', 'Sources')}</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                         {m.sources.map((s, si) => {
                           const to = Array.isArray(s.paths) && s.paths.length ? s.paths[0] : null;

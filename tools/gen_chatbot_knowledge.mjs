@@ -253,6 +253,44 @@ for (const [ns, ft] of Object.entries(raw)) {
   };
 }
 
+/* ══ [289차 후속 / MEA 055] 커버리지 보강 — 메뉴 라벨만으로 최소 진입점 생성 ══
+ * 이 생성기는 **로케일 네임스페이스**를 기준으로 기능을 추출한다. 그래서 화면이 실제로
+ * 존재해도 **페이지 로컬 i18n 사전**(pages/*I18n.js)만 쓰고 로케일 ns 가 없는 페이지는
+ * 코퍼스에서 통째로 빠졌다.
+ *   ★실측 원인: 186차 dead/shadow ns purge 때 `returnsPortal` 등이 "로컬 사전 사용"을 이유로
+ *     삭제됐고, 그 순간부터 챗봇이 그 화면을 **알 수 없게** 됐다(라우트 121개 중 42개 미커버).
+ *   ★증상: "반품 포털 사용법"을 물으면 근거 0 → 약한 매칭으로 **엉뚱한 근거**가 딸려온다.
+ *
+ * 보강 원칙(과대 생성 금지):
+ *   · 이미 ns 로 커버된 경로는 **건드리지 않는다**(기존 산출 무변경 = 무회귀)
+ *   · 메뉴 라벨(15개국)이 있는 경로만 — 라벨조차 없으면 사용자가 부를 이름이 없으므로 생략
+ *   · actions/fields/notes 는 **비운다**(없는 것을 지어내지 않는다). 이름·경로만 제공해
+ *     "그 화면이 존재하고 어디로 가면 되는지"까지만 답하게 한다(정직 표기).
+ */
+{
+  const coveredPaths = new Set(Object.values(features).flatMap(f => f.paths || []));
+  let added = 0;
+  for (const r of routes) {
+    if (r.path.includes(':') || r.path === '*' || !r.path.startsWith('/')) continue;
+    if (coveredPaths.has(r.path)) continue;
+    const names = [...new Set(menuNamesOfPath(r.path))].filter(s => s && !isGeneric(s));
+    const label = names[0] || cpLabel[r.path];
+    if (!label) continue;                       // 부를 이름이 없으면 색인 대상 아님
+    const key = `route${r.path.replace(/\//g, '.')}`;
+    features[key] = {
+      ns: key,
+      title: label,
+      subtitle: '',
+      paths: [r.path],
+      actions: [], fields: [], notes: [], states: [],
+      names: [...new Set([label, ...names])],
+      match: [],                                 // 어휘 없음 — 이름/경로로만 매칭
+    };
+    added++;
+  }
+  console.log(`[gen_chatbot_knowledge] coverage_fallback=${added} (메뉴 라벨 기반 최소 진입점)`);
+}
+
 /* ══════════════════════════ 4. 컴팩트 인덱스(md) ══════════════════════════ */
 const curated = read(p('tools/chatbot_feature_curated.md')).trim();
 

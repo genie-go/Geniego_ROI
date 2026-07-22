@@ -7531,6 +7531,300 @@
     "광고 랜딩 URL",
     "autoCamp"
    ]
+  },
+  "route.admin.agencies": {
+   "ns": "route.admin.agencies",
+   "title": "대행사 계정 관리",
+   "subtitle": "",
+   "paths": [
+    "/admin/agencies"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "대행사 계정 관리",
+    "Agency Accounts",
+    "代理店アカウント管理",
+    "代理商账户管理",
+    "代理商帳戶管理",
+    "Agenturkonten",
+    "จัดการบัญชีเอเจนซี",
+    "Quản lý tài khoản đại lý",
+    "Akun Agensi",
+    "إدارة حسابات الوكالة",
+    "Cuentas de agencia",
+    "Comptes d'agence",
+    "एजेंसी खाते",
+    "Contas de agência",
+    "Аккаунты агентств"
+   ],
+   "match": []
+  },
+  "route.app-pricing": {
+   "ns": "route.app-pricing",
+   "title": "플랜 및 업그레이드",
+   "subtitle": "",
+   "paths": [
+    "/app-pricing"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "플랜 및 업그레이드",
+    "Plans & Upgrade",
+    "プラン",
+    "套餐升级",
+    "方案升級",
+    "Pläne & Upgrade",
+    "แผนและอัปเกรด",
+    "Gói & Nâng cấp",
+    "Paket & Upgrade",
+    "الخطط والترقية",
+    "Planes & Upgrade",
+    "योजनाएँ और अपग्रेड",
+    "Planos & Upgrade",
+    "Планы и апгрейд"
+   ],
+   "match": []
+  },
+  "route.ai-rule-engine": {
+   "ns": "route.ai-rule-engine",
+   "title": "AI 룰 엔진",
+   "subtitle": "",
+   "paths": [
+    "/ai-rule-engine"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "AI 룰 엔진",
+    "AI Rule Engine",
+    "AIルールエンジン",
+    "AI规则引擎",
+    "AI規則引擎",
+    "KI-Regelwerk",
+    "เครื่องมือกฎ AI",
+    "Công cụ quy tắc AI",
+    "Mesin Aturan AI",
+    "محرك القواعد",
+    "Motor reglas IA",
+    "Moteur règles IA",
+    "AI नियम इंजन",
+    "Motor regras IA",
+    "Движок правил ИИ"
+   ],
+   "match": []
+  },
+  "route.campaign-manager": {
+   "ns": "route.campaign-manager",
+   "title": "캠페인 관리",
+   "subtitle": "",
+   "paths": [
+    "/campaign-manager"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "캠페인 관리",
+    "Campaign Manager",
+    "キャンペーン管理",
+    "活动管理",
+    "活動管理",
+    "Kampagnenmanager",
+    "จัดการแคมเปญ",
+    "Quản lý chiến dịch",
+    "Manajer Kampanye",
+    "مدير الحملات",
+    "Gestor campañas",
+    "Gestion campagnes",
+    "अभियान प्रबंधक",
+    "Gestor campanhas",
+    "Менеджер кампаний"
+   ],
+   "match": []
+  },
+  "route.onboarding": {
+   "ns": "route.onboarding",
+   "title": "온보딩 맵",
+   "subtitle": "",
+   "paths": [
+    "/onboarding"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "온보딩 맵",
+    "Onboarding",
+    "オンボーディング",
+    "引导",
+    "引導",
+    "ออนบอร์ดดิ้ง",
+    "Hướng dẫn",
+    "التهيئة",
+    "Incorporación",
+    "Intégration",
+    "ऑनबोर्डिंग",
+    "Integração",
+    "Онбординг"
+   ],
+   "match": []
+  },
+  "route.feedback": {
+   "ns": "route.feedback",
+   "title": "의견/피드백",
+   "subtitle": "",
+   "paths": [
+    "/feedback"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "의견/피드백",
+    "Feedback",
+    "フィードバック",
+    "反馈",
+    "回饋",
+    "ข้อเสนอแนะ",
+    "Phản hồi",
+    "Masukan",
+    "التعليقات",
+    "Comentarios",
+    "Commentaires",
+    "प्रतिक्रिया",
+    "Обратная связь"
+   ],
+   "match": []
+  },
+  "route.data-trust": {
+   "ns": "route.data-trust",
+   "title": "데이터 신뢰성",
+   "subtitle": "",
+   "paths": [
+    "/data-trust"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "데이터 신뢰성",
+    "Data Trust",
+    "データ信頼性",
+    "数据可信度",
+    "資料可信度",
+    "Datenvertrauen",
+    "ความน่าเชื่อถือข้อมูล",
+    "Độ tin cậy dữ liệu",
+    "Kepercayaan Data",
+    "ثقة البيانات",
+    "Confianza datos",
+    "Confiance données",
+    "डेटा विश्वसनीयता",
+    "Confiança dados",
+    "Доверие данных"
+   ],
+   "match": []
+  },
+  "route.returns-portal": {
+   "ns": "route.returns-portal",
+   "title": "반품 포털",
+   "subtitle": "",
+   "paths": [
+    "/returns-portal"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "반품 포털",
+    "Returns Portal",
+    "返品ポータル",
+    "退货门户",
+    "退貨入口",
+    "Retouren-Portal",
+    "พอร์ทัลคืนสินค้า",
+    "Cổng hoàn trả",
+    "Portal Pengembalian",
+    "بوابة المرتجعات",
+    "Portal devoluciones",
+    "Portail retours",
+    "रिटर्न पोर्टल",
+    "Portal devoluções",
+    "Портал возвратов"
+   ],
+   "match": []
+  },
+  "route.supply-chain": {
+   "ns": "route.supply-chain",
+   "title": "공급망 관리",
+   "subtitle": "",
+   "paths": [
+    "/supply-chain"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "공급망 관리",
+    "Supply Chain",
+    "サプライチェーン",
+    "供应链",
+    "供應鏈",
+    "Lieferkette",
+    "ซัพพลายเชน",
+    "Chuỗi cung ứng",
+    "Rantai Pasok",
+    "سلسلة التوريد",
+    "Cadena de Suministro",
+    "Chaîne d'approv.",
+    "आपूर्ति श्रृंखला",
+    "Cadeia de Suprimentos",
+    "Цепочка поставок"
+   ],
+   "match": []
+  },
+  "route.case-study": {
+   "ns": "route.case-study",
+   "title": "성공 사례",
+   "subtitle": "",
+   "paths": [
+    "/case-study"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "성공 사례",
+    "Case Studies",
+    "成功事例",
+    "成功案例",
+    "Fallstudien",
+    "กรณีศึกษา",
+    "Nghiên cứu điển hình",
+    "Studi Kasus",
+    "دراسات حالة",
+    "Casos de éxito",
+    "Études de cas",
+    "केस स्टडीज़",
+    "Casos de sucesso",
+    "Кейсы"
+   ],
+   "match": []
   }
  }
 }
