@@ -1,3 +1,103 @@
+# NEXT_SESSION 인계서
+
+## [289차 후속] MEA Part 063 — Enterprise Sustainability, ESG & Carbon Intelligence Architecture 설계 완결 (2026-07-22)
+
+**상태: 설계 명세 7문서 · 코드 변경 0 · 테이블 0 · 배포 없음 · NOT_CERTIFIED**
+
+### ★★핵심 판정 — PARTIAL-surface-only ("판매 표면만 존재하는 공동(空洞)")
+
+> **§5 Canonical Entity 15종 전량 ABSENT · 백엔드 ESG 핸들러/테이블/라우트 0.**
+> **그런데 판매 가능한 표면은 완비되어 있다.**
+
+**표면 실재 8종**(전량 실측):
+- 사이드바 메뉴 등재 `frontend/src/layout/sidebarMenuLabels.js:332` `{ id:'esg', label:'ESG' }`
+- ★**Pro 유료 게이트** `frontend/src/auth/tabPlanPolicy.js:15` `'performance::esg':'pro'` (중앙 SSOT·화이트리스트 방식)
+- 탭 정의/렌더 배선 `frontend/src/pages/PerformanceHub.jsx:1214`·`:1298`
+- **15개국 i18n 라벨 9키 완비** `ko.js:6711`·`:6713`·`:6905~6921` / `en.js:8142` / `ja.js:10994~11002`
+- 가이드 7개국 문구 `perfGuideI18n.js:25`(ko **"환경·사회·지배구조 지표를 추적·리포트합니다"**)·`:42`·`:110`·`:127`
+- 온보딩 `Onboarding.jsx:31` (재무 롤 학습 대상에 ESG 명시)
+- 챗봇 지식 등재 `backend/data/chatbot_feature_map.md:77`·`tools/chatbot_feature_curated.md:77`
+
+**★★실체 부재 확증**: `ESGTab`(`PerformanceHub.jsx:1031` "Zero Mock" 주석 · `:1032` **props 0** · `:1034` "Real data comes from API" 주석)에 **`useState`·`useEffect`·`fetch`·`apiClient`·`axios`가 단 하나도 없다**(실측). E/S/G 3영역 카드 본문(`:1044~1046`)은 **`t('performance.noData')` 고정**(`:1050`), 지표 4종(`esgCarbon`/`esgEnergy`/`esgPackaging`/`esgRecycleRate` `:1057~1060`) 값도 **`noData` 고정**(`:1064`).
+→ **데이터가 채워질 코드 경로가 구조적으로 존재하지 않는다.**
+
+### ★MEA 시리즈 성격 3분류 (063은 제3의 형태)
+
+| 유형 | Part | 처방 |
+|---|---|---|
+| 엔진 있음 / Registry 없음 | 058·059·060·061 | 기존 위 **얇은 통합 계층** |
+| 엔진 자체 없음 | 062 | **전면 순신설 + 인프라 선행 종속** |
+| **표면만 있음 / 데이터·엔진 없음** | **063** ★유일 | ★**데이터원 확보가 1순위 — UI부터 만들면 안 된다** |
+
+### ★설계 제약 7종 (ADR D-1~D-7)
+
+1. **D-1** 성격 = "부실"이 아니라 **공동(空洞)**. 판정 어휘 4종 적용(ESG 지표 미표시 = **"미달"이 아니라 "측정 기반 부재"**).
+2. **★D-2 비용 축 ≠ 환경 축** — `Pnl.php:210`·`:219`(배송비 영업이익 차감)·`:134`·`:148`(`kr_fee_rule` 정률·무료배송 기준액 파생 **금액**) 및 `Logistics.php:91~103`(`shipment_tracking` = carrier·tracking_no·status — **거리·중량·운송수단 0개 보유**)를 탄소 데이터로 **오흡수 금지**. ★**`shippingCost × 임의계수 = 배출량` 형태는 날조**([[feedback_real_value_autoderive]] 위반·명시적 금지).
+3. **D-3** §11 Energy Intelligence = **061 Device/계량기 부재의 직접 종속** → **Scope 2가 Scope 1/2/3 중 가장 늦게 가능**(실 센서는 `WmsCctv` 영상장치뿐·계량 장치 아님).
+4. **D-4 ESG 리포팅 엔진 신설 금지 → `Reports` 확장**(헌법 V4) — `Reports.php:62`·**`:104` `computeNextRun`**·`:116`·`:150` `summaryHtml`·`:178~235`·**`:256~262` `compileMetricFormula`**·`:273`·**`:284` `metricDefSave`**·`:475`·**`:488` `history`**·`:502` / 라우트 `routes.php:407~420`. ★**단 규제 공시 서식(CSRD/TCFD/GRI/SASB/CDP)은 대응 개념 grep 0 → "중복"이 아니라 "결여 보강"으로 신설 정당**.
+5. **D-5 감사는 `SecurityAudit` 단일 체인**(`SecurityAudit.php:44~52`·**`verify()`:55~68**·056 D-3~062 D-2 승계). ★★**`menu_audit_log.hash_chain` 재오염 절대 금지**([[reference_menu_audit_log_not_tamper_evident]] — §13 "Immutable Audit Log" 요구로 위험 상존). ★**단일 노드·append-only 코드 규율 의존이라 DB 관리자 UPDATE를 탐지만 할 뿐 막지 못함** → 제3자 검증 수준 불변성 요구 시 **미충족**, **"불변 원장 보유" 과대주장 금지**.
+6. **D-6** FIND-063-1 처방 3안(①게이트 해제+문구 정정[**권장**] / ②탭 비노출[후퇴 검토] / ③실구현) — **결정·집행은 사용자 승인 후 별도 세션**.
+7. **★D-7 착수 순서 강제** = **배출계수(CARBON_FACTOR) → 활동량 → ESG_METRIC(`Reports` 메트릭 재사용 검토) → Registry → 산출 → `Reports` 확장 공시 → `SecurityAudit` 감사 → UI(기존 `ESGTab` 확장·신규 페이지 금지) → AI(최후)**.
+
+### ★부수 발견 실결함 2건 (★수정 아님 · 후속 등재)
+
+- **FIND-063-1** — `tabPlanPolicy.js:15` **Pro 유료 게이트인데 영구 빈 화면**. 가이드(`perfGuideI18n.js:25`·`:42`)·온보딩(`Onboarding.jsx:31`)·챗봇(`chatbot_feature_map.md:77`)이 **"추적·리포트합니다" 현재형 단정**으로 약속하나 데이터 경로가 구조적으로 없어 **시간이 지나도 해소되지 않는다**. ★**283차 "코드 존재 ≠ 구현 완료" 극단 사례**. 정정 시 **3개소 동시 수정 필수**([[feedback_no_regression_value_unification]]).
+- **FIND-063-2** — **`disposed`(폐기) = 생산자 부재 고아 상태값**. 소비 4곳(`OrderHub.php:729` 집계 · `ReturnsPortal.jsx:23` 색상 · `:34` avgDays · `:292` 배열)뿐이고, 전이 화이트리스트 `ReturnsPortal.php:199` `['pending','inspecting','approved','rejected','refunded','restocked']`에 **`disposed`가 없다** → **어떤 반품도 폐기 상태가 될 수 없고 집계는 영구히 0**. ★**ESG 폐기물 관리 1차 지표의 상태 전이 자체가 부재**(재활용률 산출 불가와 같은 뿌리 — 처분 경로가 `rpI18n.js:264` UI 문구로만 존재).
+
+### ★정직 표기 = 후퇴 금지 자산
+
+`ESGTab`은 **가짜 숫자를 지어내지 않고 `noData`를 정직하게 표시**한다(`:1050`·`:1064`) — **288차 "가짜 녹색 systemic"(하드실패를 `ok=>true`로 위장)의 정반대**.
+★구현 시에도 **추정치·업계평균·목표치를 실측값처럼 표시 금지**, **`0`을 "배출량 0"으로 표시 금지** → **057 `SystemMetrics` null · 058 `Mmm::frontier` `optimized:false`+사유(`Mmm.php:375`·`:378`) · 059 `PriceOpt::simulate` null/422+사유(`PriceOpt.php:946`) 3연속 모범 계승**. **"0은 '정상'으로 오독된다."**
+
+★명세 §17(AI의 무단 ESG 보고서 제출·정책 변경 금지)은 **현행이 구조적으로 충족**(ESG 정책 개념 부재·AI가 ESG 데이터 쓰는 경로 없음·외부 공시 채널 연동 없음)이나 **"잘 통제되어서"가 아니라 "대상이 없어서"**다(과대주장 금지).
+★★**ESG 규제 공시는 062 D-8(온체인 롤백 불가)과 동형의 비가역성** — **제출된 허위 공시는 철회해도 법적·평판 노출이 남으므로 사전 승인이 사실상 유일한 방어선**.
+
+### ★오흡수 금지 (전량 실측 배제)
+
+**`esg` 백엔드 1히트 = 스페인어 `riesgo`(위험)**(`MmmReportI18n.php:18`) · **`water` 5 = water-filling 예산배분 알고리즘**(한계ROAS 균등화 `AutoRecommend.php:589`·`:757`) **≠ 물 사용량** · **`governance` 6 = 데이터 거버넌스**(`RoleViewBar.jsx:20` → `/data-trust`·`Sidebar.jsx:702`) **≠ ESG의 G** · **`benchmark` 38 = 광고 벤치마크**(`MarketingDataHub` 18·`AutoRecommend` 16) · **`disclosure` 9 = `DataProduct.jsx:132` "Branded Disclosure"(UGC 표기율)** **≠ Carbon Disclosure** · **`offset` 114 = SQL LIMIT/OFFSET** · **`facility` 2 = RFC5424 syslog PRI facility**(`Compliance.php:238`·`:243`) · **`fuel` 2 = 유류할증료(요금)**(`poI18n.js:301`·`:2776`) **≠ 연료 소비량** · `packaging` 1 = `WmsManager.jsx:522` 반품사유 · `recycle/recycling` 3 = `rpI18n.js` UI 문구 · **`Wms.php:1096` `'Disposal'` = 재고 출고유형** ≠ 폐기물 지표 · **`SupplyChain` risk/delayRate(058/060) ≠ 기후 리스크** · **`Rollup`/P&L ≠ Carbon Accounting** · **`Compliance` SIEM(057) ≠ ESG Compliance** · **CSS `#22c55e` ≠ Green Logistics** · **OAuth/`data_scope`(EPIC 06-A Part3-4) ≠ Scope 1/2/3**
+
+### ★grep 규율 갱신 (신규 트랩)
+
+`tools/migrations/_archived/_tmp_check_{de,en,ja,id,ko,th,vi,zh,zh-TW}.mjs` = **15개국 로케일 단일라인 덤프** → ESG 토큰 **전량 오탐 + 출력 6.9MB 폭발**.
+**표준 제외(이후 상시)**: `--glob '!*.json' --glob '!**/i18n/**' --glob '!**/locales_backup/**' --glob '!**/_archived/**'`
+★**`scope`는 무경계 검색 금지**(OAuth 스코프·`data_scope` 충돌) — **`scope1`/`scope_1` 형태로만**.
+
+### ★★Registry 부재 6연속 → 상위 승격 필요
+
+**058 Decision · 059 Twin · 060 Automation · 061 Device · 062 Blockchain · 063 ESG.**
+개별 신설 시 **Registry 6개 난립**. **공통 Registry 추상화 검토는 개별 Part 결정 범위를 넘으므로 상위 아키텍처 결정으로 승격**해야 한다.
+
+### 산출 7문서
+
+`docs/spec/MEA_PART063_SUSTAINABILITY_ESG_CARBON_INTELLIGENCE_ARCHITECTURE_SPEC.md`(§1~19 verbatim + 확정판정 헤더) · `docs/architecture/ADR_MEA_PART063_SUSTAINABILITY_ESG_CARBON.md`(D-1~D-7) · `docs/data/MEA_PART063_{EXISTING_IMPLEMENTATION,DUPLICATE_AUDIT,CANONICAL_ENTITIES,GOVERNANCE_MECHANISMS,INDEX}.md`
+
+---
+
+## ★★다음 차수 최우선
+
+### [1순위] MEA Part 064 — Enterprise Quantum Computing Readiness & Advanced Computing Architecture
+063 SPEC 지정 다음 Part. **동일 7문서 파이프라인**(ⓐSPEC verbatim 선영속 → ⓑ단어경계 grep 전수조사 + 광의 히트 파일 단위 분류 → ⓒADR+GT①②+CANONICAL+GOVERNANCE+INDEX → PM 이력 2편 → NEXT_SESSION → commit/push).
+
+- **조사 후보(가설 · ★인용 금지)**: `Crypto`(049 AES-256-GCM — 양자내성 암호 전환 대상 후보) · `SecurityAudit` 해시체인 · HMAC 서명(`ChannelSync`/`NaverSms`/`DataExport`) · `Mmm`/`PriceOpt`(최적화 문제 — 양자 알고리즘 후보 도메인) · 인프라(044/045/050).
+- ★★**063 선례 필독 — 가설은 두 번 다 틀렸다**:
+  - 062 인계서가 지목한 **`ReportBuilder`는 존재하지 않는 핸들러**였다(실재 = `Reports.php`).
+  - "ESG는 부재할 것"이라는 예상과 달리 **UI·메뉴·Pro 유료 게이트·15개국 라벨·챗봇 지식이 실재**했다.
+  - → ★**가설을 근거로 인용하지 말고 전량 grep 재실증. 뭉뚱그린 평가절하 금지.**
+- ★**오흡수 금지 사전 주의**: **`quantum` 마케팅 카피** ≠ 양자컴퓨팅 · **`Crypto`(앱 레벨 대칭 암호)** ≠ PQC(양자내성 암호) · **`qubit`/`q`/`superposition`** 동음이의 주의 · **`Mmm::frontier` 최적화** ≠ 양자 최적화 · **`annealing`/`gate`** 동음이의(`gate`는 본 레포에서 **권한 게이트** 의미로 광범위 사용 — ★무경계 검색 금지) · **`shor`/`grover`** 인명 오탐 주의.
+- ★**062 D-1 상속·재판정 금지**: `SecurityAudit` 해시체인은 DLT가 아니며, **양자 위협 논의 시에도 "분산·합의 부재"라는 062 판정을 뒤집지 말 것**.
+
+### [2순위] 실 구현 후보 (★전부 사용자 승인 후 별도 세션)
+1. **FIND-063-1 처방**(ADR D-6 권장안 ① — 게이트 해제 + 가이드/온보딩/챗봇 **3개소 동시 문구 정정**). 소규모·즉시 실행 가능·무후퇴.
+2. **053 Gateway 일원화 + 감사 스키마 통일 + AI 프로브 추가** — 053 D-2 + 056 D-4 + 057 D-1 **동시 해결**(단일 통과점 부재가 세 Part의 공통 뿌리).
+3. **Knowledge/RAG 구현**(055 선행조건 4종 — 특히 **테넌트 격리 + Knowledge ACL**).
+4. **FIND-063-2**(`disposed` 고아 상태값) — 반품 처분 경로(폐기/재활용/기부) 도메인 모델 보강.
+
+### 상시 규율 (변경 없음)
+- **배포 사전승인 필수** · **push = `feat/n236-admin-growth-automation` 전용 · ★`master` 금지**(자동배포 트리거)
+- **인계서 작성/커밋/push는 명시 승인 후** · **credentials 평문노출 회피** · **테넌트 격리 절대**
+
+---
+
 # ★★세션 종결 요약 (289차 후속 MEA Part 062 · 2026-07-22)
 
 **이 세션 성과**: **MEA Part 062 — Enterprise Blockchain, Distributed Ledger & Smart Contract Architecture 7문서 거버넌스 세트 완결**(feat/n236·master 미접촉). **설계 명세·코드 변경 0·NOT_CERTIFIED·배포 없음.** (동일 세션에서 053 완결+054 소급정합 → 055~061과 연속.)
