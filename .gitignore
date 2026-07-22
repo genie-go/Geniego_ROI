@@ -413,6 +413,13 @@ frontend/ios/App/Pods/
 /dist_*onb*.tar.gz
 /audit_*/
 /audit_*.json
+
+# ── CCIS Part002: check-large-files.sh 가 잡아낸 추적중 빌드 산출물 재발 방지 ──
+#   frontend/_dist_demo_n276d.tgz (283차에 실수 커밋된 엔트리 0개 빈 gzip 20B)
+#   backend_clean.zip (Initial commit 의 backend/src 스냅샷 — backend/src 가 정본)
+frontend/_dist_*.tgz
+frontend/_dist_*.zip
+/backend_clean.zip
 /audit_*.png
 /_tmp_*
 /frontend/_tmp_*

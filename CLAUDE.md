@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 GeniegoROI is a multi-tenant ROI analytics dashboard (CRM, KPI, Operations, P&L domains) deployed to https://www.genieroi.com. The repo is a **monorepo** with two independently-built apps that share a directory tree:
 
-- `frontend/` — React 18 + Vite 7 SPA, ~116 lazy-loaded pages, 15-language i18n
+- `frontend/` — React 18 + Vite 5.4 SPA, ~116 lazy-loaded pages, 15-language i18n
 - `backend/` — PHP 8.1+ / Slim 4 REST API, PSR-4 namespace `Genie\`, MySQL primary + SQLite fallback
 
 `clean_src/` is a **read-only historical mirror** — do not edit anything inside it (it is in `.clineignore`).
@@ -25,10 +25,10 @@ All commands assume the working directory is the repo root.
 
 | Task | Command |
 |------|---------|
-| Frontend build (production) | `npm install` (root) → `npm run build` |
-| Frontend dev server | `cd frontend && npx vite` (port 5173, proxies `/api`, `/auth`, `/v3`–`/v419` → `localhost:8080`) |
+| Frontend build (production) | `cd frontend && npm install && npm run build` — **must run from `frontend/`** (see below) |
+| Frontend dev server | `cd frontend && npx vite` (port 5173; `frontend/vite.config.js` proxies `/api`, `/auth`, `/creatives`, `/health[z]`, `/v{2–4자리}` → `VITE_PROXY_TARGET`, **default `https://www.genieroi.com`** — set `VITE_PROXY_TARGET=http://localhost:8080` for a local backend) |
 | Backend install | `cd backend && composer install` |
-| Backend dev server | `cd backend && php -S 0.0.0.0:8000 -t public` (vite.config proxies expect 8080 — adjust port to match your local Apache/XAMPP setup) |
+| Backend dev server | `cd backend && php -S 0.0.0.0:8000 -t public` (the dev proxy only reaches it if you start vite with `VITE_PROXY_TARGET=http://localhost:8000`; the documented local convention is port 8080, so match whichever your Apache/XAMPP uses) |
 | Build for deploy (Windows) | `.\deploy.ps1` (runs `gen_chatbot_knowledge.mjs` → `i18n_autofill.mjs` ×4 modes → `vite build`). **Build only — does not upload.** |
 | Manual deploy (Linux/Mac) | `./deploy.sh` (rsync `frontend/dist/` → `root@1.201.177.46:/home/wwwroot/roi.geniego.com/frontend/dist`) |
 
@@ -38,7 +38,15 @@ DB migrations (`php backend/bin/migrate.php [both|production|demo|current]`) mus
 
 There are **no configured lint or test scripts** in this repo (no `npm test`, no PHPUnit suite). Verification is manual / by deploying.
 
-The root `package.json` only declares `build`. Vite's `root` is set to `frontend/` in `vite.config.js`, so running `vite build` from the repo root is correct — do **not** add a `cd frontend` to the root build script.
+**There are two `vite.config.js` files and two installed `vite` versions. Only `frontend/` builds the deployed artifact** (verified 2026-07-22 — CCIS Part002 §2.4):
+
+| | root (`./`) | **`frontend/` — the real one** |
+|---|---|---|
+| installed vite | 7.3.1 | **5.4.21** |
+| config | `vite.config.js` (111 lines, `root: frontend`, `cacheDir: D:/cache/vite`, `manualChunks` returns `undefined`) | **`frontend/vite.config.js` (63 lines)** |
+| who calls it | **nobody** | `deploy.ps1:30` (`Set-Location frontend` → `npm.cmd run build`), `.github/workflows/deploy.yml:61,97` (`cd frontend` → `npm run build`) |
+
+Both the ops build and CI `cd` into `frontend/` first, so the root config and root vite 7 never participate in a build. Running `npm run build` **from the repo root** produces a bundle with a different vite major and a different chunk strategy than what ships — do not do it. (Earlier revisions of this file claimed the opposite; that claim was stale.)
 
 ## CI/CD
 
@@ -75,14 +83,21 @@ When adding new public endpoints, the bypass list in `index.php:60-89` must be u
 
 ## Frontend architecture
 
-- Vite root is `frontend/` (set in `vite.config.js`). Vite cache is **redirected to `D:/cache/vite`** — Windows-specific path; will need to be edited for non-Windows environments.
+- The build runs from `frontend/` with `frontend/vite.config.js` (no `cacheDir` override — default `frontend/node_modules/.vite`). The `D:/cache/vite` redirect lives only in the **unused** root `vite.config.js`.
 - Entry: `frontend/src/main.jsx` → `App.jsx`. App is wrapped in nested providers: `AuthProvider` → `GlobalDataProvider` → `CurrencyProvider` → `MobileSidebarProvider` → `ConnectorSyncProvider` → `ToastProvider`. Two context directories exist (`context/` and `contexts/`) — both are real and used; check both before creating a new context.
 - All ~116 pages in `frontend/src/pages/` are loaded via `React.lazy()` in `App.jsx`. Adding a new page requires both an import line and a `<Route>` registration.
 - API calls go through `frontend/src/services/apiClient.js`. The base URL is `import.meta.env.VITE_API_BASE` (default `http://localhost:8000`). Token is stored under `genie_token` (or `demo_genie_token` when `VITE_DEMO_MODE=true`); `X-Tenant-ID` is set from `localStorage.tenantId` (or `"demo"`).
 
 ### Vite manual chunk strategy
 
-`vite.config.js` defines an extensive `manualChunks(id)` strategy that groups pages by domain (`pages-analytics`, `pages-commerce`, `pages-data`, `pages-ops`, `pages-ai`, `pages-marketing2`, `pages-subscription`, `pages-admin`, etc.) and isolates `vendor-react`, `vendor-router`, and `i18n-locales`. When adding a new heavy page, check whether it should join an existing chunk or get its own — leaving it ungrouped pushes it into the catch-all and inflates initial load.
+The operative config is `frontend/vite.config.js`. Its `manualChunks` is a **static object**, not a function:
+
+- `vendor-react` — `react`, `react-dom`, `react-router-dom`
+- `vendor-charts` — `recharts`
+- `vendor-locales` — all 15 locale files
+- `shared-context` — `GlobalDataContext.jsx`, `SecurityGuard.js`
+
+Pages are **deliberately not grouped** — they ride Vite's default per-file lazy chunking. Do not reintroduce domain page-groups (`pages-analytics`, `pages-commerce`, …): session 171 removed them because cross-chunk React references caused an init-order race that white-screened the app 6 times (root `vite.config.js:71-77` still carries that incident note, with `manualChunks(id)` returning `undefined`). A new heavy page needs no chunk registration.
 
 ### i18n
 

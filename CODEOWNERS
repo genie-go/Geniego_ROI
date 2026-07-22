@@ -1,0 +1,75 @@
+# CODEOWNERS
+# GeniegoROI Repository Code Ownership
+# CCIS Part002 — Repository & Monorepo Architecture
+# Version 1.0 | 2026-07-22
+#
+# 형식: {패턴} {GitHub 유저명 또는 팀}
+# 패턴 순서: 마지막 매칭 규칙이 우선 적용됨
+#
+# NOTE: GitHub 유저명이 설정되지 않은 경우 아래 항목들을 실제 계정으로 교체하십시오.
+# 예: @genieroi/frontend-team, @genieroi/backend-team
+
+# ─────────────────────────────────────────────────────────────
+# Default Owner (전체 Repository 기본 소유자)
+# ─────────────────────────────────────────────────────────────
+*                           @genieroi/core-team
+
+# ─────────────────────────────────────────────────────────────
+# Frontend Module
+# ─────────────────────────────────────────────────────────────
+frontend/                   @genieroi/frontend-team
+frontend/src/               @genieroi/frontend-team
+frontend/android/           @genieroi/mobile-team
+frontend/ios/               @genieroi/mobile-team
+frontend/scripts/           @genieroi/frontend-team
+frontend/package.json       @genieroi/frontend-team
+frontend/vite.config.js     @genieroi/frontend-team
+frontend/capacitor.config.json  @genieroi/mobile-team
+
+# ─────────────────────────────────────────────────────────────
+# Backend Module
+# ─────────────────────────────────────────────────────────────
+backend/                    @genieroi/backend-team
+backend/src/                @genieroi/backend-team
+backend/migrations/         @genieroi/backend-team @genieroi/dba
+backend/composer.json       @genieroi/backend-team
+
+# ─────────────────────────────────────────────────────────────
+# Infrastructure & Deployment
+# ─────────────────────────────────────────────────────────────
+infra/                      @genieroi/devops-team
+infra/aws/                  @genieroi/devops-team
+infra/azure/                @genieroi/devops-team
+docker-compose.yml          @genieroi/devops-team
+.github/                    @genieroi/devops-team
+.github/workflows/          @genieroi/devops-team
+
+# ─────────────────────────────────────────────────────────────
+# Security-sensitive files (반드시 Security Team Review 필요)
+# ─────────────────────────────────────────────────────────────
+.githooks/                  @genieroi/security-team
+.github/workflows/security-scan.yml  @genieroi/security-team
+backend/src/SecurityAudit.php        @genieroi/security-team
+backend/src/Crypto.php               @genieroi/security-team
+backend/src/Ssrf.php                 @genieroi/security-team
+
+# ─────────────────────────────────────────────────────────────
+# Configuration & Repository Governance
+# ─────────────────────────────────────────────────────────────
+.gitignore                  @genieroi/core-team
+.gitattributes              @genieroi/core-team
+.editorconfig               @genieroi/core-team
+CODEOWNERS                  @genieroi/core-team
+Makefile                    @genieroi/core-team
+scripts/validation/         @genieroi/core-team
+
+# ─────────────────────────────────────────────────────────────
+# Documentation
+# ─────────────────────────────────────────────────────────────
+docs/                       @genieroi/architecture-team
+docs/ccis/                  @genieroi/architecture-team
+docs/architecture/          @genieroi/architecture-team
+docs/repository/            @genieroi/core-team
+docs/security/              @genieroi/security-team
+CONTRIBUTING.md             @genieroi/core-team
+CLAUDE.md                   @genieroi/core-team
