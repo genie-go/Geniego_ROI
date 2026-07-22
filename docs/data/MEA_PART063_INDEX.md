@@ -54,7 +54,22 @@
 | ID | 내용 | 상태 |
 |---|---|---|
 | **FIND-063-1** | `tabPlanPolicy.js:15` **`'performance::esg': 'pro'`** — Pro 유료 게이트인데 **영구 빈 화면**. 가이드(`perfGuideI18n.js:25`·`:42`)·온보딩(`Onboarding.jsx:31`)·챗봇(`chatbot_feature_map.md:77`)은 **"추적·리포트합니다" 현재형 단정**. **283차 "코드 존재≠구현 완료" 극단 사례** | 등재 · 처방 D-6 |
-| **FIND-063-2** | **`disposed`(폐기) = 생산자 부재 고아 상태값**. 소비 4곳(`OrderHub.php:729` 집계 · `ReturnsPortal.jsx:23`·`:34`·`:292`)뿐이고, 전이 화이트리스트 `ReturnsPortal.php:199`에 **`disposed` 없음 → 영원히 0**. ★ESG 폐기물 관리 1차 지표의 **상태 전이 자체가 부재** | 등재 |
+| **FIND-063-2** | **`disposed`(폐기) = 생산자 부재 고아 상태값**. 소비 4곳(`OrderHub.php:729` 집계 · `ReturnsPortal.jsx:23`·`:34`·`:292`)뿐이고, 전이 화이트리스트 `ReturnsPortal.php:199`에 **`disposed` 없음 → 영원히 0**. ★ESG 폐기물 관리 1차 지표의 **상태 전이 자체가 부재** | **✅ 수정 완료**(289차 후속) |
+
+### FIND-063-2 수정 내역 (2026-07-22)
+
+`ReturnsPortal.php` **4개 지점 일체 반영**(값 단일소스 규율 — 화이트리스트만 고치면 집계가 어긋난다):
+
+| 지점 | 변경 |
+|---|---|
+| `:207` 전이 화이트리스트 | `'disposed'` 추가 → **상태 도달 가능** |
+| `:232` 정산 claim 전파 | `'disposed'` 추가 → `pending→disposed` 직행 시 returnFee 누락 방지(★`$cid` 존재검사로 이중계산 없음) |
+| `:307` `totalRefund` | `'disposed'` 추가 → 폐기 반품 환불액 합산 |
+| `:310` `processed` | `'disposed'` 추가 → 처리 종결 건수 반영 |
+| `:216` restock 분기 | **의도적 미포함** — 폐기는 재입고가 아니다 |
+
+★**로컬 실측 확증**: 수정 전 술어로는 폐기 반품의 `totalRefund=0`·`processed=0`(누락), 수정 후 `10000`·`1`(정상).
+★**남은 갭(별건)**: 프론트가 `POST /v420/returns/{id}/status`를 **호출하지 않는다**(유일한 v420/returns 호출은 읽기 전용 `reason-analysis` — `ReturnsPortal.jsx:151`). 즉 **반품 상태 변경 UI 자체가 미배선**이며 `disposed`는 그 부분집합이었다. UI 배선은 본 수정 범위 밖.
 
 ★**둘 다 본 세션 범위 밖**(코드 변경 0). 수정은 **사용자 승인 후 별도 세션**.
 

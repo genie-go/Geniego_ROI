@@ -196,7 +196,15 @@ class ReturnsPortal
         $b = self::body($request);
         $id = (int)$args['id'];
         $status = $b['status'] ?? 'pending';
-        $allowed = ['pending','inspecting','approved','rejected','refunded','restocked'];
+        // [289차 후속 / MEA Part 063 · FIND-063-2] 'disposed'(폐기) 추가.
+        //   종전엔 소비처만 있고 생산자가 없어 **어떤 반품도 폐기 상태가 될 수 없었다**:
+        //   OrderHub::claimStats(:729) 가 byStatus['disposed'] 를 집계하고, 프론트가 색상
+        //   (ReturnsPortal.jsx:23)·평균처리일(:34)·라벨(rpI18n statusDisposed "폐기", 15개국)을
+        //   갖췄으나 이 화이트리스트에 없어 집계는 영구히 0 이었다(=고아 상태값).
+        //   데모 시드(_RSTATUS :292)는 disposed 를 생성해 **데모에만 보이고 운영에선 불가능**한
+        //   비대칭까지 있었다(운영-데모 동등 원칙 위반).
+        //   ★폐기는 재입고가 아니다 — 아래 restock 분기(:'restocked' 한정)에 의도적으로 미포함.
+        $allowed = ['pending','inspecting','approved','rejected','refunded','restocked','disposed'];
         if (!in_array($status, $allowed, true)) return self::json($response, ['ok' => false, 'error' => 'Invalid status'], 400);
         // [227차 감사 P0] restocked 진입 시 물리재고 복원 — 기존엔 status 만 바뀌고 WMS 무영향(반품 승인이 재고 미복원).
         //   전이 전 현재 상태/품목 조회 → reflectChannelRestock(원판매 Outbound 있을 때만·차감분 초과/이중복원 방지,
@@ -217,7 +225,11 @@ class ReturnsPortal
         //   재고만 복원되고 orderhub_claims 미기록 → 정산 net_payout/returnFee 에 불가시(비대칭 동기화 갭).
         //   ★이중계산 방지: 채널 origin 반품은 이미 동일 멱등 id(CLM-{channel}-{order_id}) claim 존재 → 존재 시 skip
         //   (recordClaim 과 동일 스킴). 다중 상태전이(approved→refunded→restocked)도 존재확인으로 1회만 적재.
-        if (in_array($status, ['approved','refunded','restocked'], true)
+        //   [289차 후속] 'disposed' 포함 — 폐기도 반품 '실현'이다(상품은 소멸하고 환불은 발생).
+        //   미포함 시 pending→disposed 직행 반품이 claim 미적재로 정산 returnFee 에서 누락된다
+        //   (266차가 지적한 비대칭 동기화 갭과 동형). ★이중계산 위험 없음 — 아래 $cid 존재검사가
+        //   approved 단계에서 이미 적재된 건을 skip 한다.
+        if (in_array($status, ['approved','refunded','restocked','disposed'], true)
             && $cur && (string)($cur['order_id'] ?? '') !== ''
             && $t !== 'demo' && !str_starts_with($t, 'demo')) {
             try {
@@ -290,9 +302,12 @@ class ReturnsPortal
         $defective = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND defective=1");
         // [227차 감사 P2] 실현 환불만 합산 — 기존엔 pending/rejected 까지 모든 status 의 refund_amt 를 더해
         //   미실현·반려 환불이 총환불액을 부풀렸다. 결정·진행된 상태(승인/환불/입고)만 합산.
-        $totalRefund = (float)$one("SELECT COALESCE(SUM(refund_amt),0) FROM returns WHERE tenant_id=? AND status IN ('approved','refunded','restocked')");
+        //   [289차 후속 FIND-063-2] 'disposed' 동반 반영 — 폐기도 실현 환불이다. 화이트리스트에만
+        //   추가하고 여기를 빠뜨리면 폐기 반품의 환불액이 총환불액에서 누락돼 값이 어긋난다.
+        $totalRefund = (float)$one("SELECT COALESCE(SUM(refund_amt),0) FROM returns WHERE tenant_id=? AND status IN ('approved','refunded','restocked','disposed')");
         $wmsLinked = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND wms_linked=1");
-        $processed = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status IN ('refunded','restocked')");
+        //   처리완료(종결 상태) — 폐기는 재입고와 함께 '처리 종결'이다(반려는 제외 유지).
+        $processed = (int)$one("SELECT COUNT(*) FROM returns WHERE tenant_id=? AND status IN ('refunded','restocked','disposed')");
         $refundRate = $total > 0 ? round($processed / $total * 100) : 0;
 
         return self::json($response, [
