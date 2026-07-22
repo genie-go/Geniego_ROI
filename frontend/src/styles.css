@@ -79,8 +79,20 @@
   --sp-xl: 20px;
   --sp-2xl: 24px;
 
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* [289차 후속 · 타이포 통일 1단계] 한글 폰트 스택 보강.
+   * ★종전 문제: Inter 만 지정돼 있어 **한글에는 이 스택이 아무 역할을 못 했다**.
+   *   Inter 는 한글 글리프가 없으므로 한글은 브라우저 기본(Windows=맑은 고딕,
+   *   macOS=애플 SD 고딕)으로 폴백 → 화면마다·OS마다 인상이 달라지고 라틴/숫자와
+   *   한글의 굵기·자폭이 어긋나 "정돈되지 않은" 느낌의 근원이 됐다.
+   * ★외부 의존을 새로 추가하지 않는다: Pretendard 가 설치된 환경이면 사용하고,
+   *   없으면 OS 표준 한글 폰트로 안전 폴백(네트워크 요청 0·CSP 영향 0).
+   *   순서 = 라틴/숫자(Inter) → 한글(Pretendard→OS) → 최후 sans-serif. */
+  font-family: 'Inter', 'Pretendard', 'Pretendard Variable', -apple-system,
+               'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕',
+               ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "cv01", "cv02", "cv03", "cv04";
+  /* 숫자 자폭 고정 — 대시보드 수치가 갱신될 때 자릿수마다 흔들리지 않는다(고급스러움의 핵심). */
+  font-variant-numeric: tabular-nums;
 }
 
 /* 2. 다크 모드일 때 변하는 색상 정의 */
@@ -107,7 +119,49 @@ body {
   color: var(--text-main);
   transition: background-color 0.3s ease;
   /* 색상이 바뀔 때 부드럽게 애니메이션 */
+
+  /* [289차 후속 · 타이포 1단계] 텍스트 렌더링 품질 — 굵은 글자가 뭉개져 "찐하게" 보이는 현상 완화. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * [289차 후속 · 타이포 통일 1단계] 텍스트 컨테이너 이탈 방지 (전역 안전망)
+ *
+ * ★배경: 이 저장소는 인라인 style 이 압도적이라(fontSize 8,372곳) CSS 로 크기·굵기를
+ *   덮어쓸 수 없다. 그러나 **레이아웃 파손(글자가 박스를 뚫고 나가는 문제)** 은
+ *   인라인이 거의 지정하지 않는 속성(min-width·word-break·overflow-wrap)으로
+ *   해결된다 → 인라인과 **충돌 없이** 전역 적용 가능하다.
+ *
+ * ★핵심 원인 2가지
+ *   ① flex/grid 자식의 기본값 min-width:auto — 내용이 길면 **줄어들지 않고 부모를 밀어낸다**.
+ *      이것이 "박스를 이탈"하는 현상의 가장 흔한 원인이다.
+ *   ② 한글은 어절 단위로 끊어야 자연스럽다(word-break:keep-all). 그런데 URL·긴 영문·
+ *      SKU 코드는 끊을 곳이 없어 넘친다 → overflow-wrap:anywhere 로 최후 강제 개행.
+ *   두 속성을 함께 써야 **한글은 자연스럽게, 긴 토큰은 안전하게** 처리된다.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ① flex/grid 자식이 내용 때문에 부모를 밀어내지 않도록 — 축소 허용 */
+.dash-safe > *,
+[class*="card"] > *,
+main :where(div, section, article) > :where(div, span, p, h1, h2, h3, h4) {
+  min-width: 0;
+}
+
+/* ② 한글 어절 유지 + 끊을 수 없는 긴 토큰만 강제 개행 */
+main :where(div, span, p, li, td, th, h1, h2, h3, h4, label, button, a) {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ③ 표 셀 — 좁은 화면에서 표가 가로로 폭발하지 않도록 말줄임 */
+main table { table-layout: auto; max-width: 100%; }
+main th, main td { overflow-wrap: anywhere; }
+
+/* ④ 유틸: 한 줄 말줄임이 필요한 곳에 명시적으로 붙인다(자동 적용 아님 — 의도한 곳만) */
+.text-ellipsis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ── Reset ───────────────────────────────────────────────────── */
 
