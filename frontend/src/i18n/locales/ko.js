@@ -1,4 +1,5 @@
 export default {
+  "campaignCategories": { "beauty": "뷰티/화장품", "fashion": "패션/의류", "food": "식품/건강", "digital": "가전/디지털", "living": "리빙/가구", "finance": "금융/핀테크", "insurance": "보험", "medical": "의료/헬스케어", "tax_accounting": "세무/회계", "legal": "법률/전문직", "other_services": "기타서비스", "etc": "기타" },
   "planPricing": { "limitInfoSeatPricingBold": "\"계정수(seat)별 요금\"" },
   "globalSearch": { "noResults": "\"{{query}}\"와 일치하는 메뉴가 없습니다." },
   "planGate": {"annualDiscount":"Annual (40% 할인)","availableSuffix":"에서 이용 가능합니다.","currentPlan":"현재 Plan:","expired":"만료됨","freeDescPrefix":"기능을 열람하고 실제 캠페인을 운영하려면 ","freeDescSuffix":"이 필요합니다.","goBack":"돌아가기","paidOrCoupon":"유료 구독 또는 Free 쿠폰","planOnlyFeature":"Plan 전용 기능입니다","planOrAbove":"Plan 이상","premiumFeature":"프리미엄 기능","proFeaturesTitle":"Pro Plan에서 이용 가능한 기능","quarterlyDiscount":"분기 (20% 할인)","startWithCoupon":"Free 쿠폰으로 시작하기","subjectParticle":"은","subscriptionExpired":"구독이 만료되었습니다. 갱신하면 즉시 이용 가능합니다.","thisFeature":"이 기능","upgradeNow":"지금","upgradeRequiredSuffix":"을 사용하려면 Upgrade가 필요합니다"},

@@ -24,7 +24,7 @@ const CHANNELS = [
   { id: 'kakao', label: 'Kakao', icon: '💬', ratio: '1:1' },
   { id: 'youtube', label: 'YouTube', icon: '▶️', ratio: '16:9' },
 ];
-const CATEGORIES = ['뷰티/화장품', '패션/의류', '식품/건강', '가전/디지털', '리빙/가구', '유아/출산', '스포츠/레저', '반려동물', '도서/문구', '여행/숙박', '기타'];
+const CATEGORIES = ['뷰티/화장품', '패션/의류', '식품/건강', '가전/디지털', '리빙/가구', '유아/출산', '스포츠/레저', '반려동물', '도서/문구', '여행/숙박', '금융/핀테크', '보험', '의료/헬스케어', '세무/회계', '법률/전문직', '기타서비스', '기타'];
 const RBOX = { '9:16': { w: 176, h: 312 }, '1:1': { w: 256, h: 256 }, '4:5': { w: 240, h: 300 }, '16:9': { w: 320, h: 180 } };
 const card = { background: 'var(--bg-card, #fff)', border: '1px solid var(--border, #e2e8f0)', borderRadius: 16, padding: 20 };
 
