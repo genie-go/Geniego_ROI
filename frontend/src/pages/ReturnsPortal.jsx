@@ -128,7 +128,33 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
    ★0 이나 임의 기본값으로 채우면 "측정했는데 0"으로 오독된다(057/058/059 정직 미산출 승계). */
 const DASH='—';
 
-function InspectionTab({data,tr,onStatusChange}){
+/* [289차 후속] 검수등급·환불수단 실 입력 — 백엔드 orderhub_claims.insp_grade/refund_method 에
+   저장된다(OrderHub::setClaimMeta·화이트리스트 검증). 값 집합은 백엔드 상수와 1:1로 맞춘다. */
+const GRADES=['A','B','C','F'];
+const REFUND_METHODS=['card','bank','original'];
+const refundMethodLabel=(tr,m)=>m==='card'?tr('refundCard'):m==='bank'?tr('refundBank'):m==='original'?tr('refundOriginal'):DASH;
+
+/** 미측정('')을 1급 선택지로 두는 메타 셀렉트 — 되돌리기가 가능해야 오기입을 고칠 수 있다. */
+function MetaSelect({row,field,options,labelOf,onChange,tr,width=86}){
+  const [busy,setBusy]=useState(false);
+  const cur=row[field]||'';
+  return <select value={cur} disabled={busy}
+    onChange={async e=>{
+      const next=e.target.value; if(next===cur)return;
+      setBusy(true);
+      const ok=await onChange?.(row.id,{[field]:next});
+      setBusy(false);
+      if(!ok)alert(tr('statusUpdateFail'));
+    }}
+    style={{padding:'2px 6px',borderRadius:6,fontSize:11,fontWeight:600,minWidth:width,
+      color:cur?'#1e293b':'#94a3b8',background:'#fff',border:'1px solid #e5e7eb',
+      cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>
+    <option value="">{DASH}</option>
+    {options.map(o=><option key={o} value={o}>{labelOf(o)}</option>)}
+  </select>;
+}
+
+function InspectionTab({data,tr,onStatusChange,onMetaChange}){
 // [289차 후속] ★필터 완화 — 종전 `filter(r=>r.inspGrade)` 는 검수등급이 있는 행만 보였다.
 //   그런데 inspGrade 는 **운영 백엔드에 존재하지 않는 필드**다(orderhub_claims 11컬럼·
 //   returns 17컬럼 어디에도 없고 OrderHub::claims 응답에도 없음 → 항상 null).
@@ -144,13 +170,15 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px'}}>{r.inspGrade?<Badge label={r.inspGrade==='F'?tr('inspFail'):r.inspGrade==='C'?tr('inspPartial'):tr('inspPass')} color={r.inspGrade==='F'?'#ef4444':r.inspGrade==='C'?'#f59e0b':'#22c55e'}/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
-<td style={{padding:'6px 8px'}}>{r.inspGrade?<Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':r.inspGrade==='B'?'#06b6d4':r.inspGrade==='C'?'#f59e0b':'#ef4444'}/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
+{/* [289차 후속] 등급을 읽기전용 뱃지 → 실 입력으로 전환(orderhub_claims.insp_grade 에 저장).
+    검수 결과 컬럼은 이 등급에서 파생되므로 선택 즉시 함께 갱신된다. */}
+<td style={{padding:'6px 8px'}}><MetaSelect row={r} field="inspGrade" options={GRADES} labelOf={g=>tr('grade'+g)} onChange={onMetaChange} tr={tr} width={78}/></td>
 <td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.date||DASH}</td>
 </tr>)}</tbody></table></Card>;
 }
 
-function RefundsTab({data,tr,fmt,onStatusChange}){
+function RefundsTab({data,tr,fmt,onStatusChange,onMetaChange}){
 // [289차 후속] ★필터 완화 + KPI 산출 정정.
 //   종전: 표와 KPI 가 `refundMethod` 보유 여부로 산출됐다. 그런데 refundMethod 는
 //   **운영 백엔드에 존재하지 않는 필드**(항상 null) → 운영에서 표 0행·환불완료 0건·환불액 0원이
@@ -171,7 +199,8 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px',fontWeight:700}}>{fmt(r.amount)}</td>
-<td style={{padding:'6px 8px'}}>{r.refundMethod?<Badge label={r.refundMethod==='card'?tr('refundCard'):r.refundMethod==='bank'?tr('refundBank'):tr('refundOriginal')} color="#6366f1"/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
+{/* [289차 후속] 환불수단을 읽기전용 뱃지 → 실 입력으로 전환(orderhub_claims.refund_method 에 저장). */}
+<td style={{padding:'6px 8px'}}><MetaSelect row={r} field="refundMethod" options={REFUND_METHODS} labelOf={m=>refundMethodLabel(tr,m)} onChange={onMetaChange} tr={tr} width={96}/></td>
 {/* [289차 후속] ★종전엔 실제 상태와 무관하게 항상 '환불완료' 뱃지를 렌더했다(이 표의 필터는
     status 가 아니라 refundMethod 보유 여부라, 대기중 건도 '환불완료'로 보였다 = 표시 위장).
     실제 status 를 표시하고 그 자리에서 전이도 가능하게 교체. */}
@@ -329,7 +358,7 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
-const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn,updateClaimStatus}=useGlobalData();
+const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn,updateClaimStatus,updateClaimMeta}=useGlobalData();
 const{selectedProduct}=useProductSelection();// [현 차수] 전역 상품선택 → 그 상품 반품만 필터·상품별 반품률(실시간 동기화)
 const[tab,setTab]=useState('tabOverview');
 const[period,setPeriod]=useState({preset:'all'}); // [현 차수] 기간조회
@@ -385,15 +414,31 @@ const handleStatusChange=useCallback(async(id,status)=>{
   return ok;
 },[updateClaimStatus]);
 
+// [289차 후속] 검수등급·환불수단 입력 — 상태와 동일하게 페이지 로컬 오버레이로 데모/운영 양쪽 반영.
+const[metaOverride,setMetaOverride]=useState({});
+const handleMetaChange=useCallback(async(id,patch)=>{
+  if(!id||!patch)return false;
+  setMetaOverride(p=>({...p,[id]:{...(p[id]||{}),...patch}}));
+  const ok=updateClaimMeta?await updateClaimMeta(id,patch):true;
+  if(!ok)setMetaOverride(p=>{const n={...p};if(n[id]){const m={...n[id]};Object.keys(patch).forEach(k=>delete m[k]);Object.keys(m).length?n[id]=m:delete n[id];}return n;});
+  return ok;
+},[updateClaimMeta]);
+
 const prodMode=!!selectedProduct?.sku;
 const viewData=useMemo(()=>{
   let d=prodMode?data.filter(r=>(r.sku&&String(r.sku)===selectedProduct.sku)||(r.product&&r.product===selectedProduct.name)):data;
   // [현 차수] 기간조회 — 반품을 선택 기간으로 필터(date YYYY-MM-DD 우선, at/createdAt 폴백). 전 탭·KPI 동반 반응.
   if(period&&period.preset!=='all')d=d.filter(r=>inPeriodAny(r,period,['date','at','createdAt','atISO']));
-  // 로컬 오버레이 적용(전 탭·KPI 가 동일 viewData 를 쓰므로 상태 변경이 전 화면에 함께 반영된다).
-  const ov=statusOverride;
-  return Object.keys(ov).length?d.map(r=>(ov[r.id]?{...r,status:ov[r.id]}:r)):d;
-},[data,prodMode,selectedProduct,period,statusOverride]);
+  // 로컬 오버레이 적용(전 탭·KPI 가 동일 viewData 를 쓰므로 변경이 전 화면에 함께 반영된다).
+  const so=statusOverride, mo=metaOverride;
+  if(!Object.keys(so).length&&!Object.keys(mo).length)return d;
+  return d.map(r=>{
+    const patch={};
+    if(so[r.id])patch.status=so[r.id];
+    if(mo[r.id])Object.assign(patch,mo[r.id]);
+    return Object.keys(patch).length?{...r,...patch}:r;
+  });
+},[data,prodMode,selectedProduct,period,statusOverride,metaOverride]);
 // 상품별 반품률 분모 = 그 상품 주문수(실주문 파생, 정직). orders 파생 가능 시만 표기(운영 부분적재 시 '—').
 const prodOrderCount=useMemo(()=>{if(!prodMode)return 0;const src=Array.isArray(orders)?orders:[];return src.filter(o=>String(o.sku||o.product_id||'')===selectedProduct.sku||o.name===selectedProduct.name).length;},[prodMode,orders,selectedProduct]);
 const prodRate=prodMode&&prodOrderCount>0?((viewData.length/prodOrderCount)*100).toFixed(1):null;
@@ -433,8 +478,8 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 </div>}
 {tab==='tabOverview'&&<OverviewTab data={viewData} tr={tr} fmt={fmt} orderCount={prodMode&&prodOrderCount>0?prodOrderCount:orderCount} claimStats={isDemo?null:claimStatsServer}/>}
 {tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt} onAdd={()=>setShowAdd(true)} onStatusChange={handleStatusChange}/>}
-{tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr} onStatusChange={handleStatusChange}/>}
-{tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt} onStatusChange={handleStatusChange}/>}
+{tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr} onStatusChange={handleStatusChange} onMetaChange={handleMetaChange}/>}
+{tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt} onStatusChange={handleStatusChange} onMetaChange={handleMetaChange}/>}
 {tab==='tabRestock'&&<RestockTab data={viewData} tr={tr} onStatusChange={handleStatusChange}/>}
 {tab==='tabAnalytics'&&<AnalyticsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabPolicies'&&<PoliciesTab tr={tr}/>}

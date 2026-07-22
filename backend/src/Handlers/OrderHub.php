@@ -579,6 +579,91 @@ final class OrderHub
         }
     }
 
+    /* ── [289차 후속] 반품 검수등급 · 환불수단 ────────────────────────────────────
+     * 종전 `orderhub_claims` 는 status/amount 만 보유해 **검수등급(insp_grade)·환불수단
+     * (refund_method) 을 저장할 곳이 아예 없었다**. 프론트 반품 포털의 검수/환불/재입고
+     * 탭은 이 두 값을 기준으로 행을 필터했으므로 운영에서 영구히 0행이었다(데모 시드에서만
+     * 값이 만들어졌다). 아래 3요소로 실 저장 경로를 개통한다:
+     *   ① ensureClaimColumns  — 기존 테이블에도 멱등 추가(자가치유)
+     *   ② claims() 응답에 inspGrade/refundMethod 포함
+     *   ③ setClaimMeta        — 값 기록 엔드포인트
+     */
+
+    /** 허용 검수등급 — 프론트 뱃지(gradeA~F)와 1:1. */
+    private const INSP_GRADES   = ['A', 'B', 'C', 'F'];
+    /** 허용 환불수단 — 프론트 라벨(refundCard/refundBank/refundOriginal)과 1:1. */
+    private const REFUND_METHODS = ['card', 'bank', 'original'];
+
+    /**
+     * 반품 부가필드 자가치유(멱등). 마이그레이션은 172차에서 멈췄고 이후 스키마는 핸들러
+     * 자가치유가 정본이므로 동일 패턴(ALTER + try/catch)을 따른다.
+     * ★PDO 객체 단위로 1회만 — 운영/데모 PDO 가 한 프로세스에 공존해도 각각 보장된다.
+     */
+    private static function ensureClaimColumns(\PDO $pdo): void
+    {
+        static $done = [];
+        $k = spl_object_id($pdo);
+        if (isset($done[$k])) return;
+        $done[$k] = true;
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        foreach ([
+            'insp_grade'    => $isMy ? 'VARCHAR(4)'  : 'TEXT',
+            'refund_method' => $isMy ? 'VARCHAR(16)' : 'TEXT',
+        ] as $col => $type) {
+            // 이미 있으면 예외 → 무시(멱등). 컬럼 유무 선조회보다 드라이버 중립적이다.
+            try { $pdo->exec("ALTER TABLE orderhub_claims ADD COLUMN {$col} {$type}"); } catch (\Throwable $e) {}
+        }
+    }
+
+    /**
+     * POST /v424/orderhub/claims/meta  { id, insp_grade?, refund_method? }
+     * 반품 검수등급·환불수단 기록. 상태 전이(setClaimStatus)와 **의도적으로 분리**한다 —
+     * 상태 전이는 재고복원·정산 재롤업 같은 부수효과를 동반하지만 이 두 값은 순수 메타다.
+     * ★null/'' 전달 = 해당 필드 해제(미측정으로 되돌림). 미전달 필드는 건드리지 않는다.
+     */
+    public static function setClaimMeta(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp);
+        if (isset($g['error'])) return $g['error'];
+        [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
+        self::ensureClaimColumns($pdo);
+
+        $body = (array)($req->getParsedBody() ?? []);
+        $id = trim((string)($body['id'] ?? ''));
+        if ($id === '') return self::json($resp, ['ok' => false, 'error' => 'id_required'], 400);
+
+        $sets = []; $args = [];
+        if (array_key_exists('insp_grade', $body)) {
+            $v = strtoupper(trim((string)($body['insp_grade'] ?? '')));
+            if ($v !== '' && !in_array($v, self::INSP_GRADES, true)) {
+                return self::json($resp, ['ok' => false, 'error' => 'invalid_insp_grade', 'allowed' => self::INSP_GRADES], 400);
+            }
+            $sets[] = 'insp_grade = ?'; $args[] = ($v === '' ? null : $v);
+        }
+        if (array_key_exists('refund_method', $body)) {
+            $v = strtolower(trim((string)($body['refund_method'] ?? '')));
+            if ($v !== '' && !in_array($v, self::REFUND_METHODS, true)) {
+                return self::json($resp, ['ok' => false, 'error' => 'invalid_refund_method', 'allowed' => self::REFUND_METHODS], 400);
+            }
+            $sets[] = 'refund_method = ?'; $args[] = ($v === '' ? null : $v);
+        }
+        if (!$sets) return self::json($resp, ['ok' => false, 'error' => 'no_fields'], 400);
+
+        try {
+            $sets[] = 'updated_at = ?'; $args[] = gmdate('Y-m-d H:i:s');
+            $args[] = $id; $args[] = $tenant;   // ★tenant_id 조건 필수(테넌트 격리)
+            $st = $pdo->prepare('UPDATE orderhub_claims SET ' . implode(', ', $sets) . ' WHERE id = ? AND tenant_id = ?');
+            $st->execute($args);
+            // 매칭 0건은 성공으로 위장하지 않는다(타 테넌트 id·오타를 조용히 삼키면 UI 가 반영된 줄 안다).
+            if ($st->rowCount() === 0) {
+                return self::json($resp, ['ok' => false, 'error' => 'not_found', 'updated' => 0], 404);
+            }
+            return self::json($resp, ['ok' => true, 'updated' => $st->rowCount()]);
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'db_error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     /**
      * [현 차수] 주문 통계 서버측 집계 — limit 캡 과소집계 근본해소(감사 P2).
      *
@@ -739,6 +824,8 @@ final class OrderHub
         if (isset($g['error'])) return $g['error'];
         [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
 
+        self::ensureClaimColumns($pdo); // [289차 후속] 첫 조회만으로도 컬럼이 수렴하도록(쓰기 선행 불필요)
+
         [$limit, $offset] = self::clampLimit($req);
         $q = $req->getQueryParams();
         $type = isset($q['type']) ? (string)$q['type'] : null;
@@ -774,6 +861,10 @@ final class OrderHub
             'status' => (string)($r['status'] ?? 'pending'),
             'amount' => (float)($r['amount'] ?? 0),
             'createdAt' => (string)($r['created_at'] ?? ''),
+            // [289차 후속] 검수등급·환불수단 — 미기록이면 null(0/'' 로 채우지 않는다.
+            //   프론트가 '—'(미측정)로 정직 표기하고, 값이 있을 때만 뱃지를 렌더한다).
+            'inspGrade' => (($r['insp_grade'] ?? '') !== '' && $r['insp_grade'] !== null) ? (string)$r['insp_grade'] : null,
+            'refundMethod' => (($r['refund_method'] ?? '') !== '' && $r['refund_method'] !== null) ? (string)$r['refund_method'] : null,
         ], $rows);
 
         return self::json($resp, [
@@ -1320,10 +1411,12 @@ final class OrderHub
         try {
             if ($isMy) {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_settlements (id VARCHAR(190) PRIMARY KEY, tenant_id VARCHAR(190), period VARCHAR(20), channel VARCHAR(190), status VARCHAR(50), gross_sales DOUBLE DEFAULT 0, net_payout DOUBLE DEFAULT 0, platform_fee DOUBLE DEFAULT 0, ad_fee DOUBLE DEFAULT 0, coupon_discount DOUBLE DEFAULT 0, return_fee DOUBLE DEFAULT 0, orders_count INT DEFAULT 0, returns_count INT DEFAULT 0, created_at VARCHAR(40), updated_at VARCHAR(40), KEY idx_stl (tenant_id, period, channel)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id VARCHAR(190) PRIMARY KEY, tenant_id VARCHAR(190), order_id VARCHAR(190), buyer VARCHAR(190), channel VARCHAR(190), type VARCHAR(50), reason TEXT, status VARCHAR(50), amount DOUBLE DEFAULT 0, created_at VARCHAR(40), updated_at VARCHAR(40), KEY idx_clm (tenant_id, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                // [289차 후속] insp_grade/refund_method 는 신규 설치용 DDL 에 포함. 기존 테이블은
+                //   ensureClaimColumns() 가 멱등 ALTER 로 보강한다(양 경로 필요).
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id VARCHAR(190) PRIMARY KEY, tenant_id VARCHAR(190), order_id VARCHAR(190), buyer VARCHAR(190), channel VARCHAR(190), type VARCHAR(50), reason TEXT, status VARCHAR(50), amount DOUBLE DEFAULT 0, insp_grade VARCHAR(4), refund_method VARCHAR(16), created_at VARCHAR(40), updated_at VARCHAR(40), KEY idx_clm (tenant_id, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             } else {
                 $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_settlements (id TEXT PRIMARY KEY, tenant_id TEXT, period TEXT, channel TEXT, status TEXT, gross_sales REAL DEFAULT 0, net_payout REAL DEFAULT 0, platform_fee REAL DEFAULT 0, ad_fee REAL DEFAULT 0, coupon_discount REAL DEFAULT 0, return_fee REAL DEFAULT 0, orders_count INTEGER DEFAULT 0, returns_count INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)");
-                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id TEXT PRIMARY KEY, tenant_id TEXT, order_id TEXT, buyer TEXT, channel TEXT, type TEXT, reason TEXT, status TEXT, amount REAL DEFAULT 0, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE TABLE IF NOT EXISTS orderhub_claims (id TEXT PRIMARY KEY, tenant_id TEXT, order_id TEXT, buyer TEXT, channel TEXT, type TEXT, reason TEXT, status TEXT, amount REAL DEFAULT 0, insp_grade TEXT, refund_method TEXT, created_at TEXT, updated_at TEXT)");
             }
         } catch (\Throwable $e) {}
     }

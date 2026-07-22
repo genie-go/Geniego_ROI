@@ -1027,6 +1027,9 @@ return function (App $app): void {
         // [현 차수] 반품/클레임 상태 수동 변경
         'POST /v424/orderhub/claims/status'          => 'Genie\\Handlers\\OrderHub::setClaimStatus',
         'POST /api/v424/orderhub/claims/status'      => 'Genie\\Handlers\\OrderHub::setClaimStatus',
+        // [289차 후속] 반품 검수등급·환불수단 기록(상태 전이와 분리 — 부수효과 없는 순수 메타)
+        'POST /v424/orderhub/claims/meta'            => 'Genie\\Handlers\\OrderHub::setClaimMeta',
+        'POST /api/v424/orderhub/claims/meta'        => 'Genie\\Handlers\\OrderHub::setClaimMeta',
 
         // ── v424 enterprise health endpoint (167차 5순위, U-166-E) ──
         'GET /v424/health'      => 'Genie\\Handlers\\Health::check',
@@ -3449,6 +3452,9 @@ return function (App $app): void {
     // [현 차수] 반품/클레임 상태 수동 변경
     $register('POST', '/v424/orderhub/claims/status');
     $register('POST', '/api/v424/orderhub/claims/status');
+    // [289차 후속] 반품 검수등급·환불수단 — ★맵 등록만으론 라우트가 살지 않는다($register 필수)
+    $register('POST', '/v424/orderhub/claims/meta');
+    $register('POST', '/api/v424/orderhub/claims/meta');
 
     // ── V424 enterprise health (167차 5순위) ──
     $register('GET', '/v424/health');

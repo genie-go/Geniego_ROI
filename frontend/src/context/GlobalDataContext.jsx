@@ -1579,6 +1579,36 @@ export function GlobalDataProvider({ children }) {
         }
     }, []);
 
+    /**
+     * [289차 후속] 반품 검수등급·환불수단 기록 — `POST /api/v424/orderhub/claims/meta`.
+     * 상태 전이(updateClaimStatus)와 분리된 순수 메타 갱신이라 재고복원·정산 재롤업 부수효과가 없다.
+     * @param {object} patch {inspGrade?, refundMethod?} — 전달한 필드만 갱신, '' 는 해제(미측정).
+     * ★데모는 서버 미호출(로컬 반영만) · 실패 시 낙관적 갱신을 되돌리고 false 반환.
+     */
+    const updateClaimMeta = useCallback(async (id, patch) => {
+        if (!id || !patch || typeof patch !== 'object') return false;
+        const body = { id };
+        if ('inspGrade' in patch) body.insp_grade = patch.inspGrade ?? '';
+        if ('refundMethod' in patch) body.refund_method = patch.refundMethod ?? '';
+        if (Object.keys(body).length === 1) return false;
+
+        let prev;
+        setClaimHistory(cur => cur.map(c => {
+            if (c.id !== id) return c;
+            prev = { inspGrade: c.inspGrade, refundMethod: c.refundMethod };
+            return { ...c, ...patch };
+        }));
+        if (_isDemo) return true;
+        try {
+            const r = await postJsonAuth('/api/v424/orderhub/claims/meta', body);
+            if (r?.ok) return true;
+            throw new Error(r?.error || 'update_failed');
+        } catch (e) {
+            if (prev !== undefined) setClaimHistory(cur => cur.map(c => (c.id === id ? { ...c, ...prev } : c)));
+            return false;
+        }
+    }, []);
+
     /** 클레임 처리Done → WMS 반품입고 자동 연결 */
     const registerClaimReturn = useCallback((claim) => {
         if (!claim?.orderId && !claim?.sku) return;
@@ -2137,7 +2167,7 @@ export function GlobalDataProvider({ children }) {
         supplyOrders, addSupplyOrder, updateSupplyOrderStatus,
         lotManagement, registerLot,
         priceCalendar, addPriceCalendarEvent,
-        claimHistory, claimStatsServer, registerClaimReturn, updateClaimStatus, orderMemos, setOrderMemo, slaViolations,
+        claimHistory, claimStatsServer, registerClaimReturn, updateClaimStatus, updateClaimMeta, orderMemos, setOrderMemo, slaViolations,
         pickingLists, packingSlips,
         digitalShelfData,
 
