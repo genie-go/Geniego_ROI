@@ -124,40 +124,54 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 </tr>)}</tbody></table></Card>;
 }
 
+/* [289차 후속] 미측정 표기 — 값이 없을 때 빈칸/0 대신 '—' 로 **없음을 명시**한다.
+   ★0 이나 임의 기본값으로 채우면 "측정했는데 0"으로 오독된다(057/058/059 정직 미산출 승계). */
+const DASH='—';
+
 function InspectionTab({data,tr,onStatusChange}){
+// [289차 후속] ★필터 완화 — 종전 `filter(r=>r.inspGrade)` 는 검수등급이 있는 행만 보였다.
+//   그런데 inspGrade 는 **운영 백엔드에 존재하지 않는 필드**다(orderhub_claims 11컬럼·
+//   returns 17컬럼 어디에도 없고 OrderHub::claims 응답에도 없음 → 항상 null).
+//   즉 이 탭은 데이터가 아무리 쌓여도 운영에서 영구히 0행이었다(데모 시드에서만 보였다).
+//   → 접수된 반품 전체를 검수 '대상'으로 노출하고, 등급/결과는 미측정이면 '—' 로 정직 표기.
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>🔍 {tr('tabInspection')}</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
 <thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
 {/* [289차 후속] 검수 결과에 따라 승인/거절/폐기로 바로 전이할 수 있도록 상태 컬럼 추가(기존 status 키 재사용). */}
 {['ID',tr('product'),tr('inspResult'),tr('inspGrade'),tr('status'),tr('inspDate')].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
 </tr></thead>
-<tbody>{data.filter(r=>r.inspGrade).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
+<tbody>{data.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
-<td style={{padding:'6px 8px'}}><Badge label={r.inspGrade==='F'?tr('inspFail'):r.inspGrade==='C'?tr('inspPartial'):tr('inspPass')} color={r.inspGrade==='F'?'#ef4444':r.inspGrade==='C'?'#f59e0b':'#22c55e'}/></td>
-<td style={{padding:'6px 8px'}}><Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':r.inspGrade==='B'?'#06b6d4':r.inspGrade==='C'?'#f59e0b':'#ef4444'}/></td>
+<td style={{padding:'6px 8px'}}>{r.inspGrade?<Badge label={r.inspGrade==='F'?tr('inspFail'):r.inspGrade==='C'?tr('inspPartial'):tr('inspPass')} color={r.inspGrade==='F'?'#ef4444':r.inspGrade==='C'?'#f59e0b':'#22c55e'}/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
+<td style={{padding:'6px 8px'}}>{r.inspGrade?<Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':r.inspGrade==='B'?'#06b6d4':r.inspGrade==='C'?'#f59e0b':'#ef4444'}/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
 <td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
-<td style={{padding:'6px 8px',color:'#64748b'}}>{r.date}</td>
+<td style={{padding:'6px 8px',color:'#64748b'}}>{r.date||DASH}</td>
 </tr>)}</tbody></table></Card>;
 }
 
 function RefundsTab({data,tr,fmt,onStatusChange}){
-const refunded=data.filter(r=>r.refundMethod);
+// [289차 후속] ★필터 완화 + KPI 산출 정정.
+//   종전: 표와 KPI 가 `refundMethod` 보유 여부로 산출됐다. 그런데 refundMethod 는
+//   **운영 백엔드에 존재하지 않는 필드**(항상 null) → 운영에서 표 0행·환불완료 0건·환불액 0원이
+//   되고, 데모에서는 실제 상태와 무관하게 '환불완료'로 집계되는 이중 오류였다.
+//   → 표는 반품 전체를 노출(환불수단 미기록 시 '—'), KPI 는 **실제 status 기준**으로 산출.
+const doneRefunds=data.filter(r=>r.status==='refunded');   // 실현 환불(정본=status)
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>💰 {tr('tabRefunds')}</div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:10,marginBottom:16}}>
 <Stat label={tr('refundPending')} value={data.filter(r=>r.status==='pending'||r.status==='approved').length} color="#f59e0b"/>
-<Stat label={tr('refundComplete')} value={refunded.length} color="#22c55e"/>
-<Stat label={tr('refundAmount')} value={fmt(refunded.reduce((s,r)=>s+r.amount,0))} color="#6366f1"/>
+<Stat label={tr('refundComplete')} value={doneRefunds.length} color="#22c55e"/>
+<Stat label={tr('refundAmount')} value={fmt(doneRefunds.reduce((s,r)=>s+(Number(r.amount)||0),0))} color="#6366f1"/>
 </div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
 <thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
 {['ID',tr('product'),tr('amount'),tr('refundMethod'),tr('refundStatus')].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
 </tr></thead>
-<tbody>{refunded.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
+<tbody>{data.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px',fontWeight:700}}>{fmt(r.amount)}</td>
-<td style={{padding:'6px 8px'}}><Badge label={r.refundMethod==='card'?tr('refundCard'):r.refundMethod==='bank'?tr('refundBank'):tr('refundOriginal')} color="#6366f1"/></td>
+<td style={{padding:'6px 8px'}}>{r.refundMethod?<Badge label={r.refundMethod==='card'?tr('refundCard'):r.refundMethod==='bank'?tr('refundBank'):tr('refundOriginal')} color="#6366f1"/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
 {/* [289차 후속] ★종전엔 실제 상태와 무관하게 항상 '환불완료' 뱃지를 렌더했다(이 표의 필터는
     status 가 아니라 refundMethod 보유 여부라, 대기중 건도 '환불완료'로 보였다 = 표시 위장).
     실제 status 를 표시하고 그 자리에서 전이도 가능하게 교체. */}
@@ -166,7 +180,10 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 }
 
 function RestockTab({data,tr,onStatusChange}){
-const items=data.filter(r=>r.inspGrade&&r.inspGrade!=='F');
+// [289차 후속] ★필터 완화 — 종전 `inspGrade && !== 'F'` 는 운영에 없는 필드(항상 null)라 영구 0행.
+//   → 재입고 '대상'을 실재 필드로 판정: 반려된 건은 제외하고, 등급이 기록됐고 F(불용)면 제외.
+//   등급 미측정(운영)은 대상에 포함해 운영자가 직접 판단·전이할 수 있게 한다.
+const items=data.filter(r=>r.status!=='rejected'&&r.inspGrade!=='F');
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>📦 {tr('tabRestock')}</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
 <thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
@@ -175,8 +192,9 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <tbody>{items.map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
-<td style={{padding:'6px 8px'}}><Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':'#06b6d4'}/></td>
-<td style={{padding:'6px 8px',color:'#64748b'}}>{r.inspGrade==='A'?'WH-A1 (Main)':'WH-B2 (Outlet)'}</td>
+<td style={{padding:'6px 8px'}}>{r.inspGrade?<Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':'#06b6d4'}/>:<span style={{color:'#94a3b8'}}>{DASH}</span>}</td>
+{/* 보관위치는 검수등급에서 파생한다 — 등급 미측정이면 산출 근거가 없으므로 임의 창고를 찍지 않고 '—'. */}
+<td style={{padding:'6px 8px',color:'#64748b'}}>{r.inspGrade?(r.inspGrade==='A'?'WH-A1 (Main)':'WH-B2 (Outlet)'):DASH}</td>
 {/* [289차 후속] ★종전엔 헤더가 '상태'(tr('status'))인데 내용은 등급에서 파생한 재판매/재활용
     처리방침이라 헤더-내용이 불일치했다. 등급은 바로 옆 컬럼에 이미 있어 중복이기도 하다.
     → 실제 status 로 교체하고 그 자리에서 재입고/폐기 전이 가능하게. */}
