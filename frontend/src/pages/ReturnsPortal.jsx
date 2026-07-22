@@ -124,22 +124,24 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 </tr>)}</tbody></table></Card>;
 }
 
-function InspectionTab({data,tr}){
+function InspectionTab({data,tr,onStatusChange}){
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>🔍 {tr('tabInspection')}</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
 <thead><tr style={{borderBottom:'2px solid #e5e7eb',color:'#7c8fa8'}}>
-{['ID',tr('product'),tr('inspResult'),tr('inspGrade'),tr('inspDate')].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
+{/* [289차 후속] 검수 결과에 따라 승인/거절/폐기로 바로 전이할 수 있도록 상태 컬럼 추가(기존 status 키 재사용). */}
+{['ID',tr('product'),tr('inspResult'),tr('inspGrade'),tr('status'),tr('inspDate')].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left'}}>{h}</th>)}
 </tr></thead>
 <tbody>{data.filter(r=>r.inspGrade).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
 <td style={{padding:'6px 8px',fontFamily:'monospace',color:'#6366f1',fontWeight:700}}>{r.id}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px'}}><Badge label={r.inspGrade==='F'?tr('inspFail'):r.inspGrade==='C'?tr('inspPartial'):tr('inspPass')} color={r.inspGrade==='F'?'#ef4444':r.inspGrade==='C'?'#f59e0b':'#22c55e'}/></td>
 <td style={{padding:'6px 8px'}}><Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':r.inspGrade==='B'?'#06b6d4':r.inspGrade==='C'?'#f59e0b':'#ef4444'}/></td>
+<td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.date}</td>
 </tr>)}</tbody></table></Card>;
 }
 
-function RefundsTab({data,tr,fmt}){
+function RefundsTab({data,tr,fmt,onStatusChange}){
 const refunded=data.filter(r=>r.refundMethod);
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>💰 {tr('tabRefunds')}</div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:10,marginBottom:16}}>
@@ -156,11 +158,14 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px',fontWeight:700}}>{fmt(r.amount)}</td>
 <td style={{padding:'6px 8px'}}><Badge label={r.refundMethod==='card'?tr('refundCard'):r.refundMethod==='bank'?tr('refundBank'):tr('refundOriginal')} color="#6366f1"/></td>
-<td style={{padding:'6px 8px'}}><Badge label={tr('refundComplete')} color="#22c55e"/></td>
+{/* [289차 후속] ★종전엔 실제 상태와 무관하게 항상 '환불완료' 뱃지를 렌더했다(이 표의 필터는
+    status 가 아니라 refundMethod 보유 여부라, 대기중 건도 '환불완료'로 보였다 = 표시 위장).
+    실제 status 를 표시하고 그 자리에서 전이도 가능하게 교체. */}
+<td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
 </tr>)}</tbody></table></Card>;
 }
 
-function RestockTab({data,tr}){
+function RestockTab({data,tr,onStatusChange}){
 const items=data.filter(r=>r.inspGrade&&r.inspGrade!=='F');
 return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e293b'}}>📦 {tr('tabRestock')}</div>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
@@ -172,7 +177,10 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px'}}><Badge label={tr('grade'+r.inspGrade)} color={r.inspGrade==='A'?'#22c55e':'#06b6d4'}/></td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.inspGrade==='A'?'WH-A1 (Main)':'WH-B2 (Outlet)'}</td>
-<td style={{padding:'6px 8px'}}><Badge label={r.inspGrade==='A'?tr('restockResell'):tr('restockRecycle')} color={r.inspGrade==='A'?'#22c55e':'#f59e0b'}/></td>
+{/* [289차 후속] ★종전엔 헤더가 '상태'(tr('status'))인데 내용은 등급에서 파생한 재판매/재활용
+    처리방침이라 헤더-내용이 불일치했다. 등급은 바로 옆 컬럼에 이미 있어 중복이기도 하다.
+    → 실제 status 로 교체하고 그 자리에서 재입고/폐기 전이 가능하게. */}
+<td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
 </tr>)}</tbody></table></Card>;
 }
 
@@ -407,9 +415,9 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 </div>}
 {tab==='tabOverview'&&<OverviewTab data={viewData} tr={tr} fmt={fmt} orderCount={prodMode&&prodOrderCount>0?prodOrderCount:orderCount} claimStats={isDemo?null:claimStatsServer}/>}
 {tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt} onAdd={()=>setShowAdd(true)} onStatusChange={handleStatusChange}/>}
-{tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr}/>}
-{tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt}/>}
-{tab==='tabRestock'&&<RestockTab data={viewData} tr={tr}/>}
+{tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr} onStatusChange={handleStatusChange}/>}
+{tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt} onStatusChange={handleStatusChange}/>}
+{tab==='tabRestock'&&<RestockTab data={viewData} tr={tr} onStatusChange={handleStatusChange}/>}
 {tab==='tabAnalytics'&&<AnalyticsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabPolicies'&&<PoliciesTab tr={tr}/>}
 {tab==='tabGuide'&&<GuideTab tr={tr}/>}
