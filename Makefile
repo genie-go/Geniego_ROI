@@ -12,7 +12,7 @@
 #   make compose-up     — Docker Compose 시작
 #   make compose-down   — Docker Compose 종료
 
-.PHONY: help bootstrap validate lint test build build-frontend build-backend \
+.PHONY: help bootstrap validate lint test quality quality-baseline build build-frontend build-backend \
         compose-up compose-down validate-layout validate-boundaries \
         validate-generated validate-large-files validate-env
 
@@ -82,16 +82,30 @@ validate-large-files: ## 대용량 파일 검증
 # ─────────────────────────────────────────────────────────────
 # Lint
 # ─────────────────────────────────────────────────────────────
-lint: lint-frontend lint-backend ## 전체 Lint
+# lint  = 원시 결과 그대로. 기존 위반 958건이 있으므로 **현재는 실패한다**(그게 사실이다).
+# quality = 베이스라인 게이트. 기존 위반은 통과시키되 증가분만 차단한다.
+# 둘 다 필요하다 — lint 를 통과시키려고 규칙을 끄지 않기 위해서다.
+lint: lint-frontend lint-backend ## 전체 Lint (원시 — 기존 위반 때문에 현재 실패한다)
 
 lint-frontend: ## Frontend ESLint 실행
 	@echo "[lint-frontend] Running ESLint..."
 	cd $(FRONTEND_DIR) && npm run lint
 
-lint-backend: ## Backend PHP Lint 실행
-	@echo "[lint-backend] Running PHP lint..."
-	cd $(BACKEND_DIR) && php -l src/routes.php
-	@echo "[lint-backend] PHP lint passed."
+lint-backend: ## Backend PHP 구문 검사 (전 파일)
+	@echo "[lint-backend] Running PHP lint on all tracked PHP files..."
+	@fail=0; tot=0; \
+	for f in $$(git ls-files 'backend/**/*.php' 'tools/*.php'); do \
+	  tot=$$((tot+1)); \
+	  php -l "$$f" > /dev/null || { echo "  구문 오류: $$f"; fail=$$((fail+1)); }; \
+	done; \
+	echo "[lint-backend] $$tot files checked, $$fail error(s)."; \
+	[ $$fail -eq 0 ]
+
+quality: ## 통합 품질 게이트 (ESLint 베이스라인 · PHP · Shell · JSON · Git)
+	@bash scripts/quality/check-code-quality.sh
+
+quality-baseline: ## 위반을 줄인 뒤 베이스라인 갱신 (상향 금지)
+	@bash scripts/quality/check-code-quality.sh --update-baseline
 
 # ─────────────────────────────────────────────────────────────
 # Build
@@ -124,7 +138,7 @@ endif
 # ─────────────────────────────────────────────────────────────
 # Test
 # ─────────────────────────────────────────────────────────────
-test: lint validate ## 전체 테스트 (lint + validation)
+test: quality validate ## 전체 검증 (품질 게이트 + 저장소 게이트)
 	@echo "[test] All tests passed."
 
 # ─────────────────────────────────────────────────────────────

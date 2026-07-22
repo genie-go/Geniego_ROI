@@ -1,4 +1,5 @@
-import { useI18n } from '../i18n/index.js';\n/**
+import { useI18n } from '../i18n/index.js';
+/**
  * perf.js — 공통 성능 유틸 훅 모음
  * React.memo 래퍼 · useDebounce · useThrottle · useLazyData
  */

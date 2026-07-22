@@ -438,7 +438,7 @@ export default function InstagramDM() {
                         )}
                         <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)', fontSize: 11, color: 'var(--text-2)', lineHeight: 1.8 }}>
                             📌 <strong>{t('igdm.setupGuideTitle', '설정 방법:')}</strong><br />
-                            1. <a href="https://developers.facebook.com/apps" target="_blank" style={{ color: '#4f8ef7' }}>Meta Developer Console</a> → {t('igdm.setupStep1', '앱 생성')}<br />
+                            1. <a href="https://developers.facebook.com/apps" target="_blank" rel="noreferrer" style={{ color: '#4f8ef7' }}>Meta Developer Console</a> → {t('igdm.setupStep1', '앱 생성')}<br />
                             2. {t('igdm.setupStep2', 'Instagram Basic Display API / Messenger 활성화')}<br />
                             3. {t('igdm.setupStep3', 'Page Access Token 복사 후 위에 입력')}<br />
                             4. {t('igdm.setupStep4', '📸 Instagram은 Page ID 필요 · 👤 Facebook은 선택')}

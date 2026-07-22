@@ -596,7 +596,6 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
         <input
           type={effType} value={value}
           onChange={e => onChange(e.target.value)}
-          onBlur={onBlur}
           placeholder={placeholder} required={required} autoComplete={autoComplete} disabled={disabled}
           autoCapitalize="none" autoCorrect="off" spellCheck={false}
           inputMode={type === "email" ? "email" : undefined}
@@ -605,7 +604,11 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
           className="gr-input"
           style={{ padding: isPw ? "0 46px 0 16px" : "0 16px", borderRadius: 12, border: "1px solid #dbe5f0", background: disabled ? "#f8fafc" : "#fff", color: disabled ? '#94a3b8' : '#14213d', fontSize: 14, outline: "none", transition: "border-color 160ms, box-shadow 160ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
           onFocus={e => { e.target.style.borderColor = "#2563eb"; e.target.style.boxShadow = "0 0 0 4px rgba(37,99,235,0.09)"; }}
-          onBlur={e => { e.target.style.borderColor = "#dbe5f0"; e.target.style.boxShadow = "none"; }}
+          /* [CCIS Part004] onBlur 가 두 번 선언돼 있어 JSX 규칙상 뒤엣것만 남고
+             props 로 받은 onBlur 가 조용히 폐기되고 있었다(react/jsx-no-duplicate-props).
+             그 결과 추천코드 검증(/api/auth/referral/validate)이 한 번도 실행되지 않아
+             "추천인 확인"·"유효하지 않은 코드" 안내가 표시되지 않았다. 두 핸들러를 합친다. */
+          onBlur={e => { e.target.style.borderColor = "#dbe5f0"; e.target.style.boxShadow = "none"; onBlur?.(e); }}
         />
         {isPw && !disabled && (
           <button type="button" tabIndex={-1} onClick={() => setReveal(v => !v)}

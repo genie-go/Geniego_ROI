@@ -1,0 +1,18 @@
+# ESLint 검사 제외 — CCIS Part004
+#
+# ★ 제외 근거: 아래는 "소스"가 아니라 산출물/백업이다.
+#   locales_backup 을 검사에 포함하던 탓에 error 7087 건 중 2459 건(백업 40개 파일)이
+#   여기서 나왔고, 그 소음이 실제 소스의 결함을 덮고 있었다(Part004 §5 참조).
+
+# i18n 로케일 백업 — 과거 세션 스냅샷. 실행 경로에 포함되지 않는다.
+src/i18n/locales_backup/
+
+# 빌드 산출물 · 의존성
+dist/
+dist-demo/
+dist_new/
+node_modules/
+
+# Capacitor 동기화 산출물
+android/
+ios/
