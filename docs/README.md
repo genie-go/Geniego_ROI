@@ -41,6 +41,7 @@
 | `architecture/` | **ADR 221개** (`ADR_*.md`) — 아키텍처 결정 기록 |
 | `ccis/` | CCIS 구현 명세 (Part001~) |
 | `implementation/` | 구현 원칙·DoD·변경통제·품질게이트·진행상태 |
+| `development/` | 환경 구축(SETUP)·에디터 규약(IDE)·문제 해결(TROUBLESHOOTING) |
 | `repository/` | 저장소 구조·모듈 소유권·브랜치 전략·기여 가이드·생성코드 정책·의존성 경계 |
 | `registry/` | 기능/엔티티 레지스트리 |
 | `data/` | 데이터 아키텍처 구현 정본 |

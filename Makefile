@@ -14,7 +14,7 @@
 
 .PHONY: help bootstrap validate lint test build build-frontend build-backend \
         compose-up compose-down validate-layout validate-boundaries \
-        validate-generated validate-large-files
+        validate-generated validate-large-files validate-env
 
 # ─────────────────────────────────────────────────────────────
 # 설정
@@ -52,12 +52,11 @@ help: ## 사용 가능한 명령 목록 출력
 # ─────────────────────────────────────────────────────────────
 # Bootstrap
 # ─────────────────────────────────────────────────────────────
-bootstrap: ## 개발 환경 초기화 (의존성 설치)
-	@echo "[bootstrap] Installing frontend dependencies..."
-	cd $(FRONTEND_DIR) && npm install
-	@echo "[bootstrap] Installing backend dependencies..."
-	cd $(BACKEND_DIR) && composer install
-	@echo "[bootstrap] Done."
+bootstrap: ## 개발 환경 초기화 (검증 → 의존성 설치 → .env 템플릿 → git hooks)
+	@bash scripts/bootstrap/bootstrap.sh
+
+validate-env: ## 개발환경 도구 검증 (node·php·git·composer·docker·python)
+	@bash scripts/validation/check-environment.sh
 
 # ─────────────────────────────────────────────────────────────
 # Validation
