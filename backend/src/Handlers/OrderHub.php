@@ -1089,11 +1089,20 @@ final class OrderHub
         if (isset($g['error'])) return $g['error'];
         [$tenant, $isDemo, $pdo] = [$g['tenant'], $g['isDemo'], $g['pdo']];
 
+        self::ensureClaimColumns($pdo); // [289차 후속] insp_grade/refund_method 수용 준비
+
         $items = self::extractItems($req);
         $now = gmdate('Y-m-d H:i:s');
-        $ingested = 0; $skipped = 0;
+        $ingested = 0; $skipped = 0; $invalidMeta = 0;
         try {
             $chk = $pdo->prepare("SELECT 1 FROM orderhub_claims WHERE id=? AND tenant_id=? LIMIT 1");
+            /* [289차 후속] 검수등급·환불수단 수집.
+             * ★COALESCE 보존 시맨틱 — 값을 준 필드만 갱신하고 **미제공(null)은 기존 값을 지킨다**.
+             *   채널 폴링·CSV 재업로드가 이 필드를 안 실어 보낸다고 해서 운영자가 수기로 입력한
+             *   등급/환불수단을 지워버리면 안 되기 때문이다(재수집이 수기 입력을 덮는 회귀 차단).
+             * ★ingest 로는 해제(미측정 되돌리기)를 지원하지 않는다 — 해제는 명시적 행위이므로
+             *   setClaimMeta('' 전달) 로만 가능하게 두어 대량 수집의 사고 반경을 좁힌다. */
+            $metaUpd = $pdo->prepare("UPDATE orderhub_claims SET insp_grade=COALESCE(?,insp_grade), refund_method=COALESCE(?,refund_method), updated_at=? WHERE id=? AND tenant_id=?");
             $upd = $pdo->prepare("UPDATE orderhub_claims SET buyer=?,channel=?,type=?,reason=?,status=?,amount=?,updated_at=? WHERE id=? AND tenant_id=?");
             $ins = $pdo->prepare("INSERT INTO orderhub_claims (id,tenant_id,order_id,buyer,channel,type,reason,status,amount,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
             $po = $pdo->prepare("SELECT SUBSTR(ordered_at,1,7) FROM channel_orders WHERE tenant_id=? AND (channel_order_id=? OR order_no=?) LIMIT 1");
@@ -1116,12 +1125,26 @@ final class OrderHub
                 if ($id === '') {
                     $id = 'clm_' . substr(hash('sha256', $tenant . '|' . (string)$channel . '|' . $orderId . '|' . $type), 0, 24);
                 }
+                // [289차 후속] 검수등급·환불수단 — snake/camel 양쪽 수용(채널 어댑터·CSV 헤더 편차 흡수).
+                //   화이트리스트 위반은 **그 필드만 무시**하고 건수를 응답에 노출한다(무음 폐기 금지).
+                //   한 셀이 잘못됐다고 주문 자체를 떨구면 대량 수집이 취약해지므로 항목은 살린다.
+                $ig = null; $rm = null;
+                if (array_key_exists('insp_grade', $it) || array_key_exists('inspGrade', $it)) {
+                    $v = strtoupper(trim((string)($it['insp_grade'] ?? $it['inspGrade'] ?? '')));
+                    if ($v !== '') { in_array($v, self::INSP_GRADES, true) ? $ig = $v : $invalidMeta++; }
+                }
+                if (array_key_exists('refund_method', $it) || array_key_exists('refundMethod', $it)) {
+                    $v = strtolower(trim((string)($it['refund_method'] ?? $it['refundMethod'] ?? '')));
+                    if ($v !== '') { in_array($v, self::REFUND_METHODS, true) ? $rm = $v : $invalidMeta++; }
+                }
+
                 $chk->execute([$id, $tenant]);
                 if ($chk->fetchColumn()) {
                     $upd->execute([$buyer,$channel,$type,$reason,$status,$amount,$now,$id,$tenant]);
                 } else {
                     $ins->execute([$id,$tenant,$orderId,$buyer,$channel,$type,$reason,$status,$amount,$now,$now]);
                 }
+                if ($ig !== null || $rm !== null) { $metaUpd->execute([$ig, $rm, $now, $id, $tenant]); }
                 $ingested++;
                 // [227차 감사 P1] 반품 ordered_at 귀속 정합 — 원주문 월을 재롤업 대상으로 수집(cron 당월 한정 보완).
                 try {
@@ -1159,7 +1182,9 @@ final class OrderHub
         foreach (array_keys($affected) as $pm) {
             try { self::rollupSettlementsCore($pdo, $tenant, $pm, null, $now); } catch (\Throwable $e) {}
         }
-        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, 'rerolled' => array_keys($affected), '_env' => Db::envLabel(), '_isDemo' => $isDemo]);
+        // [289차 후속] invalid_meta — 화이트리스트 위반으로 무시된 검수등급/환불수단 셀 수.
+        //   0 이 아니면 업로드 원본에 오타·비표준 값이 있다는 뜻이므로 호출측이 알아야 한다.
+        return self::json($resp, ['ok' => true, 'ingested' => $ingested, 'skipped' => $skipped, 'invalid_meta' => $invalidMeta, 'rerolled' => array_keys($affected), '_env' => Db::envLabel(), '_isDemo' => $isDemo]);
     }
 
     public static function ingestSettlements(Request $req, Response $resp): Response
