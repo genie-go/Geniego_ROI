@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "generated_at": "2026-07-22T05:43:51.612Z",
+  "generated_at": "2026-07-22T09:38:13.877Z",
   "generator": "tools/build_resolver_manifest_v2.mjs",
   "extraction_method": "babel-parser AST",
   "locale_scope": "ko",
@@ -9277,7 +9277,7 @@
     "direct_count": 9216,
     "prefix_count": 40,
     "dynamic_count": 5,
-    "scan_files": 319,
+    "scan_files": 320,
     "parse_errors": 0,
     "scan_root": "frontend/src",
     "skipped_substrings": [

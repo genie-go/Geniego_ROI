@@ -1,5 +1,108 @@
 # NEXT_SESSION 인계서
 
+## ★★[290차] **CCIS Part001~004 적용 차수** — 저장소 거버넌스·개발환경·코딩표준을 실행되는 게이트로 (2026-07-22)
+
+**상태: 커밋 7건 · push 완료 · 운영+데모 배포 완료 · 라이브 실검증 완료(브라우저) · 미검증 항목 명시**
+
+> ★**성격**: 사용자가 CCIS Part001~004 명세를 제공했고, 그 명세를 **그대로 따르지 않았다.**
+> Reference Stack(Java 21·Spring·PostgreSQL·Kafka·pnpm·FastAPI)은 이 저장소에 하나도 없다.
+> Part001 §4 "기존 기술 최우선 유지" 에 따라 **실측 → 매핑 → 부재 증명 → 실재하는 것만 구현**했다.
+> 명세가 요구했으나 **의도적으로 만들지 않은 산출물**과 그 사유를 각 Part 문서에 남겼다.
+
+### A. ★최대 성과 — 죽어 있던 lint 밑에 묻힌 실결함 (Part004)
+
+`npm run lint` 가 **error 7,087 로 실패 상태**였다(= `make lint` 도 통과한 적 없음). 분해하면:
+
+| 원인 | 건수 | 성격 |
+|---|---|---|
+| `locales_backup` 백업 40파일까지 검사 | 2,459 | `.eslintignore` 부재 = **검사 대상 오류** |
+| `react/prop-types` | 3,296 | prop-types 를 쓴 적 없음 = **적용 불가 규칙** |
+| `react/react-in-jsx-scope` | 515 | 자동 JSX 런타임 = **적용 불가 규칙** |
+| 실제 부채 | **958** | 유지 |
+
+그 소음이 덮고 있던 **진짜 결함 3건**(전부 ESLint 가 줄곧 신고하던 것):
+
+| # | 결함 | 영향 |
+|---|---|---|
+| 1 | `AuthPage.jsx` `<input>` 에 **`onBlur` 2회 선언** | JSX 는 뒤엣것만 남긴다 → props 의 `onBlur` 폐기 → **회원가입 추천코드 검증이 한 번도 실행되지 않음**(282차 R3 기능 사망). ★배포+라이브 검증으로 복구 확인 |
+| 2 | `InstagramDM.jsx:441` `target="_blank"` rel 누락 | 리버스 탭내빙 |
+| 3 | `hooks/perf.js:1` 리터럴 `\n`(역슬래시+n) | 파일 전체 파싱 불가. **어디서도 import 안 되는 고아 파일**이라 빌드는 통과 중이었다 |
+
+★교훈: **게이트가 실패 상태로 방치되면 그 안의 진짜 신호가 전부 죽는다.** 총량이 크면 아무도 안 본다.
+
+### B. Part002 — 저장소 거버넌스 (실결함 7건 수정)
+
+| # | 결함 | 조치 |
+|---|---|---|
+| 1 | `check-large-files.sh` **완주 불가**(5분+) | 파일당 `wc -c`(1.2만회)·prune 없는 `find` → `git ls-tree`/`ls-files` → **4.9초** |
+| 2 | 같은 스크립트 **오탐 124건** | glob→정규식에 앵커 없어 `.env` 가 `.env.example` 까지 매칭 → `(^\|/)…$` 앵커 |
+| 3 | `Makefile` 이 **없는 `.ps1` 호출** | bash 단일화 + PowerShell 오실행 가드(WSL 스텁 오류 선제 차단) |
+| 4 | Part002 §6·§7 링크 깨짐 | `../repository/` 정정 |
+| 5 | 브랜치 전략이 실계보와 불일치 | `master` 가 트렁크. **`git rebase origin/main` 은 공통조상 없어 전 커밋 충돌을 유발하는 위험 명령이었다** |
+| 6 | `.env.example` 키가 **허구** | `GENIEGOROI_DB_*` 는 어느 코드도 안 읽음 → `Db.php:98` 이 읽는 `GENIE_*` 로 교체 |
+| 7 | CODEOWNERS `@genieroi/*` 팀 슬러그 | **`genie-go` 는 User 계정이라 팀이 원리상 불가** → `@genie-go` 로 치환 |
+
+부수: 빌드 산출물 2건 추적 해제(`backend_clean.zip`·`frontend/_dist_demo_n276d.tgz`) · README 4종 신설(WARN 4→0)
+
+### C. Part003 — 개발환경 (Node 버전 4개소 분기 해소)
+
+실측: Node 24.16.0 · npm 11.13.0 · PHP 8.1.34 · Git 2.54 · make 4.4.1(본 차수 설치)
+**부재**: composer · docker · python · mysql/psql/redis-cli/kafka/kubectl · pnpm/yarn
+**PHP 확장**: pdo·pdo_mysql·pdo_sqlite·mbstring·json 활성 / ★**openssl·curl 비활성**
+
+★Node 핀이 **4개소에 흩어져 값도 갈려 있었다** — deploy.yml 18×2 / security-scan.yml 20×2 / Dockerfile 20 / 로컬 24.
+→ **`.nvmrc`(20) 단일 소스** 신설. CI 4개소는 `node-version-file: '.nvmrc'` 로 교체.
+→ 버전 상향 시 고칠 곳은 **`.nvmrc` + Dockerfile ARG 둘뿐**.
+
+### D. 배포 및 라이브 검증 (운영+데모 동등)
+
+| | 운영 www.genieroi.com | 데모 demo.genieroi.com |
+|---|---|---|
+| index 번들 | `C7MVhPDq` → **`D9VsX8Ki`** | `CCJ6SNCK` → **`CKg4PAPo`** |
+| 데모플래그 혼입 | **0** (정상) | 1 (정상) |
+| HTTP | 200 | 200 |
+
+★**브라우저 실검증(playwright)**: 양쪽 회원가입 폼에서 `REF-TESTINVALID` 입력 후 blur →
+`POST /api/auth/referral/validate` **200 발생** + `⚠ 유효하지 않은 추천코드입니다` **표시 확인**.
+배포 전이라면 이 요청 자체가 발생하지 않았다.
+
+### E. 신설된 게이트 (다음 차수부터 이걸 쓸 것)
+
+```bash
+make validate-env   # 개발환경 도구·PHP 확장 (Part003)
+make validate       # 저장소 구조 4종 (Part002)
+make quality        # ★코드 품질 5종 (Part004) — 기존 위반 허용, 증가분 차단
+make test           # quality + validate
+make bootstrap      # 신규 개발자 초기화
+```
+
+★`make` 는 **Git Bash 에서만** 동작한다(PowerShell 의 bash 는 WSL 스텁 → Makefile 이 선제 차단).
+★품질 베이스라인 = `config/quality/eslint-baseline.json` (error 958 / warning 133).
+**증가하면 FAIL**(실효성 시험 완료: 의도적 위반 투입 시 958→960 감지 후 exit 1). 줄이면 `make quality-baseline` 으로 **하향만**.
+
+### F. ★다음 차수 우선순위
+
+| 순위 | 항목 | 근거 |
+|---|---|---|
+| **1** | **PHP `openssl`·`curl` 확장 활성화**(로컬) | `openssl_*` 9종·curl 34개 파일이 **로컬에서 Fatal**. 백엔드 암복호화/외부연동을 로컬 검증할 수 없는 상태 |
+| **2** | **ESLint 부채 958 감축** | 최다 `no-unused-vars` 553 · **`no-empty` 339(빈 catch = 무음 오류 삼킴, 실질 위험)** · `exhaustive-deps` 81. `no-empty` 부터 |
+| **3** | 로그인 페이지 401 노이즈 23건 | 인증 전 데이터 fetch 가 401 을 뿌린다(운영 실측). 기능 지장 없으나 불필요 요청·로그 오염 |
+| 4 | PHPStan 도입 | 백엔드 정적분석 **0**. `composer.json` 에 `require-dev` 자체가 없다. 초기 위반 규모 미상 |
+| 5 | `perf.js` 고아 파일 | 구문은 고쳤으나 여전히 미참조. 삭제 여부 결정 |
+| 6 | `origin/main`·`origin/yyocool` | 계보 단절·정체. 폐기/재동기화 결정 |
+| 7 | GitHub 기본 브랜치 `main`→`master` + Branch protection | **사용자가 "중요치 않음"으로 보류 결정.** 재개 시 CODEOWNERS 가 비로소 작동 |
+
+### G. 미검증·주의 (정직 보고)
+
+- **단위테스트 스위트는 없다**(PHPUnit·vitest 부재). 단 **i18n triage 자기검증 3종(16 invariants)** 과 `npm run e2e` 는 실재한다 — Part004 문서에 "테스트 부재"로 쓴 표현은 과했다.
+- `bootstrap.sh` **전체 실행 미수행**(`--check` 만). 의존성 트리를 건드리므로 승인 후 실행할 것.
+- `.nvmrc` 기반 CI 실행 결과 **미확인**(gh 미인증). Actions 에서 setup-node 가 20 을 잡는지 볼 것.
+- **자격증명 노출 사고**: 세션 중 리댁션 정규식이 백틱 값을 못 잡아 SSH/MySQL/admin 비밀번호가 대화에 평문 노출됐다. **SSH 비밀번호 회전 권장**(회전 시 운영·데모 `backend/.env` 의 `GENIE_DB_PASS` 동시 갱신 필수).
+- `.vscode/settings.json` 이 `.editorconfig` 와 충돌(`insertFinalNewline`·`trimTrailingWhitespace`). **의도된 안전장치로 판단해 유지** — `ko.js` 급 파일에서 공백 diff 폭발을 막는다. 정합성 이유로 되돌리지 말 것.
+- `infra/` 전체가 **Python/FastAPI+Postgres 스텁**이다(`Dockerfile.api` = `uvicorn app.main:app`, 백엔드는 PHP). `docker compose up` 은 실패가 정상이며 `make compose-up`/`compose-down` 도 동작하지 않는다. 근거로 삼지 말 것.
+
+
+
 ## ★★[289차 후속] **MEA 종결 후 첫 실구현 차수** — 보안 P0 2건 · Gateway 일원화 · 반품 도메인 · 타이포 · PG 비노출 (2026-07-22)
 
 **상태: 커밋 18건 · 운영+데모 배포 완료 · 라이브 실검증 완료 · 일부 항목 미검증 명시**
