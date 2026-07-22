@@ -11,7 +11,7 @@
 // └─────────────────────────────────────────────────────────────────────────┘
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { guardProductionState } from '../security/ContaminationGuard.js';
-import { getJsonAuth } from '../services/apiClient.js';
+import { getJsonAuth, postJsonAuth } from '../services/apiClient.js';
 
 // [276차] 미인증(로그인 화면) 상태에서 인증 필요 EP 를 호출해 401 을 만들지 않기 위한 게이트.
 //   로그인 시 TenantScopedProviders 의 key(tenantKey) 가 'anon'→tenant 로 바뀌며 Provider 가
@@ -1544,6 +1544,41 @@ export function GlobalDataProvider({ children }) {
         ]);
     }, [registerInOut]);
 
+    /**
+     * [289차 후속 / MEA Part 063 · FIND-063-2 후속] 반품/클레임 상태 전이 — 화면 배선용 단일 진입점.
+     *
+     * 종전엔 백엔드 `POST /api/v424/orderhub/claims/status`(OrderHub::setClaimStatus, 라우팅 완료)가
+     *   구현돼 있는데도 **프론트에서 호출하는 곳이 한 곳도 없어 반품 상태를 바꿀 수단이 없었다.**
+     *   그 결과 `disposed`(폐기) 같은 상태는 화면·집계·15개국 라벨이 다 있어도 도달 불가였다.
+     *
+     * ★저장소 주의: 화면이 표시하는 반품은 메인 DB `orderhub_claims`(claimHistory)다.
+     *   별도 SQLite 의 `returns` 테이블(ReturnsPortal.php)과는 **ID 체계가 다르므로**
+     *   `/v420/returns/{id}/status` 로 보내면 매칭되지 않는다 — 반드시 claims 엔드포인트를 쓴다.
+     * ★데모는 서버를 호출하지 않고 로컬 상태만 갱신(운영 데이터 오염 0).
+     * @returns {Promise<boolean>} 성공 여부(실패 시 낙관적 갱신을 되돌린다)
+     */
+    const updateClaimStatus = useCallback(async (id, status) => {
+        if (!id || !status) return false;
+        let prevStatus;
+        setClaimHistory(prev => prev.map(c => {
+            if (c.id !== id) return c;
+            prevStatus = c.status;
+            return { ...c, status };
+        }));
+        if (_isDemo) return true;                       // 데모: 로컬 반영만
+        try {
+            const r = await postJsonAuth('/api/v424/orderhub/claims/status', { id, status });
+            if (r?.ok) return true;
+            throw new Error(r?.error || 'update_failed');
+        } catch (e) {
+            // ★실패를 성공으로 위장하지 않는다 — 원상복구 후 false 반환(호출측이 사용자에게 알린다).
+            if (prevStatus !== undefined) {
+                setClaimHistory(prev => prev.map(c => (c.id === id ? { ...c, status: prevStatus } : c)));
+            }
+            return false;
+        }
+    }, []);
+
     /** 클레임 처리Done → WMS 반품입고 자동 연결 */
     const registerClaimReturn = useCallback((claim) => {
         if (!claim?.orderId && !claim?.sku) return;
@@ -2102,7 +2137,7 @@ export function GlobalDataProvider({ children }) {
         supplyOrders, addSupplyOrder, updateSupplyOrderStatus,
         lotManagement, registerLot,
         priceCalendar, addPriceCalendarEvent,
-        claimHistory, claimStatsServer, registerClaimReturn, orderMemos, setOrderMemo, slaViolations,
+        claimHistory, claimStatsServer, registerClaimReturn, updateClaimStatus, orderMemos, setOrderMemo, slaViolations,
         pickingLists, packingSlips,
         digitalShelfData,
 

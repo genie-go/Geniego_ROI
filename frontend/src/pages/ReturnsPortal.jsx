@@ -13,7 +13,11 @@ function useI18n(){const c=_useI18n();const lang=c.lang||'en';const ot=c.t;
 const t=(k,fb)=>{if(k&&k.startsWith('rp.')){const x=k.slice(3);const d=RP[lang]||RP.en||{};if(d[x]!==undefined)return d[x];}return ot(k,fb);};
 return{...c,t};}
 
-const useTr=()=>{const{t,lang}=useI18n();return useCallback(k=>{const d=RP[lang]||RP.en||{};return d[k]||k;},[lang]);};
+// [289차 후속] tr 폴백 보강 — 종전 `d[k]||k` 는 해당 언어 사전에 키가 없으면 **키 문자열을 그대로
+//   화면에 렌더**했다(성과 허브 performance.rightsExpiryAlert 원시키 노출과 동일 클래스의 버그).
+//   ①선택 언어 → ②en(키 단위 폴백) → ③호출측 명시 폴백 → ④최후에만 키. 신규 키를 ko/en 에만
+//   추가해도 나머지 13개국이 영어로 안전하게 표시된다(원시 키 노출 0).
+const useTr=()=>{const{lang}=useI18n();return useCallback((k,fb)=>{const d=RP[lang]||{},e=RP.en||{};return d[k]||e[k]||fb||k;},[lang]);};
 
 const Card=({children,style={}})=><div style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'16px 20px',marginBottom:12,...style}}>{children}</div>;
 const Stat=({label,value,color='#6366f1',sub,style={}})=><Card style={{padding:'9px 16px',marginBottom:0,...style}}><div style={{fontSize:10,color:'#7c8fa8',marginBottom:2}}>{label}</div><div style={{fontSize:22,fontWeight:800,color}}>{value}</div>{sub&&<div style={{fontSize:10,color:'#94a3b8',marginTop:2}}>{sub}</div>}</Card>;
@@ -21,6 +25,34 @@ const Badge=({label,color})=><span style={{background:color+'22',color,border:'1
 
 // 204차: 전자제품 DEMO_RETURNS 하드코딩 제거 — 데모 반품은 단일소스 orders(L'Oréal)에서 파생(ReturnsPortal 본체).
 const STATUS_COLORS={pending:'#f59e0b',approved:'#22c55e',rejected:'#ef4444',refunded:'#6366f1',restocked:'#06b6d4',disposed:'#94a3b8'};
+// [289차 후속 / MEA Part 063 · FIND-063-2 후속] 반품 상태 전이 선택지.
+//   ★rpI18n 에 status* 라벨이 15개국 완비된 값만 노출한다(신규 번역 0). 'inspecting' 은 라벨이
+//   없어 제외 — 라벨 없는 값을 넣으면 키 문자열이 그대로 렌더된다(rightsExpiryAlert 사례).
+//   ★'restocked' 선택 시 백엔드(OrderHub::setClaimStatus)가 물리재고를 복원하고,
+//     'disposed' 는 복원하지 않는다(폐기≠재입고).
+const STATUS_OPTIONS=['pending','approved','rejected','refunded','restocked','disposed'];
+// 상태 라벨 헬퍼 — 'disposed' → tr('statusDisposed')
+const statusLabel=(tr,s)=>s?tr('status'+s.charAt(0).toUpperCase()+s.slice(1)):'-';
+
+/** 반품 상태 전이 셀렉트 — 저장 실패 시 낙관적 갱신을 되돌리고 사용자에게 알린다(무음 실패 금지). */
+function StatusSelect({row,tr,onChange}){
+  const [busy,setBusy]=useState(false);
+  const cur=row.status||'pending';
+  return <select value={STATUS_OPTIONS.includes(cur)?cur:''} disabled={busy}
+    onChange={async e=>{
+      const next=e.target.value; if(!next||next===cur)return;
+      setBusy(true);
+      const ok=await onChange?.(row.id,next);
+      setBusy(false);
+      if(!ok)alert(tr('statusUpdateFail'));
+    }}
+    style={{padding:'2px 6px',borderRadius:6,fontSize:11,fontWeight:700,cursor:busy?'wait':'pointer',
+      color:STATUS_COLORS[cur]||'#94a3b8',background:(STATUS_COLORS[cur]||'#94a3b8')+'18',
+      border:'1px solid '+(STATUS_COLORS[cur]||'#94a3b8')+'55',opacity:busy?0.6:1}}>
+    {!STATUS_OPTIONS.includes(cur)&&<option value="">{cur}</option>}
+    {STATUS_OPTIONS.map(s=><option key={s} value={s} style={{color:'#1e293b',background:'#fff'}}>{statusLabel(tr,s)}</option>)}
+  </select>;
+}
 
 function OverviewTab({data,tr,fmt,orderCount=0,claimStats=null}){
 // [225차 P1-16] 운영 KPI 카운트는 서버 클레임 통계(전체 행) 우선 — claims?limit=200 배열 집계 과소 해소.
@@ -58,7 +90,7 @@ return <div>
 </tr>)}</tbody></table></Card></div>;
 }
 
-function RequestsTab({data,tr,fmt,onAdd}){
+function RequestsTab({data,tr,fmt,onAdd,onStatusChange}){
 // [259차] 죽은 버튼(등록/검색/내보내기 onClick 전무) → 실배선: 등록=추가모달 콜백, 검색=클라 필터, 내보내기=CSV.
 const [q,setQ]=useState('');
 const rows=q.trim()?data.filter(r=>['id','orderNo','product','reason','status','sku'].some(k=>String(r[k]??'').toLowerCase().includes(q.trim().toLowerCase()))):data;
@@ -85,7 +117,8 @@ return <Card><div style={{fontSize:13,fontWeight:700,marginBottom:12,color:'#1e2
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.orderNo}</td>
 <td style={{padding:'6px 8px',fontWeight:600,color:'#1e293b'}}>{r.product}</td>
 <td style={{padding:'6px 8px'}}>{(r.reason&&(tr('reason'+r.reason.charAt(0).toUpperCase()+r.reason.slice(1))))||r.reason||'-'}</td>
-<td style={{padding:'6px 8px'}}>{r.status?<Badge label={tr('status'+r.status.charAt(0).toUpperCase()+r.status.slice(1))} color={STATUS_COLORS[r.status]||'#94a3b8'}/>:'-'}</td>
+{/* [289차 후속 FIND-063-2 후속] 상태 전이 실배선 — 종전엔 표시만 가능(Badge)하고 바꿀 수단이 없었다. */}
+<td style={{padding:'6px 8px'}}><StatusSelect row={r} tr={tr} onChange={onStatusChange}/></td>
 <td style={{padding:'6px 8px',color:'#64748b'}}>{r.date}</td>
 <td style={{padding:'6px 8px',textAlign:'right',fontWeight:700}}>{fmt(r.amount)}</td>
 </tr>)}</tbody></table></Card>;
@@ -270,7 +303,7 @@ const tr=useTr();
 const{fmt}=useCurrency();
 const{user}=useAuth();
 const isDemo=IS_DEMO; // 180차: email·host broad includes('demo') 제거 → demoEnv 정본 격리(운영 오염 0)
-const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn}=useGlobalData();
+const{orders=[],claimHistory=[],claimStatsServer=null,orderStats=null,registerClaimReturn,updateClaimStatus}=useGlobalData();
 const{selectedProduct}=useProductSelection();// [현 차수] 전역 상품선택 → 그 상품 반품만 필터·상품별 반품률(실시간 동기화)
 const[tab,setTab]=useState('tabOverview');
 const[period,setPeriod]=useState({preset:'all'}); // [현 차수] 기간조회
@@ -313,13 +346,28 @@ const data=useMemo(()=>{
 //   였던 치명 버그를 서버 주문집계(orderStats.totalOrders, 전체 행)로 교체. 데모는 단일소스 주문수.
 const orderCount=isDemo?(Array.isArray(orders)?orders.length:0):(Number(orderStats?.totalOrders||orderStats?.count)||(Array.isArray(claimHistory)?claimHistory.length:0));
 // [현 차수] 전역 상품선택 시 그 상품 반품만 — 모든 탭(요청·검수·환불·재입고·분석)에 동일 필터 전파(실시간 동기화). sku 우선, 없으면 상품명.
+// [289차 후속 FIND-063-2 후속] 상태 전이 낙관적 반영 — ★데모/운영 양쪽에서 동작해야 한다.
+//   운영 표는 claimHistory(컨텍스트) 파생이라 컨텍스트 갱신만으로 반영되지만,
+//   **데모 표는 orders 파생 시드(_RSTATUS)** 라 컨텍스트를 고쳐도 화면이 그대로였다.
+//   → 페이지 로컬 오버레이로 두 경로를 동일하게 반영(서버 실패 시 오버레이를 되돌린다).
+const[statusOverride,setStatusOverride]=useState({});
+const handleStatusChange=useCallback(async(id,status)=>{
+  if(!id||!status)return false;
+  setStatusOverride(p=>({...p,[id]:status}));
+  const ok=updateClaimStatus?await updateClaimStatus(id,status):true;
+  if(!ok)setStatusOverride(p=>{const n={...p};delete n[id];return n;}); // 무음 실패 금지 — 원복
+  return ok;
+},[updateClaimStatus]);
+
 const prodMode=!!selectedProduct?.sku;
 const viewData=useMemo(()=>{
   let d=prodMode?data.filter(r=>(r.sku&&String(r.sku)===selectedProduct.sku)||(r.product&&r.product===selectedProduct.name)):data;
   // [현 차수] 기간조회 — 반품을 선택 기간으로 필터(date YYYY-MM-DD 우선, at/createdAt 폴백). 전 탭·KPI 동반 반응.
   if(period&&period.preset!=='all')d=d.filter(r=>inPeriodAny(r,period,['date','at','createdAt','atISO']));
-  return d;
-},[data,prodMode,selectedProduct,period]);
+  // 로컬 오버레이 적용(전 탭·KPI 가 동일 viewData 를 쓰므로 상태 변경이 전 화면에 함께 반영된다).
+  const ov=statusOverride;
+  return Object.keys(ov).length?d.map(r=>(ov[r.id]?{...r,status:ov[r.id]}:r)):d;
+},[data,prodMode,selectedProduct,period,statusOverride]);
 // 상품별 반품률 분모 = 그 상품 주문수(실주문 파생, 정직). orders 파생 가능 시만 표기(운영 부분적재 시 '—').
 const prodOrderCount=useMemo(()=>{if(!prodMode)return 0;const src=Array.isArray(orders)?orders:[];return src.filter(o=>String(o.sku||o.product_id||'')===selectedProduct.sku||o.name===selectedProduct.name).length;},[prodMode,orders,selectedProduct]);
 const prodRate=prodMode&&prodOrderCount>0?((viewData.length/prodOrderCount)*100).toFixed(1):null;
@@ -358,7 +406,7 @@ return <div style={{display:'flex',flexDirection:'column',height:'100%',backgrou
 {(()=>{const rs={};viewData.forEach(r=>{if(r.reason)rs[r.reason]=(rs[r.reason]||0)+1;});const top=Object.entries(rs).sort((a,b)=>b[1]-a[1])[0];return top?<span style={{color:'#475569'}}>{tr('topReason')||'주요 사유'}: {(tr('reason'+top[0].charAt(0).toUpperCase()+top[0].slice(1))||top[0])} ({top[1]})</span>:null;})()}
 </div>}
 {tab==='tabOverview'&&<OverviewTab data={viewData} tr={tr} fmt={fmt} orderCount={prodMode&&prodOrderCount>0?prodOrderCount:orderCount} claimStats={isDemo?null:claimStatsServer}/>}
-{tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt} onAdd={()=>setShowAdd(true)}/>}
+{tab==='tabRequests'&&<RequestsTab data={viewData} tr={tr} fmt={fmt} onAdd={()=>setShowAdd(true)} onStatusChange={handleStatusChange}/>}
 {tab==='tabInspection'&&<InspectionTab data={viewData} tr={tr}/>}
 {tab==='tabRefunds'&&<RefundsTab data={viewData} tr={tr} fmt={fmt}/>}
 {tab==='tabRestock'&&<RestockTab data={viewData} tr={tr}/>}
