@@ -67,7 +67,7 @@ export default function DataAssets() {
   return (
     <div style={{ maxWidth: 980, margin: "20px auto", padding: "0 16px" }}>
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 21, fontWeight: 800, color: "var(--text-1,#0f172a)" }}>🗂️ {t("dataAssets.title", "데이터 자산")}</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-1,#0f172a)" }}>🗂️ {t("dataAssets.title", "데이터 자산")}</div>
         <div style={{ fontSize: 13, color: "var(--text-3,#64748b)", marginTop: 4 }}>
           {t("dataAssets.desc", "내 계정의 데이터를 구독 직접등록 원천과 외부 채널 수집 원천으로 구분해 관리합니다. 이 자산이 통합 분석·마케팅 자동화의 정확한 근거가 됩니다.")}
         </div>

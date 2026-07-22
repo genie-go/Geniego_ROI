@@ -230,7 +230,7 @@ function MembersTab() {
                         return (
                             <button key={f.v || "all"} onClick={() => { setFilterPlan(f.v); setPage(1); }}
                                 style={{
-                                    padding: "7px 16px", borderRadius: 9, cursor: "pointer", fontSize: 12.5, fontWeight: 800,
+                                    padding: "7px 16px", borderRadius: 9, cursor: "pointer", fontSize: 12.5, fontWeight: 700,
                                     border: active ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)",
                                     background: active ? "rgba(79,142,247,0.14)" : "transparent",
                                     color: active ? "#4f8ef7" : "var(--text-2)",
@@ -251,7 +251,7 @@ function MembersTab() {
                         총 <b style={{ color: "#f59e0b" }}>{expSummary.total}명</b> · 이미 만료 <b style={{ color: "#ef4444" }}>{expSummary.expired}</b> · 7일내 <b style={{ color: "#f97316" }}>{expSummary.within7}</b> · 30일내 <b style={{ color: "#eab308" }}>{expSummary.within30}</b>
                     </div>
                 </div>
-                <button onClick={() => setExpiringView(v => !v)} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: "pointer", background: expiringView ? "#ef4444" : "linear-gradient(135deg,#f59e0b,#f97316)", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
+                <button onClick={() => setExpiringView(v => !v)} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: "pointer", background: expiringView ? "#ef4444" : "linear-gradient(135deg,#f59e0b,#f97316)", color: "#fff", fontWeight: 700, fontSize: 12.5 }}>
                     {expiringView ? "✕ 닫기" : "임박 회원 보기"}
                 </button>
             </div>
@@ -271,7 +271,7 @@ function MembersTab() {
                                     <tr key={u.id} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                                         <td style={css.td}><div style={{ fontWeight: 700, color: "#fff" }}>{u.name}</div><div style={{ fontSize: 10, color: "var(--text-3)" }}>{u.email}</div></td>
                                         <td style={css.td}><span style={css.badge(u.plan)}>{u.plan}</span></td>
-                                        <td style={css.td}><span style={{ fontSize: 12, fontWeight: 900, color: c }}>{dl < 0 ? `만료 ${-dl}일 경과` : `D-${dl}`}</span></td>
+                                        <td style={css.td}><span style={{ fontSize: 12, fontWeight: 700, color: c }}>{dl < 0 ? `만료 ${-dl}일 경과` : `D-${dl}`}</span></td>
                                         <td style={css.td}><span style={{ fontSize: 11, color: "var(--text-3)" }}>{u.subscription_expires_at ? String(u.subscription_expires_at).slice(0, 10) : "—"}</span></td>
                                         <td style={css.td}><span style={{ fontSize: 11, color: "var(--text-3)" }}>{u.phone || "—"}</span></td>
                                         <td style={css.td}>{u.email && <a href={`mailto:${u.email}?subject=${encodeURIComponent("[GeniegoROI] 구독 갱신 안내")}`} style={{ fontSize: 11, fontWeight: 700, color: "#4f8ef7", textDecoration: "none", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(79,142,247,0.3)" }}>✉ 갱신 안내</a>}</td>
@@ -334,7 +334,7 @@ function MembersTab() {
                                 </td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.company || "—"}</span></td>
                                 <td style={css.td}><span style={css.badge(u.plan)}>{u.plan}</span></td>
-                                <td style={css.td}>{(() => { const s = subStatus(u); return <span style={{ fontSize: 10.5, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: s.color + "22", color: s.color, whiteSpace: "nowrap" }}>{s.label}</span>; })()}</td>
+                                <td style={css.td}>{(() => { const s = subStatus(u); return <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: s.color + "22", color: s.color, whiteSpace: "nowrap" }}>{s.label}</span>; })()}</td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.subscription_expires_at ? String(u.subscription_expires_at).slice(0, 10) : "—"}</span></td>
                                 <td style={css.td}><span style={{ fontSize: 11, color: 'var(--text-3)' }}>{u.coupon_used_at ? String(u.coupon_used_at).slice(0, 10) : "—"}</span></td>
                                 <td style={css.td}>

@@ -53,7 +53,7 @@ export default function AgentModeCard() {
                 border: `2px solid ${on ? m.col : 'var(--border,#e2e8f0)'}`, background: on ? m.col + '14' : 'var(--card,#fff)',
                 opacity: ownerLike ? 1 : 0.75,
               }}>
-              <div style={{ fontWeight: 800, fontSize: 12.5, color: on ? m.col : 'var(--text-1)' }}>{m.icon} {t('agentMode.mode_' + m.id, m.ko)} {on && '●'}</div>
+              <div style={{ fontWeight: 700, fontSize: 12.5, color: on ? m.col : 'var(--text-1)' }}>{m.icon} {t('agentMode.mode_' + m.id, m.ko)} {on && '●'}</div>
               <div style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)', marginTop: 3, lineHeight: 1.4 }}>{t('agentMode.desc_' + m.id, m.desc)}</div>
             </button>
           );

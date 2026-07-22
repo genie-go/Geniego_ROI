@@ -283,9 +283,9 @@ const KPICard = React.memo(function KPICard({ ico, label, value, delta, col }) {
             <div style={{ fontSize:10, color: 'var(--text-3)', fontWeight:700, textTransform:'uppercase', letterSpacing:1 }}>{label}</div>
             <div style={{ fontSize:22, fontWeight:900, color:col, lineHeight:1.1, marginTop:3, textShadow:`0 0 18px ${col}55` }}>{value}</div>
           </div>
-          <div style={{ width:36, height:36, borderRadius:10, background:`${col}18`, border:`1px solid ${col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17 }}>{ico}</div>
+          <div style={{ width:36, height:36, borderRadius:10, background:`${col}18`, border:`1px solid ${col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>{ico}</div>
         </div>
-        <span style={{ fontSize:11, color:delta >= 0 ? '#4ade80' : '#f87171', fontWeight:800, background:delta >= 0 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6, alignSelf:'flex-start' }}>
+        <span style={{ fontSize:11, color:delta >= 0 ? '#4ade80' : '#f87171', fontWeight:700, background:delta >= 0 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6, alignSelf:'flex-start' }}>
           {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}%
         </span>
       </div>
@@ -296,7 +296,7 @@ const KPICard = React.memo(function KPICard({ ico, label, value, delta, col }) {
 const TabButton = React.memo(function TabButton({ id, label, active, onClick }) {
   return (
     <button onClick={onClick} style={{
-      flex:1, padding:'8px 4px', borderRadius:9, border:'none', cursor:'pointer', fontWeight:800, fontSize:11, transition:'all 0.2s',
+      flex:1, padding:'8px 4px', borderRadius:9, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, transition:'all 0.2s',
       background: active ? 'linear-gradient(135deg,rgba(79,142,247,0.3),rgba(79,142,247,0.1))' : 'transparent',
       color: active ? '#4f8ef7' : 'var(--text-3, #9ca3af)',
       boxShadow: active ? '0 2px 12px rgba(79,142,247,0.2)' : undefined,
@@ -348,7 +348,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
             </div>
           </div>
           <div style={{
-            padding:'6px 14px', borderRadius:8, fontSize:11, fontWeight:800,
+            padding:'6px 14px', borderRadius:8, fontSize:11, fontWeight:700,
             background: isSecure ? 'rgba(34,197,94,0.15)' : 'rgba(248,113,113,0.15)',
             color: isSecure ? '#4ade80' : '#f87171',
             border: `1px solid ${isSecure ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.3)'}`,
@@ -366,7 +366,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
             <div key={m.l} style={{ background:'rgba(0,0,0,0.25)', borderRadius:9, padding:'8px 10px', textAlign:'center' }}>
               <div style={{ fontSize:14, marginBottom:4 }}>{m.ico}</div>
               <div style={{ fontSize:14, fontWeight:900, color:m.col }}>{m.v}</div>
-              <div style={{ fontSize:8, color: 'var(--text-3)', marginTop:2, lineHeight:1.2 }}>{m.l}</div>
+              <div style={{ fontSize:10, color: 'var(--text-3)', marginTop:2, lineHeight:1.2 }}>{m.l}</div>
             </div>
           ))}
         </div>
@@ -381,7 +381,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
           <div style={{ fontSize:12, fontWeight:700, color: 'var(--text-3)', textTransform:'uppercase', letterSpacing:0.8 }}>
             {txt('securityLog')}
           </div>
-          <span style={{ fontSize:9, color: 'var(--text-3)', padding:'2px 8px', border: '1px solid var(--border)', borderRadius:6 }}>
+          <span style={{ fontSize:10, color: 'var(--text-3)', padding:'2px 8px', border: '1px solid var(--border)', borderRadius:6 }}>
             {alerts.length} events
           </span>
         </div>
@@ -398,13 +398,13 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
                   display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8,
                   background:`${col}08`, border:`1px solid ${col}18`,
                 }}>
-                  <span style={{ fontSize:8, fontWeight:900, color:col, padding:'1px 5px', borderRadius:4, background:`${col}1a`, border:`1px solid ${col}25`, flexShrink:0 }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:col, padding:'1px 5px', borderRadius:4, background:`${col}1a`, border:`1px solid ${col}25`, flexShrink:0 }}>
                     {a.type === 'critical' ? txt('critical') : a.type === 'warn' ? txt('warning') : txt('info')}
                   </span>
                   <span style={{ flex:1, fontSize:10, color: 'var(--text-2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {a.message || a.msg || 'Security event'}
                   </span>
-                  <span style={{ fontSize:9, color: 'var(--text-3)', flexShrink:0 }}>
+                  <span style={{ fontSize:10, color: 'var(--text-3)', flexShrink:0 }}>
                     {a.time || 'now'}
                   </span>
                 </div>
@@ -461,7 +461,7 @@ const PanelAI = React.memo(function PanelAI({ txt, creatorCount = 0 }) {
           <button onClick={runAnalysis} disabled={status === 'loading'} style={{
             flex:1, padding:'10px 16px', borderRadius:9, border:'none', cursor:'pointer',
             background: status === 'loading' ? 'rgba(79,142,247,0.3)' : 'linear-gradient(135deg,#4f8ef7,#7c5cfc)',
-            color: 'var(--text-1)', fontWeight:800, fontSize:12, transition:'all 0.2s',
+            color: 'var(--text-1)', fontWeight:700, fontSize:12, transition:'all 0.2s',
             boxShadow: status !== 'loading' ? '0 4px 15px rgba(79,142,247,0.4)' : undefined,
           }}>{status === 'loading' ? txt('aiRunning') : txt('aiRun')}</button>
           <button onClick={loadHistory} style={{ padding:'10px 14px', borderRadius:9, border: '1px solid var(--border)', background:'transparent', color: 'var(--text-3)', cursor:'pointer', fontSize:11, fontWeight:700 }}>
@@ -500,7 +500,7 @@ const PanelAI = React.memo(function PanelAI({ txt, creatorCount = 0 }) {
                   <span style={{ fontSize:10, color: 'var(--text-3)', width:14 }}>{i+1}</span>
                   <span style={{ fontSize:16, fontWeight:900, color:GRADE_COL[cr.grade] || '#fff', width:20 }}>{cr.grade}</span>
                   <span style={{ flex:1, fontSize:11, fontWeight:600, color: 'var(--text-1)' }}>{cr.name}</span>
-                  <span style={{ fontSize:12, fontWeight:900, color:'#4f8ef7' }}>{cr.score}{txt('score')}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:'#4f8ef7' }}>{cr.score}{txt('score')}</span>
                 </div>
               ))}
             </div>
@@ -675,31 +675,31 @@ export default function DashInfluencer({ period }) {
                   <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,${GRADE_COL[cr.grade]||'#4f8ef7'}33,${GRADE_COL[cr.grade]||'#4f8ef7'}11)`, border:`2px solid ${GRADE_COL[cr.grade]||'#4f8ef7'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:900, color:GRADE_COL[cr.grade]||'#4f8ef7', flexShrink:0 }}>{cr.grade}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                      <span style={{ fontSize:12, fontWeight:800, color: 'var(--text-1)' }}>{cr.name}</span>
-                      <span style={{ fontSize:9, padding:'1px 6px', borderRadius:4, background:`${platCol}22`, color:platCol, fontWeight:700, border:`1px solid ${platCol}33` }}>{cr.platform}</span>
-                      {(() => { const b = attributionBadge(cr); return <span title={b.method === 'tracked' ? txt('attrTracked') : txt('attrManual')} style={{ fontSize:9, padding:'1px 5px', borderRadius:4, background:`${b.color}22`, color:b.color, fontWeight:700, border:`1px solid ${b.color}33` }}>{b.icon}{b.method === 'tracked' && b.signal ? ` ${(cr.attribution?.couponCode || cr.attribution?.utmSource || '')}` : ''}</span>; })()}
+                      <span style={{ fontSize:12, fontWeight:700, color: 'var(--text-1)' }}>{cr.name}</span>
+                      <span style={{ fontSize:10, padding:'1px 6px', borderRadius:4, background:`${platCol}22`, color:platCol, fontWeight:700, border:`1px solid ${platCol}33` }}>{cr.platform}</span>
+                      {(() => { const b = attributionBadge(cr); return <span title={b.method === 'tracked' ? txt('attrTracked') : txt('attrManual')} style={{ fontSize:10, padding:'1px 5px', borderRadius:4, background:`${b.color}22`, color:b.color, fontWeight:700, border:`1px solid ${b.color}33` }}>{b.icon}{b.method === 'tracked' && b.signal ? ` ${(cr.attribution?.couponCode || cr.attribution?.utmSource || '')}` : ''}</span>; })()}
                     </div>
                     <div style={{ fontSize:10, color: 'var(--text-3)', marginTop:1 }}>{cr.handle}</div>
                   </div>
                   {tab === 'reach' && <>
-                    <div style={{ textAlign:'right', minWidth:65 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colFollowers')}</div><div style={{ fontSize:13, fontWeight:900, color:'#a855f7' }}>{fmt(cr.followers)}</div></div>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colLikes')}</div><div style={{ fontSize:13, fontWeight:900, color:'#ec4899' }}>{fmt(cr.likes||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:65 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colFollowers')}</div><div style={{ fontSize:13, fontWeight:900, color:'#a855f7' }}>{fmt(cr.followers)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colLikes')}</div><div style={{ fontSize:13, fontWeight:900, color:'#ec4899' }}>{fmt(cr.likes||0)}</div></div>
                   </>}
                   {tab === 'engage' && <>
-                    <div style={{ textAlign:'right', minWidth:60 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colEngRate')}</div><div style={{ fontSize:13, fontWeight:900, color:'#22c55e' }}>{engRate.toFixed(1)}%</div></div>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colComments')}</div><div style={{ fontSize:13, fontWeight:900, color:'#4f8ef7' }}>{fmt(cr.comments||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:60 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colEngRate')}</div><div style={{ fontSize:13, fontWeight:900, color:'#22c55e' }}>{engRate.toFixed(1)}%</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colComments')}</div><div style={{ fontSize:13, fontWeight:900, color:'#4f8ef7' }}>{fmt(cr.comments||0)}</div></div>
                   </>}
                   {tab === 'convert' && <>
-                    <div style={{ textAlign:'right', minWidth:70 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colRevenue')}</div><div style={{ fontSize:13, fontWeight:900, color:'#22c55e' }}>{fmtC(cr.revenue||0)}</div></div>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colPurchases')}</div><div style={{ fontSize:13, fontWeight:900, color:'#f97316' }}>{fmt(cr.purchases||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:70 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colRevenue')}</div><div style={{ fontSize:13, fontWeight:900, color:'#22c55e' }}>{fmtC(cr.revenue||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colPurchases')}</div><div style={{ fontSize:13, fontWeight:900, color:'#f97316' }}>{fmt(cr.purchases||0)}</div></div>
                   </>}
                   {tab === 'brand' && <>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colSaves')}</div><div style={{ fontSize:13, fontWeight:900, color:'#eab308' }}>{fmt(cr.saves||0)}</div></div>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colShares')}</div><div style={{ fontSize:13, fontWeight:900, color:'#06b6d4' }}>{fmt(cr.shares||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colSaves')}</div><div style={{ fontSize:13, fontWeight:900, color:'#eab308' }}>{fmt(cr.saves||0)}</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colShares')}</div><div style={{ fontSize:13, fontWeight:900, color:'#06b6d4' }}>{fmt(cr.shares||0)}</div></div>
                   </>}
                   {tab === 'quality' && <>
-                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colScore')}</div><div style={{ fontSize:13, fontWeight:900, color:GRADE_COL[cr.grade]||'#4f8ef7' }}>{cr.grade === 'S' ? 95 : cr.grade === 'A' ? 85 : cr.grade === 'B' ? 72 : 60}pt</div></div>
-                    <div style={{ textAlign:'right', minWidth:65 }}><div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('colCampaigns')}</div><div style={{ fontSize:13, fontWeight:900, color:'#a855f7' }}>{(cr.campaigns||[]).length}</div></div>
+                    <div style={{ textAlign:'right', minWidth:55 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colScore')}</div><div style={{ fontSize:13, fontWeight:900, color:GRADE_COL[cr.grade]||'#4f8ef7' }}>{cr.grade === 'S' ? 95 : cr.grade === 'A' ? 85 : cr.grade === 'B' ? 72 : 60}pt</div></div>
+                    <div style={{ textAlign:'right', minWidth:65 }}><div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('colCampaigns')}</div><div style={{ fontSize:13, fontWeight:900, color:'#a855f7' }}>{(cr.campaigns||[]).length}</div></div>
                   </>}
                 </div>
               );

@@ -307,7 +307,7 @@ return <div>
 <Card style={{borderLeft:'3px solid #f59e0b'}}><div style={{fontSize:13,fontWeight:700,color:'#f59e0b',marginBottom:4}}>🚀 {tr('guideStart')}</div><div style={{fontSize:12,color:'#64748b'}}>{tr('guideStartDesc')}</div></Card>
 <Card><div style={{fontSize:14,fontWeight:700,color:'#1e293b',marginBottom:16}}>📋 {tr('guideSteps')}</div>
 {steps.map((s,i)=><div key={i} style={{display:'flex',gap:12,marginBottom:14,alignItems:'flex-start'}}>
-<div style={{width:28,height:28,borderRadius:'50%',background:i<5?'#6366f1':i<10?'#22c55e':'#f59e0b',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,flexShrink:0}}>{i+1}</div>
+<div style={{width:28,height:28,borderRadius:'50%',background:i<5?'#6366f1':i<10?'#22c55e':'#f59e0b',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,flexShrink:0}}>{i+1}</div>
 <div><div style={{fontSize:12,fontWeight:700,color:'#1e293b'}}>{s.t}</div><div style={{fontSize:11,color:'#64748b',marginTop:2}}>{s.d}</div></div>
 </div>)}
 </Card>

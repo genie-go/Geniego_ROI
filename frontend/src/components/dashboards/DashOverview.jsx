@@ -90,7 +90,7 @@ function KpiCard({ icon, label, value, sub, change, color, spark }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, gap: 6, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{
-              fontSize: 11, fontWeight: 800,
+              fontSize: 11, fontWeight: 700,
               color: up ? '#4ade80' : '#f87171',
               background: up ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
               padding: '1px 7px', borderRadius: 6,
@@ -102,7 +102,7 @@ function KpiCard({ icon, label, value, sub, change, color, spark }) {
               {t('dash.vsYesterday', '전일 대비')}
             </span>
           </div>
-          {sub && <span style={{ fontSize: 9, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }} title={sub}>{sub}</span>}
+          {sub && <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }} title={sub}>{sub}</span>}
         </div>
       </div>
     </div>
@@ -122,7 +122,7 @@ function ChannelBar({ name, rev, color, totalRev, icon, fmtCurrency }) {
         </span>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{fmtCurrency(rev || 0)}</span>
-          <span style={{ fontSize: 11, color, fontWeight: 800, minWidth: 30, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
+          <span style={{ fontSize: 11, color, fontWeight: 700, minWidth: 30, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
         </div>
       </div>
       <div style={{ height: 6, background: 'var(--border)', borderRadius: 4, position: 'relative' }}>
@@ -270,8 +270,8 @@ function SecurityPanel({ t, secAlerts }) {
             borderRadius: 10, padding: '10px 12px', textAlign: 'center',
           }}>
             <div style={{ fontSize: 16, marginBottom: 4 }}>{s.i}</div>
-            <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{s.l}</div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: s.c }}>{s.v}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>{s.l}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: s.c }}>{s.v}</div>
           </div>
         ))}
       </div>
@@ -326,7 +326,7 @@ function LiveActivityFeed({ t, alerts, markAlertRead, unreadAlertCount }) {
             { k: 'info', l: t('dash.info', '정보') },
           ].map(f => (
             <button key={f.k} onClick={() => setFilter(f.k)} style={{
-              fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 5,
+              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 5,
               border: 'none', cursor: 'pointer',
               background: filter === f.k ? 'rgba(79,142,247,0.15)' : 'rgba(0,0,0,0.04)',
               color: filter === f.k ? '#2563eb' : 'var(--text-3, #9ca3af)',
@@ -406,7 +406,7 @@ function CrossModuleSummary({ t, fmtCurrency, data }) {
           }}>
             <span style={{ fontSize: 18 }}>{m.i}</span>
             <div>
-              <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{m.l}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>{m.l}</div>
               <div style={{ fontSize: 14, fontWeight: 900, color: m.c, fontVariantNumeric: 'tabular-nums' }}>{m.v}</div>
             </div>
           </div>

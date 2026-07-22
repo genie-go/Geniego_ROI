@@ -285,12 +285,12 @@ const PerformanceTab = memo(function PerformanceTab() {
                                     <td style={{ textAlign: "right", fontFamily: "monospace" }}>{fmtM(ch.impressions)}</td>
                                     <td style={{ textAlign: "right" }}>
                                         <div style={{ fontFamily: "monospace" }}>{fmtM(ch.clicks)}</div>
-                                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>{pct(ch.ctr)}</div>
+                                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>{pct(ch.ctr)}</div>
                                     </td>
                                     <td style={{ textAlign: "right", fontFamily: "monospace" }}>{fmtM(ch.carts)}</td>
                                     <td style={{ textAlign: "right" }}>
                                         <div style={{ fontFamily: "monospace" }}>{fmtM(ch.orders)}</div>
-                                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>{pct(ch.cvr)}</div>
+                                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>{pct(ch.cvr)}</div>
                                     </td>
                                     <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700, color: "#f97316" }}>{fmtM(ch.revenue)}</td>
                                     <td style={{ textAlign: "right", fontFamily: "monospace", color: "#ef4444" }}>{fmtM(ch.adSpend)}</td>
@@ -309,7 +309,7 @@ const PerformanceTab = memo(function PerformanceTab() {
                         </tbody>
                         <tfoot>
                             <tr style={{ borderTop: "2px solid rgba(99,140,255,0.2)", background: "rgba(79,142,247,0.04)" }}>
-                                <td style={{ fontWeight: 800, fontSize: 11 }}>{t('performance.totalAvg')}</td>
+                                <td style={{ fontWeight: 700, fontSize: 11 }}>{t('performance.totalAvg')}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.impressions)}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.clicks)}</td>
                                 <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmtM(totals.carts)}</td>
@@ -330,7 +330,7 @@ const PerformanceTab = memo(function PerformanceTab() {
 const Trend = memo(function Trend({ v }) {
     const up = v > 0;
     return (
-        <div style={{ fontSize: 9, color: up ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+        <div style={{ fontSize: 10, color: up ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
             {up ? "▲" : "▼"} {Math.abs(v).toFixed(1)}%
         </div>
     );
@@ -404,7 +404,7 @@ const SettlementTab = memo(function SettlementTab() {
         return (
             <div className="card card-glass" style={{ textAlign: 'center', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                 <div style={{ fontSize: 44, opacity: 0.85 }}>💳</div>
-                <div style={{ fontWeight: 800, fontSize: 15, color: '#fff' }}>{t('performance.settleEmptyTitle', '정산 데이터가 아직 없습니다')}</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: '#fff' }}>{t('performance.settleEmptyTitle', '정산 데이터가 아직 없습니다')}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--text-3)', maxWidth: 460, lineHeight: 1.7 }}>{t('performance.settleEmptyDesc', '주문·정산 채널을 연동하면 채널별 실제 정산 내역이 테넌트 단위로 안전하게 집계되어 여기에 표시됩니다.')}</div>
             </div>
         );
@@ -428,7 +428,7 @@ const SettlementTab = memo(function SettlementTab() {
                                 <div style={{ fontWeight: 800, fontSize: 16, color: '#fff' }}>
                                     {fx.rate < 100 ? fx.rate.toFixed(1) : fx.rate.toLocaleString()}
                                 </div>
-                                <div style={{ fontSize: 9, color: "var(--text-3)", marginBottom: 3 }}>1 {fx.cur} = {fmtC(fx.rate < 100 ? Number(fx.rate.toFixed(1)) : fx.rate)}</div>
+                                <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 3 }}>1 {fx.cur} = {fmtC(fx.rate < 100 ? Number(fx.rate.toFixed(1)) : fx.rate)}</div>
                                 <Trend v={chg} />
                             </div>
                         );
@@ -466,7 +466,7 @@ const SettlementTab = memo(function SettlementTab() {
                             <div>
                                 <div style={{ fontSize: 10, color: "var(--text-3)" }}>{d.label}</div>
                                 <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{fmtC(d.value)}</div>
-                                <div style={{ fontSize: 9, color: d.color }}>{pct(d.value / totals.grossSales)}</div>
+                                <div style={{ fontSize: 10, color: d.color }}>{pct(d.value / totals.grossSales)}</div>
                             </div>
                         </div>
                     ))}
@@ -510,7 +510,7 @@ const SettlementTab = memo(function SettlementTab() {
                                         </td>
                                         <td style={{ textAlign: "right", fontFamily: "monospace", fontWeight: 700 }}>{fmt(ch.grossSales)}</td>
                                         <td style={{ textAlign: "right", fontFamily: "monospace", color: "#ef4444" }}>{fmt(ch.platformFee)}<br />
-                                            <span style={{ fontSize: 9, color: "var(--text-3)" }}>{pct(ch.platformFee / ch.grossSales)}</span>
+                                            <span style={{ fontSize: 10, color: "var(--text-3)" }}>{pct(ch.platformFee / ch.grossSales)}</span>
                                         </td>
                                         <td style={{ textAlign: "right", fontFamily: "monospace", color: "#f97316" }}>{fmt(ch.adFee)}</td>
                                         <td style={{ textAlign: "right", fontFamily: "monospace", color: "#eab308" }}>{fmt(ch.paymentFee)}</td>
@@ -664,12 +664,12 @@ const CreatorTab = memo(function CreatorTab() {
                                         <div style={{ fontSize: 11, color: "#4f8ef7" }}>{c.handle}</div>
                                         <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
                                             <span style={{
-                                                fontSize: 9, padding: "2px 7px", borderRadius: 99, fontWeight: 700,
+                                                fontSize: 10, padding: "2px 7px", borderRadius: 99, fontWeight: 700,
                                                 background: `${TIER_COLOR[c.tier]}18`, color: TIER_COLOR[c.tier],
                                                 border: `1px solid ${TIER_COLOR[c.tier]}33`
                                             }}>{c.tier}</span>
                                             <span style={{
-                                                fontSize: 9, padding: "2px 7px", borderRadius: 99, fontWeight: 700,
+                                                fontSize: 10, padding: "2px 7px", borderRadius: 99, fontWeight: 700,
                                                 background: expired ? "rgba(239,68,68,0.1)" : "rgba(34,197,94,0.1)",
                                                 color: expired ? "#ef4444" : "#22c55e",
                                                 border: `1px solid ${expired ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`
@@ -700,7 +700,7 @@ const CreatorTab = memo(function CreatorTab() {
                                     [t('performance.rightsExpiry'), expired ? t('performance.expired') : dl + t('performance.daysUnit'), dl < 0 ? "#ef4444" : dl < 90 ? "#eab308" : "#22c55e"],
                                 ].map(([l, v, col]) => (
                                     <div key={l} style={{ padding: "8px 10px", borderRadius: 10, background: "rgba(9,15,30,0.6)", textAlign: "center" }}>
-                                        <div style={{ fontSize: 9, color: "var(--text-3)", fontWeight: 700, marginBottom: 3 }}>{l}</div>
+                                        <div style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 700, marginBottom: 3 }}>{l}</div>
                                         <div style={{ fontSize: 13, fontWeight: 800, color: col }}>{v}</div>
                                     </div>
                                 ))}
@@ -904,7 +904,7 @@ const SKUProfitTab = memo(function SKUProfitTab() {
                         </tbody>
                         <tfoot>
                             <tr style={{ borderTop: '2px solid rgba(99,140,255,0.2)', background: 'rgba(79,142,247,0.04)' }}>
-                                <td colSpan="2" style={{ fontWeight: 800, fontSize: 11 }}>{t('performance.totalAvg')}</td>
+                                <td colSpan="2" style={{ fontWeight: 700, fontSize: 11 }}>{t('performance.totalAvg')}</td>
                                 <td style={{ textAlign: 'right', fontWeight: 800, color: '#4f8ef7' }}>{fmtC(totalRevenue)}</td>
                                 <td colSpan="4"></td>
                                 <td style={{ textAlign: 'right', fontWeight: 900, color: '#22c55e', fontSize: 13 }}>{fmtC(totalMargin)}</td>
@@ -1104,7 +1104,7 @@ const PerfGuideTab = memo(function PerfGuideTab() {
                 <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>{g('guideSub')}</div>
             </div>
             <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>{g('guideStepsTitle')}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 14 }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
                     {STEPS.map((s, i) => (
                         <div key={i} style={{ display: 'flex', gap: 14, padding: 16, borderRadius: 12, background: 'var(--surface)', border: `1px solid ${COLORS[i]}22`, transition: 'transform 150ms, border-color 150ms' }}
@@ -1112,7 +1112,7 @@ const PerfGuideTab = memo(function PerfGuideTab() {
                             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = COLORS[i] + '22'; }}>
                             <div style={{ fontSize: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: 12, background: `${COLORS[i]}15` }}>{ICONS[i]}</div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: COLORS[i], marginBottom: 4 }}>{s.num}. {s.title}</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: COLORS[i], marginBottom: 4 }}>{s.num}. {s.title}</div>
                                 <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>{s.desc}</div>
                             </div>
                         </div>
@@ -1127,13 +1127,13 @@ const PerfGuideTab = memo(function PerfGuideTab() {
             </div>
             {/* Tab Reference Grid */}
             <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 14 }}>📑 {g('guideTabsTitle')}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 14 }}>📑 {g('guideTabsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                     {TAB_REF.map((tr, i) => (
                         <div key={i} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', border: `1px solid ${tr.color}22`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                             <div style={{ fontSize: 20, flexShrink: 0 }}>{tr.icon}</div>
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: tr.color, marginBottom: 3 }}>{tr.tab}</div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: tr.color, marginBottom: 3 }}>{tr.tab}</div>
                                 <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5 }}>{tr.desc}</div>
                             </div>
                         </div>
@@ -1284,7 +1284,7 @@ export default function PerformanceHub() {
                                 transition: "all 200ms"
                             }}>
                                 <div style={{ fontSize: 13, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.label}</div>
-                                <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
+                                <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
                             </button>
                         ))}
                     </div>

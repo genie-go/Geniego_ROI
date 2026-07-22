@@ -118,7 +118,7 @@ export default function CommandPalette() {
             onKeyDown={handleKey}
             placeholder="Search pages, features..."
             style={{
-              flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 600,
+              flex: 1, border: 'none', outline: 'none', fontSize: 14, fontWeight: 600,
               background: 'transparent', color: 'var(--text-1, #1e293b)',
             }}
           />

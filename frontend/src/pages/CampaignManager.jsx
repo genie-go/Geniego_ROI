@@ -50,11 +50,11 @@ function DonutChart({data,size=170,thickness=26,centerLabel,centerValue}){
 }
 function HBarChart({items,maxValue}){
     const mv=maxValue||Math.max(...items.map(i=>i.value),1);
-    return(<div style={{ display:'flex', flexDirection:'column', gap:10 }}>{items.map((item,i)=>{const pct=Math.round((item.value/mv)*100);return(<div key={i}><div style={{ display:'flex', justifyContent:'space-between', marginBottom:3, fontSize:12, fontWeight:800, color:item.color||'#4f8ef7', maxWidth:'100%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}><span>{item.label}</span><span>{item.displayValue||item.value}</span></div><div style={{ height:8, background:'#f1f5f9', borderRadius:6, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', borderRadius:6, background:item.gradient||`linear-gradient(90deg,${item.color||'#4f8ef7'},${item.colorEnd||item.color||'#6366f1'})`, transition:'width 0.8s cubic-bezier(.4,0,.2,1)' }}/></div></div>);})}</div>);
+    return(<div style={{ display:'flex', flexDirection:'column', gap:10 }}>{items.map((item,i)=>{const pct=Math.round((item.value/mv)*100);return(<div key={i}><div style={{ display:'flex', justifyContent:'space-between', marginBottom:3, fontSize:12, fontWeight:700, color:item.color||'#4f8ef7', maxWidth:'100%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}><span>{item.label}</span><span>{item.displayValue||item.value}</span></div><div style={{ height:8, background:'#f1f5f9', borderRadius:6, overflow:'hidden' }}><div style={{ width:pct+'%', height:'100%', borderRadius:6, background:item.gradient||`linear-gradient(90deg,${item.color||'#4f8ef7'},${item.colorEnd||item.color||'#6366f1'})`, transition:'width 0.8s cubic-bezier(.4,0,.2,1)' }}/></div></div>);})}</div>);
 }
 function FunnelChart({steps}){
     const max=Math.max(...steps.map(s=>s.value),1);
-    return(<div style={{ display:'flex', flexDirection:'column', gap:2 }}>{steps.map((step,i)=>{const w=Math.max(30,Math.round((step.value/max)*100));const isLast=i===steps.length-1;return(<div key={i}><div style={{ width:w+'%', border:`1px solid ${step.color}25`, display:'flex', justifyContent:'space-between', alignItems:'center', transition:'width 0.6s', minWidth:200, padding:'8px 14px', borderRadius:8, background:`${step.color}08` }}><div style={{ display:'flex', alignItems:'center', gap:8 }}><span style={{ fontSize:18 }}>{step.icon}</span><span style={{ fontWeight:700, fontSize:13, color:'#334155' }}>{step.label}</span></div><div style={{ display:'flex', alignItems:'center', gap:10 }}><span style={{ fontWeight:900, fontSize:15, color:step.color }}>{step.value.toLocaleString()}</span>{i>0&&(<span style={{ fontSize:10, fontWeight:800, color:step.rateColor||'#22c55e', padding:'3px 10px', borderRadius:6, background:(step.rateColor||'#22c55e')+'12' }}>{step.rate}</span>)}</div></div>{!isLast&&<div style={{ width:2, height:6, background:'#e2e8f0', marginLeft:20 }}/>}</div>);})}</div>);
+    return(<div style={{ display:'flex', flexDirection:'column', gap:2 }}>{steps.map((step,i)=>{const w=Math.max(30,Math.round((step.value/max)*100));const isLast=i===steps.length-1;return(<div key={i}><div style={{ width:w+'%', border:`1px solid ${step.color}25`, display:'flex', justifyContent:'space-between', alignItems:'center', transition:'width 0.6s', minWidth:200, padding:'8px 14px', borderRadius:8, background:`${step.color}08` }}><div style={{ display:'flex', alignItems:'center', gap:8 }}><span style={{ fontSize:18 }}>{step.icon}</span><span style={{ fontWeight:700, fontSize:13, color:'#334155' }}>{step.label}</span></div><div style={{ display:'flex', alignItems:'center', gap:10 }}><span style={{ fontWeight:900, fontSize:14, color:step.color }}>{step.value.toLocaleString()}</span>{i>0&&(<span style={{ fontSize:10, fontWeight:700, color:step.rateColor||'#22c55e', padding:'3px 10px', borderRadius:6, background:(step.rateColor||'#22c55e')+'12' }}>{step.rate}</span>)}</div></div>{!isLast&&<div style={{ width:2, height:6, background:'#e2e8f0', marginLeft:20 }}/>}</div>);})}</div>);
 }
 function Sparkline({values,color='#4f8ef7',width=80,height=28}){
     if(!values||values.length<2)return null;const max=Math.max(...values,1);const min=Math.min(...values,0);const range=max-min||1;const pts=values.map((v,i)=>`${(i/(values.length-1))*width},${height-((v-min)/range)*(height-4)-2}`).join(' ');
@@ -267,7 +267,7 @@ export default function CampaignManager(){
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(249,115,22,0.3)', flexShrink: 0 }}>🎯</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: (document.documentElement?.getAttribute?.('data-theme') === 'arctic_white' || document.documentElement?.getAttribute?.('data-theme') === 'pearl_office') ? '#0f1c3a' : '#f97316', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(T.title)}</div>
+                                <div className="hero-title" style={{ fontSize: 20, fontWeight: 900, color: (document.documentElement?.getAttribute?.('data-theme') === 'arctic_white' || document.documentElement?.getAttribute?.('data-theme') === 'pearl_office') ? '#0f1c3a' : '#f97316', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{tr(T.title)}</div>
                                 <div className="hero-desc" style={{ fontSize: 11, color: (document.documentElement?.getAttribute?.('data-theme') === 'arctic_white' || document.documentElement?.getAttribute?.('data-theme') === 'pearl_office') ? '#374151' : 'var(--text-3, #64748b)', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr(T.sub)}</div>
                             </div>
                         </div>
@@ -341,7 +341,7 @@ export default function CampaignManager(){
                         </div>
                         <div style={CARD}>
                             <div style={{ fontWeight: 800, fontSize: 13, color: '#334155', marginBottom: 14 }}>🏆 {tr(T.topPerformer)}</div>
-                            {stats.top5.length > 0 ? <div style={{ display:'flex', flexDirection:'column', gap:8 }}>{stats.top5.map((c, i) => (<div key={c.id} onClick={() => setDetailId(c.id)} style={{ padding:'10px 14px', borderRadius:12, cursor:'pointer', background: i===0 ? 'linear-gradient(135deg,rgba(251,191,36,0.08),rgba(249,115,22,0.04))' : 'rgba(0,0,0,0.02)', border:`1px solid ${i===0 ? 'rgba(251,191,36,0.2)' : 'rgba(0,0,0,0.05)'}`, transition:'all 0.15s' }}><div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}><div style={{ fontWeight:800, fontSize:13, color:'#334155' }}>{'🥇🥈🥉4️⃣5️⃣'.substring(i*2,i*2+2)} {c.name}</div><div style={{ fontWeight:900, fontSize:15, color:'#f97316' }}>{c.roas}x</div></div><div style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>{fmtW(c.spent)} / {fmtW(c.budget)}</div></div>))}</div> : <div style={{ fontSize:12, color:'#94a3b8', textAlign:'center', padding:30 }}>{tr(T.noData)}</div>}
+                            {stats.top5.length > 0 ? <div style={{ display:'flex', flexDirection:'column', gap:8 }}>{stats.top5.map((c, i) => (<div key={c.id} onClick={() => setDetailId(c.id)} style={{ padding:'10px 14px', borderRadius:12, cursor:'pointer', background: i===0 ? 'linear-gradient(135deg,rgba(251,191,36,0.08),rgba(249,115,22,0.04))' : 'rgba(0,0,0,0.02)', border:`1px solid ${i===0 ? 'rgba(251,191,36,0.2)' : 'rgba(0,0,0,0.05)'}`, transition:'all 0.15s' }}><div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}><div style={{ fontWeight:800, fontSize:13, color:'#334155' }}>{'🥇🥈🥉4️⃣5️⃣'.substring(i*2,i*2+2)} {c.name}</div><div style={{ fontWeight:900, fontSize:14, color:'#f97316' }}>{c.roas}x</div></div><div style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>{fmtW(c.spent)} / {fmtW(c.budget)}</div></div>))}</div> : <div style={{ fontSize:12, color:'#94a3b8', textAlign:'center', padding:30 }}>{tr(T.noData)}</div>}
                         </div>
                     </div>
                 </div>
@@ -371,12 +371,12 @@ export default function CampaignManager(){
                             const pct = c.budget ? Math.min(100, Math.round((c.spent || 0) / c.budget * 100)) : 0;
                             return (
                                 <div key={c.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(56px,2fr) minmax(48px,80px) minmax(56px,110px) minmax(64px,130px) minmax(40px,60px) minmax(52px,100px) minmax(48px,90px) minmax(64px,130px)', gap: 6, padding: '12px 20px', borderBottom: '1px solid rgba(0,0,0,0.03)', transition: 'background 0.15s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,142,247,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                    <div onClick={() => setDetailId(c.id)} style={{ cursor: 'pointer', fontSize: 9, fontWeight: 700, color: '#b0b9c5', marginBottom: 1, fontFamily: 'monospace' }} ><div>{c.name}</div><div>{c.id}</div></div>
+                                    <div onClick={() => setDetailId(c.id)} style={{ cursor: 'pointer', fontSize: 10, fontWeight: 700, color: '#b0b9c5', marginBottom: 1, fontFamily: 'monospace' }} ><div>{c.name}</div><div>{c.id}</div></div>
                                     <div><span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(c.status)}</span></div>
                                     <div style={{ textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#334155' }}>{fmtW(c.budget)}</div>
-                                    <div style={{ textAlign: 'right', fontSize: 9, fontWeight: 700, color: '#94a3b8', height: '100%', background: pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#22c55e', borderRadius: 2, marginTop: 1, width: pct + '%', transition: 'width 0.5s' }} ><div>{fmtW(c.spent)}</div><div><div/></div><div>{pct}%</div></div>
+                                    <div style={{ textAlign: 'right', fontSize: 10, fontWeight: 700, color: '#94a3b8', height: '100%', background: pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#22c55e', borderRadius: 2, marginTop: 1, width: pct + '%', transition: 'width 0.5s' }} ><div>{fmtW(c.spent)}</div><div><div/></div><div>{pct}%</div></div>
                                     <div style={{ textAlign: 'right', fontWeight: 800, fontSize: 14, color: c.roas >= 4 ? '#22c55e' : c.roas >= 2 ? '#f59e0b' : '#ef4444' }}>{c.roas > 0 ? c.roas + 'x' : '—'}</div>
-                                    <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', fontSize: 9, padding: '2px 6px', borderRadius: 4, background: 'rgba(79,142,247,0.08)', color: '#4f8ef7', fontWeight: 600 }} >{(c.channels || []).slice(0, 2).map((ch, i) => (<span key={i}>{ch.name || ch.id}</span>))}</div>
+                                    <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(79,142,247,0.08)', color: '#4f8ef7', fontWeight: 600 }} >{(c.channels || []).slice(0, 2).map((ch, i) => (<span key={i}>{ch.name || ch.id}</span>))}</div>
                                     <div style={{ fontSize: 10, color: '#94a3b8' }}>{c.createdAt}</div>
                                     <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
                                         <ActBtn icon="✏️" label={tr(T.edit)} color="#4f8ef7" onClick={() => openEdit(c)} small />
@@ -446,14 +446,14 @@ export default function CampaignManager(){
                     ) : (abTestResults || []).map(test => (
                         <div key={test.id} style={CARD}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                                <div><div style={{ fontWeight: 800, fontSize: 10, color: '#94a3b8', marginTop: 2 }} >{test.name}</div><div>{test.completedAt} · {test.source}</div></div>
-                                <div style={{ padding: '4px 12px', borderRadius: 8, fontWeight: 800, fontSize: 11, background: test.confidence >= 90 ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)', color: test.confidence >= 90 ? '#22c55e' : '#f59e0b', border: `1px solid ${test.confidence >= 90 ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.25)'}` }}>{tr(T.abConfidence)}: {test.confidence}%</div>
+                                <div><div style={{ fontWeight: 700, fontSize: 10, color: '#94a3b8', marginTop: 2 }} >{test.name}</div><div>{test.completedAt} · {test.source}</div></div>
+                                <div style={{ padding: '4px 12px', borderRadius: 8, fontWeight: 700, fontSize: 11, background: test.confidence >= 90 ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)', color: test.confidence >= 90 ? '#22c55e' : '#f59e0b', border: `1px solid ${test.confidence >= 90 ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.25)'}` }}>{tr(T.abConfidence)}: {test.confidence}%</div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                                 {(test.variants || []).map((v, i) => {
                                     const isWinner = test.winner === v.id;
                                     return (<div key={v.id} style={{ padding: '16px 20px', borderRadius: 14, background: isWinner ? 'linear-gradient(135deg,rgba(34,197,94,0.06),rgba(20,217,176,0.04))' : 'rgba(0,0,0,0.02)', border: `2px solid ${isWinner ? 'rgba(34,197,94,0.3)' : 'rgba(0,0,0,0.06)'}`, position: 'relative' }}>
-                                        {isWinner && <div style={{ position: 'absolute', top: -8, right: 12, padding: '2px 10px', borderRadius: 6, background: '#22c55e', color: '#fff', fontSize: 9, fontWeight: 800 }}>🏆 {tr(T.abWinner)}</div>}
+                                        {isWinner && <div style={{ position: 'absolute', top: -8, right: 12, padding: '2px 10px', borderRadius: 6, background: '#22c55e', color: '#fff', fontSize: 10, fontWeight: 700 }}>🏆 {tr(T.abWinner)}</div>}
                                         <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>{i === 0 ? tr(T.abBaselineLabel) : tr(T.abVariantLabel)}</div>
                                         <div style={{ fontWeight: 800, fontSize: 13, color: '#1e293b', marginBottom: 8 }}>{v.name}</div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -486,7 +486,7 @@ export default function CampaignManager(){
                 const faqs=[]; for(let i=1;i<=8;i++){const q=g('guideFaq'+i+'Q'); if(q) faqs.push({q,a:g('guideFaq'+i+'A')});}
                 const badges=[{i:'🔰',k:'guideBeginnerBadge',c:'#22c55e'},{i:'⏱️',k:'guideTimeBadge',c:'#4f8ef7'},{i:'🌐',k:'guideLangBadge',c:'#a855f7'}];
                 const card={background:'#ffffff',border:'1px solid #e5e7eb',borderRadius:16,padding:20};
-                const secTitle={fontWeight:900,fontSize:15,color:'#1e293b',marginBottom:12,WebkitTextFillColor:'#1e293b'};
+                const secTitle={fontWeight:900,fontSize:14,color:'#1e293b',marginBottom:12,WebkitTextFillColor:'#1e293b'};
                 const pre={whiteSpace:'pre-line',fontSize:12.5,color:'#374151',lineHeight:1.9,WebkitTextFillColor:'#374151'};
                 return (
                 <div className="guide-section" style={{ display:'grid', gap:18, minHeight:CONTENT_MIN, alignContent:'start', color:'#1e293b' }}>
@@ -495,7 +495,7 @@ export default function CampaignManager(){
                         <div style={{ fontWeight:900, fontSize:22, color:'#1e293b', marginBottom:6, letterSpacing:'-0.02em', WebkitTextFillColor:'#1e293b' }}>{tr(T.guideTitle)}</div>
                         <div style={{ fontSize:13, color:'#1e293b', lineHeight:1.7, fontWeight:600, maxWidth:720, margin:'0 auto', WebkitTextFillColor:'#1e293b' }}>{tr(T.guideSub)}</div>
                         {g('guideBeginnerBadge') && <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap', marginTop:14 }}>
-                            {badges.map((b,i)=>g(b.k)?<span key={i} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:`${b.c}18`, color:b.c, fontSize:12, fontWeight:800, WebkitTextFillColor:b.c }}>{b.i} {g(b.k)}</span>:null)}
+                            {badges.map((b,i)=>g(b.k)?<span key={i} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:`${b.c}18`, color:b.c, fontSize:12, fontWeight:700, WebkitTextFillColor:b.c }}>{b.i} {g(b.k)}</span>:null)}
                         </div>}
                     </div>
                     {/* 광고비 결제카드 등록 안내(필수 선행) */}
@@ -508,9 +508,9 @@ export default function CampaignManager(){
                                 <div key={s.n} style={{ padding:'16px 18px', borderRadius:14, background:s.color+'08', border:'1px solid '+s.color+'22', display:'flex', gap:14, alignItems:'start' }}>
                                     <div style={{ width:44, height:44, borderRadius:12, background:s.color+'15', border:'1px solid '+s.color+'33', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{s.icon}</div>
                                     <div>
-                                        {s.phase?<div style={{ fontSize:10, fontWeight:800, color:s.color, marginBottom:4, opacity:0.85, WebkitTextFillColor:s.color }}>{s.phase}</div>:null}
+                                        {s.phase?<div style={{ fontSize:10, fontWeight:700, color:s.color, marginBottom:4, opacity:0.85, WebkitTextFillColor:s.color }}>{s.phase}</div>:null}
                                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                                            <span style={{ fontSize:10, fontWeight:900, color:s.color, background:s.color+'20', padding:'2px 8px', borderRadius:20, WebkitTextFillColor:s.color }}>STEP {s.n}</span>
+                                            <span style={{ fontSize:10, fontWeight:700, color:s.color, background:s.color+'20', padding:'2px 8px', borderRadius:20, WebkitTextFillColor:s.color }}>STEP {s.n}</span>
                                             <span style={{ fontWeight:800, fontSize:14, color:s.color, WebkitTextFillColor:s.color }}>{s.title}</span>
                                         </div>
                                         <div style={{ fontSize:12, color:'#374151', lineHeight:1.8, whiteSpace:'pre-line', WebkitTextFillColor:'#374151' }}>{s.desc}</div>
@@ -534,7 +534,7 @@ export default function CampaignManager(){
                     {g('guideSecurityTitle')?<div style={{ ...card, background:'rgba(239,68,68,0.04)', borderColor:'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div>:null}
                     {g('guideOpsTitle')?<div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div>:null}
                     {g('guideReadyTitle')?<div style={{ background:'linear-gradient(135deg,#eef2ff,#fae8ff)', borderRadius:16, border:'1px solid #e0d7ff', padding:'24px', textAlign:'center' }}>
-                        <div style={{ fontWeight:900, fontSize:17, color:'#1e293b', marginBottom:8, WebkitTextFillColor:'#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                        <div style={{ fontWeight:900, fontSize:16, color:'#1e293b', marginBottom:8, WebkitTextFillColor:'#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
                         <div style={{ fontSize:12.5, color:'#1e293b', lineHeight:1.8, fontWeight:500, whiteSpace:'pre-line', maxWidth:720, margin:'0 auto', WebkitTextFillColor:'#1e293b' }}>{g('guideReadyDesc')}</div>
                     </div>:null}
                 </div>
@@ -546,7 +546,7 @@ export default function CampaignManager(){
             {/* ══ Detail Modal ═══════════════════════════════ */}
             {detail && (<Backdrop onClose={() => setDetailId(null)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <div><div style={{ fontWeight: 900, fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }} >{detail.name}</div><div>{detail.id}</div></div>
+                    <div><div style={{ fontWeight: 700, fontSize: 10, color: '#94a3b8', fontFamily: 'monospace' }} >{detail.name}</div><div>{detail.id}</div></div>
                     <button onClick={() => setDetailId(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 18, cursor: 'pointer' }}>✕</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 18 }}>

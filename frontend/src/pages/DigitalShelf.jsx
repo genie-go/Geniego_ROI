@@ -97,7 +97,7 @@ function HarvestBadge({ status }) {
     no_brand: { c: '#7c8fa8', bg: 'rgba(124,143,168,0.18)', l: t('digitalShelf.harvest.noBrand', '몰/브랜드명 미설정') },
   };
   const m = map[status] || { c: '#7c8fa8', bg: 'rgba(124,143,168,0.18)', l: status };
-  return <span title={m.l} style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, fontWeight: 700, background: m.bg, color: m.c, whiteSpace: 'nowrap' }}>{m.l}</span>;
+  return <span title={m.l} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, fontWeight: 700, background: m.bg, color: m.c, whiteSpace: 'nowrap' }}>{m.l}</span>;
 }
 
 /* [267차] 자동수집 진행 스피너 (테마 무관 회전 링) */
@@ -125,7 +125,7 @@ function AddKeywordModal({ onClose, onAdd }) {
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 200 }} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(440px,94vw)", background: "linear-gradient(180deg,var(--surface),#090f1e)", border: "1px solid rgba(79,142,247,0.3)", borderRadius: 20, padding: 28, zIndex: 201, boxShadow: "0 24px 64px rgba(0,0,0,0.7)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>🔍 {t('digitalShelf.addKeyword', '키워드 추가')}</div>
+          <div style={{ fontWeight: 800, fontSize: 14 }}>🔍 {t('digitalShelf.addKeyword', '키워드 추가')}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 18 }}>✕</button>
         </div>
         <div style={{ display: "grid", gap: 14 }}>
@@ -447,7 +447,7 @@ export default function DigitalShelf() {
                   <span style={{ fontSize: 14 }}>{ins.icon}</span>
                   {ins.title}
                 </div>
-                <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 99, fontWeight: 700, background: ins.level === "high" ? "rgba(34,197,94,0.15)" : ins.level === "warn" ? "rgba(234,179,8,0.15)" : "rgba(79,142,247,0.12)", color: ins.level === "high" ? "#22c55e" : ins.level === "warn" ? "#eab308" : "#4f8ef7" }}>
+                <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 99, fontWeight: 700, background: ins.level === "high" ? "rgba(34,197,94,0.15)" : ins.level === "warn" ? "rgba(234,179,8,0.15)" : "rgba(79,142,247,0.12)", color: ins.level === "high" ? "#22c55e" : ins.level === "warn" ? "#eab308" : "#4f8ef7" }}>
                   {ins.action}
                 </span>
               </div>
@@ -555,17 +555,17 @@ export default function DigitalShelf() {
                     </td>
                     <td><TrendIcon t={kw.trend} /></td>
                     <td>
-                      <span className="badge" style={{ fontSize: 9 }}>{Object.keys(kw.channels).length}{t('digitalShelf.unitCount', '개')} Channel</span>
+                      <span className="badge" style={{ fontSize: 10 }}>{Object.keys(kw.channels).length}{t('digitalShelf.unitCount', '개')} Channel</span>
                     </td>
                     <td>
                       {kw.harvest_status ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-start" }}>
                           <HarvestBadge status={kw.harvest_status} />
-                          {kw.harvest_source && <span style={{ fontSize: 9, color: "var(--text-3)" }}>{kw.harvest_source}</span>}
-                          {kw.harvested_at && <span style={{ fontSize: 9, color: "var(--text-3)", fontFamily: "monospace" }}>{String(kw.harvested_at).slice(0, 10)}</span>}
+                          {kw.harvest_source && <span style={{ fontSize: 10, color: "var(--text-3)" }}>{kw.harvest_source}</span>}
+                          {kw.harvested_at && <span style={{ fontSize: 10, color: "var(--text-3)", fontFamily: "monospace" }}>{String(kw.harvested_at).slice(0, 10)}</span>}
                         </div>
                       ) : (
-                        <span style={{ fontSize: 9, color: "var(--text-3)" }}>—</span>
+                        <span style={{ fontSize: 10, color: "var(--text-3)" }}>—</span>
                       )}
                     </td>
                     <td>
@@ -603,11 +603,11 @@ export default function DigitalShelf() {
                                         <HarvestBadge status={data.harvest_status} />
                                       </div>
                                       {(data.harvest_source || data.harvested_at) && (
-                                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>
+                                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>
                                           {data.harvest_source}{data.harvest_source && data.harvested_at ? " · " : ""}{data.harvested_at ? String(data.harvested_at).slice(0, 16) : ""}
                                         </div>
                                       )}
-                                      {data.harvest_note && <div style={{ fontSize: 9, color: "#f97316" }}>{data.harvest_note}</div>}
+                                      {data.harvest_note && <div style={{ fontSize: 10, color: "#f97316" }}>{data.harvest_note}</div>}
                                     </div>
                                   )}
                                 </div>
@@ -677,8 +677,8 @@ export default function DigitalShelf() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{p.name}</div>
                   <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
-                    <span style={{ fontSize: 9, fontFamily: "monospace", color: "var(--text-3)" }}>{p.sku}</span>
-                    <span className="badge" style={{ fontSize: 9 }}>{p.channel}</span>
+                    <span style={{ fontSize: 10, fontFamily: "monospace", color: "var(--text-3)" }}>{p.sku}</span>
+                    <span className="badge" style={{ fontSize: 10 }}>{p.channel}</span>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 16, fontSize: 12 }}>
@@ -747,13 +747,13 @@ function ListingQualitySection() {
               </div>
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontSize:28, fontWeight:900, color:scoreColor(score) }}>{score}</div>
-                <div style={{ fontSize:9, color:'var(--text-3)' }}>/ {t('digitalShelf.outOf100', '100점')}</div>
+                <div style={{ fontSize:10, color:'var(--text-3)' }}>/ {t('digitalShelf.outOf100', '100점')}</div>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(5,minmax(40px,1fr))', gap:8, marginBottom:12 }}>
               {[[t('digitalShelf.lqTitle', '제목'),l.title],[t('digitalShelf.lqImage', '이미지'),l.images],[t('digitalShelf.lqDesc', '설명'),l.desc],[t('digitalShelf.lqSpec', '스펙'),l.spec],[t('digitalShelf.lqKeyword', '키워드'),l.keywords]].map(([lbl,val])=>(
                 <div key={lbl} style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:9, color:'var(--text-3)', marginBottom:4, fontWeight:600 }}>{lbl}</div>
+                  <div style={{ fontSize:10, color:'var(--text-3)', marginBottom:4, fontWeight:600 }}>{lbl}</div>
                   <div style={{ height:40, background: 'var(--border)', borderRadius:4, position:'relative', overflow:'hidden' }}>
                     <div style={{position:'absolute',bottom:0,width:'100%',height:`${val}%`,background:scoreColor(val),transition:'height 0.5s'}}/>
                   </div>

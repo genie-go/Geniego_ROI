@@ -25,7 +25,7 @@ export default function CardBillingGuide() {
       <div style={{ display: 'grid', gap: 9, marginBottom: 16 }}>
         {['how1', 'how2', 'how3', 'how4'].map((k, i) => (
           <div key={k} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, color: '#334155', lineHeight: 1.6 }}>
-            <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 6, background: '#c7d2fe', color: '#4338ca', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+            <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 6, background: '#c7d2fe', color: '#4338ca', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
             {tr(k)}
           </div>
         ))}

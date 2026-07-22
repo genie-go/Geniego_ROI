@@ -87,7 +87,7 @@ function WeightSettingsModal({ weights, onApply, onClose, t }) {
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button onClick={() => setLocal({ ...DEFAULT_WEIGHTS })} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', color: '#64748b', fontSize: 12, cursor: 'pointer' }}>{t('graphScore.weightReset')}</button>
-          <button onClick={() => { onApply(local); onClose(); }} style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#ffffff', fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '0 4px 16px rgba(168,85,247,0.4)' }}>{t('graphScore.weightApply')}</button>
+          <button onClick={() => { onApply(local); onClose(); }} style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#a855f7,#6366f1)', color: '#ffffff', fontWeight: 700, fontSize: 12, cursor: 'pointer', boxShadow: '0 4px 16px rgba(168,85,247,0.4)' }}>{t('graphScore.weightApply')}</button>
         </div>
       </div>
     </div>
@@ -115,7 +115,7 @@ function ConnectedChannelsBadge({ t }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '6px 10px', borderRadius: 10, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', fontSize: 10 }}>
       <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 11 }}>🔗 {t('graphScore.connectedChannels')}:</span>
       {list.map(ch => (
-        <span key={ch.key || ch.platform} style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '1px 7px', fontSize: 9, fontWeight: 700 }}>{ch.platform || ch.key}</span>
+        <span key={ch.key || ch.platform} style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{ch.platform || ch.key}</span>
       ))}
     </div>
   );
@@ -436,7 +436,7 @@ function GuideTab() {
         <div style={{ fontSize: 13, color: '#64748b', marginTop: 6, maxWidth: 700, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
       </div>
       <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{g('guideStepsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{g('guideStepsTitle')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 14 }}>
           {[{n:'1️⃣',k:'guideStep1',c:'#a855f7'},{n:'2️⃣',k:'guideStep2',c:'#06b6d4'},{n:'3️⃣',k:'guideStep3',c:'#f97316'},{n:'4️⃣',k:'guideStep4',c:'#22c55e'},{n:'5️⃣',k:'guideStep5',c:'#4f8ef7'},{n:'6️⃣',k:'guideStep6',c:'#f472b6'}].map((s,i) => (
             <div key={i} style={{ background: s.c+'0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16 }}>
@@ -450,7 +450,7 @@ function GuideTab() {
         </div>
       </div>
       <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{g('guideTabsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{g('guideTabsTitle')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
           {[{icon:'📊',k:'guideSummary',c:'#a855f7'},{icon:'🔍',k:'guideBrowser',c:'#06b6d4'},{icon:'🤝',k:'guideInfluencer',c:'#f97316'},{icon:'📦',k:'guideSku',c:'#22c55e'},{icon:'🎬',k:'guideCreative',c:'#f472b6'}].map((tb,i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: '#f8fafc', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
@@ -464,7 +464,7 @@ function GuideTab() {
         </div>
       </div>
       <div style={{ padding: 20, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 14 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>💡 {g('guideTipsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12 }}>💡 {g('guideTipsTitle')}</div>
         <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#64748b', lineHeight: 2.2 }}>
           {[1,2,3,4,5].map(i => <li key={i}>{g(`guideTip${i}`)}</li>)}
         </ul>

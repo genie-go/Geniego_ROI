@@ -32,7 +32,7 @@ function KpiCard({ label, value, color, icon }) {
 function Badge({ status, label }) {
     const c = STATUS_COLOR[status] || "#94a3b8";
     return (
-        <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 99, background: `${c}18`, color: c, border: `1px solid ${c}33`, whiteSpace: "nowrap" }}>
+        <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 99, background: `${c}18`, color: c, border: `1px solid ${c}33`, whiteSpace: "nowrap" }}>
             {label}
         </span>
     );
@@ -148,7 +148,7 @@ export default function AccessReview() {
                             padding: "13px 12px", border: "none", cursor: "pointer",
                             background: tab === tb.id ? "rgba(79,142,247,0.08)" : "transparent",
                             borderBottom: `2px solid ${tab === tb.id ? "#4f8ef7" : "transparent"}`,
-                            fontSize: 12, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)",
+                            fontSize: 12, fontWeight: 700, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)",
                         }}>{tb.label}</button>
                     ))}
                 </div>
@@ -173,7 +173,7 @@ export default function AccessReview() {
                                                     <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700 }}>{it.key_prefix}…</span>
                                                     <span style={{ fontSize: 12, color: "var(--text-2)" }}>{it.name || "—"}</span>
                                                     <Badge status={it.status} label={statusLabel(it.status)} />
-                                                    <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 99, background: "rgba(148,163,184,0.12)", color: "var(--text-3)" }}>{it.role}</span>
+                                                    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 99, background: "rgba(148,163,184,0.12)", color: "var(--text-3)" }}>{it.role}</span>
                                                 </div>
                                                 <div style={{ fontSize: 10, color: STATUS_COLOR[it.status], marginTop: 4 }}>{it.reason}</div>
                                                 <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>
@@ -209,7 +209,7 @@ export default function AccessReview() {
                                         }}>
                                             <div style={{ minWidth: 0 }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99, background: h.decision === "revoke" ? "rgba(239,68,68,0.14)" : "rgba(34,197,94,0.14)", color: h.decision === "revoke" ? "#ef4444" : "#22c55e" }}>
+                                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: h.decision === "revoke" ? "rgba(239,68,68,0.14)" : "rgba(34,197,94,0.14)", color: h.decision === "revoke" ? "#ef4444" : "#22c55e" }}>
                                                         {h.decision === "revoke" ? t("accessReview.decisionRevoke", "회수") : t("accessReview.decisionApprove", "승인")}
                                                     </span>
                                                     <span style={{ fontFamily: "monospace", fontSize: 12 }}>{h.target_label || h.target_id}</span>
@@ -255,7 +255,7 @@ export default function AccessReview() {
                                 disabled={busy || justify.trim() === ""}
                                 onClick={submitDecision}
                                 style={{
-                                    fontSize: 12, padding: "8px 16px", borderRadius: 8, border: "none", fontWeight: 800, cursor: busy || justify.trim() === "" ? "not-allowed" : "pointer",
+                                    fontSize: 12, padding: "8px 16px", borderRadius: 8, border: "none", fontWeight: 700, cursor: busy || justify.trim() === "" ? "not-allowed" : "pointer",
                                     background: modal.decision === "revoke" ? "#ef4444" : "#22c55e", color: "#fff", opacity: busy || justify.trim() === "" ? 0.5 : 1,
                                 }}
                             >

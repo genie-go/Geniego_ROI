@@ -137,7 +137,7 @@ export default function SubAdminManager() {
         const isAdminSec = s.key === "system"; // 관리자 시스템 섹션 강조
         return (
           <div key={s.key} style={{ border: isAdminSec ? "1.5px solid rgba(168,85,247,0.45)" : "1px solid rgba(0,0,0,0.08)", borderRadius: 10, padding: "8px 10px", background: isAdminSec ? "rgba(168,85,247,0.05)" : "transparent" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 12.5, cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}>
               <input type="checkbox" checked={allOn} onChange={() => toggleSection(selected, setter, paths, !allOn)} />
               <span>{s.icon} {s.label}{isAdminSec && <span style={{ marginLeft: 6, fontSize: 10, color: "#a855f7" }}>{t('subAdminManager.adminSystemBadge', '· 관리자 시스템')}</span>}</span>
             </label>
@@ -189,7 +189,7 @@ export default function SubAdminManager() {
 
       {/* 발급 폼 */}
       <div style={{ ...card, marginBottom: 18 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{t('subAdminManager.issueButtonTitle', '＋ 하위 관리자 발급')}</div>
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12 }}>{t('subAdminManager.issueButtonTitle', '＋ 하위 관리자 발급')}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
           <AvatarField value={photo} name={name} size={56} editable onChange={setPhoto} />
           <span style={{ fontSize: 12, color: "var(--text-3)" }}>{t('subAdminManager.avatarHint', '관리자 프로필 사진 (선택) — 클릭하여 등록')}</span>
@@ -216,7 +216,7 @@ export default function SubAdminManager() {
       {/* 목록 */}
       <div style={card}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>{t('subAdminManager.issuedListTitle', '발급된 하위 관리자')} {Array.isArray(list) ? `(${list.filter(subMatch).length}${query ? `/${list.length}` : ""})` : ""}</div>
+          <div style={{ fontSize: 14, fontWeight: 800 }}>{t('subAdminManager.issuedListTitle', '발급된 하위 관리자')} {Array.isArray(list) ? `(${list.filter(subMatch).length}${query ? `/${list.length}` : ""})` : ""}</div>
           {Array.isArray(list) && list.length > 0 && <input style={{ ...input, maxWidth: 240 }} placeholder="🔍 이름·이메일 검색" value={query} onChange={(e) => setQuery(e.target.value)} />}
         </div>
         {list === null && <div style={{ color: "var(--text-3)", fontSize: 13 }}>불러오는 중…</div>}
@@ -227,7 +227,7 @@ export default function SubAdminManager() {
               <AvatarField value={m.photo} name={m.name} size={36} />
               <span style={{ fontWeight: 800, fontSize: 13.5 }}>{m.name || "(이름 없음)"}</span>
               <span style={{ fontSize: 12, color: "var(--text-3)" }}>{m.email}</span>
-              <span style={{ fontSize: 10.5, fontWeight: 800, padding: "2px 8px", borderRadius: 20,
+              <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
                 background: m.is_active ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)", color: m.is_active ? "#16a34a" : "#dc2626" }}>
                 {m.is_active ? "활성" : "정지"}
               </span>

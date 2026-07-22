@@ -208,9 +208,9 @@ export default function InstagramDM() {
                             {conversations.map(c => (
                                 <div key={c.id} onClick={() => { setSelectedConv(c); setConversations(prev => prev.map(cv => cv.id === c.id ? { ...cv, status: 'read' } : cv)); }} style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid var(--border)', background: selectedConv?.id === c.id ? 'rgba(225,48,108,0.08)' : 'transparent', transition: 'background 150ms' }}>
                                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: `linear-gradient(135deg,${iconColor(c.platform)}aa,${iconColor(c.platform)}44)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 15, color: '#fff', flexShrink: 0, position: 'relative' }}>
+                                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: `linear-gradient(135deg,${iconColor(c.platform)}aa,${iconColor(c.platform)}44)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#fff', flexShrink: 0, position: 'relative' }}>
                                             {c.avatar}
-                                            <div style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%', background: iconColor(c.platform), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, border: '2px solid #070f1a' }}>
+                                            <div style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, borderRadius: '50%', background: iconColor(c.platform), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #070f1a' }}>
                                                 {c.platform === 'instagram' ? '📸' : '👤'}
                                             </div>
                                         </div>

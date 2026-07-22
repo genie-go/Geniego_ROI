@@ -61,7 +61,7 @@ function DashSelector({ active, onSelect, dashboards }) {
             onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = `${d.color}10`; e.currentTarget.style.color = '#111827'; } }}
             onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1f2937'; } }}
           >
-            <span style={{ fontSize: 15 }}>{d.icon}</span>
+            <span style={{ fontSize: 14 }}>{d.icon}</span>
             {d.label}
           </button>
         );
@@ -253,7 +253,7 @@ export default function Dashboard() {
           <div style={{ padding: '16px 20px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(153,27,27,0.06))', border: '1.5px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', animation: 'pulseScale 2s infinite alternate', boxShadow: '0 4px 16px rgba(239,68,68,0.12)', margin: '4px' }}>
             <span style={{ fontSize: 32, filter: 'drop-shadow(0 0 6px rgba(239,68,68,0.5))' }}>🚨</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 900, fontSize: 15, color: '#dc2626', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 1 }}>
+              <div style={{ fontWeight: 900, fontSize: 14, color: '#dc2626', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 1 }}>
                 {t('dash.threatDetected', '엔터프라이즈 보안 위협 감지')}
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-1, #111827)', fontWeight: 600 }}>

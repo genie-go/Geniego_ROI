@@ -157,7 +157,7 @@ function DashboardTab({ API }) {
           </div>
 
           <div style={CARD}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>🔽 {t("pxl.funnelTitle")}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 20 }}>🔽 {t("pxl.funnelTitle")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {funnelSteps.map((step, i) => {
                 const widthPct = step.count / maxCount * 100;
@@ -178,7 +178,7 @@ function DashboardTab({ API }) {
           </div>
 
           <div style={CARD}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>📡 {t("pxl.channelAttr")}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📡 {t("pxl.channelAttr")}</div>
             {!data.channels?.length ? (
               <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>{t("pxl.noChannelData")}</div>
             ) : (
@@ -290,7 +290,7 @@ function PixelConfigTab({ API }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={CARD}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>➕ {t("pxl.createPixel")}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>➕ {t("pxl.createPixel")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div><label style={{ fontSize: 12, color: C.muted }}>{t("pxl.pixelName")}</label>
             <input style={INPUT} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t("pxl.pixelNamePh")} /></div>
@@ -356,7 +356,7 @@ function PixelConfigTab({ API }) {
       </div>
 
       <div style={CARD}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>📋 {t("pxl.pixelList")}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📋 {t("pxl.pixelList")}</div>
         {!configs.length ? (
           <div style={{ color: C.muted, textAlign: "center", padding: 20 }}>{t("pxl.noPixels")}</div>
         ) : (
@@ -388,7 +388,7 @@ function PixelConfigTab({ API }) {
       {editCfg && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={() => setEditCfg(null)}>
           <div style={{ ...CARD, width: "min(560px, 92vw)", maxHeight: "88vh", overflow: "auto" }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>✏️ {t("pxl.editTitle", "픽셀 편집")} — {editCfg.pixel_id}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>✏️ {t("pxl.editTitle", "픽셀 편집")} — {editCfg.pixel_id}</div>
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>{t("pxl.editHint", "자격증명 칸은 비워두면 기존 값이 유지됩니다.")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div><label style={{ fontSize: 12, color: C.muted }}>{t("pxl.pixelName")}</label>
@@ -410,7 +410,7 @@ function PixelConfigTab({ API }) {
 
       {snippet && (
         <div style={CARD}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>📋 {t("pxl.snippetTitle")} ({selectedPixelId})</div>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>📋 {t("pxl.snippetTitle")} ({selectedPixelId})</div>
           <div style={{ background: "#0a0f1a", borderRadius: 10, padding: 16, fontFamily: "monospace", fontSize: 12, color: "#7dd3fc", whiteSpace: "pre-wrap", wordBreak: "break-all", overflow: "auto", maxHeight: 300 }}>{snippet}</div>
           <button onClick={() => { try { navigator.clipboard.writeText(snippet); } catch {} }} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: C.surface, color: C.text, fontSize: 12 }}>📋 {t("pxl.copy")}</button>
           <div style={{ marginTop: 12, fontSize: 12, color: C.muted }}>
@@ -445,7 +445,7 @@ function EventStreamTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={CARD}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>🧪 {t("pxl.testEventSend")}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>🧪 {t("pxl.testEventSend")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label style={{ fontSize: 12, color: C.muted }}>Pixel ID</label>
             <input style={INPUT} value={form.pixel_id} onChange={e => setForm({ ...form, pixel_id: e.target.value })} placeholder="px_..." /></div>
@@ -460,7 +460,7 @@ function EventStreamTab() {
       </div>
 
       <div style={CARD}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>📡 {t("pxl.realtimeStream")}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>📡 {t("pxl.realtimeStream")}</div>
         {!events.length ? (
           <div style={{ color: C.muted, textAlign: "center", padding: 24 }}>{t("pxl.noEvents")}</div>
         ) : (

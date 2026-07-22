@@ -163,7 +163,7 @@ function ProjectCard({ project, onClick }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border, #1e293b)'; }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <div style={{ fontWeight: 700, fontSize: 15 }}>{project.name}</div>
+        <div style={{ fontWeight: 700, fontSize: 14 }}>{project.name}</div>
         <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 12,
                         background: `${color}22`, color }}>
           {project.status}

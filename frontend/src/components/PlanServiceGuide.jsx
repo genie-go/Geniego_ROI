@@ -28,7 +28,7 @@ export default function PlanServiceGuide({ planId, compact = false, defaultOpen 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: light ? '#1e293b' : color }}>
             {g.label} {t('appPricing.guide.cardSuffix', '플랜 — 제공 서비스 상세 안내')}
-            {g.recommended && <span data-gp="darkText" style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 8, background: 'rgba(168,85,247,0.2)', color: light ? '#7c3aed' : '#d8b4fe' }}>⭐ {t('appPricing.guide.recommended', '추천')}</span>}
+            {g.recommended && <span data-gp="darkText" style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 8, background: 'rgba(168,85,247,0.2)', color: light ? '#7c3aed' : '#d8b4fe' }}>⭐ {t('appPricing.guide.recommended', '추천')}</span>}
           </div>
           <div style={{ fontSize: 11.5, color: c.tagline, marginTop: 2 }}>{g.tagline}</div>
         </div>
@@ -43,9 +43,9 @@ export default function PlanServiceGuide({ planId, compact = false, defaultOpen 
               return (
                 <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: c.secBg, border: `1px solid ${c.secBorder}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 15 }}>{s.icon}</span>
+                    <span style={{ fontSize: 14 }}>{s.icon}</span>
                     <span style={{ fontSize: 13, fontWeight: 800, color: c.secTitle, flex: 1 }}>{s.title}</span>
-                    <span data-gp="darkText" style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 8, background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>{m.label}</span>
+                    <span data-gp="darkText" style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>{m.label}</span>
                   </div>
                   <div style={{ fontSize: 11.5, color: c.secDesc, lineHeight: 1.55 }}>{s.desc}</div>
                 </div>

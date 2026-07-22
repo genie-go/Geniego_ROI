@@ -20,7 +20,7 @@ function mapModuleToService(m) {
   };
 }
 const Tag = ({ label, color = "#4f8ef7" }) => (
-    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
+    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
 );
 const KpiCard = ({ label, value, sub, color = "#4f8ef7", icon }) => (
     <div className="card card-glass" style={{ borderLeft: `3px solid ${color}`, padding: "14px 16px" }}>
@@ -93,7 +93,7 @@ function ApiStatusTab({ services, statusLabel, t }) {
                                 [t('systemMonitor.requests', 'Requests'), (s.requests != null) ? s.requests.toLocaleString() : "—", "#4f8ef7"],
                             ].map(([l, v, c]) => (
                                 <div key={l} style={{ textAlign: "center" }}>
-                                    <div style={{ fontSize: 9, color: "var(--text-3)" }}>{l}</div>
+                                    <div style={{ fontSize: 10, color: "var(--text-3)" }}>{l}</div>
                                     <div style={{ fontWeight: 700, color: c, fontSize: 12 }}>{v}</div>
                                 </div>
                             ))}
@@ -117,7 +117,7 @@ function PipelineTab({ jobs, t }) {
                         {j.note && <div style={{ fontSize: 10, color: STATUS_COLOR[j.status], marginTop: 2 }}>{j.note}</div>}
                     </div>
                     <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                        {j.records != null && <div style={{ textAlign: "center", fontSize: 9, color: "var(--text-3)", fontWeight: 700 }} ><div>{t('systemMonitor.processed', 'Processed')}</div><div>{j.records.toLocaleString()}</div></div>}
+                        {j.records != null && <div style={{ textAlign: "center", fontSize: 10, color: "var(--text-3)", fontWeight: 700 }} ><div>{t('systemMonitor.processed', 'Processed')}</div><div>{j.records.toLocaleString()}</div></div>}
                         <Tag label={j.status === "ok" ? "✓ Done" : j.status === "warn" ? "⚠ Warning" : "✗ Error"} color={STATUS_COLOR[j.status]} />
                     </div>
                 </div>
@@ -187,7 +187,7 @@ function CronHealthTab({ cron, t }) {
                             {r.critical && <span style={{ color: '#eab308', marginRight: 4 }}>★</span>}{r.label}
                         </span>
                         <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtAge(r.age_min)}</span>
-                        <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: `${COL[r.status]}1a`, color: COL[r.status], fontWeight: 800, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: `${COL[r.status]}1a`, color: COL[r.status], fontWeight: 800, whiteSpace: 'nowrap' }}>
                             {LBL[r.status] || r.status}
                         </span>
                     </div>
@@ -247,7 +247,7 @@ export default function SystemMonitor() {
             <div className="card card-glass fade-up fade-up-1" style={{ padding: 0, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
                     {TABS.map(t => (
-                        <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "13px 12px", border: "none", cursor: "pointer", background: tab === t.id ? "rgba(239,68,68,0.07)" : "transparent", borderBottom: `2px solid ${tab === t.id ? "#ef4444" : "transparent"}`, fontSize: 12, fontWeight: 800, color: tab === t.id ? "var(--text-1)" : "var(--text-2)" }}>{t.label}</button>
+                        <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "13px 12px", border: "none", cursor: "pointer", background: tab === t.id ? "rgba(239,68,68,0.07)" : "transparent", borderBottom: `2px solid ${tab === t.id ? "#ef4444" : "transparent"}`, fontSize: 12, fontWeight: 700, color: tab === t.id ? "var(--text-1)" : "var(--text-2)" }}>{t.label}</button>
                     ))}
                 </div>
             </div>

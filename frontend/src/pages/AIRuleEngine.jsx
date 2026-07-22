@@ -318,7 +318,7 @@ export default function AIRuleEngine() {
                     <tr>
                       <th style={{ padding: '2px 6px', color: 'var(--text-3,#64748b)', fontWeight: 700 }}></th>
                       {Array.from({ length: 24 }, (_, h) => (
-                        <th key={h} style={{ padding: '2px 0', width: 18, textAlign: 'center', color: 'var(--text-3,#64748b)', fontWeight: 600, fontSize: 9 }}>{h}</th>
+                        <th key={h} style={{ padding: '2px 0', width: 18, textAlign: 'center', color: 'var(--text-3,#64748b)', fontWeight: 600, fontSize: 10 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>

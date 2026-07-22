@@ -261,8 +261,8 @@ const ShapleyTab = memo(function ShapleyTab() {
                 <div key={r.ch} style={{ marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
-                      {isTop && <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)' }}>👑 {t('attrData.topOne', '#1')}</span>}
+                      <span style={{ fontSize: 12, color, fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
+                      {isTop && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34,197,94,0.3)' }}>👑 {t('attrData.topOne', '#1')}</span>}
                       {!r.positive && <Tag label={t('attrData.negativeCount', '음수')} color="#ef4444" />}
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -280,20 +280,20 @@ const ShapleyTab = memo(function ShapleyTab() {
           </div>
           <div style={{ display: 'grid', gap: 12, alignContent: 'start' }}>
             <div className="card card-glass">
-              <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 12 }}>{t('attrData.channelSynergy', '⚡ Channel 시너지 (Pairwise Lift)')}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t('attrData.channelSynergy', '⚡ Channel 시너지 (Pairwise Lift)')}</div>
               {(synergy || []).slice(0, 5).map(s => (
                 <div key={`${s.a}-${s.b}`} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--surface)' }}>
                   <span style={{ fontSize: 10, color: 'var(--text-2)' }}>
                     <span style={{ color: CH_COLORS[s.b] || '#4f8ef7' }} >{CH_LABELS[s.a] || s.a}</span> + <span>{CH_LABELS[s.b] || s.b}</span>
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 900, color: s.synergy > 0 ? '#22c55e' : '#ef4444' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: s.synergy > 0 ? '#22c55e' : '#ef4444' }}>
                     {s.synergy > 0 ? '+' : ''}{(s.synergy * 100).toFixed(0)}%
                   </span>
                 </div>
               ))}
             </div>
             <div className="card card-glass">
-              <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 12 }}>{t('attrData.shapleyBudgetRec', '💡 Shapley 기반 Budget 권고')}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t('attrData.shapleyBudgetRec', '💡 Shapley 기반 Budget 권고')}</div>
               {results.slice(0, 5).map(r => {
                 const rec = r.pct > 25 ? { l: t('attrData.increase', '↑ 증액'), c: '#22c55e' } : r.pct > 15 ? { l: t('attrData.maintain', '→ 유지'), c: '#4f8ef7' } : { l: t('attrData.review', '↓ 검토'), c: '#f97316' };
                 return (
@@ -385,12 +385,12 @@ const MMMTab = memo(function MMMTab() {
               <div key={r.ch} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
+                    <span style={{ fontSize: 12, color, fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
                     {r.saturation > 0.7 && <Tag label={`${t('attrData.saturation', '포화')} ${(r.saturation * 100).toFixed(0)}%`} color="#f97316" />}
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: 12, fontWeight: 900, color }}>{r.share.toFixed(1)}%</span>
-                    {r.ci95 && <div style={{ fontSize: 9, color: 'var(--text-3)' }}>CI [{r.ci95[0].toFixed(2)}, {r.ci95[1].toFixed(2)}]</div>}
+                    <span style={{ fontSize: 12, fontWeight: 700, color }}>{r.share.toFixed(1)}%</span>
+                    {r.ci95 && <div style={{ fontSize: 10, color: 'var(--text-3)' }}>CI [{r.ci95[0].toFixed(2)}, {r.ci95[1].toFixed(2)}]</div>}
                   </div>
                 </div>
                 <div style={{ height: 7, borderRadius: 7, background: 'var(--border)', overflow: 'hidden' }}>
@@ -404,7 +404,7 @@ const MMMTab = memo(function MMMTab() {
       )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>🎛️ {t('attrData.budgetAdjust')} ({t('attrData.totalStr', 'Total:')} {totalPct}%)</div>
+          <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 14 }}>🎛️ {t('attrData.budgetAdjust')} ({t('attrData.totalStr', 'Total:')} {totalPct}%)</div>
           {Object.entries(budget).map(([ch, pct]) => (
             <div key={ch} style={{ marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -418,7 +418,7 @@ const MMMTab = memo(function MMMTab() {
           ))}
         </div>
         <div className="card card-glass">
-          <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>{t('attrData.mmmSim', '📈 MMM 시뮬레이션 결과')}</div>
+          <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 14 }}>{t('attrData.mmmSim', '📈 MMM 시뮬레이션 결과')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div style={{ textAlign: 'center', padding: 10, borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: '#22c55e' }}>{(totalRev / Math.max(totalSpend, 1)).toFixed(2)}x</div>
@@ -435,12 +435,12 @@ const MMMTab = memo(function MMMTab() {
               <div key={r.ch} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                   <span style={{ fontSize: 11, color, fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
-                  <span style={{ fontSize: 11, fontWeight: 900, color: r.roas > 5 ? '#22c55e' : r.roas > 3 ? '#4f8ef7' : '#f97316' }}>{r.roas.toFixed(1)}x ROAS</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: r.roas > 5 ? '#22c55e' : r.roas > 3 ? '#4f8ef7' : '#f97316' }}>{r.roas.toFixed(1)}x ROAS</span>
                 </div>
                 <div style={{ height: 5, borderRadius: 5, background: 'var(--border)', overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(r.roas / 8 * 100, 100)}%`, height: '100%', background: color, borderRadius: 5, transition: 'width 300ms' }} />
                 </div>
-                {r.satPct > 40 && <div style={{ fontSize: 9, color: '#f97316', marginTop: 2 }}>{t('attrData.saturationWarning', '⚠ 포화도 {{sat}}% — Add 효용 Decrease', {sat: Math.min(r.satPct, 95)})}</div>}
+                {r.satPct > 40 && <div style={{ fontSize: 10, color: '#f97316', marginTop: 2 }}>{t('attrData.saturationWarning', '⚠ 포화도 {{sat}}% — Add 효용 Decrease', {sat: Math.min(r.satPct, 95)})}</div>}
               </div>
             
             );
@@ -514,10 +514,10 @@ const MarkovTab = memo(function MarkovTab() {
               return (
                 <div key={r.ch} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
+                    <span style={{ fontSize: 12, color, fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: 12, fontWeight: 900, color }}>{r.share.toFixed(1)}%</span>
-                      <div style={{ fontSize: 9, color: 'var(--text-3)' }}>removal: {(r.removalEffect * 100).toFixed(1)}%</div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color }}>{r.share.toFixed(1)}%</span>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)' }}>removal: {(r.removalEffect * 100).toFixed(1)}%</div>
                     </div>
                   </div>
                   <div style={{ height: 7, borderRadius: 7, background: 'var(--border)', overflow: 'hidden' }}>
@@ -539,10 +539,10 @@ const MarkovTab = memo(function MarkovTab() {
               return (
                 <div key={r.ch} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color, fontWeight: 800 }}>{CH_LABELS[r.ch] || r.ch}</span>
+                    <span style={{ fontSize: 12, color, fontWeight: 700 }}>{CH_LABELS[r.ch] || r.ch}</span>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: 12, fontWeight: 900, color: r.uplift > 0 ? '#22c55e' : '#ef4444' }}>{r.uplift > 0 ? '+' : ''}{r.uplift.toFixed(2)}</span>
-                      <div style={{ fontSize: 9, color: 'var(--text-3)' }}>R²={r.r2partial.toFixed(3)}</div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: r.uplift > 0 ? '#22c55e' : '#ef4444' }}>{r.uplift > 0 ? '+' : ''}{r.uplift.toFixed(2)}</span>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)' }}>R²={r.r2partial.toFixed(3)}</div>
                     </div>
                   </div>
                   <div style={{ height: 6, borderRadius: 6, background: 'var(--border)', overflow: 'hidden' }}>
@@ -691,9 +691,9 @@ const AttributionTab = memo(function AttributionTab() {
                     <div key={i} style={{ padding: '6px 8px', borderBottom: '1px solid rgba(99,140,255,0.04)', fontSize: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                         <span style={{ color, fontWeight: 700, fontSize: 11 }}>{CH_LABELS[tch.channel] || tch.channel || '—'}</span>
-                        <span style={{ color: 'var(--text-3)', fontSize: 9 }}>{tch.touched_at ? String(tch.touched_at).slice(0, 16) : ''}</span>
+                        <span style={{ color: 'var(--text-3)', fontSize: 10 }}>{tch.touched_at ? String(tch.touched_at).slice(0, 16) : ''}</span>
                       </div>
-                      <div style={{ color: 'var(--text-3)', fontSize: 9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ color: 'var(--text-3)', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {[tch.utm_source, tch.utm_medium, tch.utm_campaign].filter(Boolean).join(' · ') || '(no utm)'}
                       </div>
                     </div>
@@ -764,8 +764,8 @@ const BayesianABTab = memo(function BayesianABTab() {
                     {isW && <Tag label={t('attrData.winner', '🏆 승자')} color="#22c55e" />}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, color: 'var(--text-3)' }} ><div>{v.visitors.toLocaleString()}</div><div>{t('attrData.visitor', '방문자')}</div></div>
-                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, color: 'var(--text-3)' }} ><div>{v.conversions}</div><div>{t('attrData.conversion', 'Conversion')}</div></div>
+                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }} ><div>{v.visitors.toLocaleString()}</div><div>{t('attrData.visitor', '방문자')}</div></div>
+                    <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }} ><div>{v.conversions}</div><div>{t('attrData.conversion', 'Conversion')}</div></div>
                   </div>
                   {[
                     { l: 'Conv. Rate', v: `${(v.cr * 100).toFixed(2)}%`, c: '#eab308' },
@@ -951,8 +951,8 @@ const AnomalyTab = memo(function AnomalyTab() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 900, color: CH_COLORS[d.ch] || '#4f8ef7' }}>{CH_LABELS[d.ch] || d.ch}</span>
-                    <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: `${color}15`, color, border: `1px solid ${color}30`, fontWeight: 700 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{d.type === '정상' ? t('attrData.filterOk', '정상') : (d.type === 'ROAS 급등' ? t('attrData.roasSurge', 'ROAS 급등') : d.type)}</span>
+                    <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: `${color}15`, color, border: `1px solid ${color}30`, fontWeight: 700 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{d.type === '정상' ? t('attrData.filterOk', '정상') : (d.type === 'ROAS 급등' ? t('attrData.roasSurge', 'ROAS 급등') : d.type)}</span>
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 240 }}>{d.desc}</div>
                 </div>
@@ -966,7 +966,7 @@ const AnomalyTab = memo(function AnomalyTab() {
                 ].map(k => (
                   <div key={k.l} style={{ textAlign: 'center', padding: '6px', borderRadius: 8, background: 'var(--surface)' }}>
                     <div style={{ fontSize: 14, fontWeight: 900, color: k.c }}>{k.v}</div>
-                    <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{k.l}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{k.l}</div>
                   </div>
                 ))}
               </div>
@@ -977,7 +977,7 @@ const AnomalyTab = memo(function AnomalyTab() {
 
       {/* Summary Statistics */}
       <div className="card card-glass">
-        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>{t("attrData.anomalySummary", "📊 이상감지 Summary")}</div>
+        <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t("attrData.anomalySummary", "📊 이상감지 Summary")}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
           {['critical','alert','warn','info','ok'].map(s => {
             const st = ANOMALY_STATUS[s];
@@ -985,7 +985,7 @@ const AnomalyTab = memo(function AnomalyTab() {
             return (
               <div key={s} style={{ textAlign: 'center', padding: '10px 8px', borderRadius: 10, background: `${st.color}08`, border: `1px solid ${st.color}20` }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: st.color }}>{count}</div>
-                <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{st.key ? t('attrData.' + st.key, st.label) : st.label}</div>
               </div>
             );
           })}
@@ -1120,7 +1120,7 @@ const ServerMtaPanel = memo(function ServerMtaPanel() {
             <div key={m.k} style={{ background: m.c + '10', border: '1px solid ' + m.c + '30', borderRadius: 10, padding: '8px 10px' }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: m.c }}>{Number(data.view_through[m.k] || 0).toLocaleString()}</div>
               <div style={{ fontSize: 10.5, color: 'var(--text-3)', fontWeight: 700 }}>{m.label}</div>
-              {m.sub && <div style={{ fontSize: 9.5, color: 'var(--text-3)', marginTop: 2 }}>{m.sub}</div>}
+              {m.sub && <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{m.sub}</div>}
             </div>
           ))}
         </div>
@@ -1238,11 +1238,11 @@ const ConfidenceTab = memo(function ConfidenceTab() {
           <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t('attrData.overallConf', '전체 신뢰도 (안정 채널 비율)')}</div>
           <div style={{ fontSize: 30, fontWeight: 900, color: data.overall >= 60 ? '#22c55e' : (data.overall >= 30 ? '#f59e0b' : '#ef4444') }}>{data.overall}%</div>
           <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>{data.source === 'server' ? t('attrData.srvNote', '서버 실측 부트스트랩 · 90% 신뢰구간 + 6모델 합의도') : t('attrData.bootstrapNote', '부트스트랩 30회 재표본 · 90% 신뢰구간')}</div>
-          {data.source === 'server' && <div style={{ display: 'inline-block', marginTop: 4, fontSize: 9.5, fontWeight: 800, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '2px 8px', borderRadius: 20 }}>● {t('attrData.srvLive', '실측 데이터')}</div>}
+          {data.source === 'server' && <div style={{ display: 'inline-block', marginTop: 4, fontSize: 10.5, fontWeight: 700, color: '#16a34a', background: 'rgba(22,163,74,0.1)', padding: '2px 8px', borderRadius: 20 }}>● {t('attrData.srvLive', '실측 데이터')}</div>}
         </div>
         {top && (
           <div style={{ background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.2)', borderRadius: 14, padding: '16px 20px', flex: 2, minWidth: 280 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#0ea5e9', marginBottom: 4 }}>💡 {t('attrData.explainTitle', '왜 이 채널인가 (설명가능성)')}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0ea5e9', marginBottom: 4 }}>💡 {t('attrData.explainTitle', '왜 이 채널인가 (설명가능성)')}</div>
             <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
               {t('attrData.explainNarrative', '{ch} 제거 시 전환이 약 {rem}% 감소 — 가장 영향이 큰 채널입니다. 기여도 {share}% (신뢰구간 {lo}~{hi}%, 안정성 {stb}).', { ch: top.channel, rem: top.removalEffect.toFixed(1), share: top.share.toFixed(1), lo: top.lo.toFixed(1), hi: top.hi.toFixed(1), stb: STB[top.stability].l })}
             </div>
@@ -1274,7 +1274,7 @@ const ConfidenceTab = memo(function ConfidenceTab() {
                   </td>
                   <td style={{ padding: '9px 14px', textAlign: 'right', color: 'var(--text-2)' }}>{r.removalEffect.toFixed(1)}%</td>
                   <td style={{ padding: '9px 14px', textAlign: 'center' }}><span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 10px', borderRadius: 20, background: STB[r.stability].c + '22', color: STB[r.stability].c }}>{STB[r.stability].l}</span></td>
-                  <td style={{ padding: '9px 14px', textAlign: 'center', fontWeight: 800, fontSize: 11, color: r.consensus == null ? 'var(--text-3)' : (r.consensus >= 70 ? '#22c55e' : r.consensus >= 40 ? '#f59e0b' : '#ef4444') }}>{r.consensus == null ? '—' : r.consensus + '%'}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: r.consensus == null ? 'var(--text-3)' : (r.consensus >= 70 ? '#22c55e' : r.consensus >= 40 ? '#f59e0b' : '#ef4444') }}>{r.consensus == null ? '—' : r.consensus + '%'}</td>
                 </tr>
               ))}
             </tbody>
@@ -1357,12 +1357,12 @@ const ModelCompareTab = memo(function ModelCompareTab() {
               <div key={a.ch} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {i === 0 && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700 }}>👑 {t('attrData.highest', '최고')}</span>}
-                    <span style={{ fontSize: 12, fontWeight: 900, color }}>{CH_LABELS[a.ch] || a.ch}</span>
+                    {i === 0 && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'rgba(34,197,94,0.15)', color: '#4ade80', fontWeight: 700 }}>👑 {t('attrData.highest', '최고')}</span>}
+                    <span style={{ fontSize: 12, fontWeight: 700, color }}>{CH_LABELS[a.ch] || a.ch}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                     <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('attrData.average', 'Average')} {a.mean}% / σ={a.std}</span>
-                    <span style={{ fontSize: 15, fontWeight: 900, color: scoreColor, minWidth: 36, textAlign: 'right' }}>{a.score}</span>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: scoreColor, minWidth: 36, textAlign: 'right' }}>{a.score}</span>
                   </div>
                 </div>
                 <div style={{ height: 8, borderRadius: 8, background: 'var(--border)', overflow: 'hidden' }}>
@@ -1376,7 +1376,7 @@ const ModelCompareTab = memo(function ModelCompareTab() {
 
       {/* 모델per 숫자 Compare Table */}
       <div className="card card-glass">
-        <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>{t("attrData.modelCompareTable", "📋 모델per Channel 기여도 Compare표 (%)")}</div>
+        <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{t("attrData.modelCompareTable", "📋 모델per Channel 기여도 Compare표 (%)")}</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead>
@@ -1436,13 +1436,13 @@ const GuideTab = memo(function GuideTab() {
 
       {/* Where to Start */}
       <div className="card card-glass" style={{ padding: 20, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.25)' }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#4f8ef7' }}>🚀 {t('attrData.guideWhereToStart')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color: '#4f8ef7' }}>🚀 {t('attrData.guideWhereToStart')}</div>
         <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 2.0, whiteSpace: 'pre-line' }}>{t('attrData.guideWhereToStartDesc')}</div>
       </div>
 
       {/* Steps 1-12 */}
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('attrData.guideStepsTitle')} (12)</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{t('attrData.guideStepsTitle')} (12)</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
           {STEPS.map((s,i) => (
             <div key={i} style={{ background: s.c+'0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16 }}>
@@ -1458,7 +1458,7 @@ const GuideTab = memo(function GuideTab() {
 
       {/* Tab Reference */}
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('attrData.guideTabsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{t('attrData.guideTabsTitle')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
           {[{icon:'📊',k:'guideMta',c:'#4f8ef7'},{icon:'🧮',k:'guideShapley',c:'#22c55e'},{icon:'📈',k:'guideMmm',c:'#a855f7'},{icon:'🔗',k:'guideMarkov',c:'#06b6d4'},{icon:'🧪',k:'guideAb',c:'#f59e0b'},{icon:'📅',k:'guideCohort',c:'#f97316'},{icon:'💰',k:'guideLtv',c:'#ef4444'},{icon:'🚨',k:'guideAnomaly',c:'#dc2626'},{icon:'🕸️',k:'guideCompare',c:'#6366f1'}].map((tb,i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'var(--surface)', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
@@ -1474,7 +1474,7 @@ const GuideTab = memo(function GuideTab() {
 
       {/* Pro Tips */}
       <div className="card card-glass" style={{ padding: 20, background: 'rgba(34,197,94,0.05)', borderColor: 'rgba(34,197,94,0.3)' }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>💡 {t('attrData.guideTipsTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12 }}>💡 {t('attrData.guideTipsTitle')}</div>
         <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: 'var(--text-3)', lineHeight: 2.2 }}>
           <li>{t('attrData.guideTip1')}</li>
           <li>{t('attrData.guideTip2')}</li>
@@ -1486,7 +1486,7 @@ const GuideTab = memo(function GuideTab() {
 
       {/* FAQ */}
       <div className="card card-glass" style={{ padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>❓ {t('attrData.guideFaqTitle')}</div>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>❓ {t('attrData.guideFaqTitle')}</div>
         {[1,2,3,4,5].map(i => (
           <div key={i} style={{ marginBottom: 8, borderRadius: 10, border: '1px solid rgba(99,140,255,0.1)', overflow: 'hidden' }}>
             <div onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: openFaq === i ? 'rgba(79,142,247,0.06)' : 'transparent', transition: 'background 150ms' }}>
@@ -1613,7 +1613,7 @@ function IncrementalityTab() {
           <div style={card}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
               <span style={{ fontWeight: 900, fontSize: 13 }}>🔗 {t('attrData.idcovTitle', '크로스디바이스 식별 그래프')}</span>
-              {prob && <button onClick={toggleProb} title={t('attrData.probStitchTip', '확률적 스티칭(ip+ua 디바이스 시그니처·14일·PII 미저장). 켜면 익명 기기 여정도 동일인으로 어트리뷰션 크레딧.')} style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid', borderColor: prob.enabled ? '#16a34a' : 'var(--border)', background: prob.enabled ? 'rgba(22,163,74,0.12)' : 'transparent', color: prob.enabled ? '#16a34a' : 'var(--text-3)' }}>{t('attrData.probStitch', '확률적 스티칭')}: {prob.enabled ? 'ON' : 'OFF'}</button>}
+              {prob && <button onClick={toggleProb} title={t('attrData.probStitchTip', '확률적 스티칭(ip+ua 디바이스 시그니처·14일·PII 미저장). 켜면 익명 기기 여정도 동일인으로 어트리뷰션 크레딧.')} style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', border: '1px solid', borderColor: prob.enabled ? '#16a34a' : 'var(--border)', background: prob.enabled ? 'rgba(22,163,74,0.12)' : 'transparent', color: prob.enabled ? '#16a34a' : 'var(--text-3)' }}>{t('attrData.probStitch', '확률적 스티칭')}: {prob.enabled ? 'ON' : 'OFF'}</button>}
             </div>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 11.5, marginBottom: 6 }}>
               <span>{t('attrData.idcovIdentities', '식별 고객')}: <b>{(idcov?.identities || 0).toLocaleString()}</b></span>
@@ -1629,7 +1629,7 @@ function IncrementalityTab() {
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
             <span style={{ fontWeight: 900, fontSize: 13 }}>🗺️ {t('attrData.geoTitle', '지오 홀드아웃 설계 준비도')}</span>
-            <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: geo.feasible ? 'rgba(22,163,74,0.12)' : 'rgba(217,119,6,0.12)', color: geo.feasible ? '#16a34a' : '#d97706' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: geo.feasible ? 'rgba(22,163,74,0.12)' : 'rgba(217,119,6,0.12)', color: geo.feasible ? '#16a34a' : '#d97706' }}>
               {geo.feasible ? t('attrData.geoReady', '설계 가능') : t('attrData.geoNotReady', '데이터/검정력 부족')}
             </span>
             {geo.channel && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>· {geo.channel}</span>}
@@ -1645,11 +1645,11 @@ function IncrementalityTab() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.2)' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#4f8ef7', marginBottom: 3 }}>🎯 {t('attrData.geoTreatment', '실험군(treatment)')}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#4f8ef7', marginBottom: 3 }}>🎯 {t('attrData.geoTreatment', '실험군(treatment)')}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{(geo.recommended_split?.treatment_regions || []).join(', ') || '—'}</div>
                 </div>
                 <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.25)' }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#64748b', marginBottom: 3 }}>🛑 {t('attrData.geoControl', '대조군(control·무노출)')}</div>
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: '#64748b', marginBottom: 3 }}>🛑 {t('attrData.geoControl', '대조군(control·무노출)')}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{(geo.recommended_split?.control_regions || []).join(', ') || '—'}</div>
                 </div>
               </div>
@@ -1796,7 +1796,7 @@ function IncrementalityTab() {
                 ].map(([l, v]) => (
                   <div key={l}>
                     <div style={{ fontSize: 10.5, color: 'var(--text-3)' }}>{l}</div>
-                    <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)' }}>{v}</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-1)' }}>{v}</div>
                   </div>
                 ))}
               </div>
@@ -1820,7 +1820,7 @@ function IncrementalityTab() {
           <input type="number" min="0" value={expForm.treatment_size} onChange={e => setExpForm(s => ({ ...s, treatment_size: e.target.value }))} placeholder={t('attrData.incrTrtSize', '실험군 규모')} style={inp} />
         </div>
         <input value={expForm.hypothesis} onChange={e => setExpForm(s => ({ ...s, hypothesis: e.target.value }))} placeholder={t('attrData.expHypo', '가설(선택)')} style={{ ...inp, marginBottom: 10 }} />
-        <button onClick={createExp} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>
+        <button onClick={createExp} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#0ea5e9,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 12.5 }}>
           + {t('attrData.expCreate', '실험 등록')}
         </button>
 
@@ -1835,7 +1835,7 @@ function IncrementalityTab() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                   <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--text-1)' }}>{ex.name}</span>
                   {ex.channel && <span style={{ fontFamily: 'monospace', fontSize: 10.5, color: '#2563eb' }}>{ex.channel}</span>}
-                  <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9.5, fontWeight: 800, background: (statusColor[ex.status] || '#94a3b8') + '22', color: statusColor[ex.status] || '#94a3b8' }}>{ex.status}</span>
+                  <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 10.5, fontWeight: 700, background: (statusColor[ex.status] || '#94a3b8') + '22', color: statusColor[ex.status] || '#94a3b8' }}>{ex.status}</span>
                   <button onClick={() => deleteExp(ex.id)} style={{ marginLeft: 'auto', padding: '3px 9px', borderRadius: 7, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)', color: '#dc2626', fontWeight: 700, fontSize: 10.5, cursor: 'pointer' }}>🗑️</button>
                 </div>
                 {ex.hypothesis && <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 6 }}>{ex.hypothesis}</div>}
@@ -1999,7 +1999,7 @@ export default function Attribution() {
                     boxShadow: isActive ? `0 3px 16px ${clr}45` : 'none',
                     transform: isActive ? 'translateY(-1px)' : 'none' }}>
                   <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tb.label}</div>
-                  <div style={{ fontSize: 9, opacity: 0.7, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tb.desc}</div>
+                  <div style={{ fontSize: 10, opacity: 0.7, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tb.desc}</div>
                 </button>
               );
             })}

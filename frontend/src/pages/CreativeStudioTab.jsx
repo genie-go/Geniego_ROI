@@ -274,7 +274,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
   const EmptyState = ({ icon, title, desc, cta }) => (
     <div style={{ ...card, textAlign:'center', padding:'48px 24px', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
       <div style={{ fontSize:44, opacity:0.8 }}>{icon}</div>
-      <div style={{ fontWeight:800, fontSize:15, color:'#1e293b' }}>{title}</div>
+      <div style={{ fontWeight:800, fontSize:14, color:'#1e293b' }}>{title}</div>
       <div style={{ fontSize:12, color:'#64748b', maxWidth:420, lineHeight:1.7 }}>{desc}</div>
       {cta && (
         <button onClick={() => setActiveTab(1)} style={{ marginTop:8, padding:'10px 22px', borderRadius:11, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#a855f7,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:13 }}>✨ {cta}</button>
@@ -331,7 +331,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
               </div>
             )}
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <button onClick={runBatch} disabled={batchBusy} style={{ padding:'9px 20px', borderRadius:10, border:'none', cursor: batchBusy?'wait':'pointer', background: batchBusy?'#cbd5e1':'linear-gradient(135deg,#a855f7,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:12 }}>
+              <button onClick={runBatch} disabled={batchBusy} style={{ padding:'9px 20px', borderRadius:10, border:'none', cursor: batchBusy?'wait':'pointer', background: batchBusy?'#cbd5e1':'linear-gradient(135deg,#a855f7,#4f8ef7)', color:'#fff', fontWeight:700, fontSize:12 }}>
                 {batchBusy ? '⏳ ' + t('marketing.csBatchBusy','생성 중…') : '⚡ ' + t('marketing.csBatchRun','대량 생성')}
               </button>
               {batchMsg && <span style={{ fontSize:11, fontWeight:700, color: batchMsg.err ? '#ef4444' : '#22c55e' }}>{batchMsg.err ? '⚠ ' : '✓ '}{batchMsg.text}</span>}
@@ -381,9 +381,9 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
                   : item.img
                   ? <img src={item.img} alt={item.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} />
                   : <div style={{ width:'100%', height:'100%', animation:(ANIM_CSS[item.animation]||{}).css || 'none' }} dangerouslySetInnerHTML={{ __html: sanitizeSvg(item.svg.replace('<svg', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice"')) }} />}
-                {item.video && <span style={{ position:'absolute', top:6, left:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>🎬 VIDEO</span>}
+                {item.video && <span style={{ position:'absolute', top:6, left:6, padding:'2px 8px', borderRadius:6, fontSize:10, fontWeight:700, background:'rgba(236,72,153,0.92)', color:'#fff' }}>🎬 VIDEO</span>}
                 {item.animation && ANIM_CSS[item.animation] && (
-                  <span style={{ position:'absolute', top:6, right:6, padding:'2px 8px', borderRadius:6, fontSize:9, fontWeight:800, background:'rgba(236,72,153,0.92)', color:'#fff' }}>📽️ {ANIM_CSS[item.animation].label}</span>
+                  <span style={{ position:'absolute', top:6, right:6, padding:'2px 8px', borderRadius:6, fontSize:10, fontWeight:700, background:'rgba(236,72,153,0.92)', color:'#fff' }}>📽️ {ANIM_CSS[item.animation].label}</span>
                 )}
               </div>
             )}
@@ -394,15 +394,15 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:12 }}>
               <div style={{ textAlign:'center', padding:'8px 0', borderRadius:8, background:'rgba(79,142,247,0.06)' }}>
                 <div style={{ fontSize:16, fontWeight:800, color:'#4f8ef7' }}>{item.ctr == null ? '—' : item.ctr + '%'}</div>
-                <div style={{ fontSize:9, color:'#64748b' }}>CTR</div>
+                <div style={{ fontSize:10, color:'#64748b' }}>CTR</div>
               </div>
               <div style={{ textAlign:'center', padding:'8px 0', borderRadius:8, background:'rgba(34,197,94,0.06)' }}>
                 <div style={{ fontSize:16, fontWeight:800, color:'#22c55e' }}>{item.conv == null ? '—' : item.conv}</div>
-                <div style={{ fontSize:9, color:'#64748b' }}>{t('marketing.csConv','전환')}</div>
+                <div style={{ fontSize:10, color:'#64748b' }}>{t('marketing.csConv','전환')}</div>
               </div>
               <div style={{ textAlign:'center', padding:'8px 0', borderRadius:8, background:'rgba(168,85,247,0.06)' }}>
                 <div style={{ fontSize:12, fontWeight:700, color:'#a855f7' }}>{item.platform}</div>
-                <div style={{ fontSize:9, color:'#64748b' }}>{fmtLabel(item.format)}</div>
+                <div style={{ fontSize:10, color:'#64748b' }}>{fmtLabel(item.format)}</div>
               </div>
             </div>
             {(item.periodStart || item.periodEnd) && (
@@ -450,7 +450,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
       const cp = cockpit && cockpit.summary ? cockpit : null;
       const rollTable = (title, rows) => (
         <div style={{ flex:'1 1 220px', minWidth:0 }}>
-          <div style={{ fontSize:11, fontWeight:800, color:'#475569', marginBottom:6 }}>{title}</div>
+          <div style={{ fontSize:11, fontWeight:700, color:'#475569', marginBottom:6 }}>{title}</div>
           {(rows || []).slice(0,6).map(r => (
             <div key={r.key} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, padding:'4px 0', borderBottom:'1px solid rgba(0,0,0,0.04)' }}>
               <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b' }}>{r.key}</span>
@@ -477,7 +477,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
               </div>
               {Array.isArray(cp.need_refresh) && cp.need_refresh.length > 0 && (
                 <div style={{ marginBottom:14, padding:'10px 12px', borderRadius:10, background:'rgba(220,38,38,0.05)', border:'1px solid rgba(220,38,38,0.2)' }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:'#dc2626', marginBottom:6 }}>⚠️ {t('marketing.csRefreshList','피로도 높은 소재 — 교체 권고')}</div>
+                  <div style={{ fontSize:11.5, fontWeight:700, color:'#dc2626', marginBottom:6 }}>⚠️ {t('marketing.csRefreshList','피로도 높은 소재 — 교체 권고')}</div>
                   {cp.need_refresh.slice(0,5).map(r => (
                     <div key={r.design_id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11.5, padding:'3px 0' }}>
                       <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#1e293b' }}>{r.headline || ('#'+r.design_id)}</span>
@@ -622,7 +622,7 @@ export default function CreativeStudioTab({ sourcePage, onUseCampaign }) {
             <div style={{ fontWeight:900, fontSize:16, color:'#1e293b' }}>🎨 {t('marketing.csBrandTitle','브랜드 에셋 관리')}</div>
             <div style={{ fontSize:12, color:'#64748b', marginTop:4 }}>{t('marketing.csBrandDesc','브랜드 가이드라인에 따른 일관된 소재 관리')}</div>
           </div>
-          <label style={{ padding:'8px 16px', borderRadius:10, border:'none', cursor: (IS_DEMO||uploadingAsset)?'not-allowed':'pointer', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:800, fontSize:11, display:'inline-flex', alignItems:'center', gap:6, opacity:(IS_DEMO||uploadingAsset)?0.6:1 }}>
+          <label style={{ padding:'8px 16px', borderRadius:10, border:'none', cursor: (IS_DEMO||uploadingAsset)?'not-allowed':'pointer', background:'linear-gradient(135deg,#f97316,#ea580c)', color:'#fff', fontWeight:700, fontSize:11, display:'inline-flex', alignItems:'center', gap:6, opacity:(IS_DEMO||uploadingAsset)?0.6:1 }}>
             + {uploadingAsset ? '⏳' : t('marketing.csUploadAsset','에셋 업로드')}
             <input type="file" style={{ display:'none' }} disabled={IS_DEMO||uploadingAsset} accept="image/*,.pdf,.json,.svg,.woff2,.zip" onChange={e=>{ onUploadAsset(e.target.files?.[0]); e.target.value=''; }} />
           </label>

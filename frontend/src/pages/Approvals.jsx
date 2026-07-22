@@ -96,7 +96,7 @@ const Kpi = ({ icon, label, value, color }) => (
   </div>
 );
 const Tag = ({ label, color = '#4f8ef7' }) => (
-  <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: color + '1a', color, border: '1px solid ' + color + '33' }}>{label}</span>
+  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: color + '1a', color, border: '1px solid ' + color + '33' }}>{label}</span>
 );
 
 /* ═══════════════════════════════════════════════════
@@ -315,7 +315,7 @@ function PolicyTab({ t, isDemo }) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div className="card card-glass" style={{ padding: 18 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>🔔 {editId ? t('approvalsPage.polEditTitle', '알림 정책 수정') : t('approvalsPage.polNewTitle', '새 알림 정책')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>🔔 {editId ? t('approvalsPage.polEditTitle', '알림 정책 수정') : t('approvalsPage.polNewTitle', '새 알림 정책')}</div>
         <div style={{ fontSize: 12, color: 'var(--text-3, #94a3b8)', marginBottom: 14 }}>
           {t('approvalsPage.polDesc', '지표가 임계값을 넘으면 자동으로 알림이 발화됩니다. 발송 채널(Slack·이메일)은 개발자 포털 > 알림 채널에서 설정합니다.')}
         </div>
@@ -462,7 +462,7 @@ function SettingsTab({ t }) {
                     <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, lineHeight: 1.5 }}>{c.desc}</div>
                   </div>
                 </div>
-                <span style={{ padding: '3px 10px', borderRadius: 99, fontSize: 9, fontWeight: 700, flexShrink: 0, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(102,102,102,0.15)', color: on ? '#22c55e' : '#666' }}>{on ? t('approvalsPage.enabled', 'Enabled') : t('approvalsPage.disabled', 'Disabled')}</span>
+                <span style={{ padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700, flexShrink: 0, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(102,102,102,0.15)', color: on ? '#22c55e' : '#666' }}>{on ? t('approvalsPage.enabled', 'Enabled') : t('approvalsPage.disabled', 'Disabled')}</span>
               </div>
             </div>
           );
@@ -657,7 +657,7 @@ export default function Approvals() {
         {isDemo && (
           <div style={{ padding: '10px 16px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(34,197,94,0.08),rgba(79,142,247,0.06))', border: '1.5px solid rgba(34,197,94,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 12, color: '#22c55e' }}>{t('approvalsPage.demoBanner')}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: '#22c55e' }}>{t('approvalsPage.demoBanner')}</div>
               <div style={{ fontSize: 10, color: '#22c55e' }} >{t('approvalsPage.demoBannerDesc')} <strong>{t('approvalsPage.demoBannerPaid')}</strong></div>
             </div>
             <button onClick={() => window.location.href='/pricing'} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontWeight: 700, fontSize: 11 }}>{t('approvalsPage.upgradeBtn')}</button>
@@ -697,8 +697,8 @@ export default function Approvals() {
               flex: 1, padding: '10px 6px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
               background: tab === tb.id ? 'rgba(34,197,94,0.08)' : 'transparent',
               borderBottom: `2px solid ${tab === tb.id ? '#22c55e' : 'transparent'}`, transition: 'all 200ms' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {tb.label}</div>
-              <div style={{ fontSize: 8, color: 'var(--text-3)', marginTop: 2 }}>{tb.desc}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {tb.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{tb.desc}</div>
             </button>
           ))}
         </div>

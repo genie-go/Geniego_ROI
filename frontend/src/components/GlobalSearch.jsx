@@ -159,7 +159,7 @@ export default function GlobalSearch({ open, onClose }) {
                         placeholder={t('globalSearch.searchPlaceholder', '메뉴 Search... (예: 광고, Dashboard, API키, 인플루언서)')}
                         style={{
                             flex: 1, background: "transparent", border: "none", outline: "none",
-                            color: "var(--text-1, #e8f0ff)", fontSize: 15, fontFamily: "inherit",
+                            color: "var(--text-1, #e8f0ff)", fontSize: 14, fontFamily: "inherit",
                         }}
                     />
                     <div style={{
@@ -194,7 +194,7 @@ export default function GlobalSearch({ open, onClose }) {
                             <div key={section}>
                                 <div style={{
                                     padding: "8px 18px 4px",
-                                    fontSize: 10, fontWeight: 800, letterSpacing: "0.8px",
+                                    fontSize: 10, fontWeight: 700, letterSpacing: "0.8px",
                                     textTransform: "uppercase", color: "var(--text-3)",
                                 }}>
                                     {items[0]?.sectionKey ? t(items[0].sectionKey, section) : section}

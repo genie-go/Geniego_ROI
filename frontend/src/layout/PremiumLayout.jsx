@@ -240,7 +240,7 @@ function PremiumHeader({ lang, setLang }) {
             <div style={{ maxWidth: 1220, margin: "0 auto", padding: "0 24px", height: 66, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                 <Link to="/" style={{ display: "flex", alignItems: "center", gap: 11, textDecoration: "none" }}>
                     <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 34, height: 34, borderRadius: 9, objectFit: "cover", boxShadow: "0 4px 14px rgba(79,70,229,0.25)" }} />
-                    <span style={{ fontWeight: 900, fontSize: 17, color: "#0f172a", letterSpacing: -0.4 }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
+                    <span style={{ fontWeight: 900, fontSize: 16, color: "#0f172a", letterSpacing: -0.4 }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
                 </Link>
                 <nav style={{ display: "flex", alignItems: "center", gap: 2 }} className="gl-nav">
                     <a href="/#product" style={navLink} onMouseEnter={e => hov(e, 1)} onMouseLeave={e => hov(e, 0)}>{st("navProduct", lang)}</a>
@@ -252,13 +252,13 @@ function PremiumHeader({ lang, setLang }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div ref={lref} style={{ position: "relative" }}>
                         <button onClick={() => setLangOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 11px", borderRadius: 9, background: "#fff", border: "1px solid #e2e8f0", color: "#334155", cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
-                            <span style={{ fontSize: 15 }}>{cur.flag}</span><span className="gl-langlabel">{cur.label}</span><span style={{ fontSize: 9, opacity: .5 }}>▼</span>
+                            <span style={{ fontSize: 14 }}>{cur.flag}</span><span className="gl-langlabel">{cur.label}</span><span style={{ fontSize: 10, opacity: .5 }}>▼</span>
                         </button>
                         {langOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 6, minWidth: 168, maxHeight: 360, overflowY: "auto", boxShadow: "0 16px 48px rgba(15,23,42,0.16)" }}>
                             {LANG_OPTIONS.map(l => (
                                 <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); localStorage.setItem("landing_lang", l.code); localStorage.setItem("genie_roi_lang", l.code); try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang: l.code } })); } catch {} }}
                                     style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, background: lang === l.code ? "#eef2ff" : "transparent", color: lang === l.code ? "#4f46e5" : "#334155" }}>
-                                    <span style={{ fontSize: 15 }}>{l.flag}</span><span>{l.label}</span>
+                                    <span style={{ fontSize: 14 }}>{l.flag}</span><span>{l.label}</span>
                                 </button>
                             ))}
                         </div>}
@@ -287,7 +287,7 @@ export default function PremiumLayout({ children }) {
                 <div style={{ maxWidth: 1180, margin: "0 auto", padding: "44px 24px 30px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 28, height: 28, borderRadius: 8, objectFit: "cover" }} />
-                        <span style={{ fontWeight: 900, fontSize: 15, color: "#0f172a" }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
+                        <span style={{ fontWeight: 900, fontSize: 14, color: "#0f172a" }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
                     </div>
                     <div style={{ display: "flex", gap: 18, fontSize: 13, color: "#64748b", flexWrap: "wrap" }}>
                         <Link to="/pricing" style={{ color: "#64748b", textDecoration: "none" }}>Pricing</Link>

@@ -25,7 +25,7 @@ const api = async (path, opts = {}) => {
 const card = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' };
 const inp = { width: '100%', padding: '11px 13px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', boxSizing: 'border-box' };
 const btn = { padding: '11px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' };
-const th = { textAlign: 'left', padding: '9px 12px', fontSize: 11, fontWeight: 800, color: '#64748b', borderBottom: '2px solid #e2e8f0', whiteSpace: 'nowrap' };
+const th = { textAlign: 'left', padding: '9px 12px', fontSize: 11, fontWeight: 700, color: '#64748b', borderBottom: '2px solid #e2e8f0', whiteSpace: 'nowrap' };
 const td = { padding: '9px 12px', fontSize: 12.5, color: '#1e293b', borderBottom: '1px solid #f1f5f9' };
 
 export default function PartnerPortal() {
@@ -91,7 +91,7 @@ export default function PartnerPortal() {
     <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '0' }}>
       <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <span style={{ fontSize: 17, fontWeight: 900, color: '#0f172a' }}>🤝 {t('partnerPortal.title', '파트너 포털')}</span>
+          <span style={{ fontSize: 16, fontWeight: 900, color: '#0f172a' }}>🤝 {t('partnerPortal.title', '파트너 포털')}</span>
           <span style={{ marginLeft: 12, fontSize: 12.5, color: '#64748b' }}>{typeLabel} · {me?.partner_name || me?.name}</span>
         </div>
         <button onClick={logout} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 700, fontSize: 12.5, cursor: 'pointer' }}>{t('partnerPortal.logout', '로그아웃')}</button>

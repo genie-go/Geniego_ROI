@@ -340,7 +340,7 @@ function PlatDetail({ p, txt }) {
             { l:txt('peakTime'), v:p.peak, c:'#ec4899' },
           ].map(m => (
             <div key={m.l} style={{ background: 'var(--surface)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
-              <div style={{ fontSize:9, color: 'var(--text-3)', letterSpacing:0.7, marginBottom:2 }}>{m.l}</div>
+              <div style={{ fontSize:10, color: 'var(--text-3)', letterSpacing:0.7, marginBottom:2 }}>{m.l}</div>
               <div style={{ fontSize:13, fontWeight:900, color:m.c }}>{m.v}</div>
             </div>
           ))}
@@ -356,7 +356,7 @@ function PlatDetail({ p, txt }) {
             <div style={{ width:110, height:7, background: 'var(--border)', borderRadius:4 }}>
               <div style={{ width:`${g.v}%`, height:'100%', background:g.c, borderRadius:4, boxShadow:`0 0 6px ${g.c}55` }} />
             </div>
-            <span style={{ fontSize:12, fontWeight:800, color:g.c, width:30, textAlign:'right' }}>{g.v}%</span>
+            <span style={{ fontSize:12, fontWeight:700, color:g.c, width:30, textAlign:'right' }}>{g.v}%</span>
           </div>
         ))}
       </div>
@@ -370,7 +370,7 @@ function PlatDetail({ p, txt }) {
             <div style={{ flex:1, height:10, background: 'var(--surface)', borderRadius:3 }}>
               <div style={{ width:`${(v/mx)*100}%`, height:'100%', background:`hsl(${200+i*30},70%,55%)`, borderRadius:3 }} />
             </div>
-            <span style={{ fontSize:10, fontWeight:800, color:`hsl(${200+i*30},70%,65%)`, width:22, textAlign:'right' }}>{v}%</span>
+            <span style={{ fontSize:10, fontWeight:700, color:`hsl(${200+i*30},70%,65%)`, width:22, textAlign:'right' }}>{v}%</span>
           </div>
         ))}
       </div>
@@ -402,7 +402,7 @@ function PlatDetail({ p, txt }) {
               <div style={{ width:60, height:5, background: 'var(--surface)', borderRadius:3 }}>
                 <div style={{ width:`${pct}%`, height:'100%', background:`hsl(${180+i*40},70%,55%)`, borderRadius:3 }} />
               </div>
-              <span style={{ fontSize:10, fontWeight:800, color:`hsl(${180+i*40},70%,65%)`, width:24 }}>{pct}%</span>
+              <span style={{ fontSize:10, fontWeight:700, color:`hsl(${180+i*40},70%,65%)`, width:24 }}>{pct}%</span>
             </div>
           ))}
           {p.pay.length > 0 && (
@@ -567,10 +567,10 @@ export default function DashCommerce({ period }) {
         return (
           <div style={{ ...CARD, background: tone.bg, border: `1px solid ${tone.b}` }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-              <span style={{ fontSize:12, fontWeight:800, color: tone.c }}>🩺 {txt('bizHealth')}</span>
+              <span style={{ fontSize:12, fontWeight:700, color: tone.c }}>🩺 {txt('bizHealth')}</span>
               {h.measurable ? (
                 <>
-                  <span style={{ fontSize:12, fontWeight:800, color: tone.c }}>
+                  <span style={{ fontSize:12, fontWeight:700, color: tone.c }}>
                     {h.okCount}/{h.measuredCount} {txt('bizHealthOk')}
                   </span>
                   <span style={{ fontSize:10, color:'var(--text-3)' }}>
@@ -637,10 +637,10 @@ export default function DashCommerce({ period }) {
                   <div style={{ fontSize:10, color: 'var(--text-3)', fontWeight:700, letterSpacing:1 }}>{m.l}</div>
                   <div style={{ fontSize:22, fontWeight:900, color:m.col, lineHeight:1.1, marginTop:3, textShadow:`0 0 18px ${m.col}55` }}>{m.v}</div>
                 </div>
-                <div style={{ width:36, height:36, borderRadius:10, background:`${m.col}18`, border:`1px solid ${m.col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17 }}>{m.ico}</div>
+                <div style={{ width:36, height:36, borderRadius:10, background:`${m.col}18`, border:`1px solid ${m.col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>{m.ico}</div>
               </div>
               <div style={{ display:'flex', justifyContent:'space-between' }}>
-                <span style={{ fontSize:11, color:m.d>=0?'#4ade80':'#f87171', fontWeight:800, background:m.d>=0?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6 }}>
+                <span style={{ fontSize:11, color:m.d>=0?'#4ade80':'#f87171', fontWeight:700, background:m.d>=0?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6 }}>
                   {m.d>=0?'▲':'▼'} {Math.abs(m.d).toFixed(1)}%
                 </span>
                 <span style={{ fontSize:10, color: 'var(--text-3)' }}>{m.h}</span>
@@ -671,12 +671,12 @@ export default function DashCommerce({ period }) {
                   <div style={{ background:'var(--bg-card, rgba(255,255,255,0.95))', borderRadius:12, padding:'10px 12px', height:108, boxSizing:'border-box', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <span style={{ fontSize:18 }}>{p.ico}</span>
-                      <span style={{ fontSize:9, fontWeight:800, color:p.col, background:`${p.col}18`, padding:'1px 6px', borderRadius:4 }}>{p.n}</span>
+                      <span style={{ fontSize:10, fontWeight:700, color:p.col, background:`${p.col}18`, padding:'1px 6px', borderRadius:4 }}>{p.n}</span>
                     </div>
                     <div style={{ fontSize:22, fontWeight:900, color:p.col, lineHeight:1, textShadow:`0 0 16px ${p.col}55` }}>
                       {p.orders.toLocaleString()}<span style={{ fontSize:11 }}>{txt('unitCount')}</span>
                     </div>
-                    <div style={{ fontSize:9, color: 'var(--text-3)' }}>{txt('revenue')} · {fmtC(p.rev)}</div>
+                    <div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('revenue')} · {fmtC(p.rev)}</div>
                     <div style={{ height:3, background: 'var(--border)', borderRadius:2 }}>
                       <div style={{ width:`${totalOrd > 0 ? Math.min((p.orders/totalOrd)*100*3.5, 100) : 0}%`, height:'100%', background:`linear-gradient(90deg,${p.col},${p.col}77)`, borderRadius:2 }} />
                     </div>
@@ -755,7 +755,7 @@ export default function DashCommerce({ period }) {
                         <div style={{ fontSize:11, fontWeight:700, color: 'var(--text-2)' }}>{p.n}</div>
                         <div style={{ fontSize:10, color: 'var(--text-3)' }}>{txt('ordersCount')} {p.orders.toLocaleString()}{txt('unitCount')}</div>
                       </div>
-                      <span style={{ fontSize:11, fontWeight:800, color:p.col, fontVariantNumeric:'tabular-nums' }}>{fmtC(p.rev)}</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:p.col, fontVariantNumeric:'tabular-nums' }}>{fmtC(p.rev)}</span>
                     </div>
                   ))}
                 </div>

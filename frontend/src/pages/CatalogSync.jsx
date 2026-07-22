@@ -454,7 +454,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
     const inputStyle = { width: "100%", padding: "6px 10px", borderRadius: 8, border: "1px solid rgba(99,140,255,0.2)", background: "#ffffff", color: "#1f2937", fontSize: 12 };
     const stepDot = (n) => ({
         width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 11, fontWeight: 800,
+        fontSize: 11, fontWeight: 700,
         background: step >= n ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "rgba(99,140,255,0.12)",
         color: step >= n ? "#fff" : "#6b7280",
     });
@@ -520,7 +520,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                         <span style={{ fontSize: 18 }}>{c.icon}</span>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontSize: 12, fontWeight: 600, color: selChs.has(c.id) ? c.color : "#1f2937" }}>{c.name}</div>
-                                            {rate && <div style={{ fontSize: 9, color: "#6b7280", marginTop: 1 }}>{t('catalogSync.channelCommissionInfo', { commission: (rate.commission * 100).toFixed(0), vat: (rate.vat * 100).toFixed(0), region: rate.region })}</div>}
+                                            {rate && <div style={{ fontSize: 10, color: "#6b7280", marginTop: 1 }}>{t('catalogSync.channelCommissionInfo', { commission: (rate.commission * 100).toFixed(0), vat: (rate.vat * 100).toFixed(0), region: rate.region })}</div>}
                                         </div>
                                     </label>
                                 );
@@ -600,13 +600,13 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                 <td style={{ padding: "10px 6px", fontFamily: "monospace", color: "#f97316", fontWeight: 700 }}>{fmtKRW(avgCost)}</td>
                                                 <td style={{ padding: "10px 10px" }}>
                                                     {multiPrice ? (
-                                                        <div style={{ fontWeight: 900, fontSize: 12, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>
+                                                        <div style={{ fontWeight: 700, fontSize: 12, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>
                                                             {fmtKRW(minP)} ~ {fmtKRW(maxP)}
                                                         </div>
                                                     ) : (
                                                         <div style={{ fontWeight: 900, fontSize: 14, color: customPrices[chId] ? "#f59e0b" : "#22c55e", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
                                                     )}
-                                                    <div style={{ fontSize: 9, color: actualMargin > 0 ? "#22c55e" : "#ef4444", marginTop: 2 }}>
+                                                    <div style={{ fontSize: 10, color: actualMargin > 0 ? "#22c55e" : "#ef4444", marginTop: 2 }}>
                                                         {t('catalogSync.actualMarginLabel')} {actualMargin}%{multiPrice ? ` · ${t('catalogSync.perProductAvg', '평균')}` : ''}
                                                     </div>
                                                 </td>
@@ -659,7 +659,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                 <tr key={p.id} style={{ borderTop: "1px solid rgba(99,140,255,0.08)" }}>
                                                     <td style={{ padding: "8px 10px", maxWidth: 220 }}>
                                                         <div style={{ fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
-                                                        <div style={{ fontSize: 9, color: "#94a3b8", fontFamily: "monospace" }}>{p.sku}</div>
+                                                        <div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>{p.sku}</div>
                                                     </td>
                                                     <td style={{ padding: "8px 10px", textAlign: "right", fontFamily: "monospace", color: costOf(p) > 0 ? "#f97316" : "#cbd5e1", fontWeight: 700, whiteSpace: "nowrap" }}>
                                                         {costOf(p) > 0 ? fmtKRW(costOf(p)) : '—'}
@@ -745,11 +745,11 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                                     <div style={{ fontSize: 10, color: "#6b7280" }}>{t('catalogSync.colSalePrice')}</div>
                                                     {multiPrice ? (
                                                         <>
-                                                            <div style={{ fontSize: 12, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(minP)} ~ {fmtKRW(maxP)}</div>
-                                                            <div style={{ fontSize: 9, color: "#94a3b8" }}>{t('catalogSync.sumLabel', '합계')} {fmtKRW(finalPrice)}</div>
+                                                            <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(minP)} ~ {fmtKRW(maxP)}</div>
+                                                            <div style={{ fontSize: 10, color: "#94a3b8" }}>{t('catalogSync.sumLabel', '합계')} {fmtKRW(finalPrice)}</div>
                                                         </>
                                                     ) : (
-                                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
+                                                        <div style={{ fontSize: 14, fontWeight: 900, color: "#f59e0b", fontFamily: "monospace" }}>{fmtKRW(finalPrice)}</div>
                                                     )}
                                                 </div>
                                             </div>
@@ -793,7 +793,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                         {/* [277차] 채널이 반환한 실제 결과 — 실패 사유를 그대로 노출(종전엔 console 로만 흘림). */}
                         {results.length > 0 && (
                             <div style={{ marginTop: 14, borderTop: "1px solid #e5e7eb", paddingTop: 10 }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, color: "#0f172a" }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6, color: "#0f172a" }}>
                                     {t('catalogSync.resultTitle', '채널 응답')}
                                 </div>
                                 <div style={{ maxHeight: 180, overflowY: "auto" }}>
@@ -942,7 +942,7 @@ const BulkPriceModal = memo(function BulkPriceModal({ selectedIds, products, onC
                         <div key={m.id} onClick={() => { setPriceMode(m.id); setValue(""); }} style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${priceMode === m.id ? "#f59e0b" : "rgba(99,140,255,0.12)"}`, background: priceMode === m.id ? "rgba(245,158,11,0.06)" : "#ffffff", textAlign: "center" }}>
                             <div style={{ fontSize: 20, marginBottom: 4 }}>{m.icon}</div>
                             <div style={{ fontWeight: 700, fontSize: 11, color: priceMode === m.id ? "#f59e0b" : "#1f2937" }}>{m.label}</div>
-                            <div style={{ fontSize: 9, color: "#6b7280", marginTop: 2 }}>{m.desc}</div>
+                            <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>{m.desc}</div>
                         </div>
                     ))}
                 </div>
@@ -1147,7 +1147,7 @@ const PendingCategoryPanel = memo(function PendingCategoryPanel({ onDone }) {
                         {/* [285차] 브랜드 — 11번가 상품등록 필수. 없으면 카테고리를 골라도 등록이 거부된다. */}
                         {it.needs_brand !== undefined && (
                             <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px dashed #fde68a", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, color: it.needs_brand ? "#b45309" : "#16a34a" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: it.needs_brand ? "#b45309" : "#16a34a" }}>
                                     🏷️ {t('catalogSync.brand.fName', '브랜드')}{it.needs_brand ? ' *' : ''}
                                 </span>
                                 <select value={it.brand || ''} disabled={busy === key}
@@ -1894,7 +1894,7 @@ const CatalogTab = memo(function CatalogTab() {
                     <div style={{ fontSize: 12, color: "#475569", marginTop: 4, lineHeight: 1.6 }}>
                         {t('catalogSync.serviceModeDesc', '실물 상품이 없는 서비스·구독·디지털 사업자는 광고로 알릴 서비스/플랜(오퍼)을 아래 [등록]으로 추가하세요(상품명=서비스명, 가격=플랜가). 등록 후 채널 연동 → 결제 → 마케팅 자동화로 진행됩니다.')}
                     </div>
-                    <a href="/auto-marketing" style={{ display: "inline-block", marginTop: 9, padding: "6px 14px", borderRadius: 8, background: "linear-gradient(135deg,#a855f7,#4f8ef7)", color: "#fff", fontSize: 12, fontWeight: 800, textDecoration: "none" }}>🚀 {t('catalogSync.serviceToMarketing', '마케팅 자동화로 바로가기')} →</a>
+                    <a href="/auto-marketing" style={{ display: "inline-block", marginTop: 9, padding: "6px 14px", borderRadius: 8, background: "linear-gradient(135deg,#a855f7,#4f8ef7)", color: "#fff", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>🚀 {t('catalogSync.serviceToMarketing', '마케팅 자동화로 바로가기')} →</a>
                 </div>
             )}
 
@@ -2003,7 +2003,7 @@ const CatalogTab = memo(function CatalogTab() {
                                         <div style={{ fontWeight: 700, fontSize: 12, lineHeight: 1.3, wordBreak: "break-word" }}>{r.name}</div>
                                         <div style={{ fontSize: 10, color: "#4f8ef7", fontFamily: "monospace", marginTop: 2 }}>{r.id} · {r.sku}</div>
                                     </div>
-                                    <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33`, flexShrink: 0 }}>
+                                    <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 10, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33`, flexShrink: 0 }}>
                                         {t(r.status === "ok" ? 'catalogSync.statusNormal' : r.status === "warn" ? 'catalogSync.statusWarning' : 'catalogSync.statusError')}
                                     </span>
                                 </div>
@@ -2011,24 +2011,24 @@ const CatalogTab = memo(function CatalogTab() {
                                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                                     <span style={{ fontSize: 10, color: "#6b7280" }}>{r.category}</span>
                                     {r.spec && <span style={{ fontSize: 10, color: "#6b7280", opacity: 0.8 }}>| {r.spec}</span>}
-                                    <span style={{ fontWeight: 700, padding: "2px 6px", borderRadius: 20, fontSize: 9, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === 'box' ? 'rgba(79,142,247,0.3)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.2)'}` }}>{r.unit || 'ea'}</span>
+                                    <span style={{ fontWeight: 700, padding: "2px 6px", borderRadius: 20, fontSize: 10, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === 'box' ? 'rgba(79,142,247,0.3)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.2)'}` }}>{r.unit || 'ea'}</span>
                                 </div>
                                 {/* Price + Cost Price 그리드 */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 8 }}>
                                     <div style={{ padding: "6px 8px", borderRadius: 8, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)" }}>
-                                        <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.salePriceCol')}</div>
+                                        <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.salePriceCol')}</div>
                                         <div style={{ fontWeight: 700, fontSize: 11, color: r.delta?.price ? "#f97316" : "#1f2937" }}>{fmtKRW(r.price)}</div>
                                     </div>
                                     <div style={{ padding: "6px 8px", borderRadius: 8, background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.15)" }}>
-                                        <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colPurchaseCost')}</div>
+                                        <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colPurchaseCost')}</div>
                                         <div style={{ fontWeight: 700, fontSize: 11, color: "#a78bfa" }}>{fmtKRW(r.purchaseCost)}</div>
                                     </div>
                                     <div style={{ padding: "6px 8px", borderRadius: 8, background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.15)" }}>
-                                        <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colProductCost')}</div>
+                                        <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colProductCost')}</div>
                                         <div style={{ fontWeight: 700, fontSize: 11, color: "#f97316" }}>{fmtKRW(r.productCost)}</div>
                                     </div>
                                     <div style={{ padding: "6px 8px", borderRadius: 8, background: margin >= 30 ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${marginColor}33` }}>
-                                        <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colMargin')}</div>
+                                        <div style={{ fontSize: 10, color: "#6b7280", marginBottom: 2 }}>{t('catalogSync.colMargin')}</div>
                                         <div style={{ fontWeight: 700, fontSize: 11, color: marginColor }}>{margin != null ? `${margin}%` : "-"}</div>
                                     </div>
                                 </div>
@@ -2091,7 +2091,7 @@ const CatalogTab = memo(function CatalogTab() {
                                             <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{r.sku}</div>
                                             {/* [277차] 등록상품이 아닌 항목은 채널 전송 대상이 아니다(이미지·상세·고시 부재). */}
                                             {r._fallback && (
-                                                <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 2 }}>
+                                                <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 2 }}>
                                                     ⚠️ {t('catalogSync.fallbackItem', '재고·채널에서 불러온 항목 (전송 불가)')}
                                                 </div>
                                             )}
@@ -2137,13 +2137,13 @@ const CatalogTab = memo(function CatalogTab() {
                                         </td>
                                         <td style={{ fontSize: 10, color: "#6b7280", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.spec || ""}>{r.spec || "-"}</td>
                                         <td style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
-                                            <span style={{ fontWeight: 700, padding: "2px 7px", borderRadius: 20, fontSize: 9, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === "box" ? "rgba(79,142,247,0.3)" : r.unitType === "pl" ? "rgba(245,158,11,0.3)" : "rgba(34,197,94,0.2)"}` }}>{r.unit || 'ea'}</span>
-                                            {r.unitType === 'box' && r.eaPerBox > 1 && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>1Box={r.eaPerBox}ea</div>}
-                                            {r.unitType === 'pl' && <div style={{ fontSize: 8, color: '#6b7280', marginTop: 2 }}>{r.boxPerPl}Box/{r.eaPerBox}ea</div>}
+                                            <span style={{ fontWeight: 700, padding: "2px 7px", borderRadius: 20, fontSize: 10, background: r.unitType === 'box' ? 'rgba(79,142,247,0.12)' : r.unitType === 'pl' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.08)', color: r.unitType === 'box' ? '#4f8ef7' : r.unitType === 'pl' ? '#f59e0b' : '#22c55e', border: `1px solid ${r.unitType === "box" ? "rgba(79,142,247,0.3)" : r.unitType === "pl" ? "rgba(245,158,11,0.3)" : "rgba(34,197,94,0.2)"}` }}>{r.unit || 'ea'}</span>
+                                            {r.unitType === 'box' && r.eaPerBox > 1 && <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>1Box={r.eaPerBox}ea</div>}
+                                            {r.unitType === 'pl' && <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{r.boxPerPl}Box/{r.eaPerBox}ea</div>}
                                         </td>
                                         <td>
                                             <div style={{ fontWeight: 700, fontSize: 12, color: r.delta?.price ? "#f97316" : "#1f2937" }}>
-                                                {fmtKRW(r.price)} {r.delta?.price && <span style={{ fontSize: 9 }}>{t('catalogSync.change')}</span>}
+                                                {fmtKRW(r.price)} {r.delta?.price && <span style={{ fontSize: 10 }}>{t('catalogSync.change')}</span>}
                                             </div>
                                             {r.comparePrice > 0 && <div style={{ fontSize: 10, color: "#6b7280", textDecoration: "line-through" }}>{fmtKRW(r.comparePrice)}</div>}
                                         </td>
@@ -2158,7 +2158,7 @@ const CatalogTab = memo(function CatalogTab() {
                                                     <div style={{ width: `${Math.min(100, (Number(r.inventory) / 350) * 100)}%`, height: "100%", background: Number(r.inventory) < 20 ? "#ef4444" : Number(r.inventory) < 80 ? "#eab308" : "#22c55e", borderRadius: 4 }} />
                                                 </div>
                                                 <span style={{ fontSize: 10, fontFamily: "monospace", color: r.delta?.inventory ? "#f97316" : "#374151" }}>{fmtStock(r.inventory, r)}</span>
-                                                <span style={{ fontSize: 9, color: "#4f8ef7", border: "1px solid rgba(79,142,247,0.4)", borderRadius: 5, padding: "1px 5px", whiteSpace: "nowrap" }}>📦 {t('catalogSync.stock.inbound', '입고')}</span>
+                                                <span style={{ fontSize: 10, color: "#4f8ef7", border: "1px solid rgba(79,142,247,0.4)", borderRadius: 5, padding: "1px 5px", whiteSpace: "nowrap" }}>📦 {t('catalogSync.stock.inbound', '입고')}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -2174,7 +2174,7 @@ const CatalogTab = memo(function CatalogTab() {
                                             {r.lastSync || t('catalogSync.notSynced')}
                                         </td>
                                         <td>
-                                            <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33` }}>
+                                            <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 10, background: statusColor(r.status) + "18", color: statusColor(r.status), border: `1px solid ${statusColor(r.status)}33` }}>
                                                 {t(r.status === "ok" ? 'catalogSync.statusNormal' : r.status === "warn" ? 'catalogSync.statusWarning' : 'catalogSync.statusError')}
                                             </span>
                                         </td>
@@ -2270,7 +2270,7 @@ function ProductNoticeModal({ product: p, types, busy, onSave, onClose }) {
             <div style={{ position: "fixed", right: 0, top: 0, bottom: 0, width: 480, maxWidth: "94vw", background: "#fff", borderLeft: "1px solid rgba(99,140,255,0.2)", zIndex: 211, overflowY: "auto", padding: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: "#1f2937" }}>📋 {t('catalogSync.notice.title', '상품정보제공고시')}</div>
+                        <div style={{ fontWeight: 900, fontSize: 14, color: "#1f2937" }}>📋 {t('catalogSync.notice.title', '상품정보제공고시')}</div>
                         <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>{p.name}</div>
                     </div>
                     <button onClick={onClose} className="btn-ghost" style={{ padding: "5px 10px" }}>✕</button>
@@ -2303,7 +2303,7 @@ function ProductNoticeModal({ product: p, types, busy, onSave, onClose }) {
                     </div>
                 )}
                 <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                    <button type="button" disabled={busy || !def} onClick={save} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "none", background: def ? "#4f8ef7" : "#cbd5e1", color: "#fff", fontWeight: 800, fontSize: 12, cursor: def ? "pointer" : "default" }}>
+                    <button type="button" disabled={busy || !def} onClick={save} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "none", background: def ? "#4f8ef7" : "#cbd5e1", color: "#fff", fontWeight: 700, fontSize: 12, cursor: def ? "pointer" : "default" }}>
                         {busy ? '…' : t('catalogSync.notice.save', '고시 저장')}
                     </button>
                     <button type="button" onClick={onClose} style={{ padding: "9px 16px", borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", fontSize: 12, cursor: "pointer" }}>
@@ -2370,7 +2370,7 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
 
                 {/* [277차] 가격 변경 이력 — 채널별 old→new, 변경 출처(writeback/repricer/bulk), 시각 */}
                 <div style={{ marginBottom: 18, padding: 12, borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
                         💱 {t('catalogSync.priceHistoryTitle', '가격 변경 이력')}
                     </div>
                     {phLoading && <div style={{ fontSize: 11, color: "#7c8fa8" }}>…</div>}
@@ -2420,7 +2420,7 @@ const ProductDetail = memo(function ProductDetail({ product: p, onClose }) {
                         ))}
                         <div style={{ borderTop: "1px solid rgba(249,115,22,0.2)", marginTop: 8, paddingTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: "#1f2937" }}>{t('catalogSync.productCostTotal')}</span>
-                            <span style={{ fontFamily: "monospace", fontSize: 15, fontWeight: 900, color: "#f97316" }}>{fmtKRW(p.productCost)}</span>
+                            <span style={{ fontFamily: "monospace", fontSize: 14, fontWeight: 900, color: "#f97316" }}>{fmtKRW(p.productCost)}</span>
                         </div>
                         {p.price > 0 && p.productCost != null && (
                             <div style={{ marginTop: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(34,197,94,0.08)" }}>
@@ -2543,7 +2543,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
             <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 18 }}>⏰</span>
                 {t('catalogSync.scheduleTitle', '자동 동기화 스케줄')}
-                <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }}>{schedules.filter(s => s.enabled).length} {t('catalogSync.activeLabel')}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }}>{schedules.filter(s => s.enabled).length} {t('catalogSync.activeLabel')}</span>
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14 }}>
                 <select style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#1f2937", fontSize: 12, width: 130 }} value={freq} onChange={e => setFreq(e.target.value)}>
@@ -2565,7 +2565,7 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
                             <span style={{ fontSize: 14, cursor: 'pointer' }} onClick={() => toggleSchedule(s.id)}>{s.enabled ? '✅' : '⏸️'}</span>
                             <span style={{ fontWeight: 700, fontSize: 12, color: '#a855f7' }}>{FREQ_OPTIONS.find(f => f.id === s.freq)?.label}</span>
                             <span style={{ fontSize: 11, color: '#6b7280' }}>@ {s.time}</span>
-                            <span style={{ fontSize: 9, color: '#6b7280', marginLeft: 'auto' }}>{s.createdAt}</span>
+                            <span style={{ fontSize: 10, color: '#6b7280', marginLeft: 'auto' }}>{s.createdAt}</span>
                             <button onClick={() => deleteSchedule(s.id)} style={{ padding: '3px 8px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 10, cursor: 'pointer' }}>✕</button>
                         </div>
                     ))}
@@ -2679,7 +2679,7 @@ const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
                     {dynamicChannels.map(c => (
                         <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
                             <input type="checkbox" checked={selChs.has(c.id)} onChange={() => toggleCh(c.id)} />
-                            <span style={{ fontSize: 15 }}>{c.icon}</span>
+                            <span style={{ fontSize: 14 }}>{c.icon}</span>
                             <span style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</span>
                         </label>
                     ))}
@@ -2718,8 +2718,8 @@ const SyncRunTab = memo(function SyncRunTab({ onJobCreated }) {
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                         <div>
                             <span style={{ fontFamily: "monospace", fontSize: 11, color: "#4f8ef7" }}>{liveJob.id}</span>
-                            <span className="badge badge-blue" style={{ marginLeft: 8, fontSize: 9 }}>{liveJob.type === "full" ? t('catalogSync.fullLabel') : t('catalogSync.incrementalLabel')}</span>
-                            {dryRun && <span className="badge badge-yellow" style={{ marginLeft: 4, fontSize: 9 }}>DRY-RUN</span>}
+                            <span className="badge badge-blue" style={{ marginLeft: 8, fontSize: 10 }}>{liveJob.type === "full" ? t('catalogSync.fullLabel') : t('catalogSync.incrementalLabel')}</span>
+                            {dryRun && <span className="badge badge-yellow" style={{ marginLeft: 4, fontSize: 10 }}>DRY-RUN</span>}
                         </div>
                         <span style={{ fontSize: 11, color: statusColor2(liveJob.status), fontWeight: 700 }}>
                             {liveJob.status === "running" ? `⏳ ${liveJob.progress}%` : t('catalogSync.syncDoneLabel')}
@@ -2863,9 +2863,9 @@ const PriceSyncTab = memo(function PriceSyncTab() {
                                         <tr key={c.id} style={{ opacity: r.enabled ? 1 : 0.4 }}>
                                             <td>
                                                 <span style={{ fontSize: 14 }}>{c.icon}</span> {c.name}
-                                                {c.connected && <span style={{ fontSize: 9, color: '#22c55e', marginLeft: 4 }}>✅</span>}
-                                                {c.autoAdded && <span style={{ fontSize: 8, color: '#a855f7', marginLeft: 4 }}>NEW</span>}
-                                                {rateSource && <span style={{ fontSize: 8, color: '#4f8ef7', marginLeft: 4 }}>{rateSource.region}</span>}
+                                                {c.connected && <span style={{ fontSize: 10, color: '#22c55e', marginLeft: 4 }}>✅</span>}
+                                                {c.autoAdded && <span style={{ fontSize: 10, color: '#a855f7', marginLeft: 4 }}>NEW</span>}
+                                                {rateSource && <span style={{ fontSize: 10, color: '#4f8ef7', marginLeft: 4 }}>{rateSource.region}</span>}
                                             </td>
                                             <td><input type="checkbox" checked={r.enabled} onChange={e => updateRule(c.id, "enabled", e.target.checked)} /></td>
                                             <td><input style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: '#f59e0b', fontSize: 12, width: 70, fontWeight: 700 }} type="number" value={r.commission} step="0.1" onChange={e => updateRule(c.id, "commission", +e.target.value)} /></td>
@@ -2907,7 +2907,7 @@ const PriceSyncTab = memo(function PriceSyncTab() {
                                             <td style={{ fontFamily: "monospace", color: '#f59e0b' }}>{fmtKRW(r.commAmt)} ({Math.round(r.commRate * 100)}%)</td>
                                             <td style={{ fontFamily: "monospace", color: '#6366f1' }}>{fmtKRW(r.vatAmt)} ({Math.round(r.vatRate * 100)}%)</td>
                                             <td style={{ fontFamily: "monospace", fontWeight: 700, color: r.ok ? "#22c55e" : "#ef4444" }}>{r.margin}%</td>
-                                            <td><span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12 }}>{r.ok ? "✓" : "✗"}</span></td>
+                                            <td><span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 12 }}>{r.ok ? "✓" : "✗"}</span></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -2976,7 +2976,7 @@ const InventorySyncTab = memo(function InventorySyncTab() {
                                     <td style={{ fontSize: 12 }}>{p.name}</td>
                                     <td style={{ fontWeight: 700, color, fontFamily: "monospace" }}>{p.inventory}</td>
                                     <td>
-                                        <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 9, color, background: color + "18", border: `1px solid ${color}33` }}>
+                                        <span style={{ fontWeight: 700, padding: "2px 10px", borderRadius: 20, fontSize: 10, color, background: color + "18", border: `1px solid ${color}33` }}>
                                             {p.inventory <= threshold ? t('catalogSync.nearOutOfStockLabel') : t('catalogSync.warningLabel')}
                                         </span>
                                     </td>
@@ -3024,13 +3024,13 @@ const JobHistoryTab = memo(function JobHistoryTab({ jobs }) {
                     {jobs.slice().reverse().map(j => (
                         <tr key={j.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                             <td style={{ padding: "8px", fontFamily: "monospace", fontSize: 11, color: "#4f8ef7" }}>{j.id}</td>
-                            <td style={{ padding: "8px" }}><span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12, background: "#dbeafe", color: "#2563eb" }}>{j.type === "full" ? t('catalogSync.fullLabel') : t('catalogSync.incrementalLabel')}</span></td>
+                            <td style={{ padding: "8px" }}><span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 12, background: "#dbeafe", color: "#2563eb" }}>{j.type === "full" ? t('catalogSync.fullLabel') : t('catalogSync.incrementalLabel')}</span></td>
                             <td style={{ padding: "8px", fontSize: 11 }}>{j.channels.map(c => ch(c).icon).join(" ")}</td>
                             <td style={{ padding: "8px", fontSize: 10, color: "#6b7280" }}>{j.scope.join(", ")}</td>
                             <td style={{ padding: "8px", fontFamily: "monospace", fontSize: 11 }}>{j.done?.toLocaleString()} / {j.total?.toLocaleString()}</td>
                             <td style={{ padding: "8px", color: j.errors > 0 ? "#ef4444" : "#22c55e", fontFamily: "monospace", fontSize: 11 }}>{j.errors}</td>
                             <td style={{ padding: "8px", minWidth: 80 }}><ProgressBar pct={j.progress} color={j.status === "done" ? "#22c55e" : "#4f8ef7"} /></td>
-                            <td style={{ padding: "8px" }}><span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 12, background: j.status === "done" ? "#d1fae5" : j.status === "running" ? "#dbeafe" : "#fee2e2", color: j.status === "done" ? "#22c55e" : j.status === "running" ? "#2563eb" : "#ef4444" }}>{j.status === "done" ? t('catalogSync.done') : j.status === "running" ? t('catalogSync.runningStatus') : t('catalogSync.statusError')}</span></td>
+                            <td style={{ padding: "8px" }}><span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 12, background: j.status === "done" ? "#d1fae5" : j.status === "running" ? "#dbeafe" : "#fee2e2", color: j.status === "done" ? "#22c55e" : j.status === "running" ? "#2563eb" : "#ef4444" }}>{j.status === "done" ? t('catalogSync.done') : j.status === "running" ? t('catalogSync.runningStatus') : t('catalogSync.statusError')}</span></td>
                             <td style={{ padding: "8px", fontSize: 11, color: "#6b7280" }}>{j.startedAt}</td>
                             <td style={{ padding: "8px", fontSize: 11, color: "#6b7280" }}>{j.duration}</td>
                         </tr>
@@ -3236,14 +3236,14 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                                         {/* [현 차수] 11번가는 기본+표시 2코드를 함께 표시 */}
                                                         {dualCat && (
                                                             <div style={{ marginBottom: 3 }}>
-                                                                <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmBaseCat', '기본카테고리')}: </span>
+                                                                <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmBaseCat', '기본카테고리')}: </span>
                                                                 {m.base_code
-                                                                    ? <span style={{ color: "#0f172a" }}>{m.base_label || m.base_code} <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 9 }}>({m.base_code})</span></span>
+                                                                    ? <span style={{ color: "#0f172a" }}>{m.base_label || m.base_code} <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>({m.base_code})</span></span>
                                                                     : <span style={{ color: "#f59e0b" }}>{t('catalogSync.cmSlotUnset', '미선택')}</span>}
                                                             </div>
                                                         )}
                                                         <div>
-                                                            {dualCat && <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)')}: </span>}
+                                                            {dualCat && <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700 }}>{t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)')}: </span>}
                                                             <span style={{ color: "#0f172a" }}>{m.channel_label || '(라벨 없음)'}</span> <span style={{ color: "#94a3b8", fontFamily: "monospace", fontSize: 10 }}>({m.channel_code})</span>
                                                         </div>
                                                     </div>
@@ -3289,7 +3289,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                     {[['base', t('catalogSync.cmBaseCat', '기본카테고리'), slotBase],
                                       ['disp', t('catalogSync.cmDispCat', '표시카테고리 (dispCtgrNo)'), slotDisp]].map(([slot, label, val]) => (
                                         <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                            <div style={{ width: 150, fontSize: 12, fontWeight: 800, color: '#334155' }}>{label}</div>
+                                            <div style={{ width: 150, fontSize: 12, fontWeight: 700, color: '#334155' }}>{label}</div>
                                             <div style={{ flex: 1, fontSize: 11 }}>
                                                 {val.code
                                                     ? <div><div style={{ color: '#0f172a', fontWeight: 600 }}>{val.label}</div><div style={{ color: '#94a3b8', fontFamily: 'monospace', fontSize: 10 }}>{val.code}</div></div>
@@ -3305,7 +3305,7 @@ const CategoryMappingTab = memo(function CategoryMappingTab() {
                                 <div style={{ padding: "10px 16px", borderTop: "1px solid #eef2f7", display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                                     <button onClick={() => setPickFor(null)} style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", fontSize: 12, cursor: "pointer" }}>{t('catalogSync.cmCancel', '취소')}</button>
                                     <button onClick={() => saveMappingDual(pickFor, slotDisp, slotBase)}
-                                        style={{ padding: "7px 16px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{t('catalogSync.cmSaveBtn', '저장')}</button>
+                                        style={{ padding: "7px 16px", borderRadius: 6, border: "none", background: "#4f8ef7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{t('catalogSync.cmSaveBtn', '저장')}</button>
                                 </div>
                             </>
                         ) : (
@@ -3406,7 +3406,7 @@ const BrandTab = memo(function BrandTab() {
 
     return (
         <div style={{ background: "#fff", borderRadius: 14, padding: 18, border: "1px solid #e5e7eb" }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
                 🏷️ {t('catalogSync.brand.title', '브랜드 관리')}
             </div>
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, marginBottom: 14 }}>
@@ -3493,7 +3493,7 @@ const UsageGuideTab = memo(function UsageGuideTab() {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
 
     return (
@@ -3504,7 +3504,7 @@ const UsageGuideTab = memo(function UsageGuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('catalogSync.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {/* 이용 대상 */}
@@ -3520,7 +3520,7 @@ const UsageGuideTab = memo(function UsageGuideTab() {
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -3627,7 +3627,7 @@ export default function CatalogSync() {
                     </div>
                 )}
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 8 }}>
-                    <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }}>
+                    <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)" }}>
                         🔗 {t('catalogSync.crossSyncActive')}
                     </span>
                 </div>

@@ -83,7 +83,7 @@ function ApiKeysPanel() {
       {/* 새 키 1회 표시 */}
       {newKey && (
         <div style={{ ...card, background: "rgba(234,179,8,0.07)", border: "1px solid rgba(234,179,8,0.3)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "#b45309", marginBottom: 8 }}>⚠️ {newKey.warning || t('devHub.keyOnce', '이 키는 다시 표시되지 않습니다.')}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#b45309", marginBottom: 8 }}>⚠️ {newKey.warning || t('devHub.keyOnce', '이 키는 다시 표시되지 않습니다.')}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input readOnly value={newKey.api_key} onFocus={e => e.target.select()} style={{ ...inp, flex: 1, fontFamily: "monospace", fontSize: 12 }} />
             <button onClick={() => { try { navigator.clipboard.writeText(newKey.api_key); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch {} }}
@@ -139,7 +139,7 @@ function ApiKeysPanel() {
             ];
             return (
               <div style={{ ...card }}>
-                <div style={{ fontWeight: 800, fontSize: 12, color: '#475569', marginBottom: 10 }}>📊 {t('devHub.usageTitle', 'API 키 사용 현황')}</div>
+                <div style={{ fontWeight: 700, fontSize: 12, color: '#475569', marginBottom: 10 }}>📊 {t('devHub.usageTitle', 'API 키 사용 현황')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 10 }}>
                   {cells.map(([ic, l, v, c]) => (
                     <div key={l} style={{ textAlign: 'center', padding: '10px 6px', borderRadius: 10, background: 'rgba(0,0,0,0.02)' }}>
@@ -164,8 +164,8 @@ function ApiKeysPanel() {
               <div style={{ flex: "1 1 220px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontWeight: 800, fontSize: 13, color: "#1e293b" }}>{k.name}</span>
-                  <span style={{ padding: "1px 8px", borderRadius: 99, fontSize: 9, fontWeight: 800, background: `${roleColors[k.role] || '#64748b'}22`, color: roleColors[k.role] || '#64748b' }}>{k.role}</span>
-                  {!k.is_active && <span style={{ padding: "1px 8px", borderRadius: 99, fontSize: 9, fontWeight: 800, background: "rgba(100,116,139,0.15)", color: "#64748b" }}>{t('devHub.keyRevokedTag', '폐기됨')}</span>}
+                  <span style={{ padding: "1px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700, background: `${roleColors[k.role] || '#64748b'}22`, color: roleColors[k.role] || '#64748b' }}>{k.role}</span>
+                  {!k.is_active && <span style={{ padding: "1px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700, background: "rgba(100,116,139,0.15)", color: "#64748b" }}>{t('devHub.keyRevokedTag', '폐기됨')}</span>}
                 </div>
                 <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, fontFamily: "monospace" }}>{k.key_prefix}…</div>
                 <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 2 }}>
@@ -271,7 +271,7 @@ function WebhooksPanel() {
       {/* 시크릿 1회 표시 */}
       {newSecret && (
         <div style={{ ...card, background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.3)' }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#b45309', marginBottom: 8 }}>⚠️ {newSecret.warning || t('devHub.whSecretOnce', '이 서명 시크릿은 다시 표시되지 않습니다.')}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#b45309', marginBottom: 8 }}>⚠️ {newSecret.warning || t('devHub.whSecretOnce', '이 서명 시크릿은 다시 표시되지 않습니다.')}</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input readOnly value={newSecret.secret} onFocus={e => e.target.select()} style={{ ...inp, flex: 1, fontFamily: 'monospace', fontSize: 12 }} />
             <button onClick={() => { try { navigator.clipboard.writeText(newSecret.secret); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch {} }}
@@ -283,7 +283,7 @@ function WebhooksPanel() {
 
       {/* 등록 폼 */}
       <div style={{ ...card, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569' }}>{t('devHub.whRegister', '웹훅 엔드포인트 등록')}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>{t('devHub.whRegister', '웹훅 엔드포인트 등록')}</div>
         <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/hooks/genie" style={inp} />
         <input value={desc} onChange={e => setDesc(e.target.value)} placeholder={t('devHub.whDescPh', '설명(선택)')} style={inp} />
         <div>
@@ -307,7 +307,7 @@ function WebhooksPanel() {
 
       {/* 등록된 엔드포인트 목록 */}
       <div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569' }}>{t('devHub.whEndpoints', '등록된 엔드포인트')}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>{t('devHub.whEndpoints', '등록된 엔드포인트')}</div>
         {endpoints === null && <div style={{ ...card, textAlign: 'center', color: '#64748b', fontSize: 12 }}>{t('devHub.loading', '불러오는 중...')}</div>}
         {Array.isArray(endpoints) && endpoints.length === 0 && (
           <div style={{ ...card, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>{t('devHub.whNone', '등록된 웹훅 구독이 없습니다.')}</div>
@@ -316,7 +316,7 @@ function WebhooksPanel() {
           <div key={ep.id} style={{ ...card, display: 'grid', gap: 8, opacity: ep.is_active ? 1 : 0.55 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#1e293b', wordBreak: 'break-all', flex: '1 1 200px' }}>{ep.url}</span>
-              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800, background: ep.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(100,116,139,0.15)', color: ep.is_active ? '#16a34a' : '#64748b' }}>
+              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, background: ep.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(100,116,139,0.15)', color: ep.is_active ? '#16a34a' : '#64748b' }}>
                 {ep.is_active ? t('devHub.whActive', '활성') : t('devHub.whPaused', '일시중지')}
               </span>
               {ep.last_status && <span style={{ fontSize: 10, color: '#94a3b8' }}>{t('devHub.whLast', '최근')}: {ep.last_status}</span>}
@@ -338,7 +338,7 @@ function WebhooksPanel() {
       {/* 전달 로그 */}
       {deliveries.length > 0 && (
         <div style={{ ...card }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 10 }}>📜 {t('devHub.whDeliveries', '최근 전달 로그')}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 10 }}>📜 {t('devHub.whDeliveries', '최근 전달 로그')}</div>
           <div style={{ display: 'grid', gap: 4 }}>
             {deliveries.slice(0, 15).map(d => (
               <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.02)', fontSize: 11, flexWrap: 'wrap' }}>
@@ -355,7 +355,7 @@ function WebhooksPanel() {
 
       {/* 서명 검증 예시 */}
       <div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8 }}>{t('devHub.whVerifyTitle', '서명 검증 (수신 측)')}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 8 }}>{t('devHub.whVerifyTitle', '서명 검증 (수신 측)')}</div>
         <div style={codeBox}>{`// X-Genie-Signature: t=<ts>,v1=<hmac>\nconst [tPart, v1Part] = sigHeader.split(',');\nconst ts = tPart.split('=')[1], v1 = v1Part.split('=')[1];\nconst expected = crypto.createHmac('sha256', ENDPOINT_SECRET)\n  .update(ts + '.' + rawBody).digest('hex');\nif (expected === v1 && Date.now()/1000 - ts < 300) { /* valid */ }`}</div>
       </div>
     </div>
@@ -644,7 +644,7 @@ export default function DeveloperHub() {
                 <div style={{ display: 'grid', gap: 6 }}>
                   {g.items.map(ep => (
                     <div key={ep.p} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 9, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.05)', flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: 10, fontWeight: 800, color: '#fff', background: methodColor[ep.m] || '#64748b', padding: '2px 7px', borderRadius: 5, minWidth: 50, textAlign: 'center' }}>{ep.m}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: 10, fontWeight: 700, color: '#fff', background: methodColor[ep.m] || '#64748b', padding: '2px 7px', borderRadius: 5, minWidth: 50, textAlign: 'center' }}>{ep.m}</span>
                       <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#1e293b' }}>{ep.p}</span>
                       <span style={{ fontSize: 11, color: '#64748b', marginLeft: 'auto' }}>{t('devHub.' + ep.dk, '')}</span>
                     </div>
@@ -729,15 +729,15 @@ function DevHubGuide({ t }) {
         <div style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
           <div style={{ textAlign: 'center', marginBottom: 18 }}>
             <div style={{ fontSize: 36, marginBottom: 6 }}>⚙️</div>
-            <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: '#1e293b' }}>{t('devHub.guideTitle', '개발자 허브 이용 가이드')}</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px', color: '#1e293b' }}>{t('devHub.guideTitle', '개발자 허브 이용 가이드')}</h2>
             <p style={{ color: '#64748b', fontSize: 12, margin: 0 }}>{t('devHub.guideSub', '초보자도 이 가이드만 보면 API 키 발급부터 첫 연동·웹훅까지 따라할 수 있습니다')}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
-                  <span style={{ fontWeight: 800, fontSize: 12, color: '#1e293b' }}>{t(`devHub.guideStep${i}Title`, '')}</span>
+                  <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12, color: '#1e293b' }}>{t(`devHub.guideStep${i}Title`, '')}</span>
                 </div>
                 <p style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{t(`devHub.guideStep${i}Desc`, '')}</p>
               </div>

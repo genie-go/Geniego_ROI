@@ -281,7 +281,7 @@ export default function AIImageGenerator({ onGenerate, onUpload, compact = false
                     <input ref={fileRef} type="file" accept="image/*" onChange={e => handleUpload(e.target.files[0])} style={{ display: "none" }} />
                     <div style={{ fontSize: 24, opacity: 0.4 }}>🖼</div>
                     <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{t("journey.uploadDragDrop", "Drag & drop or click to upload")}</div>
-                    <div style={{ fontSize: 9, color: C.muted, opacity: 0.6, marginTop: 2 }}>PNG, JPG, GIF (max 5MB)</div>
+                    <div style={{ fontSize: 10, color: C.muted, opacity: 0.6, marginTop: 2 }}>PNG, JPG, GIF (max 5MB)</div>
                 </div>
             </div>
         </div>

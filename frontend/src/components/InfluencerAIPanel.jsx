@@ -186,7 +186,7 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                         style={{
                             flex: 1, padding: '9px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
                             background: status === 'loading' ? 'rgba(79,142,247,0.3)' : 'linear-gradient(135deg,#4f8ef7,#7c5cfc)',
-                            color: 'var(--text-1)', fontWeight: 800, fontSize: 11, transition: 'all 0.2s',
+                            color: 'var(--text-1)', fontWeight: 700, fontSize: 11, transition: 'all 0.2s',
                             boxShadow: status !== 'loading' ? '0 4px 14px rgba(79,142,247,0.4)' : undefined
                         }}>
                         {status === 'loading' ? t('influencer.aiLoading') : t('influencer.aiRun')}
@@ -200,7 +200,7 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                     </button>
                 </div>
                 {meta.tokens > 0 && (
-                    <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
                         사용 토큰: {meta.tokens.toLocaleString()} · {meta.model}
                     </div>
                 )}
@@ -315,8 +315,8 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                                             { l: t('influencer.estTotal'), v: `${(curResult.fee_recommendation.recommended_total_est || 0).toLocaleString()}원` },
                                         ].map(m => (
                                             <div key={m.l} style={{ background: 'var(--surface)', borderRadius: 6, padding: '5px 8px' }}>
-                                                <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{m.l}</div>
-                                                <div style={{ fontSize: 11, fontWeight: 800, color: '#eab308' }}>{m.v}</div>
+                                                <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{m.l}</div>
+                                                <div style={{ fontSize: 11, fontWeight: 700, color: '#eab308' }}>{m.v}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -373,7 +373,7 @@ export default function InfluencerAIPanel({ creators = [], selectedId, style = {
                                         <div style={{ width: 60, height: 4, background: 'var(--border)', borderRadius: 3 }}>
                                             <div style={{ width: `${cr.score}%`, height: '100%', background: cc_col, borderRadius: 3 }} />
                                         </div>
-                                        <span style={{ fontSize: 11, fontWeight: 900, color: cc_col, width: 34, textAlign: 'right' }}>{cr.score}점</span>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: cc_col, width: 34, textAlign: 'right' }}>{cr.score}점</span>
                                     </div>
                                 );
                             })}

@@ -42,7 +42,7 @@ function GrowthCapturePopup() {
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 15, fontWeight: 900, color: "#0f172a" }}>{t("capTitle", lang)}</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{t("capTitle", lang)}</div>
           <div style={{ fontSize: 12.5, color: "#64748b", margin: "6px 0 12px", lineHeight: 1.6 }}>{t("capDesc", lang)}</div>
           <input value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder={t("capEmailPh", lang)} type="email"
             onKeyDown={(ev) => { if (ev.key === "Enter") submit(); }}
@@ -2439,7 +2439,7 @@ function PremiumHeader({ lang, setLang }) {
       <div style={{ maxWidth: 1220, margin: "0 auto", padding: "0 24px", height: 66, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 11, textDecoration: "none" }}>
           <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 34, height: 34, borderRadius: 9, objectFit: "cover", boxShadow: "0 4px 14px rgba(79,70,229,0.25)" }} />
-          <span style={{ fontWeight: 900, fontSize: 17, color: "#0f172a", letterSpacing: -0.4 }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
+          <span style={{ fontWeight: 900, fontSize: 16, color: "#0f172a", letterSpacing: -0.4 }}>Geniego<span style={{ color: "#4f46e5" }}>ROI</span></span>
         </Link>
         <nav style={{ display: "flex", alignItems: "center", gap: 2 }} className="lp-nav">
           <a href="#product" style={navLink} onMouseEnter={e=>e.target.style.background="#f1f5f9"} onMouseLeave={e=>e.target.style.background="transparent"}>{tr("navProduct")}</a>
@@ -2452,13 +2452,13 @@ function PremiumHeader({ lang, setLang }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div ref={lref} style={{ position: "relative" }}>
             <button onClick={() => setLangOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 11px", borderRadius: 9, background: "#fff", border: "1px solid #e2e8f0", color: "#334155", cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
-              <span style={{ fontSize: 15 }}>{cur.flag}</span><span className="lp-langlabel">{cur.label}</span><span style={{ fontSize: 9, opacity: .5 }}>▼</span>
+              <span style={{ fontSize: 14 }}>{cur.flag}</span><span className="lp-langlabel">{cur.label}</span><span style={{ fontSize: 10, opacity: .5 }}>▼</span>
             </button>
             {langOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 6, minWidth: 168, maxHeight: 360, overflowY: "auto", boxShadow: "0 16px 48px rgba(15,23,42,0.16)" }}>
               {LANGS.map(l => (
                 <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); localStorage.setItem("landing_lang", l.code); localStorage.setItem("genie_roi_lang", l.code); try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang: l.code } })); } catch {} }}
                   style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, background: lang === l.code ? "#eef2ff" : "transparent", color: lang === l.code ? "#4f46e5" : "#334155" }}>
-                  <span style={{ fontSize: 15 }}>{l.flag}</span><span>{l.label}</span>
+                  <span style={{ fontSize: 14 }}>{l.flag}</span><span>{l.label}</span>
                 </button>
               ))}
             </div>}
@@ -2472,7 +2472,7 @@ function PremiumHeader({ lang, setLang }) {
 }
 
 const Badge = ({ children, color }) => (
-  <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: color + "14", color, fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 18 }}>{children}</div>
+  <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: color + "14", color, fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 18 }}>{children}</div>
 );
 const H2 = ({ children }) => (
   <h2 style={{ fontSize: "clamp(26px,3.4vw,40px)", fontWeight: 900, color: "#0f172a", letterSpacing: -1, margin: "0 0 14px", lineHeight: 1.15 }}>{children}</h2>
@@ -2606,7 +2606,7 @@ export default function Landing() {
             {DA_STAGES.map((s, i) => (
               <div key={i} className="lp-card" style={{ position: "relative", padding: "30px 24px", borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}>
                 <div style={{ width: 50, height: 50, borderRadius: 14, background: "linear-gradient(135deg," + s.c1 + "," + s.c2 + ")", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 16, boxShadow: "0 10px 26px " + s.c1 + "55" }}>{s.icon}</div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: s.c2, letterSpacing: 1.2, marginBottom: 6 }}>STEP {i+1}</div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: s.c2, letterSpacing: 1.2, marginBottom: 6 }}>STEP {i+1}</div>
                 <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", marginBottom: 10 }}>{s.title}</div>
                 <div style={{ fontSize: 13.5, color: "#94a3b8", lineHeight: 1.7 }}>{s.desc}</div>
                 {i < DA_STAGES.length - 1 && <div className="da-arrow" style={{ position: "absolute", right: -13, top: "50%", transform: "translateY(-50%)", zIndex: 2, color: "#64748b", fontSize: 22, fontWeight: 900 }}>→</div>}
@@ -2616,7 +2616,7 @@ export default function Landing() {
 
           {/* data categories collected & analyzed */}
           <div style={{ borderRadius: 24, padding: "34px 30px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 28 }}>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#fff", marginBottom: 22, textAlign: "center" }}>{tr("daDataTitle")}</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: "#fff", marginBottom: 22, textAlign: "center" }}>{tr("daDataTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(188px,1fr))", gap: 14 }}>
               {DA_CATS.map((c, i) => (
                 <div key={i} style={{ padding: "18px 16px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -2646,13 +2646,13 @@ export default function Landing() {
           <div style={{ textAlign: "center", marginBottom: 54 }}>
             <Badge color="#4f46e5">{tr("modulesBadge")}</Badge>
             <H2>{tr("modulesTitle")}</H2>
-            <p style={{ fontSize: 15.5, color: "#64748b", maxWidth: 560, margin: "0 auto" }}>{tr("modulesDesc")}</p>
+            <p style={{ fontSize: 14.5, color: "#64748b", maxWidth: 560, margin: "0 auto" }}>{tr("modulesDesc")}</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 20 }}>
             {MODULES.map(m => (
               <div key={m.title} className="lp-card" style={{ padding: "30px 28px", borderRadius: 22, background: "#fff", border: "1px solid #eef2f7", boxShadow: "0 10px 34px rgba(15,23,42,0.05)" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: m.color + "16", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, marginBottom: 18 }}>{m.icon}</div>
-                <div style={{ fontSize: 19, fontWeight: 900, color: "#0f172a", marginBottom: 10 }}>{m.title}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#0f172a", marginBottom: 10 }}>{m.title}</div>
                 <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.7, marginBottom: 16 }}>{m.desc}</div>
                 <div style={{ display: "grid", gap: 9 }}>
                   {m.bullets.map((b, i) => (
@@ -2678,7 +2678,7 @@ export default function Landing() {
             {HOW.map((h, i) => (
               <div key={i} style={{ padding: "32px 26px", borderRadius: 20, background: "#fff", border: "1px solid #eef2f7", boxShadow: "0 8px 26px rgba(15,23,42,0.05)", position: "relative" }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg," + PALETTE[i] + "," + PALETTE[i+1] + ")", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 18, marginBottom: 16 }}>{i+1}</div>
-                <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a", marginBottom: 8 }}>{h.title}</div>
+                <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a", marginBottom: 8 }}>{h.title}</div>
                 <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.7 }}>{h.desc}</div>
               </div>
             ))}
@@ -2750,7 +2750,7 @@ export default function Landing() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
             {TESTI.map((tm, i) => (
               <div key={tm.name} className="lp-card" style={{ padding: "32px 28px", borderRadius: 20, background: "#fff", border: "1px solid #eef2f7", boxShadow: "0 10px 30px rgba(15,23,42,0.05)" }}>
-                <div style={{ color: "#f59e0b", fontSize: 15, marginBottom: 14 }}>★★★★★</div>
+                <div style={{ color: "#f59e0b", fontSize: 14, marginBottom: 14 }}>★★★★★</div>
                 <div style={{ fontSize: 14.5, color: "#334155", lineHeight: 1.85, marginBottom: 22 }}>“{tm.text}”</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 11, background: "linear-gradient(135deg," + PALETTE[i] + "," + PALETTE[i+1] + ")", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, color: "#fff" }}>{tm.avatar}</div>
@@ -2768,7 +2768,7 @@ export default function Landing() {
           <Badge color="#4f46e5">{tr("navPricing")}</Badge>
           <H2>{tr("pricingTzTitle")}</H2>
           <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.8, marginBottom: 26 }}>{tr("pricingTzDesc")}</p>
-          <Link to="/pricing" style={{ padding: "15px 38px", borderRadius: 13, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", boxShadow: "0 12px 30px rgba(79,70,229,0.32)" }}>{tr("ctaBtnPricing")}</Link>
+          <Link to="/pricing" style={{ padding: "15px 38px", borderRadius: 13, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "#fff", fontWeight: 800, fontSize: 14.5, textDecoration: "none", boxShadow: "0 12px 30px rgba(79,70,229,0.32)" }}>{tr("ctaBtnPricing")}</Link>
         </div>
       </section>
 
@@ -2796,8 +2796,8 @@ export default function Landing() {
             <h2 style={{ fontSize: "clamp(26px,3.4vw,38px)", fontWeight: 900, color: "#fff", letterSpacing: -0.8, marginBottom: 14, position: "relative" }}>{tr("finalTitle")}</h2>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", marginBottom: 30, position: "relative" }}>{tr("finalDesc")}</p>
             <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", position: "relative" }}>
-              <Link to="/login?tab=register" style={{ padding: "16px 40px", borderRadius: 13, background: "linear-gradient(135deg,#06b6d4,#4f46e5)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", boxShadow: "0 12px 34px rgba(6,182,212,0.4)" }}>{tr("btnTrial")}</Link>
-              <a href="mailto:geniegoroi@ociell.com" style={{ padding: "16px 40px", borderRadius: 13, background: "rgba(255,255,255,0.1)", color: "#fff", fontWeight: 800, fontSize: 15.5, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>{tr("ctaBtnContact")}</a>
+              <Link to="/login?tab=register" style={{ padding: "16px 40px", borderRadius: 13, background: "linear-gradient(135deg,#06b6d4,#4f46e5)", color: "#fff", fontWeight: 800, fontSize: 14.5, textDecoration: "none", boxShadow: "0 12px 34px rgba(6,182,212,0.4)" }}>{tr("btnTrial")}</Link>
+              <a href="mailto:geniegoroi@ociell.com" style={{ padding: "16px 40px", borderRadius: 13, background: "rgba(255,255,255,0.1)", color: "#fff", fontWeight: 800, fontSize: 14.5, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>{tr("ctaBtnContact")}</a>
             </div>
             <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", marginTop: 20, position: "relative" }}>{tr("heroTrust")}</div>
           </div>
@@ -2819,15 +2819,15 @@ export default function Landing() {
               <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.8, maxWidth: 280 }}>{tr("ftTagline")}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftProduct")}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftProduct")}</div>
               {[[tr("navPricing"),"/pricing"],["Dashboard","/login"]].map(([l,to]) => <div key={l}><Link to={to} style={{ fontSize: 13, color: "#475569", textDecoration: "none", lineHeight: 2.3 }}>{l}</Link></div>)}
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftCompany")}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftCompany")}</div>
               {[[st("navAbout",lang),"/about"],[st("navTeam",lang),"/team"]].map(([l,to]) => <div key={l}><Link to={to} style={{ fontSize: 13, color: "#475569", textDecoration: "none", lineHeight: 2.3 }}>{l}</Link></div>)}
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftLegal")}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>{tr("ftLegal")}</div>
               {[["Terms","/terms"],["Privacy","/privacy"],["Refund","/refund"]].map(([l,to]) => <div key={l}><Link to={to} style={{ fontSize: 13, color: "#475569", textDecoration: "none", lineHeight: 2.3 }}>{l}</Link></div>)}
             </div>
           </div>

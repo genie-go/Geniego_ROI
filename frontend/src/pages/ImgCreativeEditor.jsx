@@ -42,7 +42,7 @@ export function ImgCreativeEditor({ cr, color = '#4f8ef7', onUpdate }) {
   return (
     <div style={{ display: 'grid', gap: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color }}>📝 광고 크리에이티브 편집</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color }}>📝 광고 크리에이티브 편집</div>
         <button onClick={() => (editing ? save() : setEditing(true))}
           style={{ padding: '4px 12px', borderRadius: 6, border: `1px solid ${color}55`, background: editing ? color + '22' : 'transparent', color, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
           {editing ? '✓ 저장' : '✏️ 편집'}
@@ -50,7 +50,7 @@ export function ImgCreativeEditor({ cr, color = '#4f8ef7', onUpdate }) {
       </div>
       {fields.map(f => (
         <div key={f.key}>
-          <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3, fontWeight: 600 }}>{f.label}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 3, fontWeight: 600 }}>{f.label}</div>
           {editing ? (
             f.type === 'textarea'
               ? <textarea value={vals[f.key]} onChange={e => set(f.key, e.target.value)} rows={3} placeholder={f.ph} style={{ ...inpStyle, resize: 'none' }} />

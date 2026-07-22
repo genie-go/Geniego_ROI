@@ -330,7 +330,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
                                 </div>
                                 <div style={{ textAlign: "center", flexShrink: 0 }}>
                                     <div style={{ fontSize: 20, fontWeight: 900, color: "#4f8ef7" }}>{totalStock}</div>
-                                    <div style={{ fontSize: 9, color: "#6b7280" }}>{t("wms.whCurrentStock")}</div>
+                                    <div style={{ fontSize: 10, color: "#6b7280" }}>{t("wms.whCurrentStock")}</div>
                                 </div>
                             </div>
                             {/* Address/Info */}
@@ -385,7 +385,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
                 <div onClick={() => setCctvWh(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '5vh 16px', overflowY: 'auto' }}>
                     <div onClick={e => e.stopPropagation()} className="card" style={{ background: 'var(--card-bg,#fff)', borderRadius: 14, padding: 18, width: '100%', maxWidth: 720, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                            <div style={{ fontSize: 15, fontWeight: 800 }}>📹 {cctvWh.name} — {t('wms.cctv.title', 'CCTV 실시간 조회')}</div>
+                            <div style={{ fontSize: 14, fontWeight: 800 }}>📹 {cctvWh.name} — {t('wms.cctv.title', 'CCTV 실시간 조회')}</div>
                             <button onClick={() => setCctvWh(null)} style={{ border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer', color: '#6b7280', lineHeight: 1 }}>×</button>
                         </div>
                         <CctvManager whId={cctvWh.id} warehouses={whs} compact />
@@ -1657,7 +1657,7 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
                             <td style={{ fontSize:10, padding:'8px 4px' }}>{po.eta}</td>
                             <td style={{ fontFamily:'monospace', fontSize:11, padding:'8px 4px' }}>{fmt(po.unitCost)}</td>
                             <td style={{ fontFamily:'monospace', fontWeight:700, fontSize:11, padding:'8px 4px' }}>{fmt(po.total)}</td>
-                            <td style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:20, background:(STATUS_COLOR[po.status]||'#64748b')+'18', color:(STATUS_COLOR[po.status]||'#64748b'), border:`1px solid ${(STATUS_COLOR[po.status]||'#64748b')}33` }} ><span>{po.status}</span></td>
+                            <td style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:(STATUS_COLOR[po.status]||'#64748b')+'18', color:(STATUS_COLOR[po.status]||'#64748b'), border:`1px solid ${(STATUS_COLOR[po.status]||'#64748b')}33` }} ><span>{po.status}</span></td>
                             <td style={{ padding:'8px 4px' }}>
                                 {po.status !== 'received' && (
                                     <button style={{ fontSize:10, padding:'3px 10px', borderRadius:7, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#22c55e,#16a34a)', color: '#1e293b', fontWeight:700 }}
@@ -1769,7 +1769,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
                 <span style={{ marginLeft:'auto', fontSize:11, color:'#6b7280', alignSelf:'center' }}>
                     {filtered.length} {t("wms.pickItems")}
                     {list.filter(p=>p.status==='pending').length > 0 && (
-                        <span style={{ marginLeft:8, padding:'2px 8px', borderRadius:99, fontSize:9, background:'rgba(249,115,22,0.15)', color:'#f97316', border:'1px solid rgba(249,115,22,0.3)', fontWeight:700 }}>
+                        <span style={{ marginLeft:8, padding:'2px 8px', borderRadius:99, fontSize:10, background:'rgba(249,115,22,0.15)', color:'#f97316', border:'1px solid rgba(249,115,22,0.3)', fontWeight:700 }}>
                             🔐 {t("wms.pickApprovalPending")} {list.filter(p=>p.status==='pending').length}
                         </span>
                     )}
@@ -1779,7 +1779,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
             {/* 207차 후속: 피킹리스트 생성 폼 (운영) */}
             {!IS_DEMO && (
                 <form onSubmit={createPick} style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'flex-end', padding:'12px 14px', borderRadius:10, background:'rgba(79,142,247,0.05)', border:'1px solid rgba(79,142,247,0.18)' }}>
-                    <div style={{ fontWeight:800, fontSize:12, width:'100%', color:'#374151' }}>➕ {t('wms.pickCreateTitle','피킹리스트 생성')}</div>
+                    <div style={{ fontWeight:700, fontSize:12, width:'100%', color:'#374151' }}>➕ {t('wms.pickCreateTitle','피킹리스트 생성')}</div>
                     {[['orderRef',t('wms.pickColOrder')],['sku',t('wms.pickColSku')],['name',t('wms.pickColProduct')],['whId',t('wms.pickColWh')],['carrier','Carrier']].map(([k,ph])=>(
                         <input key={k} value={pickForm[k]} onChange={e=>setPickForm(f=>({...f,[k]:e.target.value}))} placeholder={ph}
                             style={{ padding:'7px 9px', borderRadius:7, border:'1px solid rgba(0,0,0,0.12)', fontSize:11, width: k==='name'?150:110, fontFamily:'inherit' }} />
@@ -1806,7 +1806,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
                             <td style={{ textAlign:'center', fontWeight:700, padding:'8px 4px' }}>{pk.qty}</td>
                             <td style={{ fontSize:11, padding:'8px 4px' }}>{pk.wh}</td>
                             <td style={{ padding:'8px 4px' }}>
-                                <span style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:20, background:(STATUS_MAP[pk.status]||'#64748b')+'18', color:(STATUS_MAP[pk.status]||'#64748b') }}>
+                                <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:(STATUS_MAP[pk.status]||'#64748b')+'18', color:(STATUS_MAP[pk.status]||'#64748b') }}>
                                     {STATUS_LABEL[pk.status] || pk.status}
                                 </span>
                             </td>
@@ -1895,7 +1895,7 @@ const LotManagementTab = memo(function LotManagementTab({ lotManagement, registe
                             <td style={{ textAlign:'center', fontWeight:700, padding:'8px 4px', color: l.daysLeft<=30?'#ef4444':l.daysLeft<=90?'#f97316':'#22c55e' }}>{l.daysLeft}</td>
                             <td style={{ textAlign:'center', padding:'8px 4px' }}>{l.qty}</td>
                             <td style={{ fontSize:11, padding:'8px 4px' }}>{l.wh}</td>
-                            <td style={{ padding:'2px 6px', fontSize:9, fontWeight:700, borderRadius:20, background:'rgba(239,68,68,0.15)', color:'#ef4444' }} >{l.daysLeft<=30&&<span>{t("wms.lotImminent")}</span>}</td>
+                            <td style={{ padding:'2px 6px', fontSize:10, fontWeight:700, borderRadius:20, background:'rgba(239,68,68,0.15)', color:'#ef4444' }} >{l.daysLeft<=30&&<span>{t("wms.lotImminent")}</span>}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -1967,7 +1967,7 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
                                     onClick={() => handleAutoFill(item)}>
                                     <div style={{ fontSize:11, fontWeight:700 }}>{item.name}</div>
                                     <div style={{ fontSize:10, color:'#6b7280' }}>{item.sku} | {t('wms.replStockLabel')} {total} / {t('wms.replSafeLabel')} {item.safeQty}</div>
-                                    <div style={{ fontSize:9, color:'#4f8ef7', marginTop:2 }}>{t("wms.replClickAuto")}</div>
+                                    <div style={{ fontSize:10, color:'#4f8ef7', marginTop:2 }}>{t("wms.replClickAuto")}</div>
                                 </div>
                             );
                         })}
@@ -2007,7 +2007,7 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
                                 <td style={{ fontSize:10, color:'#6b7280', padding:'8px 4px' }}>{po.orderDate}</td>
                                 <td style={{ fontSize:10, padding:'8px 4px' }}>{po.eta}</td>
                                 <td style={{ fontFamily:'monospace', fontWeight:700, fontSize:11, padding:'8px 4px' }}>{fmt(po.total)}</td>
-                                <td style={{ padding:'2px 8px', fontSize:9, fontWeight:700, borderRadius:20, background: po.status==='received'?'rgba(34,197,94,0.15)': po.status==='in_transit'?'rgba(249,115,22,0.15)':'rgba(79,142,247,0.15)', color: po.status==='received'?'#22c55e':po.status==='in_transit'?'#f97316':'#4f8ef7' }} ><span>{po.status}</span></td>
+                                <td style={{ padding:'2px 8px', fontSize:10, fontWeight:700, borderRadius:20, background: po.status==='received'?'rgba(34,197,94,0.15)': po.status==='in_transit'?'rgba(249,115,22,0.15)':'rgba(79,142,247,0.15)', color: po.status==='received'?'#22c55e':po.status==='in_transit'?'#f97316':'#4f8ef7' }} ><span>{po.status}</span></td>
                             </tr>
                         ))}
                     </tbody>
@@ -2442,7 +2442,7 @@ const TrackingTab = memo(function TrackingTab() {
                 <div className="card card-glass">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: 15 }}>🚚 {result.carrier}</div>
+                            <div style={{ fontWeight: 800, fontSize: 14 }}>🚚 {result.carrier}</div>
                             <div style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>{result.trackingNum}</div>
                         </div>
                         <div>
@@ -2490,7 +2490,7 @@ const WmsGuideTab = memo(function WmsGuideTab() {
     const FAQS = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) FAQS.push({ q, a: g('guideFaq' + i + 'A') }); }
     const BADGES = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
         <div style={{ display: 'grid', gap: 18, color: '#1e293b' }}>
@@ -2499,7 +2499,7 @@ const WmsGuideTab = memo(function WmsGuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: '#1e293b', marginBottom: 6, letterSpacing: '-0.02em', WebkitTextFillColor: '#1e293b' }}>{t('wms.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{t('wms.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {BADGES.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {BADGES.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{[g('guideLearnDesc1'), g('guideLearnDesc2')].filter(Boolean).join('\n\n')}</div></div> : null}
@@ -2510,9 +2510,9 @@ const WmsGuideTab = memo(function WmsGuideTab() {
                         <div key={s.n} style={{ padding: '16px 18px', borderRadius: 14, background: s.color + '08', border: '1px solid ' + s.color + '22', display: 'flex', gap: 14, alignItems: 'start' }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + '15', border: '1px solid ' + s.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -2536,7 +2536,7 @@ const WmsGuideTab = memo(function WmsGuideTab() {
             {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
             {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
             {g('guideReadyTitle') ? <div style={{ background: 'linear-gradient(135deg,#eff6ff,#faf5ff)', borderRadius: 16, border: '1px solid #bfdbfe', padding: '24px', textAlign: 'center' }}>
-                <div style={{ fontWeight: 900, fontSize: 17, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
                 <div style={{ fontSize: 12.5, color: '#1e293b', lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{[g('guideReadyDesc1'), g('guideReadyDesc2')].filter(Boolean).join('\n\n')}</div>
             </div> : null}
         </div>
@@ -3149,7 +3149,7 @@ export default function WmsManager() {
                     {TABS_I18N.map(tb => (
                         <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: isMobile ? "5px 8px" : "6px 12px", borderRadius: 10, border: "none", cursor: "pointer", fontWeight: 700, fontSize: isMobile ? 9 : 10, flexShrink: 0, whiteSpace: "nowrap", background: tab === tb.id ? "#2563eb" : "#ffffff", color: tab === tb.id ? "#fff" : "#374151", transition: "all 150ms", minWidth: "fit-content" }}>
                             <div>{tb.label}</div>
-                            <div style={{ fontSize: 8, fontWeight: 400, color: tab === tb.id ? "rgba(255,255,255,0.7)" : "#6b7280", marginTop: 1 }}>{tb.desc}</div>
+                            <div style={{ fontSize: 10, fontWeight: 400, color: tab === tb.id ? "rgba(255,255,255,0.7)" : "#6b7280", marginTop: 1 }}>{tb.desc}</div>
                         </button>
                     ))}
                 </div>

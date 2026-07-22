@@ -65,8 +65,8 @@ export const FlowPreview = memo(function FlowPreview({ journey, tr }) {
                 <React.Fragment key={i}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 80, flexShrink: 0, padding: '8px 4px' }}>
                         <div style={{ width: 44, height: 44, borderRadius: 14, background: `${s.color}12`, border: `2px solid ${s.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: s.color, textAlign: 'center' }}>{s.label}</div>
-                        {s.detail && <div style={{ fontSize: 9, color: '#94a3b8', textAlign: 'center', marginTop: 2 }}>{s.detail}</div>}
+                        <div style={{ fontSize: 10, fontWeight: 700, color: s.color, textAlign: 'center' }}>{s.label}</div>
+                        {s.detail && <div style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center', marginTop: 2 }}>{s.detail}</div>}
                     </div>
                     {i < steps.length - 1 && <div style={{ width: 32, height: 2, background: `linear-gradient(90deg, ${s.color}40, ${steps[i + 1].color}40)`, flexShrink: 0, borderRadius: 1 }} />}
                 </React.Fragment>

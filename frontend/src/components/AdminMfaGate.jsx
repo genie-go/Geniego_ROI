@@ -175,7 +175,7 @@ function MfaEnrollGate({ onDone, onClose }) {
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 11, color: "var(--text-3,#94a3b8)", fontWeight: 700 }}>{t("mfaGate.setupKey", "설정 키 (Setup Key)")}</label>
             <input value={secret} readOnly onFocus={e => e.target.select()} style={{ ...inputStyle, fontFamily: "monospace", letterSpacing: 1, marginTop: 4 }} />
-            {otpauth && <div style={{ fontSize: 9, color: "var(--text-3,#64748b)", marginTop: 4, wordBreak: "break-all" }}>{otpauth}</div>}
+            {otpauth && <div style={{ fontSize: 10, color: "var(--text-3,#64748b)", marginTop: 4, wordBreak: "break-all" }}>{otpauth}</div>}
           </div>
         </>
       ) : (
@@ -242,7 +242,7 @@ export default function AdminMfaGate({ children }) {
           </span>
           <button onClick={() => setShowEnroll(true)} style={{
             padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer",
-            background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap",
+            background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontWeight: 700, fontSize: 12, whiteSpace: "nowrap",
           }}>{t("mfaGate.setupNow", "지금 설정")}</button>
           <button onClick={() => setBannerHidden(true)} style={{
             padding: "7px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.18)", cursor: "pointer",

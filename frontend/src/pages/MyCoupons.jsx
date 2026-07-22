@@ -130,7 +130,7 @@ export default function MyCoupons() {
         <div style={{ marginBottom: 18, borderRadius: 16, padding: '20px 24px', background: 'linear-gradient(135deg, #0b1220, #1a2a52)', color: '#fff', border: '1px solid rgba(129,171,255,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <span style={{ fontSize: 22 }}>🎁</span>
-            <div style={{ fontSize: 17, fontWeight: 800 }}>{t('myCoupons.refTitle', '내 추천 코드')}</div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>{t('myCoupons.refTitle', '내 추천 코드')}</div>
           </div>
           <div style={{ fontSize: 12.5, color: '#c9d6ee', lineHeight: 1.6, marginBottom: 14 }}>
             {t('myCoupons.refDesc', '이 코드로 다른 기업이 구독 가입하면, 그 회원이 1개월 구독을 유지하는 즉시 PRO 1개월 무료쿠폰이 확실하게 지급됩니다(추천일로부터 1년 유효).')}
@@ -190,8 +190,8 @@ export default function MyCoupons() {
               return (
                 <div key={c.code + i} style={{ borderRadius: 12, padding: '16px 18px', background: ok ? 'linear-gradient(135deg, rgba(79,142,247,0.06), rgba(99,102,241,0.04))' : 'rgba(0,0,0,0.03)', border: `1px solid ${ok ? 'rgba(79,142,247,0.18)' : 'rgba(0,0,0,0.08)'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 15, color: ok ? '#4f8ef7' : 'var(--text-3,#94a3b8)' }}>{c.code}</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: ok ? 'rgba(34,197,94,0.12)' : (locked ? 'rgba(245,158,11,0.14)' : 'rgba(0,0,0,0.06)'), color: ok ? '#16a34a' : (locked ? '#b45309' : '#94a3b8') }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 14, color: ok ? '#4f8ef7' : 'var(--text-3,#94a3b8)' }}>{c.code}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: ok ? 'rgba(34,197,94,0.12)' : (locked ? 'rgba(245,158,11,0.14)' : 'rgba(0,0,0,0.06)'), color: ok ? '#16a34a' : (locked ? '#b45309' : '#94a3b8') }}>
                       {ok ? t('myCoupons.usable', '사용 가능') : (locked ? `🔒 ${t('myCoupons.locked', '잠금')}` : (Number(c.is_revoked) ? t('myCoupons.revoked', '취소됨') : t('myCoupons.exhausted', '소진')))}
                     </span>
                   </div>

@@ -85,11 +85,11 @@ function AuthPanel({t,onSaved}){
                 </div>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
                     {PROVS.map(p=>(<button key={p.id} onClick={()=>setForm(f=>({...f,provider:p.id}))} style={{ padding:'8px 14px', borderRadius:10, cursor:'pointer', fontWeight:700, fontSize:11, background:form.provider===p.id?p.color:'rgba(0,0,0,0.04)', color:form.provider===p.id?'#fff':'#374151', border:'none' }}>
-                        <div>{p.name}</div><div style={{ fontSize:9, opacity:0.7, marginTop:2 }}>{p.desc}</div>
+                        <div>{p.name}</div><div style={{ fontSize:10, opacity:0.7, marginTop:2 }}>{p.desc}</div>
                     </button>))}
                 </div>
                 <div style={{ padding:'16px 20px', borderRadius:14, background:(prov?.color||C.accent)+'06', border:'1px solid '+(prov?.color||C.accent)+'22' }}>
-                    <div style={{ fontWeight:900, fontSize:12, color:prov?.color||C.accent, marginBottom:12 }}>🔑 {prov?.name} {t('sms.apiKeySettings', 'API Key Settings')}</div>
+                    <div style={{ fontWeight:700, fontSize:12, color:prov?.color||C.accent, marginBottom:12 }}>🔑 {prov?.name} {t('sms.apiKeySettings', 'API Key Settings')}</div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:10, marginBottom:12 }}>
                         {[{k:'app_key',l:'App Key / App ID',ph:'...'},{k:'secret_key',l:'Secret Key',ph:'...',secret:true},{k:'sender_no',l:t('sms.senderNumber', 'Sender Number'),ph:'01012345678'}].map(f=>(
                             <div key={f.k}>
@@ -120,7 +120,7 @@ function ComposePanel({t,onSent,checkInput}){
     const send=async()=>{if(checkInput&&checkInput(form.message))return;setLoading(true);setResult(null);const d=await apiFetch('/api/sms/send',{method:'POST',body:JSON.stringify(form)});setResult(d);if(d.ok&&onSent)onSent();setLoading(false);};
     return(
         <Card glow>
-            <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
+            <div style={{ fontWeight:800, fontSize:14, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
                 <span style={{ fontSize:18 }}>✏️</span>{t('sms.composeTitle', 'Compose SMS')}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'200px 1fr', gap:14, alignItems:'start' }}>
@@ -161,7 +161,7 @@ function BroadcastPanel({t,checkInput}){
     const count=numbers.split('\n').filter(Boolean).length;
     return(
         <Card glow>
-            <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
+            <div style={{ fontWeight:800, fontSize:14, marginBottom:14, display:'flex', alignItems:'center', gap:8, color:'#1f2937' }}>
                 <span style={{ fontSize:18 }}>📡</span>{t('sms.broadcastTitle', 'Bulk Broadcast')}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
@@ -374,7 +374,7 @@ function SmsGuideTab(){
                 <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{g('guideSub')}</div>
             </Card>
             <Card glow style={{ padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
+                <div style={{ fontWeight:800, fontSize:16, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
                     {STEPS.map((s,i)=>(
                         <div key={i} style={{ background:s.c+'0a', border:'1px solid '+s.c+'25', borderRadius:12, padding:16 }}>
@@ -388,7 +388,7 @@ function SmsGuideTab(){
                 </div>
             </Card>
             <Card glow style={{ padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
+                <div style={{ fontWeight:800, fontSize:16, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12 }}>
                     {TABS.map((tb,i)=>(
                         <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 12px', background:'rgba(0,0,0,0.02)', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
@@ -402,7 +402,7 @@ function SmsGuideTab(){
                 </div>
             </Card>
             <div style={{ background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', borderRadius:14, padding:20 }}>
-                <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
+                <div style={{ fontWeight:800, fontSize:16, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#4b5563', lineHeight:2.2 }}>
                     {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{g('guideTip'+n)}</li>))}
                 </ul>
@@ -519,7 +519,7 @@ function SmsMarketingInner(){
                 {tab==='history'&&(
                     <Card glow>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                            <div style={{ fontWeight:800, fontSize:15, color:'#1f2937' }}>📜 {t('sms.historyTitle', 'Message History')}</div>
+                            <div style={{ fontWeight:800, fontSize:14, color:'#1f2937' }}>📜 {t('sms.historyTitle', 'Message History')}</div>
                             {messages.length>0&&(<button onClick={()=>downloadSmsCsv(messages,t)} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid '+C.accent+'44', background:'transparent', color:C.accent, fontSize:10, fontWeight:700, cursor:'pointer' }}>📥 {t('sms.exportCsv', 'CSV')}</button>)}
                         </div>
                         {messages.length===0?(

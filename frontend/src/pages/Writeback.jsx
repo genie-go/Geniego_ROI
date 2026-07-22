@@ -95,7 +95,7 @@ const Kpi = ({ icon, label, value, color }) => (
   </div>
 );
 const Tag = ({ label, color = '#4f8ef7' }) => (
-  <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: color + '1a', color, border: '1px solid ' + color + '33' }}>{label}</span>
+  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: color + '1a', color, border: '1px solid ' + color + '33' }}>{label}</span>
 );
 
 /* ═══════════════════════════════════════════════════
@@ -570,7 +570,7 @@ function SettingsTab({ t }) {
                     <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4, lineHeight: 1.5 }}>{c.desc}</div>
                   </div>
                 </div>
-                <span style={{ padding: '3px 10px', borderRadius: 99, fontSize: 9, fontWeight: 700, flexShrink: 0, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(102,102,102,0.15)', color: on ? '#22c55e' : '#666' }}>{on ? t('writebackPage.enabled', 'Enabled') : t('writebackPage.disabled', 'Disabled')}</span>
+                <span style={{ padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700, flexShrink: 0, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(102,102,102,0.15)', color: on ? '#22c55e' : '#666' }}>{on ? t('writebackPage.enabled', 'Enabled') : t('writebackPage.disabled', 'Disabled')}</span>
               </div>
             </div>
           );
@@ -702,7 +702,7 @@ export default function Writeback() {
         {isDemo && (
           <div style={{ padding: '10px 16px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(79,142,247,0.08),rgba(99,102,241,0.06))', border: '1.5px solid rgba(79,142,247,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 12, color: '#4f8ef7' }}>{t('writebackPage.demoBanner')}</div>
+              <div style={{ fontWeight: 700, fontSize: 12, color: '#4f8ef7' }}>{t('writebackPage.demoBanner')}</div>
               <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('writebackPage.demoBannerDesc')}</div>
             </div>
             <button onClick={() => window.location.href='/pricing'} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 11 }}>{t('writebackPage.upgradeBtn')}</button>
@@ -741,8 +741,8 @@ export default function Writeback() {
               flex: 1, padding: '10px 6px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
               background: tab === tb.id ? 'rgba(79,142,247,0.08)' : 'transparent',
               borderBottom: `2px solid ${tab === tb.id ? '#4f8ef7' : 'transparent'}`, transition: 'all 200ms' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {tb.label}</div>
-              <div style={{ fontSize: 8, color: 'var(--text-3)', marginTop: 2 }}>{tb.desc}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {tb.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{tb.desc}</div>
             </button>
           ))}
         </div>

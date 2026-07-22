@@ -284,7 +284,7 @@ return(
 <div style={{width:'100%',height:8,borderRadius:4,background:'rgba(0,0,0,0.06)',overflow:'hidden'}}>
 <div style={{width:pct+'%',height:'100%',borderRadius:4,background:pct>=100?'#22c55e':pct>0?'#4f8ef7':'transparent',transition:'width 0.6s'}}/>
 </div>
-<span style={{fontSize:9,color:pct>=100?'#22c55e':pct>0?'#4f8ef7':'#cbd5e1',fontWeight:600}}>{st}</span>
+<span style={{fontSize:10,color:pct>=100?'#22c55e':pct>0?'#4f8ef7':'#cbd5e1',fontWeight:600}}>{st}</span>
 </div>)})}
 </div>
 </div>);})}
@@ -294,7 +294,7 @@ return(
 {editLine&&(
 <div onClick={()=>setEditLine(null)} style={{position:'fixed',inset:0,background:'rgba(15,23,42,0.45)',display:'grid',placeItems:'center',zIndex:1000}}>
 <div onClick={e=>e.stopPropagation()} className="card" style={{background:'#fff',padding:22,borderRadius:14,width:340,maxWidth:'92vw'}}>
-<div style={{fontSize:15,fontWeight:800,marginBottom:14,color:'#1e293b'}}>{tr('editLine','공급선 편집')}</div>
+<div style={{fontSize:14,fontWeight:800,marginBottom:14,color:'#1e293b'}}>{tr('editLine','공급선 편집')}</div>
 <label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('supplier')}</label>
 <input value={editLine.supplier} onChange={e=>setEditLine(v=>({...v,supplier:e.target.value}))} style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid #e2e8f0',margin:'4px 0 12px',fontSize:13}}/>
 <label style={{fontSize:11,fontWeight:700,color:'#64748b'}}>{tr('leadTime')} ({tr('days')})</label>
@@ -353,7 +353,7 @@ if(loading)return(<div className="card card-glass" style={{padding:60,textAlign:
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
 <div className="card card-glass" style={{padding:0,overflow:'hidden',color:'#1e293b'}}>
-<div style={{padding:'14px 20px',fontWeight:800,fontSize:15,borderBottom:'1px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#1e293b'}}><span>🏭 {tr('tabSuppliers')}</span>{!isDemoMode&&(<button onClick={()=>setShowAdd(true)} style={{padding:'7px 14px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addSupplier')}</button>)}</div>
+<div style={{padding:'14px 20px',fontWeight:800,fontSize:14,borderBottom:'1px solid rgba(0,0,0,0.06)',display:'flex',justifyContent:'space-between',alignItems:'center',color:'#1e293b'}}><span>🏭 {tr('tabSuppliers')}</span>{!isDemoMode&&(<button onClick={()=>setShowAdd(true)} style={{padding:'7px 14px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addSupplier')}</button>)}</div>
 {suppliers.length===0?(
 <div style={{padding:50,textAlign:'center',color:'#94a3b8'}}><div style={{fontSize:40,marginBottom:12}}>🏭</div><div style={{fontSize:13,fontWeight:700}}>{tr('noData')}</div></div>
 ):(
@@ -386,7 +386,7 @@ return(
 {/* Supplier Reliability Chart */}
 {suppliers.length>0&&(
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>📊 {tr('reliability')}</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:16,color:'#1e293b'}}>📊 {tr('reliability')}</div>
 <div style={{width:'100%',height:280}}>
 <ResponsiveContainer width="100%" height="100%">
 <BarChart data={suppliers.map(s=>({name:s.name.split(' ')[0],reliability:s.reliability,delay:s.delay}))} margin={{top:10,right:30,left:10,bottom:10}}>
@@ -452,7 +452,7 @@ return(
 </div>
 {/* Inventory Table */}
 <div className="card card-glass" style={{padding:0,overflow:'hidden',color:'#1e293b'}}>
-<div style={{padding:'14px 20px',fontWeight:800,fontSize:15,borderBottom:'1px solid rgba(0,0,0,0.06)',color:'#1e293b'}}>📦 {tr('tabInventory')}</div>
+<div style={{padding:'14px 20px',fontWeight:800,fontSize:14,borderBottom:'1px solid rgba(0,0,0,0.06)',color:'#1e293b'}}>📦 {tr('tabInventory')}</div>
 <div style={{overflowX:'auto'}}>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
 <thead style={{background:'rgba(241,245,249,0.7)'}}><tr>
@@ -475,7 +475,7 @@ return(
 </div>
 {/* Inventory Distribution Pie */}
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>🥧 {tr('invStatus')}</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:16,color:'#1e293b'}}>🥧 {tr('invStatus')}</div>
 <div style={{width:'100%',height:260}}>
 <ResponsiveContainer width="100%" height="100%">
 <PieChart>
@@ -532,7 +532,7 @@ return(
 </div>
 {/* PO Table */}
 <div className="card card-glass" style={{padding:0,overflow:'hidden',color:'#1e293b'}}>
-<div style={{padding:'14px 20px',fontWeight:800,fontSize:15,borderBottom:'1px solid rgba(0,0,0,0.06)',color:'#1e293b'}}>📋 {tr('tabPOTitle')}</div>
+<div style={{padding:'14px 20px',fontWeight:800,fontSize:14,borderBottom:'1px solid rgba(0,0,0,0.06)',color:'#1e293b'}}>📋 {tr('tabPOTitle')}</div>
 <div style={{overflowX:'auto'}}>
 <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
 <thead style={{background:'rgba(241,245,249,0.7)'}}><tr>
@@ -579,7 +579,7 @@ return(
 </div>
 {/* Lead Time Bar Chart */}
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>📊 {tr('tabLeadTime')}</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:16,color:'#1e293b'}}>📊 {tr('tabLeadTime')}</div>
 <div style={{width:'100%',height:300}}>
 <ResponsiveContainer width="100%" height="100%">
 <BarChart data={chartData} layout="vertical" margin={{top:10,right:30,left:80,bottom:10}}>
@@ -596,7 +596,7 @@ return(
 </div>
 {/* Per-line stage breakdown */}
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>🔬 Stage Breakdown</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:16,color:'#1e293b'}}>🔬 Stage Breakdown</div>
 <div style={{display:'flex',flexDirection:'column',gap:10}}>
 {lines.map(ln=>(
 <div key={ln.id} style={{padding:'12px 16px',borderRadius:10,background:'rgba(241,245,249,0.7)',border:'1px solid rgba(0,0,0,0.04)'}}>
@@ -605,7 +605,7 @@ return(
 {STAGES.map((st,si)=>{const pct=ln.stages[si];return(
 <div key={si} style={{flex:1,textAlign:'center'}}>
 <div style={{height:6,borderRadius:3,background:'rgba(0,0,0,0.06)',overflow:'hidden'}}><div style={{width:pct+'%',height:'100%',borderRadius:3,background:pct>=100?'#22c55e':pct>0?'#f59e0b':'transparent'}}/></div>
-<div style={{fontSize:8,color:'#94a3b8',marginTop:2}}>{st}</div>
+<div style={{fontSize:10,color:'#94a3b8',marginTop:2}}>{st}</div>
 </div>)})}
 </div>
 </div>))}
@@ -630,7 +630,7 @@ return(
 {/* High Risk Lines */}
 {highRisk.length>0&&(
 <div className="card card-glass" style={{padding:20,borderLeft:'4px solid #ef4444',color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#ef4444'}}>🚨 {tr('supplyRisk')} ({highRisk.length})</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:14,color:'#ef4444'}}>🚨 {tr('supplyRisk')} ({highRisk.length})</div>
 <div style={{display:'flex',flexDirection:'column',gap:10}}>
 {highRisk.map(ln=>(
 <div key={ln.id} style={{padding:'14px 16px',borderRadius:10,background:'rgba(239,68,68,0.04)',border:'1px solid rgba(239,68,68,0.15)'}}>
@@ -653,7 +653,7 @@ return(
 {/* Low Reliability Suppliers */}
 {lowRel.length>0&&(
 <div className="card card-glass" style={{padding:20,borderLeft:'4px solid #f59e0b',color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:14,color:'#f59e0b'}}>⚠️ {tr('lowReliability')} ({lowRel.length})</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:14,color:'#f59e0b'}}>⚠️ {tr('lowReliability')} ({lowRel.length})</div>
 <div style={{display:'flex',flexDirection:'column',gap:8}}>
 {lowRel.map(s=>(
 <div key={s.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',borderRadius:8,background:'rgba(245,158,11,0.04)',border:'1px solid rgba(245,158,11,0.15)'}}>
@@ -695,7 +695,7 @@ const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid 
 return(
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-<div style={{fontWeight:800,fontSize:15,color:'#1e293b'}}>⚙️ {tr('autoRiskRules')}</div>
+<div style={{fontWeight:800,fontSize:14,color:'#1e293b'}}>⚙️ {tr('autoRiskRules')}</div>
 {!isDemoMode&&(<button onClick={()=>setShowAdd(true)} style={{padding:'6px 12px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addRule')}</button>)}
 </div>
 {rules.length===0?(
@@ -739,7 +739,7 @@ const calculate=()=>{setResult({total,breakdown:fields.map(f=>({label:f.l,value:
 return(
 <div style={{display:'flex',flexDirection:'column',gap:16,animation:'fadeIn 0.4s'}}>
 <div className="card card-glass" style={{padding:20,color:'#1e293b'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:4,color:'#1e293b'}}>💰 {tr('tabLandedCost')}</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:4,color:'#1e293b'}}>💰 {tr('tabLandedCost')}</div>
 <div style={{fontSize:12,color:'#94a3b8',marginBottom:18}}>{tr('lcDesc')}</div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
 {fields.map(f=>(
@@ -755,7 +755,7 @@ return(
 </div>
 {result&&(
 <div className="card card-glass" style={{padding:20,color:'#1e293b',animation:'fadeIn 0.3s'}}>
-<div style={{fontWeight:800,fontSize:15,marginBottom:16,color:'#1e293b'}}>📊 {tr('lcResult')}</div>
+<div style={{fontWeight:800,fontSize:14,marginBottom:16,color:'#1e293b'}}>📊 {tr('lcResult')}</div>
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
 <div>
 {result.breakdown.filter(b=>b.value>0).map((b,i)=>(

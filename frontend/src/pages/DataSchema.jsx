@@ -53,7 +53,7 @@ function SecurityOverlay({ reason, onUnlock, t }) {
 
 /* ─── Shared Components ────────────────────────────── */
 const Tag = ({ label, color = "#4f8ef7" }) => (
-  <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
+  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: color + "18", color, border: `1px solid ${color}33` }}>{label}</span>
 );
 const Code = ({ children }) => (
   <code style={{ fontFamily: "monospace", fontSize: 10, color: "#14d9b0", background: "rgba(20,217,176,0.08)", padding: "1px 5px", borderRadius: 4 }}>{children}</code>
@@ -437,7 +437,7 @@ function GuideTab() {
           {[1,2,3,4,5,6].map(i => (
             <div key={i} style={{ padding: 16, borderRadius: 14, background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.08)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <span style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, background: 'linear-gradient(135deg,#6366f1,#14d9b0)', color: '#fff' }}>{i}</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#6366f1,#14d9b0)', color: '#fff' }}>{i}</span>
                 <span style={{ fontWeight: 800, fontSize: 13, color: i<=2?'#6366f1':i<=4?'#22c55e':'#f97316' }}>{g(`guideStep${i}Title`)}</span>
               </div>
               <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{g(`guideStep${i}Desc`)}</p>
@@ -559,7 +559,7 @@ export default function DataSchema() {
               background: tab === tb.id ? "rgba(99,102,241,0.1)" : "transparent",
               borderBottom: `2px solid ${tab === tb.id ? "#6366f1" : "transparent"}`, transition: "all 200ms" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.label}</div>
-              <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
             </button>
           ))}
         </div>

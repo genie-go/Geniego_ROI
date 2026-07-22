@@ -167,7 +167,7 @@ export default function FeedbackCenter() {
         {activeTab === 0 && (stats.total === 0 ? <Empty msg={tr('emptyAll', '수집된 피드백이 없습니다')} hint={!IS_DEMO ? tr('emptyHint', '아래 “피드백 추가”로 직접 등록하거나 채널을 연동하면 이곳에 집계됩니다') : null} /> : (
           <div style={{ display: 'grid', gap: 18 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-2)', marginBottom: 10 }}>{tr('sentimentDist', '감성 분포')} · {tr('avgRating', '평균 평점')} ⭐ {stats.avgRating}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>{tr('sentimentDist', '감성 분포')} · {tr('avgRating', '평균 평점')} ⭐ {stats.avgRating}</div>
               <div style={{ display: 'flex', height: 14, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
                 {['positive', 'neutral', 'negative'].map(s => stats.by[s] > 0 && (
                   <div key={s} style={{ width: `${stats.pct(stats.by[s])}%`, background: SENTIMENTS[s].color }} title={`${SENTIMENTS[s].ko} ${stats.pct(stats.by[s])}%`} />
@@ -183,7 +183,7 @@ export default function FeedbackCenter() {
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-2)', marginBottom: 10 }}>{tr('byChannel', '채널별 수집')}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>{tr('byChannel', '채널별 수집')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
                 {Object.entries(stats.byChannel).map(([c, n]) => (
                   <div key={c} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--surface2, var(--surface))', border: '1px solid var(--border)', textAlign: 'center' }}>
@@ -201,7 +201,7 @@ export default function FeedbackCenter() {
         {activeTab === 1 && (
           <div>
             <div style={{ display: 'grid', gap: 8, marginBottom: 14, padding: 14, borderRadius: 12, background: 'var(--surface2, var(--surface))', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-2)' }}>+ {tr('addFeedback', '피드백 추가')}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>+ {tr('addFeedback', '피드백 추가')}</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <select value={form.channel} onChange={e => setForm(f => ({ ...f, channel: e.target.value }))} className="input" style={{ width: 120, height: 34, fontSize: 12 }}>
                   {Object.keys(CHANNELS).map(c => <option key={c} value={c}>{CHANNELS[c].icon} {tr('ch_' + c, CHANNELS[c].ko)}</option>)}
@@ -275,15 +275,15 @@ export default function FeedbackCenter() {
           <div style={{ background: 'var(--surface2, rgba(255,255,255,0.025))', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
               <div style={{ fontSize: 36, marginBottom: 6 }}>💬</div>
-              <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '피드백 센터 이용 가이드')}</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '피드백 센터 이용 가이드')}</h2>
               <p style={{ color: 'var(--text-3)', fontSize: 12, margin: 0 }}>{tr('guideSub', '초보자도 이 가이드만 보면 피드백 수집부터 개선 액션까지 운영할 수 있습니다')}</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
-                    <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
+                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>{i}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
                   </div>
                   <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr(`guideStep${i}Desc`, '')}</p>
                 </div>

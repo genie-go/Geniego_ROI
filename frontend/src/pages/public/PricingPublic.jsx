@@ -288,12 +288,12 @@ function PlanMenuAccessMatrix({ plans, t, light = true, lang = 'ko' }) {
     if (tot === 0) return <span style={{ color: '#cbd5e1' }}>—</span>;
     if (on === 0) return <span style={{ color: '#cbd5e1' }}>—</span>;
     if (on === tot) return <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>;
-    return <span style={{ color: '#d97706', fontWeight: 800, fontSize: 11 }}>◐{on}/{tot}</span>;
+    return <span style={{ color: '#d97706', fontWeight: 700, fontSize: 11 }}>◐{on}/{tot}</span>;
   };
-  const pill = (label, bg) => <span style={{ fontSize: 9.5, fontWeight: 800, padding: '1px 7px', borderRadius: 6, background: bg, color: '#fff', whiteSpace: 'nowrap' }}>{label}</span>;
+  const pill = (label, bg) => <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 7px', borderRadius: 6, background: bg, color: '#fff', whiteSpace: 'nowrap' }}>{label}</span>;
   const cellPad = { padding: '7px 9px', borderBottom: '1px solid #eef2f7' };
   const stickyL = (bg) => ({ position: 'sticky', left: 0, background: bg, zIndex: 1 });
-  const btnS = { padding: '8px 13px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer' };
+  const btnS = { padding: '8px 13px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' };
 
   return (
     <div style={{ marginTop: 56, maxWidth: 980, marginLeft: 'auto', marginRight: 'auto' }}>
@@ -450,14 +450,14 @@ function DynamicPlanGuide({ plan, t, light, lang = 'ko' }) {
   return (
     <div style={{ background: cardBg, border: bd, borderRadius: 14, padding: '18px 20px', borderLeft: `4px solid ${color}` }}>
       <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <span style={{ fontWeight: 900, fontSize: 17, color }}>{plan.name}</span>
+        <span style={{ fontWeight: 900, fontSize: 16, color }}>{plan.name}</span>
         <span style={{ fontSize: 12, color: subC }}>{plan.desc} {open ? '▴' : '▾'}</span>
       </button>
       {open && (
         <div style={{ marginTop: 14, display: 'grid', gap: 16 }}>
           {features.length > 0 && (
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>📋 {t('appPricing.guide.features', '제공 기능')}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: titleC, marginBottom: 8 }}>📋 {t('appPricing.guide.features', '제공 기능')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 6 }}>
                 {features.map((f, i) => <div key={i} style={{ fontSize: 12.5, color: subC }}><span style={{ color }}>✓</span> {f}</div>)}
               </div>
@@ -465,14 +465,14 @@ function DynamicPlanGuide({ plan, t, light, lang = 'ko' }) {
           )}
           {services.length > 0 && (
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>🧩 {t('appPricing.guide.services', '이용 가능 서비스/메뉴')} <span style={{ color: subC, fontWeight: 600 }}>({services.length})</span></div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: titleC, marginBottom: 8 }}>🧩 {t('appPricing.guide.services', '이용 가능 서비스/메뉴')} <span style={{ color: subC, fontWeight: 600 }}>({services.length})</span></div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {services.map((s, i) => <span key={i} style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: chipBg, color }}>{s}</span>)}
               </div>
             </div>
           )}
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 800, color: titleC, marginBottom: 8 }}>📊 {t('appPricing.guide.limits', '제공 한도')}</div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: titleC, marginBottom: 8 }}>📊 {t('appPricing.guide.limits', '제공 한도')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 6 }}>
               {GUIDE_LIMIT_ROWS.map(row => (
                 <div key={row.k} style={{ fontSize: 12, color: subC, display: 'flex', justifyContent: 'space-between', borderBottom: light ? '1px solid #f1f5f9' : '1px solid rgba(255,255,255,0.06)', padding: '3px 0' }}>
@@ -915,7 +915,7 @@ export default function PricingPublic() {
                     {t("appPricing.hero.badge", "Simple, Transparent Pricing")}
                 </div>
                 <h1 style={{ fontSize: 44, fontWeight: 900, margin: "0 0 14px", color: T.title, letterSpacing: -1.5 }}>{t("appPricing.hero.title", "Plans that grow with you")}</h1>
-                <p style={{ fontSize: 15, color: T.sub, marginBottom: 8 }}>
+                <p style={{ fontSize: 14, color: T.sub, marginBottom: 8 }}>
                     {t("appPricing.hero.subtitle", "No hidden fees. Cancel anytime.")}{" "}
                     <Link to="/refund" style={{ color: T.link, fontWeight: 600 }}>{t("appPricing.hero.guarantee", "30-day money-back guarantee.")}</Link>
                 </p>
@@ -937,7 +937,7 @@ export default function PricingPublic() {
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 28, marginTop: 30, marginBottom: 14, textAlign: "center" }}>
                     {hasSeatPricing && availableSeatTiers.length > 1 && (
                         <div>
-                            <div style={{ fontSize: 11, color: T.text3, fontWeight: 800, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
+                            <div style={{ fontSize: 11, color: T.text3, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
                                 {t("appPricing.accountsLabel", "Number of accounts")}
                             </div>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: 4, borderRadius: 99, background: T.cycleBarBg, border: `1px solid ${T.cycleBarBorder}` }}>
@@ -962,7 +962,7 @@ export default function PricingPublic() {
                     )}
 
                     <div>
-                        <div style={{ fontSize: 11, color: T.text3, fontWeight: 800, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
+                        <div style={{ fontSize: 11, color: T.text3, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, textTransform: "uppercase" }}>
                             {t("appPricing.periodHeader", "Billing period")}
                         </div>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: 4, borderRadius: 99, background: T.cycleBarBg, border: `1px solid ${T.cycleBarBorder}` }}>
@@ -1030,10 +1030,10 @@ export default function PricingPublic() {
                             >
                                 {plan.tag && (
                                     // 187차 — 밝은테마 단색 브랜드색 + data-gp="onColor"(글로벌 override 가 글자 회색강제 → 흰색 복원).
-                                    <div data-gp="onColor" style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", padding: "4px 20px", borderRadius: 99, background: T.light ? plan.color : `linear-gradient(135deg,${plan.color},${plan.color}cc)`, fontSize: 10, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", letterSpacing: 0.5, boxShadow: `0 0 20px ${plan.color}30` }}>{t(`appPricing.tag.${plan.id}`, plan.tag)}</div>
+                                    <div data-gp="onColor" style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", padding: "4px 20px", borderRadius: 99, background: T.light ? plan.color : `linear-gradient(135deg,${plan.color},${plan.color}cc)`, fontSize: 10, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", letterSpacing: 0.5, boxShadow: `0 0 20px ${plan.color}30` }}>{t(`appPricing.tag.${plan.id}`, plan.tag)}</div>
                                 )}
                                 {isSelected && (
-                                    <div data-gp="onColor" style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 99, background: plan.color, color: "#fff", fontSize: 10, fontWeight: 800, letterSpacing: 0.3 }}>
+                                    <div data-gp="onColor" style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 99, background: plan.color, color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: 0.3 }}>
                                         ✓ {t("appPricing.selected", "Selected")}
                                     </div>
                                 )}

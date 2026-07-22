@@ -162,7 +162,7 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: SURFACE2, borderRadius: 12, border: `1px solid ${BORDER}` }}>
             <span style={{ fontSize: 20, width: 28, textAlign: 'center', background: color + '15', padding: 8, borderRadius: 10, flexShrink: 0 }}>{icon}</span>
             <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: TXT2, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
-            {trend ? <div style={{ fontSize: 11, color: trend > 0 ? GREEN : RED, fontWeight: 800, flexShrink: 0 }}>{trend > 0 ? '▲' : '▼'} {Math.abs(trend)}%</div> : null}
+            {trend ? <div style={{ fontSize: 11, color: trend > 0 ? GREEN : RED, fontWeight: 700, flexShrink: 0 }}>{trend > 0 ? '▲' : '▼'} {Math.abs(trend)}%</div> : null}
             <div style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 16, color, letterSpacing: 0.3, flexShrink: 0 }}>{value}</div>
         </div>
     );
@@ -187,7 +187,7 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
     return (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: 20, alignItems: 'start' }}>
             <div style={CARD}>
-                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
                     <span style={{ color: BLUE }}>📊</span> {t('aiInsights.trendKpiTitle', 'Real-time Pulse')}
                 </div>
                 <div style={{ display: 'grid', gap: 10 }}>
@@ -200,7 +200,7 @@ const TrendsTab = memo(function TrendsTab({ live, t, fmt }) {
             </div>
 
             <div style={{ ...CARD, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: TXT1 }}>
                     <span style={{ color: ACCENT }}>🔮</span> {t('aiInsights.forecastTitle', 'AI Predictive Forecast (ROAS)')}
                 </div>
                 <div style={{ width: '100%', height: 260 }}>
@@ -333,12 +333,12 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
         <div style={{ display: 'grid', gap: 16, height: '100%' }}>
             {/* [231차 OS#5] Executive Briefing — 근거 KPI + 최대 잠식 비용 + 추천 액션(딥링크). 항상 실데이터 기반. */}
             <div style={{ ...CARD, background: 'linear-gradient(135deg,rgba(124,58,237,0.06),rgba(79,142,247,0.04))', borderColor: 'rgba(124,58,237,0.25)' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', marginBottom: 8 }}>🧭 {t('aiInsights.briefTitle', '경영 브리핑 (근거 데이터)')}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 8 }}>🧭 {t('aiInsights.briefTitle', '경영 브리핑 (근거 데이터)')}</div>
                 <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: topDriver ? 10 : 0 }}>
-                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefProfit', '순이익')}</div><div style={{ fontSize: 17, fontWeight: 900, color: (live.operatingProfit || 0) >= 0 ? '#16a34a' : '#ef4444' }}>{krw(live.operatingProfit)}</div></div>
-                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefMargin', '영업이익률')}</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{(live.margin || 0).toFixed ? live.margin.toFixed(1) : live.margin}%</div></div>
-                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefRev', '매출')}</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{krw(rev)}</div></div>
-                    <div><div style={{ fontSize: 10, color: TXT3 }}>ROAS</div><div style={{ fontSize: 17, fontWeight: 900, color: TXT1 }}>{(live.roas || 0).toFixed ? live.roas.toFixed(2) : live.roas}x</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefProfit', '순이익')}</div><div style={{ fontSize: 16, fontWeight: 900, color: (live.operatingProfit || 0) >= 0 ? '#16a34a' : '#ef4444' }}>{krw(live.operatingProfit)}</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefMargin', '영업이익률')}</div><div style={{ fontSize: 16, fontWeight: 900, color: TXT1 }}>{(live.margin || 0).toFixed ? live.margin.toFixed(1) : live.margin}%</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>{t('aiInsights.briefRev', '매출')}</div><div style={{ fontSize: 16, fontWeight: 900, color: TXT1 }}>{krw(rev)}</div></div>
+                    <div><div style={{ fontSize: 10, color: TXT3 }}>ROAS</div><div style={{ fontSize: 16, fontWeight: 900, color: TXT1 }}>{(live.roas || 0).toFixed ? live.roas.toFixed(2) : live.roas}x</div></div>
                 </div>
                 {topDriver && (
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 12.5, paddingTop: 8, borderTop: `1px solid ${BORDER}` }}>
@@ -352,7 +352,7 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                 {/* [282차 R3] 에이전트 모드 토글 — 실데이터 조회+휴먼인루프 액션 제안(agentic) vs 구 P&L 분석 */}
                 <button onClick={() => setAgentMode(v => !v)} title={t('aiInsights.agentModeHint', '실데이터 조회 + 액션 제안(승인 후 실행)')}
-                    style={{ padding: '6px 14px', borderRadius: 99, border: '1px solid', borderColor: agentMode ? '#7c3aed' : BORDER, background: agentMode ? 'rgba(124,58,237,0.1)' : 'transparent', color: agentMode ? '#7c3aed' : TXT3, fontSize: 12, cursor: 'pointer', fontWeight: 800 }}>
+                    style={{ padding: '6px 14px', borderRadius: 99, border: '1px solid', borderColor: agentMode ? '#7c3aed' : BORDER, background: agentMode ? 'rgba(124,58,237,0.1)' : 'transparent', color: agentMode ? '#7c3aed' : TXT3, fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
                     {agentMode ? '🤖 ' : '○ '}{t('aiInsights.agentMode', '에이전트 모드')}
                 </button>
                 <span style={{ fontSize: 11, color: TXT3, fontWeight: 700, background: SURFACE2, padding: '6px 12px', borderRadius: 8, border: `1px solid ${BORDER}` }}>{t('aiInsights.targetContext', 'Target Context')}:</span>
@@ -398,7 +398,7 @@ const AIAssistantTab = memo(function AIAssistantTab({ t, safeguard, live = {}, n
                                                 {a.params?.reason && <span style={{ fontSize: 11, color: TXT3 }}>— {a.params.reason}</span>}
                                                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                                                     {a.done === undefined
-                                                        ? <button onClick={() => executeAction(i, ai, a)} disabled={a.executing} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: a.executing ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 800, background: 'linear-gradient(135deg,#7c3aed,#4f8ef7)', color: '#fff', opacity: a.executing ? 0.6 : 1 }}>{a.executing ? t('aiInsights.actExecuting', '실행 중…') : t('aiInsights.actApprove', '승인 및 실행')}</button>
+                                                        ? <button onClick={() => executeAction(i, ai, a)} disabled={a.executing} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: a.executing ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 700, background: 'linear-gradient(135deg,#7c3aed,#4f8ef7)', color: '#fff', opacity: a.executing ? 0.6 : 1 }}>{a.executing ? t('aiInsights.actExecuting', '실행 중…') : t('aiInsights.actApprove', '승인 및 실행')}</button>
                                                         : <span style={{ fontSize: 11.5, fontWeight: 700, color: a.done ? '#16a34a' : '#ef4444' }}>{a.done ? '✓ ' : '✗ '}{a.result}</span>}
                                                 </div>
                                             </div>
@@ -470,7 +470,7 @@ const HistoryTab = memo(function HistoryTab({ t }) {
             {rows.map(row => (
                 <div key={row.id} style={{ display: 'flex', gap: 20, padding: '20px 24px', borderRadius: 16, border: `1px solid ${(ctxColor[row.context] || BLUE)}22`, background: 'var(--surface, #ffffff)', borderLeft: `4px solid ${ctxColor[row.context] || BLUE}`, boxShadow: '0 4px 16px rgba(15,23,42,0.06)', flexWrap: 'wrap' }}>
                     <div style={{ width: 140, flexShrink: 0, borderRight: `1px solid ${BORDER}`, paddingRight: 20 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 6, background: (ctxColor[row.context] || BLUE) + '18', color: ctxColor[row.context] || BLUE, display: 'inline-block', marginBottom: 8, textTransform: 'uppercase' }}>{row.context}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 6, background: (ctxColor[row.context] || BLUE) + '18', color: ctxColor[row.context] || BLUE, display: 'inline-block', marginBottom: 8, textTransform: 'uppercase' }}>{row.context}</div>
                         <div style={{ fontSize: 11, color: TXT3, marginBottom: 4 }}>{new Date(row.created_at).toLocaleDateString()}</div>
                         <div style={{ fontSize: 10, color: TXT3, display: 'flex', alignItems: 'center', gap: 4 }}><span>🎟</span> {row.tokens_used} tok</div>
                     </div>

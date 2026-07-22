@@ -87,7 +87,7 @@ function ConnectedChannelsBadge({ t }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', fontSize: 11, marginBottom: 14 }}>
         <span>⚠️</span>
         <span style={{ color: '#eab308', fontWeight: 600 }}>{t('crm.noConnectedChannels')}</span>
-        <button onClick={() => navigate('/integration-hub')} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 6, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.1)', color: '#1d4ed8', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>{t('crm.goIntegrationHub')}</button>
+        <button onClick={() => navigate('/integration-hub')} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 6, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.1)', color: '#1d4ed8', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t('crm.goIntegrationHub')}</button>
       </div>
     );
   }
@@ -95,7 +95,7 @@ function ConnectedChannelsBadge({ t }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '6px 10px', borderRadius: 10, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', fontSize: 10, marginBottom: 14 }}>
       <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 11 }}>🔗 {t('crm.connectedChannels')}:</span>
       {connectedChannels.map(ch => (
-        <span key={ch.key || ch.platform} style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '1px 7px', fontSize: 9, fontWeight: 700 }}>{ch.platform || ch.key}</span>
+        <span key={ch.key || ch.platform} style={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{ch.platform || ch.key}</span>
       ))}
     </div>
   );
@@ -234,7 +234,7 @@ function CustomerPanel({ customer, onClose, onSendEmail, onSendKakao, onDelete, 
                     {lc.email || lc.phone || lc.kakao_id || lc.identifier || lc.value || (typeof lc === 'string' ? lc : '-')}
                     {idLinkedCount > 1 && lc.id && (
                       <button onClick={() => unmergeMember(lc.id)} disabled={unmerging === lc.id} title={t('crm.idUnmerge', '이 연락처를 별도 고객으로 분리(오병합 되돌리기)')}
-                        style={{ border: 'none', background: 'transparent', color: unmerging === lc.id ? C.muted : '#dc2626', cursor: unmerging === lc.id ? 'default' : 'pointer', fontSize: 12, fontWeight: 800, lineHeight: 1, padding: 0 }}>✕</button>
+                        style={{ border: 'none', background: 'transparent', color: unmerging === lc.id ? C.muted : '#dc2626', cursor: unmerging === lc.id ? 'default' : 'pointer', fontSize: 12, fontWeight: 700, lineHeight: 1, padding: 0 }}>✕</button>
                     )}
                   </span>
                 ))}
@@ -363,7 +363,7 @@ function AISegmentsTab({ navigate, derivedCustomers }) {
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: C.green }}>{fmt(seg.predicted_revenue)}</div>
-                  <div style={{ fontSize: 9, color: C.muted }}>{t('crm.aiSum3')}</div>
+                  <div style={{ fontSize: 10, color: C.muted }}>{t('crm.aiSum3')}</div>
                 </div>
                 <span style={{ fontSize: 12, color: C.muted }}>{isExp ? "▲" : "▼"}</span>
               </div>
@@ -415,7 +415,7 @@ function SegmentsTab({ segments, onSave, onDelete, onSmartSeed, onRefresh }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div style={{ background: C.card, borderRadius: 14, padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>{t('crm.segNew')}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{t('crm.segNew')}</div>
         <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('crm.segName')} style={{ width: "100%", padding: "8px 12px", borderRadius: 8, background: C.surface, border: `1px solid ${C.border}`, color: C.text, marginBottom: 10, boxSizing: "border-box" }} />
         <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={t('crm.segDesc')} style={{ width: "100%", padding: "8px 12px", borderRadius: 8, background: C.surface, border: `1px solid ${C.border}`, color: C.text, marginBottom: 10, boxSizing: "border-box" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -450,7 +450,7 @@ function SegmentsTab({ segments, onSave, onDelete, onSmartSeed, onRefresh }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div><div style={{ fontWeight: 700, fontSize: 11, color: C.muted, marginTop: 2 }} >{s.name}</div><div>{s.description}</div></div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ textAlign: "right", fontSize: 10, fontWeight: 800, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
+                <div style={{ textAlign: "right", fontSize: 10, fontWeight: 700, color: C.muted }} ><div>{s.count}</div><div>{t('crm.segUnit')}</div></div>
                 {onRefresh && <button onClick={() => onRefresh(s.id)} title={t('crm.segRefresh', '멤버십 재계산 (실데이터 기준 동기화)')} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontSize: 14 }}>🔄</button>}
                 <button onClick={() => { if (window.confirm(t('crm.deleteConfirm', 'Delete?'))) onDelete(s.id); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>🗑</button>
               </div>
@@ -1005,7 +1005,7 @@ function RFMTab({ derivedCustomers }) {
               <div style={{ marginTop: 8, height: 4, borderRadius: 2, background: '#e2e8f0', overflow: 'hidden' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.6s' }} />
               </div>
-              <div style={{ fontSize: 9, color: C.muted, marginTop: 2 }}>{pct}%</div>
+              <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>{pct}%</div>
             </div>
           );
         })}
@@ -1046,7 +1046,7 @@ function RFMTab({ derivedCustomers }) {
                     <td style={{ padding: "8px 14px", color: '#8b5cf6', fontWeight: 700 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <span>{clv != null ? fmt(clv) : '-'}</span>
-                        <span title={clvBadge.title} style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 5, background: `${clvBadge.color}1f`, color: clvBadge.color, border: `1px solid ${clvBadge.color}44`, whiteSpace: 'nowrap' }}>{clvBadge.text}</span>
+                        <span title={clvBadge.title} style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 5, background: `${clvBadge.color}1f`, color: clvBadge.color, border: `1px solid ${clvBadge.color}44`, whiteSpace: 'nowrap' }}>{clvBadge.text}</span>
                       </div>
                     </td>
                   </tr>
@@ -1073,7 +1073,7 @@ function GuideTab() {
   const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
   const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
   const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-  const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+  const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
   const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
 
   return (
@@ -1084,7 +1084,7 @@ function GuideTab() {
         <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('crm.guideTitle')}</div>
         <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('crm.guideSub')}</div>
         {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-          {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+          {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
         </div>}
       </div>
       {/* 이 가이드에서 배우는 내용 */}
@@ -1101,9 +1101,9 @@ function GuideTab() {
             <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
               <div>
-                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                   <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                 </div>
                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -1226,7 +1226,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
     <div>
       {/* 채널 자격 상태 — register-then-execute 안내 */}
       <div style={card}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 4 }}>📡 {t('crm.omniChTitle', '연결 채널 상태')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>📡 {t('crm.omniChTitle', '연결 채널 상태')}</div>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>{t('crm.omniChSub', '자격을 등록하면 즉시 해당 채널로 실발송됩니다(미설정 채널은 다음 채널로 자동 폴백).')}</div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {['whatsapp', 'kakao', 'sms', 'email', 'webpush'].map(ch => {
@@ -1250,7 +1250,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
 
       {/* 캠페인 생성 */}
       <div style={card}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 12 }}>➕ {t('crm.omniNew', '새 옴니채널 캠페인')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 12 }}>➕ {t('crm.omniNew', '새 옴니채널 캠페인')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{t('crm.omniName', '캠페인 이름')}</div>
@@ -1335,7 +1335,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
 
       {/* 캠페인 목록 */}
       <div style={card}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', marginBottom: 12 }}>📋 {t('crm.omniList', '옴니채널 캠페인')}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', marginBottom: 12 }}>📋 {t('crm.omniList', '옴니채널 캠페인')}</div>
         {campaigns.length === 0 && <div style={{ color: C.muted, textAlign: 'center', padding: 20, fontSize: 13 }}>{t('crm.omniEmpty', '생성된 캠페인이 없습니다')}</div>}
         {campaigns.map(c => {
           const s = stats[c.id];

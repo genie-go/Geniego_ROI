@@ -251,7 +251,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
       {!hideModeToggle && (
       <div style={{display:"inline-flex",gap:4,padding:4,borderRadius:12,background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",width:"fit-content"}}>
         {[["chat","💬 대화형 AI 디자인"],["engine","🎨 디자인 엔진"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setInnerMode(id)} style={{padding:"8px 16px",borderRadius:9,border:"none",cursor:"pointer",fontSize:12.5,fontWeight:800,background:designMode===id?"linear-gradient(135deg,#a855f7,#4f8ef7)":"transparent",color:designMode===id?"#fff":"#64748b"}}>{label}</button>
+          <button key={id} onClick={()=>setInnerMode(id)} style={{padding:"8px 16px",borderRadius:9,border:"none",cursor:"pointer",fontSize:12.5,fontWeight:700,background:designMode===id?"linear-gradient(135deg,#a855f7,#4f8ef7)":"transparent",color:designMode===id?"#fff":"#64748b"}}>{label}</button>
         ))}
       </div>
       )}
@@ -277,7 +277,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
               <button key={p.id} onClick={()=>setPlatform(p.id)} style={{...CS.chip(platform===p.id,"#4f8ef7"),padding:"10px 8px",flexDirection:"column",gap:2,textAlign:"center",borderRadius:10}}>
                 <span style={{fontSize:18}}>{p.icon}</span>
                 <span style={{fontSize:10,fontWeight:700}}>{p.label}</span>
-                <span style={{fontSize:9,color:"#94a3b8"}}>{p.ratio} · {p.w*2}×{p.h*2}</span>
+                <span style={{fontSize:10,color:"#94a3b8"}}>{p.ratio} · {p.w*2}×{p.h*2}</span>
               </button>
             ))}
           </div>
@@ -439,7 +439,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
                 {l:"CTA",v:ctaText,c:"#22c55e"},
               ].map((item,i)=>(
                 <div key={i} style={{padding:"8px 12px",background:item.c+"08",border:`1px solid ${item.c}20`,borderRadius:8}}>
-                  <div style={{fontSize:9,color:"#94a3b8",fontWeight:700}}>{item.l}</div>
+                  <div style={{fontSize:10,color:"#94a3b8",fontWeight:700}}>{item.l}</div>
                   <div style={{fontSize:12,fontWeight:700,color:item.c,marginTop:2}}>{item.v}</div>
                 </div>
               ))}
@@ -517,7 +517,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
                 {history.map((h,i)=>(
                   <div key={h.id||i} onClick={()=>setResult(h)} style={{cursor:"pointer",borderRadius:10,overflow:"hidden",border:result?.id===h.id?"2px solid #4f8ef7":"1px solid rgba(0,0,0,0.06)",transition:"all 0.2s"}}>
                     {h.dataUrl && <img src={h.dataUrl} alt="" style={{width:"100%",height:80,objectFit:"cover"}} />}
-                    <div style={{padding:"4px 6px",fontSize:9,color:"#64748b",fontWeight:600}}>{h.platformLabel||h.platform}</div>
+                    <div style={{padding:"4px 6px",fontSize:10,color:"#64748b",fontWeight:600}}>{h.platformLabel||h.platform}</div>
                   </div>
                 ))}
               </div>
@@ -535,7 +535,7 @@ export default function AiDesignEngine({ defaultPlatform="popup", mode=null, hid
               style={{minHeight:80,borderRadius:10,cursor:"pointer",border:`2px dashed ${dragOver?"#4f8ef7":"rgba(0,0,0,0.08)"}`,background:dragOver?"rgba(79,142,247,0.04)":"rgba(241,245,249,0.3)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",transition:"all 0.2s"}}>
               <div style={{fontSize:28,opacity:0.4}}>🖼</div>
               <div style={{fontSize:11,color:"#94a3b8",marginTop:4}}>{t("marketing.aiDragDrop","Drag & drop or click to upload")}</div>
-              <div style={{fontSize:9,color:"#94a3b8",opacity:0.6,marginTop:2}}>PNG, JPG, GIF, WebP (max 5MB)</div>
+              <div style={{fontSize:10,color:"#94a3b8",opacity:0.6,marginTop:2}}>PNG, JPG, GIF, WebP (max 5MB)</div>
             </div>
           </div>
         </div>

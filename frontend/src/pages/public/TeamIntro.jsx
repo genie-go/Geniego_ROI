@@ -27,7 +27,7 @@ export default function TeamIntro() {
                 <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 860, height: 400, background: "radial-gradient(ellipse, rgba(124,58,237,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
                 <div style={{ maxWidth: 900, margin: "0 auto", position: "relative" }} className="gl-up">
                     <div style={{ marginBottom: 24 }}><LogoOrbit size={158} /></div>
-                    <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: "rgba(124,58,237,0.10)", color: "#7c3aed", fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 16 }}>{st("navTeam", lang)}</div>
+                    <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: "rgba(124,58,237,0.10)", color: "#7c3aed", fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 16 }}>{st("navTeam", lang)}</div>
                     <h1 style={{ fontSize: "clamp(28px,4.2vw,42px)", fontWeight: 900, color: "#0f172a", letterSpacing: -1.2, margin: "0 0 12px" }}>{st("teamTitle", lang)}</h1>
                     <p style={{ fontSize: 16, color: "#64748b" }}>{st("teamSub", lang)}</p>
                 </div>
@@ -36,7 +36,7 @@ export default function TeamIntro() {
             <section style={{ padding: "20px 24px 90px" }}>
                 <div style={{ maxWidth: 1080, margin: "0 auto" }}>
                     {loaded && team.length === 0 ? (
-                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 15, padding: "50px 0" }}>{st("empty", lang)}</p>
+                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 14, padding: "50px 0" }}>{st("empty", lang)}</p>
                     ) : (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 18 }}>
                             {team.map((m, i) => {
@@ -52,7 +52,7 @@ export default function TeamIntro() {
                                         {(m.email || m.linkedin) && (
                                             <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 14 }}>
                                                 {m.email && <a href={`mailto:${m.email}`} style={{ fontSize: 13, color: "#94a3b8", textDecoration: "none" }}>✉️</a>}
-                                                {m.linkedin && <a href={m.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8", textDecoration: "none" }}>in</a>}
+                                                {m.linkedin && <a href={m.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", textDecoration: "none" }}>in</a>}
                                             </div>
                                         )}
                                     </div>

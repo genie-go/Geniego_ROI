@@ -405,8 +405,8 @@ function CountryRankList({ sorted, selIso, onSelect, total }) {
               </div>
             </div>
             <div style={{ textAlign:'right' }}>
-              <div style={{ fontSize:11, fontWeight:800, color: isSel ? c.col : 'var(--text-1, #1f2937)' }}>{fmtC(c.rev)}</div>
-              <div style={{ fontSize:9, color: c.growth >= 0 ? '#4ade80' : '#f87171', marginTop:1 }}>
+              <div style={{ fontSize:11, fontWeight:700, color: isSel ? c.col : 'var(--text-1, #1f2937)' }}>{fmtC(c.rev)}</div>
+              <div style={{ fontSize:10, color: c.growth >= 0 ? '#4ade80' : '#f87171', marginTop:1 }}>
                 {c.growth >= 0 ? '▲' : '▼'} {Math.abs(c.growth)}%
               </div>
             </div>
@@ -450,9 +450,9 @@ function GlobalSummaryPanel({ sorted, totalRev, channelBudgets, txt }) {
           { ico:'🌍', label:txt('activeCountries'), val:`${sorted.length}${txt('countries')}`, col:'#a855f7' },
         ].map(k => (
           <div key={k.label} style={{ padding:'10px 12px', borderRadius:10, background:`${k.col}10`, border:`1px solid ${k.col}30` }}>
-            <div style={{ fontSize:17, marginBottom:2 }}>{k.ico}</div>
+            <div style={{ fontSize:16, marginBottom:2 }}>{k.ico}</div>
             <div style={{ fontSize:10, color:'var(--text-3, #6b7280)', marginBottom:3 }}>{k.label}</div>
-            <div style={{ fontSize:15, fontWeight:900, color:k.col }}>{k.val}</div>
+            <div style={{ fontSize:14, fontWeight:900, color:k.col }}>{k.val}</div>
           </div>
         ))}
       </div>
@@ -484,7 +484,7 @@ function GlobalSummaryPanel({ sorted, totalRev, channelBudgets, txt }) {
                   </div>
                   <div style={{ display:'flex', gap:6, alignItems:'center' }}>
                     {ch.roas > 0 && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:12, background:'rgba(34,197,94,0.12)', color:'#4ade80', fontWeight:700 }}>ROAS {ch.roas.toFixed(1)}x</span>}
-                    <span style={{ fontSize:12, fontWeight:800, color:ch.col }}>{fmtC(ch.rev)}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:ch.col }}>{fmtC(ch.rev)}</span>
                   </div>
                 </div>
                 <Bar pct={parseFloat(chPct)} col={ch.col} h={5} />
@@ -501,7 +501,7 @@ function GlobalSummaryPanel({ sorted, totalRev, channelBudgets, txt }) {
           <div style={{ fontSize:10, color:'rgba(74,222,128,0.8)', fontWeight:700, textTransform:'uppercase', letterSpacing:0.8 }}>{txt('highGrowthTop5')}</div>
           {topGrowth.map((c, i) => (
             <div key={c.iso} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:9, background:'rgba(74,222,128,0.05)', border:'1px solid rgba(74,222,128,0.15)' }}>
-              <span style={{ fontSize:10, fontWeight:800, color:'var(--text-3, #6b7280)', width:14 }}>#{i+1}</span>
+              <span style={{ fontSize:10, fontWeight:700, color:'var(--text-3, #6b7280)', width:14 }}>#{i+1}</span>
               <span style={{ fontSize:14 }}>{c.flag}</span>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'var(--text-1, #1f2937)', marginBottom:3 }}>{c.name}</div>
@@ -582,7 +582,7 @@ function CountryDetail({ c, txt, total }) {
           { label:txt('growthRate2'), val:'▲'+(c.growth||0)+'%', col:'#4ade80' },
         ].map(m => (
           <div key={m.label} style={{ padding:'10px 12px', borderRadius:10, background:`${m.col}0e`, border:`1px solid ${m.col}22` }}>
-            <div style={{ fontSize:9, color:'var(--text-3, #6b7280)', fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>{m.label}</div>
+            <div style={{ fontSize:10, color:'var(--text-3, #6b7280)', fontWeight:700, textTransform:'uppercase', marginBottom:4 }}>{m.label}</div>
             <div style={{ fontSize:14, fontWeight:900, color:m.col }}>{m.val}</div>
           </div>
         ))}
@@ -593,7 +593,7 @@ function CountryDetail({ c, txt, total }) {
         {TABS.map(tb => (
           <button key={tb.id} onClick={() => setTab(tb.id)} style={{
             flex:1, padding:'7px 0', borderRadius:8, border:'none', cursor:'pointer',
-            fontWeight:800, fontSize:11, transition:'all 0.2s',
+            fontWeight:700, fontSize:11, transition:'all 0.2s',
             background: tab===tb.id ? `${c.col}22` : 'transparent',
             color: tab===tb.id ? c.col : 'var(--text-3, #9ca3af)',
             borderBottom: tab===tb.id ? `2px solid ${c.col}` : '2px solid transparent',

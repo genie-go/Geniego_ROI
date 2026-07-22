@@ -34,7 +34,7 @@ export default function CompanyIntro() {
                 <div style={{ position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)", width: 880, height: 420, background: "radial-gradient(ellipse, rgba(79,70,229,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
                 <div style={{ ...wrap, position: "relative" }} className="gl-up">
                     <div style={{ marginBottom: 26 }}><LogoOrbit size={172} /></div>
-                    <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: "rgba(79,70,229,0.10)", color: "#4f46e5", fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 16 }}>{st("aboutTitle", lang)}</div>
+                    <div style={{ display: "inline-block", padding: "6px 16px", borderRadius: 99, background: "rgba(79,70,229,0.10)", color: "#4f46e5", fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 16 }}>{st("aboutTitle", lang)}</div>
                     <h1 style={{ fontSize: "clamp(30px,4.5vw,46px)", fontWeight: 900, color: "#0f172a", letterSpacing: -1.4, margin: "0 0 14px" }}>{c.name || "GeniegoROI"}</h1>
                     <p style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, background: "linear-gradient(90deg,#4f46e5,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>{c.tagline}</p>
                     {c.summary && <p style={{ fontSize: 16, color: "#475569", maxWidth: 720, margin: "0 auto", lineHeight: 1.9 }}>{c.summary}</p>}
@@ -48,14 +48,14 @@ export default function CompanyIntro() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 18 }}>
                             {c.vision && (
                                 <div className="gl-card" style={{ padding: "28px 26px", borderRadius: 20, background: "#fff", border: "1px solid #eef2f7", boxShadow: "0 10px 30px rgba(15,23,42,0.05)" }}>
-                                    <div style={{ fontSize: 12, fontWeight: 800, color: "#06b6d4", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🌐 {st("vision", lang)}</div>
-                                    <div style={{ fontSize: 15, color: "#1e293b", lineHeight: 1.8, whiteSpace: "pre-line" }}>{c.vision}</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#06b6d4", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🌐 {st("vision", lang)}</div>
+                                    <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.8, whiteSpace: "pre-line" }}>{c.vision}</div>
                                 </div>
                             )}
                             {c.mission && (
                                 <div className="gl-card" style={{ padding: "28px 26px", borderRadius: 20, background: "#fff", border: "1px solid #eef2f7", boxShadow: "0 10px 30px rgba(15,23,42,0.05)" }}>
-                                    <div style={{ fontSize: 12, fontWeight: 800, color: "#7c3aed", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🎯 {st("mission", lang)}</div>
-                                    <div style={{ fontSize: 15, color: "#1e293b", lineHeight: 1.8, whiteSpace: "pre-line" }}>{c.mission}</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#7c3aed", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>🎯 {st("mission", lang)}</div>
+                                    <div style={{ fontSize: 14, color: "#1e293b", lineHeight: 1.8, whiteSpace: "pre-line" }}>{c.mission}</div>
                                 </div>
                             )}
                         </div>
@@ -68,7 +68,7 @@ export default function CompanyIntro() {
                     <div style={{ maxWidth: 860, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14 }}>
                         {facts.map(f => (
                             <div key={f.label} style={{ padding: "18px 20px", borderRadius: 16, background: "#f8fafc", border: "1px solid #eef2f7" }}>
-                                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{f.label}</div>
+                                <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{f.label}</div>
                                 <div style={{ fontSize: 14.5, color: "#0f172a", fontWeight: 700 }}>{f.value}</div>
                             </div>
                         ))}

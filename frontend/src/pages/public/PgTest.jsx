@@ -37,7 +37,7 @@ function Dot({ color }) {
 function Tag({ color, children }) {
     return (
         <span style={{
-            fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99,
+            fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
             background: color + "18", border: `1px solid ${color}44`, color,
         }}>{children}</span>
     );
@@ -189,7 +189,7 @@ function PaddleSection() {
             {/* Paddle 토큰/설정 */}
             <div style={card}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: "#a78bfa" }}>🟣 Paddle Sandbox 설정</div>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: "#a78bfa" }}>🟣 Paddle Sandbox 설정</div>
                     {autoLoaded && (
                         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.green, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", borderRadius: 20, padding: "3px 10px" }}>
                             <span>✅</span> 자동 로드 완료 <Tag color={paddleEnv === "live" ? C.green : C.orange}>{paddleEnv}</Tag>
@@ -246,12 +246,12 @@ function PaddleSection() {
                                             { label: "Annual Price ID", val: p.price_id_annual },
                                         ].map(({ label, val }) => (
                                             <div key={label} style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "6px 8px" }}>
-                                                <div style={{ fontSize: 9, color: C.muted, marginBottom: 2 }}>{label}</div>
+                                                <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>{label}</div>
                                                 {val ? (
                                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                                         <code style={{ fontSize: 10, color: C.green, flex: 1 }}>{val}</code>
                                                         <button onClick={() => { setPriceId(val); addLog("ok", `Price ID 선택: ${val}`); }}
-                                                            style={{ padding: "2px 7px", borderRadius: 5, border: "none", background: "rgba(34,197,94,0.2)", color: C.green, fontSize: 9, cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}>
+                                                            style={{ padding: "2px 7px", borderRadius: 5, border: "none", background: "rgba(34,197,94,0.2)", color: C.green, fontSize: 10, cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}>
                                                             선택
                                                         </button>
                                                     </div>
@@ -338,7 +338,7 @@ function TossSection() {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={card}>
-                <div style={{ fontWeight: 800, fontSize: 15, color: C.blue, marginBottom: 16 }}>💳 Toss Payments 테스트</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: C.blue, marginBottom: 16 }}>💳 Toss Payments 테스트</div>
                 <div style={{ display: "grid", gap: 12 }}>
                     <div>
                         <label style={lbl}>Client Key (test_ck_...)</label>
@@ -394,7 +394,7 @@ function WebhookSection() {
     return (
         <div style={{ display: "grid", gap: 16 }}>
             <div style={card}>
-                <div style={{ fontWeight: 800, fontSize: 15, color: C.orange, marginBottom: 16 }}>🔔 웹훅 이벤트 로그</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: C.orange, marginBottom: 16 }}>🔔 웹훅 이벤트 로그</div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                     <Btn color={C.orange} onClick={fetchWebhookLog} disabled={loading}>🔄 로그 새로고침</Btn>
                 </div>

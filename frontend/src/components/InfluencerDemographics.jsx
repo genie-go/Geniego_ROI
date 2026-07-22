@@ -33,7 +33,7 @@ function MiniBar({ v, max, col, h = 6, showLabel = true }) {
                     borderRadius: 3, boxShadow: `0 0 5px ${col}44`,
                 }} />
             </div>
-            {showLabel && <span style={{ fontSize: 10, fontWeight: 800, color: col, width: 36, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{v}%</span>}
+            {showLabel && <span style={{ fontSize: 10, fontWeight: 700, color: col, width: 36, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{v}%</span>}
         </div>
     );
 }
@@ -80,11 +80,11 @@ export default function InfluencerDemographics({ data, col = '#4f8ef7', title })
                         <div key={g.l} style={{ background: `${g.col}08`, border: `1px solid ${g.col}18`, borderRadius: 9, padding: '10px 12px', textAlign: 'center' }}>
                             <div style={{ fontSize: 14 }}>{g.l.split(' ')[0]}</div>
                             <div style={{ fontSize: 20, fontWeight: 900, color: g.col, marginTop: 4 }}>{g.pct}%</div>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{g.l.split(' ')[1]}</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{g.l.split(' ')[1]}</div>
                             <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 6 }}>
                                 <div style={{ width: `${g.pct}%`, height: '100%', background: g.col, borderRadius: 2 }} />
                             </div>
-                            <div style={{ fontSize: 9, color: g.col, marginTop: 5, fontWeight: 700 }}>참여율 {g.er.toFixed(1)}%</div>
+                            <div style={{ fontSize: 10, color: g.col, marginTop: 5, fontWeight: 700 }}>참여율 {g.er.toFixed(1)}%</div>
                         </div>
                     ))}
                 </div>
@@ -111,14 +111,14 @@ export default function InfluencerDemographics({ data, col = '#4f8ef7', title })
                         const maxV = Math.max(...ageLabels.map(kk => d.age[kk] ?? 0));
                         return (
                             <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                                <span style={{ fontSize: 9, fontWeight: 800, color: ageCols[i] }}>{v}%</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: ageCols[i] }}>{v}%</span>
                                 <div style={{
                                     width: '100%', height: `${(v / maxV) * 52}px`,
                                     background: `linear-gradient(180deg,${ageCols[i]},${ageCols[i]}88)`,
                                     borderRadius: '3px 3px 0 0',
                                     boxShadow: `0 0 6px ${ageCols[i]}44`,
                                 }} />
-                                <span style={{ fontSize: 8, color: 'var(--text-3)' }}>{k}</span>
+                                <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{k}</span>
                             </div>
                         );
                     })}
@@ -131,7 +131,7 @@ export default function InfluencerDemographics({ data, col = '#4f8ef7', title })
                         <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
                             <span style={{ fontSize: 10, color: 'var(--text-3)', width: 38 }}>{k}</span>
                             <MiniBar v={+v.toFixed(1)} max={ageEngMax || 1} col={ageCols[i]} showLabel={false} />
-                            <span style={{ fontSize: 10, fontWeight: 800, color: ageCols[i], width: 38, textAlign: 'right' }}>{v.toFixed(1)}%</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: ageCols[i], width: 38, textAlign: 'right' }}>{v.toFixed(1)}%</span>
                         </div>
                     );
                 })}

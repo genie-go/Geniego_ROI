@@ -351,7 +351,7 @@ function AmazonOverviewTab() {
                         {/* [227차] #8 투명성: 운영에서 실시간 채널 데이터(backend daily-trends) 미공급 시 트렌드는 캠페인 집계 기반 근사치 → "추정" 라벨. */}
                         {!isDemoMode && (!prodTrends || prodTrends.length === 0) && (
                             <span title={t('marketing.estimatedTrendHint', '실시간 채널 데이터 연동 전 — 캠페인 집계 기반 추정치입니다. 광고 매체를 연동하면 실측 일별 추세로 대체됩니다.')}
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800, color: '#b45309', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.32)', borderRadius: 6, padding: '3px 9px', cursor: 'help' }}>
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.32)', borderRadius: 6, padding: '3px 9px', cursor: 'help' }}>
                                 ≈ {t('marketing.estimatedBadge', '추정')}
                             </span>
                         )}
@@ -382,7 +382,7 @@ function AmazonOverviewTab() {
             </div>
             {/* Channel Fee Tracker */}
             <div className="card card-glass fade-up" style={{ padding: 20, animationDelay: '200ms' }}>
-                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>💰 {t('marketing.channelFeeTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>💰 {t('marketing.channelFeeTitle')}</div>
                 <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 14 }}>{t('marketing.channelFeeDesc')}</div>
                 <ChannelFeeTracker campaigns={allValidCampaigns} />
             </div>
@@ -400,7 +400,7 @@ function ChannelFeeTracker({ campaigns }) {
     const feeData = useMemo(() => Object.entries(CHANNEL_FEES).filter(([id]) => isConnected(id)).map(([id, info]) => { const pref = id.split('_')[0]; const cs = campaigns.filter(c => (c.channels || []).some(ch => String(ch.id || '').includes(pref))).reduce((s, c) => s + (c.spent || 0), 0); return { ...info, id, spend: cs, fee: cs * info.feeRate }; }), [campaigns, isConnected]);
     const totalFee = feeData.reduce((s, d) => s + d.fee, 0);
     if (feeData.length === 0) return <div style={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', padding: 16 }}>{t('marketing.noConnectedChannels')}</div>;
-    return (<div><div style={{ display: 'flex', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 10, marginBottom: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', justifyContent: 'flex-end', alignItems: 'center', fontSize: 12, fontWeight: 900, color: '#ef4444', marginTop: 2 }} >{feeData.map(ch => (<div key={ch.id}><div><span>{ch.icon} {ch.name}</span><span>{(ch.feeRate * 100).toFixed(1)}%</span></div><div>{t('marketing.metSpend')}: {fmt(ch.spend)}</div><div>{t('marketing.estimatedFee')}: {fmt(ch.fee)}</div></div>))}</div><div><span>{t('marketing.totalFee')}: {fmt(totalFee)}</span></div></div>);
+    return (<div><div style={{ display: 'flex', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 10, marginBottom: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', justifyContent: 'flex-end', alignItems: 'center', fontSize: 12, fontWeight: 700, color: '#ef4444', marginTop: 2 }} >{feeData.map(ch => (<div key={ch.id}><div><span>{ch.icon} {ch.name}</span><span>{(ch.feeRate * 100).toFixed(1)}%</span></div><div>{t('marketing.metSpend')}: {fmt(ch.spend)}</div><div>{t('marketing.estimatedFee')}: {fmt(ch.fee)}</div></div>))}</div><div><span>{t('marketing.totalFee')}: {fmt(totalFee)}</span></div></div>);
 }
 
 /* ─── Creative Analysis Tab (Zero-Mock) ─── */
@@ -445,7 +445,7 @@ function CreativeAnalysisTab() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-glass" style={{ padding: 18 }}>
-                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>🔌 {t('marketing.connectedChannels')}</div>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>🔌 {t('marketing.connectedChannels')}</div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {connectedChannels.length === 0 ? (
                         <div style={{ color: '#94a3b8', fontSize: 12 }}>{t('marketing.noConnectedChannels')}</div>
@@ -453,7 +453,7 @@ function CreativeAnalysisTab() {
                         <div key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, background: ch.color + '15', border: `1px solid ${ch.color}30` }}>
                             <span>{ch.icon}</span>
                             <span style={{ fontSize: 12, fontWeight: 700, color: ch.color }}>{ch.name}</span>
-                            <span style={{ fontSize: 9, color: '#22c55e' }}>● {t('marketing.connected')}</span>
+                            <span style={{ fontSize: 10, color: '#22c55e' }}>● {t('marketing.connected')}</span>
                         </div>
                     ))}
                 </div>
@@ -467,7 +467,7 @@ function CreativeAnalysisTab() {
             ) : (
                 <>
                     <div className="card card-glass" style={{ padding: 20 }}>
-                        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>🎨 {t('marketing.creativePerformance')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>🎨 {t('marketing.creativePerformance')}</div>
                         <div style={{ width: '100%', height: 300 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={creativeData.slice(0, 8)} margin={{ top: 10, right: 10, left: 10, bottom: 40 }}>
@@ -558,7 +558,7 @@ function CampaignCompareTab() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-glass" style={{ padding: 18 }}>
-                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>⚡ {t('marketing.selectCampaigns')}</div>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>⚡ {t('marketing.selectCampaigns')}</div>
                 <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>{t('marketing.selectCampaignsDesc')}</div>
                 {sharedCampaigns.length === 0 ? (
                     <div style={{ color: '#94a3b8', fontSize: 12, padding: 20, textAlign: 'center' }}>{t('marketing.noCampaigns')}</div>
@@ -580,7 +580,7 @@ function CampaignCompareTab() {
             {selectedCampaigns.length >= 2 && (
                 <>
                     <div className="card card-glass" style={{ padding: 20 }}>
-                        <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 16 }}>📡 {t('marketing.radarCompare')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 16 }}>📡 {t('marketing.radarCompare')}</div>
                         <div style={{ width: '100%', height: 350 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart data={radarData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
@@ -662,7 +662,7 @@ function MarketingGuideTab() {
             </div>
             {/* AI Design 10-Step Guide */}
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>🎯 {t('marketing.aiGuideStepsTitle', 'AI Design — Step-by-Step Workflow')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>🎯 {t('marketing.aiGuideStepsTitle', 'AI Design — Step-by-Step Workflow')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
                     {AI_GUIDE_STEPS.map((s,i) => (
                         <div key={i} style={{ background: s.c+'0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16 }}>
@@ -683,7 +683,7 @@ function MarketingGuideTab() {
                 <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 6, maxWidth: 560, margin: '6px auto 0', lineHeight: 1.7 }}>{t('marketing.guideSub')}</div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('marketing.guideStepsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{t('marketing.guideStepsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
                     {[{n:'1️⃣',k:'guideStep1',c:'#4f8ef7'},{n:'2️⃣',k:'guideStep2',c:'#22c55e'},{n:'3️⃣',k:'guideStep3',c:'#a855f7'},{n:'4️⃣',k:'guideStep4',c:'#f59e0b'},{n:'5️⃣',k:'guideStep5',c:'#f97316'},{n:'6️⃣',k:'guideStep6',c:'#06b6d4'}].map((s,i) => (
                         <div key={i} style={{ background: s.c+'0a', border: `1px solid ${s.c}25`, borderRadius: 12, padding: 16 }}>
@@ -697,7 +697,7 @@ function MarketingGuideTab() {
                 </div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16 }}>{t('marketing.guideTabsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>{t('marketing.guideTabsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
                     {[{icon:'📊',k:'guideTabOverview',c:'#4f8ef7'},{icon:'📂',k:'guideTabStatus',c:'#a855f7'},{icon:'🎨',k:'guideTabCreative',c:'#ec4899'},{icon:'⚡',k:'guideTabCompare',c:'#f59e0b'},{icon:'🤖',k:'guideTabAiDesign',c:'#6366f1'}].map((tb,i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(241,245,249,0.7)', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
@@ -711,7 +711,7 @@ function MarketingGuideTab() {
                 </div>
             </div>
             <div className="card card-glass" style={{ padding: 20, background: 'rgba(34,197,94,0.05)', borderColor: 'rgba(34,197,94,0.3)' }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12 }}>💡 {t('marketing.guideTipsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12 }}>💡 {t('marketing.guideTipsTitle')}</div>
                 <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#94a3b8', lineHeight: 2.2 }}>
                     <li>{t('marketing.guideTip1')}</li>
                     <li>{t('marketing.guideTip2')}</li>
@@ -752,7 +752,7 @@ function AiDesignTab() {
             {/* [현 차수] 단일 토글 한 줄(생성 모드 2종 + 보관함) — 세로 2줄 중복 제거·페이지 균형 */}
             <div style={{ display: 'inline-flex', gap: 4, padding: 4, borderRadius: 12, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', width: 'fit-content', flexWrap: 'wrap' }}>
                 {VIEWS.map(v => (
-                    <button key={v.id} onClick={() => setView(v.id)} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 800, background: view === v.id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'transparent', color: view === v.id ? '#fff' : '#64748b' }}>
+                    <button key={v.id} onClick={() => setView(v.id)} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: view === v.id ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'transparent', color: view === v.id ? '#fff' : '#64748b' }}>
                         {v.label}
                     </button>
                 ))}
@@ -812,7 +812,7 @@ export default function Marketing() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
               <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #4f8ef7, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(79,142,247,0.3)', flexShrink: 0 }}>📊</div>
               <div style={{ minWidth: 0 }}>
-                <div className="hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#4f8ef7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{t("marketing.pageTitle")}</div>
+                <div className="hero-title" style={{ fontSize: 20, fontWeight: 900, color: '#4f8ef7', letterSpacing: '-0.3px', lineHeight: 1.3 }}>{t("marketing.pageTitle")}</div>
                 <div className="hero-desc" style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t("marketing.pageSub")}</div>
               </div>
             </div>

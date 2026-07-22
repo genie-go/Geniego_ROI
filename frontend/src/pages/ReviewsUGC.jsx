@@ -123,7 +123,7 @@ function DashboardTab({ t, channelStats, negKeywords, ugcReviews, totalReviews, 
             {/* [228차] 채널 리뷰 API 수집 — 등록된 자격증명으로 채널 리뷰를 직접 수집 */}
             {onCollect && (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.15)" }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "#4f46e5" }}>🔄 {t("reviews.collectTitle", "채널 리뷰 수집")}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#4f46e5" }}>🔄 {t("reviews.collectTitle", "채널 리뷰 수집")}</span>
                     {COLLECT_CHANNELS.map(c => (
                         <button key={c.key} onClick={() => onCollect(c.key)} disabled={!!collecting} style={{ fontSize: 11, fontWeight: 700, padding: "5px 12px", borderRadius: 7, border: "1px solid #cbd5e1", cursor: collecting ? "wait" : "pointer", background: collecting === c.key ? "#e0e7ff" : "#fff", color: "#4f46e5", opacity: collecting && collecting !== c.key ? 0.5 : 1 }}>
                             {collecting === c.key ? "⏳" : "↓"} {c.label}
@@ -221,7 +221,7 @@ function ReviewCard({ r, replyState, escalateState, onGenReply, onCopyReply, onE
                     <span className={`badge badge-${r.sentiment === "positive" ? "green" : r.sentiment === "neutral" ? "yellow" : "red"}`} style={{ fontSize: 10 }}>{t("reviews.sentiment_" + r.sentiment)}</span>
                     <span style={{ fontSize: 11, color: "#6b7280" }}>{r.channel}</span>
                     <span className="badge" style={{ fontSize: 10 }}>{r.category}</span>
-                    {escalated && <span className="badge badge-blue" style={{ fontSize: 9 }}>🎯 {t("reviews.csAssigned")}</span>}
+                    {escalated && <span className="badge badge-blue" style={{ fontSize: 10 }}>🎯 {t("reviews.csAssigned")}</span>}
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     <Stars n={r.rating} />
@@ -435,7 +435,7 @@ function SettingsTab({ t, isDemo, setToast }) {
                 <div style={{ fontSize: 10, color: "#6b7280", marginTop: 4 }}>{t("reviews.slackWebhookSub")}</div>
             </div>
             <div>
-                <button className="btn" style={{ padding: "9px 20px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "none", cursor: saving ? "wait" : "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", opacity: saving || !loaded ? 0.6 : 1 }} onClick={save} disabled={saving || !loaded}>
+                <button className="btn" style={{ padding: "9px 20px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "none", cursor: saving ? "wait" : "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", opacity: saving || !loaded ? 0.6 : 1 }} onClick={save} disabled={saving || !loaded}>
                     {saving ? t("reviews.settingsSaving", "저장 중…") : t("reviews.settingsSave", "설정 저장")}
                 </button>
             </div>
@@ -464,8 +464,8 @@ function WidgetTab({ t, isDemo, setToast }) {
     const copy = (text, msg) => { navigator.clipboard.writeText(text || "").catch(() => {}); setToast(msg); };
 
     const codeBox = { width: "100%", boxSizing: "border-box", fontFamily: "monospace", fontSize: 11, padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#f8fafc", color: "#0f172a", resize: "vertical" };
-    const lbl = { fontSize: 12, fontWeight: 800, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" };
-    const copyBtn = { fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 6, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff" };
+    const lbl = { fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between" };
+    const copyBtn = { fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 6, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff" };
 
     return (
         <div style={{ display: "grid", gap: 18, maxWidth: 720 }}>
@@ -525,7 +525,7 @@ function ReviewsGuideTab() {
                 <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
             </div>
             <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{g('guideStepsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
                     {STEPS.map((s,i) => (
                         <div key={i} style={{ padding: "14px 16px", borderRadius: 12, background: s.c + '0a', border: `1px solid ${s.c}20` }}>
@@ -539,7 +539,7 @@ function ReviewsGuideTab() {
                 </div>
             </div>
             <div>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>{g('guideTabsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 10 }}>
                     {TABS.map((tb,i) => (
                         <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: tb.c + '08', border: `1px solid ${tb.c}15` }}>
@@ -550,7 +550,7 @@ function ReviewsGuideTab() {
                 </div>
             </div>
             <div>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1f2937' }}>💡 {g('guideTipsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color: '#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ display: "grid", gap: 8, paddingLeft: 20, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>
                     {[1,2,3,4,5,6,7].map(n => <li key={n}>{g('guideTip'+n)}</li>)}
                 </ul>

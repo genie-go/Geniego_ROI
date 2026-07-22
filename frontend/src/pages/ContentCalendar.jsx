@@ -47,15 +47,15 @@ function MonthCalendar({year,month,events,t}){
             return(
               <div key={di} style={{ minHeight:62, padding:"4px 5px", borderRadius:6, background:isToday?"rgba(99,102,241,0.12)":inMonth?"rgba(241,245,249,0.8)":"rgba(241,245,249,0.3)", border:isToday?"1.5px solid rgba(99,102,241,0.45)":"1px solid rgba(0,0,0,0.06)", opacity:inMonth?1:0.3, transition:"all .2s" }}>
                 <div style={{ fontSize:11, fontWeight:isToday?900:600, color:di===0?"#ef4444":di===6?"#4f8ef7":"#374151", marginBottom:2 }}>
-                  {day.getDate()}{isToday&&<span style={{ fontSize:7, color:"#6366f1", marginLeft:2, fontWeight:900 }}>TODAY</span>}
+                  {day.getDate()}{isToday&&<span style={{ fontSize:10, color:"#6366f1", marginLeft:2, fontWeight:700 }}>TODAY</span>}
                 </div>
                 {dayEvents.slice(0,2).map((ev,ei)=>{
                   const sc=STATUS_COLORS[ev.status]||"#888";
-                  return(<div key={ei} style={{ fontSize:8, padding:"1px 4px", borderRadius:3, background:sc+"15", color:sc, marginBottom:1, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
+                  return(<div key={ei} style={{ fontSize:10, padding:"1px 4px", borderRadius:3, background:sc+"15", color:sc, marginBottom:1, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
                     {PLAT_ICO[ev.platform]||"📄"} {ev.title}
                   </div>);
                 })}
-                {dayEvents.length>2&&<div style={{ fontSize:8, color:"#9ca3af" }}>+{dayEvents.length-2}</div>}
+                {dayEvents.length>2&&<div style={{ fontSize:10, color:"#9ca3af" }}>+{dayEvents.length-2}</div>}
               </div>
             );
           })}
@@ -170,7 +170,7 @@ function ContentCalGuideTab(){
         <div style={{ fontSize:13, color:'#374151', fontWeight:600, marginTop:6, maxWidth:600, margin:'6px auto 0', lineHeight:1.7 }}>{g('guideSub')}</div>
       </div>
       <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:16, marginBottom:16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:14 }}>
           {STEPS.map((s,i)=>(
             <div key={i} style={{ background:s.c+'0a', border:'1px solid '+s.c+'25', borderRadius:12, padding:16 }}>
@@ -184,7 +184,7 @@ function ContentCalGuideTab(){
         </div>
       </div>
       <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:16, marginBottom:16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
           {TABS.map((tb,i)=>(
             <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 12px', background:'rgba(255,255,255,0.95)', borderRadius:10, border:'1px solid rgba(0,0,0,0.06)' }}>
@@ -198,7 +198,7 @@ function ContentCalGuideTab(){
         </div>
       </div>
       <div style={{ background:'rgba(34,197,94,0.05)', border:'1px solid rgba(34,197,94,0.3)', borderRadius:14, padding:20 }}>
-        <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
+        <div style={{ fontWeight:800, fontSize:16, marginBottom:12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
         <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#4b5563', lineHeight:2.2 }}>
           {[1,2,3,4,5,6,7].map(n=>(<li key={n}>{g('guideTip'+n)}</li>))}
         </ul>
@@ -306,7 +306,7 @@ export default function ContentCalendar(){
           <div style={{ background:'rgba(255,255,255,0.95)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:14, padding:20 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
               <button onClick={prevMonth} style={{ fontSize:13, padding:'4px 12px', cursor:'pointer', borderRadius:8, border:'1px solid rgba(0,0,0,0.08)', background:'transparent', color:'#374151' }}>← {t('contentCal.btnPrev')}</button>
-              <div style={{ fontWeight:800, fontSize:15, color:'#1f2937' }}>{viewYear}{t('contentCal.yearSuffix')} {t(`contentCal.${MONTH_KEYS[viewMonth]}`)}</div>
+              <div style={{ fontWeight:800, fontSize:14, color:'#1f2937' }}>{viewYear}{t('contentCal.yearSuffix')} {t(`contentCal.${MONTH_KEYS[viewMonth]}`)}</div>
               <button onClick={nextMonth} style={{ fontSize:13, padding:'4px 12px', cursor:'pointer', borderRadius:8, border:'1px solid rgba(0,0,0,0.08)', background:'transparent', color:'#374151' }}>{t('contentCal.btnNext')} →</button>
             </div>
             <MonthCalendar year={viewYear} month={viewMonth} events={monthEvents} t={t}/>

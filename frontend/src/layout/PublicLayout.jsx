@@ -67,8 +67,8 @@ export default function PublicLayout({ children }) {
                     <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
                         <img src="/logo_v5.png" alt="Geniego-ROI" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", boxShadow: "0 0 20px rgba(79,142,247,0.3)" }} />
                         <div>
-                            <div style={{ fontWeight: 900, fontSize: 15, color: 'var(--text-1)', letterSpacing: -0.3 }}>Geniego-ROI</div>
-                            <div style={{ fontSize: 9, color: "var(--text-3)", letterSpacing: 1.5, textTransform: "uppercase" }}>Revenue Intelligence</div>
+                            <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-1)', letterSpacing: -0.3 }}>Geniego-ROI</div>
+                            <div style={{ fontSize: 10, color: "var(--text-3)", letterSpacing: 1.5, textTransform: "uppercase" }}>Revenue Intelligence</div>
                         </div>
                     </Link>
                     <nav style={{ display: "flex", gap: 2, alignItems: "center" }}>

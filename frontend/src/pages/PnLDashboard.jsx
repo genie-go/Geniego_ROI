@@ -135,7 +135,7 @@ function HealthTab({ live, t, fmt }) {
             <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', borderColor: verdict.c + '55', background: verdict.c + '0d' }}>
                 <div style={{ width: 96, height: 96, borderRadius: '50%', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `4px solid ${verdict.c}`, background: 'var(--card)' }}>
                     <div style={{ fontSize: 26, fontWeight: 900, color: verdict.c, lineHeight: 1 }}>{score}</div>
-                    <div style={{ fontSize: 9, color: 'var(--text-3)' }}>/ 100</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>/ 100</div>
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 700 }}>{t('pnl.hsTitle', '순이익 건강 점수')}</div>
@@ -151,7 +151,7 @@ function HealthTab({ live, t, fmt }) {
                     <div key={m.key} style={{ ...CARD, padding: 14, borderLeft: `3px solid ${COL[m.status]}` }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: 11.5, color: 'var(--text-2)', fontWeight: 700 }}>{m.label}</span>
-                            <span style={{ fontSize: 9.5, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: COL[m.status] + '22', color: COL[m.status] }}>{STL[m.status]}</span>
+                            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: COL[m.status] + '22', color: COL[m.status] }}>{STL[m.status]}</span>
                         </div>
                         <div style={{ fontSize: 22, fontWeight: 900, color: COL[m.status], marginTop: 4 }}>{m.v.toFixed(1)}%</div>
                         <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.hsTarget', '목표')} {m.target}</div>
@@ -165,7 +165,7 @@ function HealthTab({ live, t, fmt }) {
                     <div style={{ display: 'grid', gap: 8 }}>
                         {worst.map((m, i) => (
                             <div key={m.key} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5 }}>
-                                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: COL[m.status], color: '#fff', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: COL[m.status], color: '#fff', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                                 <div><b style={{ color: COL[m.status] }}>{m.label}</b> ({m.v.toFixed(1)}%) — <span style={{ color: 'var(--text-2)' }}>{m.tip}</span></div>
                             </div>
                         ))}
@@ -364,7 +364,7 @@ function AnomalyTab({ t, live, fmt, navigate }) {
                             const col = ratio >= d.warn ? '#ef4444' : ratio >= d.warn * 0.7 ? '#eab308' : '#64748b';
                             return (
                                 <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '8px 4px', borderBottom: '1px solid var(--border,#f1f5f9)' }}>
-                                    <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: col, color: '#fff', fontWeight: 800, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                                    <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: col, color: '#fff', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
                                     <div style={{ minWidth: 110, fontWeight: 700, fontSize: 12.5 }}>{d.label}</div>
                                     <MiniBar v={d.amt} max={DRIVERS[0].amt} color={col} />
                                     <div style={{ width: 96, textAlign: 'right', fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: col }}>{fmt(d.amt)}</div>
@@ -383,7 +383,7 @@ function AnomalyTab({ t, live, fmt, navigate }) {
                 {anoms && anoms.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>✅ {t('pnl.rcNoAnom', '통계적 이상 신호가 없습니다(또는 데이터 부족).')}</div>}
                 {anoms && anoms.slice(0, 8).map((a, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border,#f1f5f9)' }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(234,179,8,0.15)', color: a.severity === 'critical' ? '#ef4444' : '#b45309' }}>{a.severity === 'critical' ? '긴급' : '경계'}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: a.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(234,179,8,0.15)', color: a.severity === 'critical' ? '#ef4444' : '#b45309' }}>{a.severity === 'critical' ? '긴급' : '경계'}</span>
                         <b>{a.channel}</b>
                         <span style={{ color: 'var(--text-2)' }}>{a.metric_label || a.metric} {(a.direction === '하락' || a.direction === 'down' || a.bad === 'down') ? '↓' : '↑'} {a.reason || a.message || ''}</span>
                     </div>
@@ -445,7 +445,7 @@ function ForecastChart({ rows, fmt, t }) {
                                     <div title={`${t('pnl.colNetProfit')} ${fmt(r.netProfit)}`} style={{ width: '40%', maxWidth: 26, height: `${prof}%`, minHeight: r.netProfit > 0 ? 3 : 0, background: `linear-gradient(180deg, ${GREEN}, ${GREEN}88)`, borderRadius: '4px 4px 0 0', transition: 'height 300ms' }} />
                                 </div>
                                 <div style={{ fontSize: 10, color: 'var(--text-2)', fontWeight: 700 }}>+{r.m}M</div>
-                                <div style={{ fontSize: 9, color: mc, fontWeight: 700 }}>{r.margin}%</div>
+                                <div style={{ fontSize: 10, color: mc, fontWeight: 700 }}>{r.margin}%</div>
                             </div>
                         );
                     })}
@@ -552,7 +552,7 @@ function ForecastTab({ live, t, fmt }) {
                         <div style={{ fontSize: 20, margin: '4px 0', color: dOp >= 0 ? GREEN : RED }}>{dOp >= 0 ? '▲' : '▼'}</div>
                         <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.whatifScenario', '시나리오 순이익')}</div>
                         <div style={{ fontSize: 22, fontWeight: 900, color: dOp >= 0 ? GREEN : RED }}>{fmt(scOp)}</div>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: dOp >= 0 ? GREEN : RED, marginTop: 4 }}>{dOp >= 0 ? '+' : ''}{fmt(dOp)} ({dOp >= 0 ? '+' : ''}{dPct.toFixed(1)}%)</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: dOp >= 0 ? GREEN : RED, marginTop: 4 }}>{dOp >= 0 ? '+' : ''}{fmt(dOp)} ({dOp >= 0 ? '+' : ''}{dPct.toFixed(1)}%)</div>
                         <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{t('pnl.whatifMargin', '시나리오 마진')} {scMargin.toFixed(1)}%</div>
                     </div>
                 </div>
@@ -573,16 +573,16 @@ function ForecastTab({ live, t, fmt }) {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
                         <div style={{ textAlign: 'center', padding: 12, background: 'rgba(34,197,94,0.08)', borderRadius: 8 }}>
                             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastRevenue')}</div>
-                            <div style={{ fontSize: 17, fontWeight: 900, color: GREEN }}>{fmt(totalFR)}</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: GREEN }}>{fmt(totalFR)}</div>
                         </div>
                         <div style={{ textAlign: 'center', padding: 12, background: 'rgba(79,142,247,0.08)', borderRadius: 8 }}>
                             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastProfit')}</div>
-                            <div style={{ fontSize: 17, fontWeight: 900, color: totalFP > 0 ? ACCENT : RED }}>{fmt(totalFP)}</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: totalFP > 0 ? ACCENT : RED }}>{fmt(totalFP)}</div>
                         </div>
                     </div>
                     <div style={{ textAlign: 'center', padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border)' }}>
                         <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('pnl.forecastAvgMargin', '예측 평균 마진율')}</div>
-                        <div style={{ fontSize: 17, fontWeight: 900, color: totalFR > 0 && (totalFP / totalFR * 100) >= 8 ? GREEN : '#f59e0b' }}>{totalFR > 0 ? (totalFP / totalFR * 100).toFixed(1) : '0.0'}%</div>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: totalFR > 0 && (totalFP / totalFR * 100) >= 8 ? GREEN : '#f59e0b' }}>{totalFR > 0 ? (totalFP / totalFR * 100).toFixed(1) : '0.0'}%</div>
                     </div>
                 </div>
 
@@ -766,7 +766,7 @@ function VatTab({ t, fmt, isAdmin }) {
                 {/* [H5] 보고통화 환산 손익 — 비-KRW 보고통화일 때만. KRW base 병기(무회귀·본 패널 한정). */}
                 {isConverted && repRows.length > 0 && (
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                        <div style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', marginBottom: 8 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>
                             🌐 {t('pnl.reporting.convertedTitle', '보고통화 환산 손익')} ({repCurrency}) · {t('pnl.reporting.baseNote', 'KRW 기준 병기')}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
@@ -856,7 +856,7 @@ function VatTab({ t, fmt, isAdmin }) {
                         {Object.entries(paddleMor).filter(([, v]) => typeof v !== 'object').map(([k, v]) => (
                             <div key={k} style={{ ...CARD, padding: '12px 14px' }}>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>{k}</div>
-                                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', marginTop: 3 }}>{typeof v === 'number' ? fmt(v) : String(v)}</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', marginTop: 3 }}>{typeof v === 'number' ? fmt(v) : String(v)}</div>
                             </div>
                         ))}
                     </div>
@@ -1245,8 +1245,8 @@ export default function PnLDashboard() {
                         flex: 1, padding: '10px 8px', border: 'none', cursor: 'pointer', textAlign: 'center', borderRadius: '8px 8px 0 0',
                         background: tab === tb.id ? 'rgba(79,142,247,0.1)' : 'transparent',
                         borderBottom: `2px solid ${tab === tb.id ? ACCENT : 'transparent'}`, transition: 'all 200ms' }}>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {t(tb.labelKey, tb.labelFb)}</div>
-                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>{t(tb.descKey, tb.descFb)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: tab === tb.id ? 'var(--text-1)' : 'var(--text-2)' }}>{tb.icon} {t(tb.labelKey, tb.labelFb)}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{t(tb.descKey, tb.descFb)}</div>
                     </button>
                 ))}
             </div>

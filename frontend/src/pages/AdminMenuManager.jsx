@@ -281,10 +281,10 @@ export default function AdminMenuManager() {
                 <span style={{ width: 12, fontSize: 12, color: 'var(--text-3)' }}>{isCollapsed ? '▶' : '▼'}</span>
                 <span style={{ fontSize: 16 }}>{section.icon}</span>
                 <span style={{
-                  padding: '2px 8px', borderRadius: 8, fontSize: 10, fontWeight: 800,
+                  padding: '2px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700,
                   background: 'rgba(99,102,241,0.15)', color: '#4f46e5',
                 }}>대메뉴</span>
-                <span style={{ fontSize: 15, fontWeight: 800 }}>{sectionLabel}</span>
+                <span style={{ fontSize: 14, fontWeight: 800 }}>{sectionLabel}</span>
                 <span style={{
                   padding: '2px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700,
                   background: 'rgba(34,197,94,0.10)', color: '#16a34a',
@@ -331,14 +331,14 @@ export default function AdminMenuManager() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                           <span style={{
-                            padding: '2px 7px', borderRadius: 8, fontSize: 9, fontWeight: 800,
+                            padding: '2px 7px', borderRadius: 8, fontSize: 10, fontWeight: 700,
                             background: 'rgba(34,197,94,0.15)', color: '#16a34a',
                           }}>중메뉴</span>
                           <span style={{ fontSize: 13, fontWeight: 800 }}>{ko?.title || group.menuKey}</span>
                           <code style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-3)', padding: '1px 5px', borderRadius: 3, background: 'rgba(0,0,0,0.2)' }}>
                             {group.menuKey}
                           </code>
-                          {!inDb && <span style={{ padding: '1px 7px', borderRadius: 8, fontSize: 9, background: 'rgba(251,146,60,0.12)', color: '#d97706' }}>{t('adminMenuManager.notRegistered', '⚠ menu_tree 미등록')}</span>}
+                          {!inDb && <span style={{ padding: '1px 7px', borderRadius: 8, fontSize: 10, background: 'rgba(251,146,60,0.12)', color: '#d97706' }}>{t('adminMenuManager.notRegistered', '⚠ menu_tree 미등록')}</span>}
                           <div style={{ flex: 1 }} />
                           {/* visibility 토글 */}
                           {inDb && (
@@ -368,13 +368,13 @@ export default function AdminMenuManager() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, flexWrap: 'wrap' }}>
                                   <span style={{ width: 14, textAlign: 'center', opacity: 0.6 }}>{it.icon}</span>
                                   <span style={{
-                                    padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 800,
+                                    padding: '1px 6px', borderRadius: 6, fontSize: 10, fontWeight: 700,
                                     background: 'rgba(251,191,36,0.15)', color: '#d97706',
                                   }}>하위</span>
                                   <span style={{ minWidth: 130, fontWeight: 700 }}>{leafLabel}</span>
                                   <code style={{ fontSize: 10, color: 'var(--text-3)', fontFamily: 'monospace' }}>{it.to}</code>
                                   {subTabs.length > 0 && (
-                                    <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 9, fontWeight: 700, background: 'rgba(168,85,247,0.12)', color: '#9333ea' }}>
+                                    <span style={{ padding: '1px 6px', borderRadius: 8, fontSize: 10, fontWeight: 700, background: 'rgba(168,85,247,0.12)', color: '#9333ea' }}>
                                       {t('adminMenuManager.subTabLabel', '📑 서브탭')} {subTabs.length}
                                     </span>
                                   )}
@@ -402,11 +402,11 @@ export default function AdminMenuManager() {
                                           background: 'rgba(168,85,247,0.04)', border: '1px solid rgba(168,85,247,0.10)',
                                         }}>
                                           <span style={{
-                                            padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 800,
+                                            padding: '1px 6px', borderRadius: 6, fontSize: 10, fontWeight: 700,
                                             background: 'rgba(168,85,247,0.18)', color: '#9333ea',
                                           }}>{t('adminMenuManager.subTabLabel', '📑 서브탭')}</span>
                                           <span style={{ fontWeight: 700 }}>{st.label}</span>
-                                          <code style={{ fontSize: 9, color: 'var(--text-3)', fontFamily: 'monospace' }}>{st.id}</code>
+                                          <code style={{ fontSize: 10, color: 'var(--text-3)', fontFamily: 'monospace' }}>{st.id}</code>
                                           <div style={{ flex: 1 }} />
                                           {stInDb && (
                                             <VisibilityToggle

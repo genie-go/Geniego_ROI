@@ -206,7 +206,7 @@ function SummaryTab({ token }) {
                                     <span style={{ fontSize: 11, color: "#7c8fa8" }}>{ch.cnt} {t("priceOpt.items")}</span>
                                 </div>
                                 <div style={{ fontSize: 11, color: "#94a3b8" }}>{t("priceOpt.avgRecPrice")}</div>
-                                <div style={{ fontWeight: 800, fontSize: 15, color: "#1e293b" }}>{fmt(parseFloat(ch.avg_optimal))}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, color: "#1e293b" }}>{fmt(parseFloat(ch.avg_optimal))}</div>
                                 <div style={{ marginTop: 6 }}>
                                     <ScoreBar value={parseFloat(ch.avg_margin)} max={0.6} color={chColor(ch.channel)} />
                                 </div>
@@ -983,7 +983,7 @@ function ProductsTab({ token }) {
 
                     {/* ── [276차] 계정 공통 배송/반품 설정 (한 번 등록 → 전 상품 기본값) ── */}
                     <details style={{ marginBottom: 10, background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 10, padding: '10px 12px' }} open={!fulfillment?.return_zip}>
-                        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#f97316' }}>
+                        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#f97316' }}>
                             🏬 {t('priceOpt.fulfillmentTitle', '배송/반품 설정 (계정 공통)')} {fulfillment?.return_zip ? <span style={{ color: '#16a34a', fontSize: 11 }}>✓ {t('priceOpt.shipDefaultSet', '설정됨')}</span> : <span style={{ color: '#ef4444', fontSize: 11 }}>({t('priceOpt.shipDefaultNone', '미설정')})</span>}
                         </summary>
                         {(() => {
@@ -1028,8 +1028,8 @@ function ProductsTab({ token }) {
                                 {images.map((src, i) => (
                                     <div key={i} style={{ position: 'relative' }}>
                                         <img src={src} alt="" style={{ width: 82, height: 82, objectFit: 'cover', borderRadius: 8, border: i === 0 ? '2px solid #6366f1' : '1px solid #e2e8f0' }} />
-                                        {i === 0 && <span style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 8, background: '#6366f1', color: '#fff', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>{t('priceOpt.imgMainLabel', '대표')}</span>}
-                                        {i !== 0 && <button onClick={() => moveImageFirst(i)} title={t('priceOpt.imgSetMain', '대표로')} style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 8, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', padding: '1px 4px', borderRadius: 3, cursor: 'pointer' }}>★</button>}
+                                        {i === 0 && <span style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 10, background: '#6366f1', color: '#fff', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>{t('priceOpt.imgMainLabel', '대표')}</span>}
+                                        {i !== 0 && <button onClick={() => moveImageFirst(i)} title={t('priceOpt.imgSetMain', '대표로')} style={{ position: 'absolute', bottom: 2, left: 2, fontSize: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', padding: '1px 4px', borderRadius: 3, cursor: 'pointer' }}>★</button>}
                                         <button onClick={() => removeImageAt(i)} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer' }}>✕</button>
                                     </div>
                                 ))}
@@ -1041,7 +1041,7 @@ function ProductsTab({ token }) {
                                         onClick={() => document.getElementById('prod-img-input')?.click()}
                                         style={{ width: 82, height: 82, border: `2px dashed ${dragOver ? '#6366f1' : '#cbd5e1'}`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: dragOver ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
                                         <div style={{ fontSize: 20 }}>＋</div>
-                                        <div style={{ fontSize: 9, color: '#7c8fa8' }}>{t('priceOpt.imageAdd')}</div>
+                                        <div style={{ fontSize: 10, color: '#7c8fa8' }}>{t('priceOpt.imageAdd')}</div>
                                     </div>
                                 )}
                             </div>
@@ -1096,7 +1096,7 @@ function ProductsTab({ token }) {
                                     setCatModal({ formMode: true, channel: '11st' });
                                 }} style={{ whiteSpace: 'nowrap', padding: '0 12px', borderRadius: 6, cursor: 'pointer',
                                     border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.08)',
-                                    color: '#2563eb', fontSize: 11, fontWeight: 800 }}>
+                                    color: '#2563eb', fontSize: 11, fontWeight: 700 }}>
                                     🔎 {t('priceOpt.catCheck', '카테고리 확인')}
                                 </button>
                             </div>
@@ -1306,15 +1306,15 @@ function ProductsTab({ token }) {
                             {parseInt(form.initial_stock) > 0 && (
                                 <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
                                     <div style={{ background: "#f1f5f9", borderRadius: 6, padding: '6px 8px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: 9, color: '#7c8fa8' }}>{t('priceOpt.totalUnits')}</div>
+                                        <div style={{ fontSize: 10, color: '#7c8fa8' }}>{t('priceOpt.totalUnits')}</div>
                                         <div style={{ fontWeight: 800, fontSize: 16, color: '#22c55e' }}>{stockSummary.totalUnits.toLocaleString()}</div>
                                     </div>
                                     <div style={{ background: "#f1f5f9", borderRadius: 6, padding: '6px 8px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: 9, color: '#7c8fa8' }}>{t('priceOpt.totalBoxes')}</div>
+                                        <div style={{ fontSize: 10, color: '#7c8fa8' }}>{t('priceOpt.totalBoxes')}</div>
                                         <div style={{ fontWeight: 800, fontSize: 16, color: '#06b6d4' }}>{stockSummary.totalBoxes.toLocaleString()}</div>
                                     </div>
                                     <div style={{ background: "#f1f5f9", borderRadius: 6, padding: '6px 8px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: 9, color: '#7c8fa8' }}>{t('priceOpt.totalPallets')}</div>
+                                        <div style={{ fontSize: 10, color: '#7c8fa8' }}>{t('priceOpt.totalPallets')}</div>
                                         <div style={{ fontWeight: 800, fontSize: 16, color: '#a855f7' }}>{stockSummary.totalPallets.toLocaleString()}</div>
                                     </div>
                                 </div>
@@ -1332,8 +1332,8 @@ function ProductsTab({ token }) {
                                 <div>{lbl(t('priceOpt.shippingFee'))}<input style={inpStyle} type="number" value={form.shipping_fee} onChange={e => set("shipping_fee", e.target.value)} placeholder="0" /></div>
                                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
                                     <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "6px 10px", border: "1px solid rgba(249,115,22,0.3)" }}>
-                                        <div style={{ fontSize: 9, color: "#7c8fa8", marginBottom: 2 }}>{t('priceOpt.productCostAuto')}</div>
-                                        <div style={{ fontWeight: 800, fontSize: 15, color: "#f97316" }}>{productCost != null ? fmt(productCost) : "—"}</div>
+                                        <div style={{ fontSize: 10, color: "#7c8fa8", marginBottom: 2 }}>{t('priceOpt.productCostAuto')}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 14, color: "#f97316" }}>{productCost != null ? fmt(productCost) : "—"}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1350,7 +1350,7 @@ function ProductsTab({ token }) {
                         <button onClick={save} disabled={!form.sku}
                             style={{ width: "100%", padding: "14px", borderRadius: 10, border: "none",
                                 background: form.sku ? "linear-gradient(135deg,#4f8ef7,#a855f7)" : "#cbd5e1",
-                                color: "#fff", fontSize: 15, fontWeight: 800, cursor: form.sku ? "pointer" : "not-allowed",
+                                color: "#fff", fontSize: 14, fontWeight: 800, cursor: form.sku ? "pointer" : "not-allowed",
                                 boxShadow: form.sku ? "0 10px 26px rgba(79,142,247,0.4)" : "none", transition: "all .2s" }}>
                             {t('priceOpt.saveProduct')}
                         </button>
@@ -1514,7 +1514,7 @@ function ProductsTab({ token }) {
                                         코드를 임의로 만들어 보여주면 엉뚱한 카테고리로 등록되므로, 정본 파일만 받는다. */}
                                     {catImportable && !catImportPreview && (
                                         <div style={{ marginTop: 6, padding: 12, borderRadius: 8, background: "rgba(79,142,247,0.05)", border: "1px dashed rgba(79,142,247,0.4)" }}>
-                                            <div style={{ fontSize: 11.5, fontWeight: 800, color: "#2563eb", marginBottom: 4 }}>
+                                            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#2563eb", marginBottom: 4 }}>
                                                 📄 {t('priceOpt.catImportTitle', '채널 카테고리 파일 올리기')}
                                             </div>
                                             <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.6, marginBottom: 8 }}>
@@ -1532,7 +1532,7 @@ function ProductsTab({ token }) {
                                     {/* 파일 인식 결과 미리보기 — 컬럼을 잘못 읽은 채로 적재되는 사고를 막는다(사용자 확인 필수). */}
                                     {catImportPreview && (
                                         <div style={{ marginTop: 6, padding: 12, borderRadius: 8, background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.3)" }}>
-                                            <div style={{ fontSize: 11.5, fontWeight: 800, color: "#16a34a", marginBottom: 6 }}>
+                                            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#16a34a", marginBottom: 6 }}>
                                                 ✅ {catImportPreview.fileName} — {catImportPreview.rows.length.toLocaleString()} {t('priceOpt.catImportFound', '건 인식')}
                                             </div>
                                             <div style={{ fontSize: 10, color: "#475569", marginBottom: 8 }}>
@@ -1795,7 +1795,7 @@ function OptimizeTab({ token }) {
                     ) : (
                         <div style={{ display: "grid", gap: 8, fontSize: 12.5 }}>
                             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                                <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtEqPrice", "내시 균형가")}: </span><b style={{ color: "#0ea5e9", fontSize: 15 }}>{Number(gt.equilibrium_price).toLocaleString()}</b></div>
+                                <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtEqPrice", "내시 균형가")}: </span><b style={{ color: "#0ea5e9", fontSize: 14 }}>{Number(gt.equilibrium_price).toLocaleString()}</b></div>
                                 <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtNaive", "순진한 이익최대가")}: </span><b>{Number(gt.naive_price).toLocaleString()}</b></div>
                                 <div><span style={{ color: "#64748b" }}>{t("priceOpt.gtRec", "권장가")}: </span><b style={{ color: "#22c55e" }}>{Number(gt.recommendation).toLocaleString()}</b></div>
                             </div>
@@ -2176,7 +2176,7 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
             {/* [현 차수] 경쟁가 자동 수집(4개 마켓플레이스) + 소스별 응답 서피싱 */}
             <div style={{ padding:'12px 16px', background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', borderRadius:12, display:'grid', gap:10 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-                    <button onClick={runHarvest} disabled={harvesting} style={{ padding:'8px 18px', borderRadius:9, border:'none', cursor:harvesting?'default':'pointer', fontWeight:800, fontSize:12, background:harvesting?'#cbd5e1':'linear-gradient(135deg,#4f8ef7,#6366f1)', color:'#fff' }}>
+                    <button onClick={runHarvest} disabled={harvesting} style={{ padding:'8px 18px', borderRadius:9, border:'none', cursor:harvesting?'default':'pointer', fontWeight:700, fontSize:12, background:harvesting?'#cbd5e1':'linear-gradient(135deg,#4f8ef7,#6366f1)', color:'#fff' }}>
                         {harvesting ? t('priceOpt.harvesting', '수집 중…') : `🛰️ ${t('priceOpt.harvestNow', '경쟁가 자동 수집')}`}
                     </button>
                     <span style={{ fontSize:11, color:'#7c8fa8' }}>{t('priceOpt.harvestSources', '수집 마켓플레이스')}: {t('priceOpt.mpNaver', '네이버쇼핑')} · {t('priceOpt.mpCoupang', '쿠팡')} · {t('priceOpt.mp11st', '11번가')} · Amazon</span>
@@ -2292,13 +2292,13 @@ function PriceCalendarTab({ token, priceCalendar, addPriceCalendarEvent }) {
                         <tr key={e.id || idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                             <td style={{ fontFamily:'monospace', fontSize:10, color:'#4f8ef7', padding:'8px 4px' }}>{e.sku}</td>
                             <td style={{ fontSize:11, padding:'8px 4px' }}>{e.name}</td>
-                            <td style={{ padding:'2px 8px', fontSize:9, fontWeight:700, borderRadius:20, background:(CH_BADGE[e.channel]||'#64748b')+'18', color:(CH_BADGE[e.channel]||'#64748b') }} ><span>{e.channel}</span></td>
+                            <td style={{ padding:'2px 8px', fontSize:10, fontWeight:700, borderRadius:20, background:(CH_BADGE[e.channel]||'#64748b')+'18', color:(CH_BADGE[e.channel]||'#64748b') }} ><span>{e.channel}</span></td>
                             <td style={{ fontSize:10, padding:'8px 4px' }}>{e.startDate}</td>
                             <td style={{ fontSize:10, padding:'8px 4px' }}>{e.endDate}</td>
                             <td style={{ fontFamily:'monospace', fontWeight:700, padding:'8px 4px', color:'#f97316' }}>{fmt(e.promoPrice)}</td>
                             <td style={{ fontSize:11, padding:'8px 4px', color:'#22c55e' }}>{e.discountRate}%↓</td>
                             <td style={{ fontSize:10, padding:'8px 4px' }}>{e.reason}</td>
-                            <td style={{ padding:'2px 8px', fontSize:9, fontWeight:700, borderRadius:20, background:e.status==='예정'?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color:e.status==='예정'?'#22c55e':'#f97316' }} ><span>{e.status==='예정'?t('priceOpt.statusScheduled','예정'):e.status==='초안'?t('priceOpt.statusDraft','초안'):(e.status||t('priceOpt.statusDraft','초안'))}</span></td>
+                            <td style={{ padding:'2px 8px', fontSize:10, fontWeight:700, borderRadius:20, background:e.status==='예정'?'rgba(34,197,94,0.15)':'rgba(249,115,22,0.15)', color:e.status==='예정'?'#22c55e':'#f97316' }} ><span>{e.status==='예정'?t('priceOpt.statusScheduled','예정'):e.status==='초안'?t('priceOpt.statusDraft','초안'):(e.status||t('priceOpt.statusDraft','초안'))}</span></td>
                         </tr>
                     ))}
                 </tbody>
@@ -2411,13 +2411,13 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
             </div>
             {/* [239차] 리프라이서 실행 + 채널 반영 승인(human-in-loop) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '14px 16px', borderRadius: 12, background: '#ffffff', border: '1px solid #e2e8f0' }}>
-                <button onClick={runReprice} disabled={running} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: running ? 'default' : 'pointer', fontWeight: 800, fontSize: 12, background: running ? '#cbd5e1' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                <button onClick={runReprice} disabled={running} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: running ? 'default' : 'pointer', fontWeight: 700, fontSize: 12, background: running ? '#cbd5e1' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
                     {running ? t('priceOpt.repriceRunning', 'Running…') : `⚡ ${t('priceOpt.repriceRun', 'Run Repricer')}`}
                 </button>
                 {pendingN > 0 && (
                     <>
-                        <span style={{ fontSize: 12, color: '#b45309', fontWeight: 800 }}>🔔 {t('priceOpt.pendingPush', 'Pending channel push')}: {pendingN}</span>
-                        <button onClick={approvePush} disabled={approving} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: approving ? 'default' : 'pointer', fontWeight: 800, fontSize: 12, background: approving ? '#cbd5e1' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>
+                        <span style={{ fontSize: 12, color: '#b45309', fontWeight: 700 }}>🔔 {t('priceOpt.pendingPush', 'Pending channel push')}: {pendingN}</span>
+                        <button onClick={approvePush} disabled={approving} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: approving ? 'default' : 'pointer', fontWeight: 700, fontSize: 12, background: approving ? '#cbd5e1' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>
                             {approving ? t('priceOpt.approving', 'Approving…') : `✅ ${t('priceOpt.approvePush', 'Approve channel push')}`}
                         </button>
                     </>
@@ -2441,7 +2441,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                     <div style={{ display: 'grid', gap: 5 }}>
                         {buybox.items.slice(0, 6).map((it, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 11.5, padding: '6px 10px', borderRadius: 8, background: '#fff', border: '1px solid #fef3c7' }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: it.win ? '#16a34a' : '#dc2626', padding: '2px 7px', borderRadius: 6 }}>{it.win ? t('priceOpt.buyboxWin', '점유') : t('priceOpt.buyboxLose', '패배')}</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: it.win ? '#16a34a' : '#dc2626', padding: '2px 7px', borderRadius: 6 }}>{it.win ? t('priceOpt.buyboxWin', '점유') : t('priceOpt.buyboxLose', '패배')}</span>
                                 <span style={{ fontWeight: 700, minWidth: 80, color: '#1e293b' }}>{it.name || it.sku}</span>
                                 <span style={{ color: '#64748b' }}>{t('priceOpt.buyboxOur', '우리')} {fmt(it.our_price)} · {t('priceOpt.buyboxComp', '최저')} {fmt(it.comp_low)}</span>
                                 <span style={{ color: it.gap_pct > 0 ? '#dc2626' : '#16a34a' }}>{it.gap_pct > 0 ? '+' : ''}{it.gap_pct}%</span>
@@ -2470,7 +2470,7 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                     <input type="number" min="0" value={newRule.min_price} onChange={e => setNewRule(r => ({ ...r, min_price: e.target.value }))} title={t("priceOpt.minPriceHint", "절대 최소가(원가마진 하한 위 추가 가드, 0=미설정)")} placeholder={t("priceOpt.minPrice", "최소가")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 90 }} />
                     <input type="number" min="0" value={newRule.max_price} onChange={e => setNewRule(r => ({ ...r, max_price: e.target.value }))} title={t("priceOpt.maxPriceHint", "절대 최대가(0=미설정)")} placeholder={t("priceOpt.maxPrice", "최대가")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 90 }} />
                     <input type="number" min="0" value={newRule.comp_max_age_hours} onChange={e => setNewRule(r => ({ ...r, comp_max_age_hours: e.target.value }))} title={t("priceOpt.compAgeHint", "경쟁가 최대 허용 나이(시간) — 더 오래된 경쟁가는 리프라이싱 제외(stale 방지). 0=무제한")} placeholder={t("priceOpt.compAge", "신선도h")} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, width: 80 }} />
-                    <button onClick={createRule} disabled={creating} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: creating ? "default" : "pointer", fontWeight: 800, fontSize: 12, background: creating ? "#cbd5e1" : "linear-gradient(135deg,#a855f7,#6366f1)", color: "#fff" }}>{creating ? "…" : "+ " + t("priceOpt.addRule", "규칙 추가")}</button>
+                    <button onClick={createRule} disabled={creating} style={{ padding: "8px 16px", borderRadius: 9, border: "none", cursor: creating ? "default" : "pointer", fontWeight: 700, fontSize: 12, background: creating ? "#cbd5e1" : "linear-gradient(135deg,#a855f7,#6366f1)", color: "#fff" }}>{creating ? "…" : "+ " + t("priceOpt.addRule", "규칙 추가")}</button>
                     {newRule.mode === 'elasticity' && <span style={{ fontSize: 11, color: "#94a3b8" }}>{t("priceOpt.mlHint", "실주문 데이터가 쌓이면 수요탄력성으로 이익최대 가격을 자동 산출합니다.")}</span>}
                 </div>
                 {rules.length === 0 && <div className="sub" style={{ padding: 16, fontSize: 12 }}>{t("priceOpt.noAnalysis")}</div>}
@@ -2479,14 +2479,14 @@ function DynamicRepricerTab({ token, inventory = [], digitalShelfData = {} }) {
                         <div key={r.id} style={{ padding: "14px 16px", borderRadius: 12, background: '#ffffff', border: `1px solid ${r.active ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.06)"}`, display: "flex", alignItems: "center", gap: 14 }}>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontWeight: 800, fontSize: 12, color: '#1e293b' }}>{r.name}</span>
-                                    <span style={{ fontSize: 9, padding: "1px 7px", borderRadius: 99, fontWeight: 700, background: `${MODE_COLOR[r.mode] || '#64748b'}18`, color: MODE_COLOR[r.mode] || '#64748b', border: `1px solid ${MODE_COLOR[r.mode] || '#64748b'}33` }}>{MODE_LABEL[r.mode] || r.mode}</span>
+                                    <span style={{ fontWeight: 700, fontSize: 12, color: '#1e293b' }}>{r.name}</span>
+                                    <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, fontWeight: 700, background: `${MODE_COLOR[r.mode] || '#64748b'}18`, color: MODE_COLOR[r.mode] || '#64748b', border: `1px solid ${MODE_COLOR[r.mode] || '#64748b'}33` }}>{MODE_LABEL[r.mode] || r.mode}</span>
                                 </div>
                                 <div style={{ fontSize: 11, color: "#94a3b8" }}>{r.sku} · {r.channel} · {r.lastRun || '—'} · {r.changeCount || 0}</div>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <span style={{ fontSize: 10, color: r.active ? "#22c55e" : "#7c8fa8", fontWeight: 700 }}>{r.active ? `● ${t('priceOpt.ruleActive')}` : `○ ${t('priceOpt.ruleInactive')}`}</span>
-                                <button onClick={() => { setRules(prev => prev.map(x => x.id === r.id ? { ...x, active: !x.active } : x)); postJsonAuth(`/v420/price/repricer/rules/${r.id}/toggle`).catch(() => {}); }} style={{ padding: "4px 12px", borderRadius: 7, border: "none", background: r.active ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: r.active ? "#ef4444" : "#22c55e", fontSize: 10, fontWeight: 800, cursor: "pointer" }}>
+                                <button onClick={() => { setRules(prev => prev.map(x => x.id === r.id ? { ...x, active: !x.active } : x)); postJsonAuth(`/v420/price/repricer/rules/${r.id}/toggle`).catch(() => {}); }} style={{ padding: "4px 12px", borderRadius: 7, border: "none", background: r.active ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: r.active ? "#ef4444" : "#22c55e", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
                                     {r.active ? t('priceOpt.ruleStop') : t('priceOpt.ruleActivate')}
                                 </button>
                             </div>
@@ -2603,7 +2603,7 @@ function PriceOptGuideTab() {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -2612,7 +2612,7 @@ function PriceOptGuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('priceOpt.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('priceOpt.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -2624,9 +2624,9 @@ function PriceOptGuideTab() {
                         <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -2743,13 +2743,13 @@ export default function PriceOpt() {
                         <div style={{ fontSize: 10, color: "#94a3b8" }}>{t("priceOpt.pageSub")}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', fontWeight: 700 }}>
+                        <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', fontWeight: 700 }}>
                             🔗 {connectedCount}{t('priceOpt.badgeChannelUnit', '개 채널 연동')}
                         </span>
-                        <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 12, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: '#6366f1', fontWeight: 700 }}>
+                        <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 12, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: '#6366f1', fontWeight: 700 }}>
                             ✅ {t('priceOpt.badgeRealtimeSync')}
                         </span>
-                        <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 12, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700 }}>
+                        <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 12, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700 }}>
                             🛡️ {t('priceOpt.badgeSecurityActive')}
                         </span>
                     </div>

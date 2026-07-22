@@ -204,7 +204,7 @@ export default function PaymentMethods() {
           ].map((b, i) => (
             <div key={i} style={{ padding: '14px 16px', borderRadius: 12, background: '#f8fafc', border: '1px solid #eef2f7' }}>
               <div style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, marginBottom: 6 }}>{b.l}</div>
-              <div style={{ fontSize: 19, fontWeight: 900, color: b.c, letterSpacing: -0.5 }}>{b.v}</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: b.c, letterSpacing: -0.5 }}>{b.v}</div>
             </div>
           ))}
         </div>
@@ -285,7 +285,7 @@ export default function PaymentMethods() {
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <div style={{ fontSize: 14, fontWeight: 800 }}>
                     {(m.card_issuer || tr('card'))} •••• {m.card_last4 || '****'}
-                    {Number(m.is_default) === 1 && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, color: '#4f46e5', background: '#eef2ff', padding: '2px 8px', borderRadius: 99 }}>{tr('defaultBadge')}</span>}
+                    {Number(m.is_default) === 1 && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 700, color: '#4f46e5', background: '#eef2ff', padding: '2px 8px', borderRadius: 99 }}>{tr('defaultBadge')}</span>}
                   </div>
                   {m.created_at && <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 3 }}>{tr('registeredAt')}: {String(m.created_at).slice(0, 10)}</div>}
                 </div>
@@ -308,7 +308,7 @@ export default function PaymentMethods() {
         <div style={{ display: 'grid', gap: 10 }}>
           {['how1', 'how2', 'how3', 'how4'].map((k, i) => (
             <div key={k} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#334155', lineHeight: 1.6 }}>
-              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 7, background: '#eef2ff', color: '#4f46e5', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+              <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 7, background: '#eef2ff', color: '#4f46e5', fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
               {tr(k)}
             </div>
           ))}

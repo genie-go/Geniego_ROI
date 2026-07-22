@@ -45,7 +45,7 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
   const kpi = (label, value, color) => (
     <div key={label} style={{ minWidth: 96 }}>
       <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{label}</div>
-      <div style={{ fontSize: 17, fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontSize: 16, fontWeight: 900, color }}>{value}</div>
     </div>
   );
 
@@ -118,7 +118,7 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
           {/* 광고 성과 — attribution 기반(있을 때만). 없으면 정직 안내 */}
           {ad ? (
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9, padding: '10px 12px', marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
                 📈 {t('dashboard.productMkt.adPerf', '광고 성과')} <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 10 }}>({ad.src})</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
@@ -154,7 +154,7 @@ export default function ProductMarketingPanel({ period = 'monthly', n = 0 }) {
           {/* [경쟁사] 가격최적화 수집분(po_competitors) 재사용 — 자사가 vs 경쟁 최저·가격갭·SoS(공개데이터). */}
           {sel.competitor && (
             <div style={{ marginTop: 12, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 9, padding: '10px 12px' }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
                 🏁 {t('dashboard.productMkt.competitor', '경쟁사 비교')} <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 10 }}>({t('dashboard.productMkt.compPublic', '공개 가격·검색점유 기준')})</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 12 }}>

@@ -303,7 +303,7 @@ export default function HelpPanel({ open, onClose }) {
                         {/* 데이터 수집 출처 */}
                         {Array.isArray(help.dataFrom) && help.dataFrom.length > 0 && (
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                     {t('helpPanel.dataFrom')}
                                 </div>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -321,7 +321,7 @@ export default function HelpPanel({ open, onClose }) {
                         {/* 제공 정보 */}
                         {Array.isArray(help.provides) && help.provides.length > 0 && (
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                     {t('helpPanel.provides')}
                                 </div>
                                 <div style={{ display: "grid", gap: 5 }}>
@@ -340,7 +340,7 @@ export default function HelpPanel({ open, onClose }) {
                         {/* Steps */}
                         {Array.isArray(help.steps) && help.steps.length > 0 && (
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                     {t('helpPanel.howToUse')}
                                 </div>
                                 <div style={{ display: "grid", gap: 8 }}>
@@ -355,7 +355,7 @@ export default function HelpPanel({ open, onClose }) {
                                                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                                                 background: "linear-gradient(135deg, #4f8ef7, #a855f7)",
                                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                                fontSize: 10, fontWeight: 900, color: 'var(--text-1)',
+                                                fontSize: 10, fontWeight: 700, color: 'var(--text-1)',
                                             }}>{i + 1}</span>
                                             <span style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>{step}</span>
                                         </div>
@@ -367,7 +367,7 @@ export default function HelpPanel({ open, onClose }) {
                         {/* Tips / 활용 방법 */}
                         {Array.isArray(help.tips) && help.tips.length > 0 && (
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                     {t('helpPanel.canDo')}
                                 </div>
                                 <div style={{ display: "grid", gap: 6 }}>

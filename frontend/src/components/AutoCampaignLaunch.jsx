@@ -25,13 +25,13 @@ function DesignThumb({ d, selected, onToggle }) {
       border: `2.5px solid ${selected ? '#22c55e' : 'rgba(0,0,0,0.1)'}`, background: 'transparent', textAlign: 'left',
     }}>
       <div style={{ height: 120, background: `linear-gradient(145deg, ${p.bg || '#0f172a'}, ${p.primary || '#4f8ef7'})`, padding: 10, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: p.text || '#fff', lineHeight: 1.2 }}>{(spec.headline || '').slice(0, 16)}</div>
-        <div style={{ display: 'inline-block', alignSelf: 'flex-start', padding: '3px 8px', borderRadius: 99, background: p.accent || '#22d3ee', color: p.bg || '#0f172a', fontSize: 8, fontWeight: 800 }}>{spec.cta || 'CTA'}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: p.text || '#fff', lineHeight: 1.2 }}>{(spec.headline || '').slice(0, 16)}</div>
+        <div style={{ display: 'inline-block', alignSelf: 'flex-start', padding: '3px 8px', borderRadius: 99, background: p.accent || '#22d3ee', color: p.bg || '#0f172a', fontSize: 10, fontWeight: 700 }}>{spec.cta || 'CTA'}</div>
       </div>
       <div style={{ padding: '5px 7px', background: '#fff' }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: '#334155' }}>{CHLABEL[spec.channel] || spec.channel} · {d.category || ''}</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#334155' }}>{CHLABEL[spec.channel] || spec.channel} · {d.category || ''}</div>
       </div>
-      {selected && <div style={{ position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: '#22c55e', color: '#fff', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>}
+      {selected && <div style={{ position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: '#22c55e', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>}
     </button>
   );
 }
@@ -203,7 +203,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
     <div style={{ display: 'grid', gap: 16 }}>
       {/* AI 디자인 연결 */}
       <div style={card}>
-        <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>🎨 {t('autoCamp.linkTitle', 'AI 디자인 연결')}</div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>🎨 {t('autoCamp.linkTitle', 'AI 디자인 연결')}</div>
         <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14, lineHeight: 1.6 }}>
           {t('autoCamp.linkDesc', 'AI 디자인 스튜디오에서 적용한 광고 디자인을 이 캠페인에 연결합니다. 연결할 디자인을 선택하세요.')}
         </div>
@@ -220,7 +220,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
 
       {/* [227차] 오디언스/리타겟팅 — CRM 고객을 매체 맞춤 오디언스로 업로드(해시) */}
       <div style={card}>
-        <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>🎯 {t('autoCamp.audTitle', '리타겟팅 오디언스')}</div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>🎯 {t('autoCamp.audTitle', '리타겟팅 오디언스')}</div>
         <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
           {t('autoCamp.audDesc', '내 CRM 고객·구매자를 매체 맞춤 오디언스로 업로드해 정밀 리타겟팅합니다. 이메일은 sha256 해시로만 전송되어 안전합니다(원문 미저장).')}
         </div>
@@ -230,11 +230,11 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
         </label>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={() => syncAudience('meta')} disabled={!!audBusy}
-            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 800, background: audBusy === 'meta' ? 'rgba(24,119,242,0.4)' : 'rgba(24,119,242,0.1)', color: '#1877f2' }}>
+            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 700, background: audBusy === 'meta' ? 'rgba(24,119,242,0.4)' : 'rgba(24,119,242,0.1)', color: '#1877f2' }}>
             {audBusy === 'meta' ? `⏳ ${t('autoCamp.audUploading', '업로드 중…')}` : `📘 ${t('autoCamp.audMeta', 'Meta 오디언스 동기화')}`}
           </button>
           <button onClick={() => syncAudience('google')} disabled={!!audBusy}
-            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 800, background: audBusy === 'google' ? 'rgba(66,133,244,0.4)' : 'rgba(66,133,244,0.1)', color: '#4285f4' }}>
+            style={{ padding: '9px 16px', borderRadius: 9, border: 'none', cursor: audBusy ? 'wait' : 'pointer', fontSize: 12, fontWeight: 700, background: audBusy === 'google' ? 'rgba(66,133,244,0.4)' : 'rgba(66,133,244,0.1)', color: '#4285f4' }}>
             {audBusy === 'google' ? `⏳ ${t('autoCamp.audUploading', '업로드 중…')}` : `🔵 ${t('autoCamp.audGoogle', 'Google Customer Match')}`}
           </button>
         </div>
@@ -244,7 +244,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       {/* 실행 요약 + 실행 버튼 */}
       {draft && draft.allocations?.length > 0 && (
         <div style={card}>
-          <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b', marginBottom: 12 }}>🚀 {t('autoCamp.launchTitle', '광고 자동 실행')}</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color: '#1e293b', marginBottom: 12 }}>🚀 {t('autoCamp.launchTitle', '광고 자동 실행')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 14 }}>
             <div style={{ padding: 12, borderRadius: 10, background: 'rgba(79,142,247,0.06)' }}><div style={{ fontSize: 10, color: '#64748b' }}>{t('autoCamp.budget', '예산')}</div><div style={{ fontSize: 16, fontWeight: 800, color: '#4f8ef7' }}>{fmt(draft.budget)}</div></div>
             <div style={{ padding: 12, borderRadius: 10, background: 'rgba(34,197,94,0.06)' }}><div style={{ fontSize: 10, color: '#64748b' }}>{t('autoCamp.estRoas', '예상 ROAS')}</div><div style={{ fontSize: 16, fontWeight: 800, color: '#22c55e' }}>{draft.estimatedRoas}x</div></div>
@@ -255,7 +255,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(14,165,233,0.06)', border: '1px solid rgba(14,165,233,0.18)', cursor: 'pointer' }}>
               <input type="checkbox" checked={abMode} onChange={e => setAbMode(e.target.checked)} style={{ marginTop: 2 }} />
               <span>
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: '#0369a1' }}>🧪 {t('autoCamp.abMode', '크리에이티브 자동 A/B 테스트')}</span>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0369a1' }}>🧪 {t('autoCamp.abMode', '크리에이티브 자동 A/B 테스트')}</span>
                 <span style={{ display: 'block', fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.5 }}>
                   {t('autoCamp.abModeDesc', '선택한 디자인')} {selDesigns.length}{t('autoCamp.abModeDesc2', '개를 동시 집행 → variant별 성과 측정 → 통계 승자 자동 선정 → 예산 집중·패자 자동 정지(매시 자동)')}
                 </span>
@@ -264,7 +264,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
           )}
           {/* [283차 P0-1] 랜딩 URL — 광고 클릭 목적지. 미입력 시 집행 차단(백엔드도 fail-closed). */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 5 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 5 }}>
               🔗 {t('autoCamp.landingLabel', '광고 랜딩 URL')} <span style={{ color: '#dc2626' }}>*</span>
             </div>
             <input type="url" value={landingUrl} onChange={e => setLandingUrl(e.target.value)}
@@ -280,7 +280,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
             </div>
           )}
           <button onClick={launch} disabled={busy || !(landingUrl || '').trim() || !selDesigns.length}
-            style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', cursor: busy ? 'wait' : (!(landingUrl || '').trim() || !selDesigns.length) ? 'not-allowed' : 'pointer', background: (busy || !(landingUrl || '').trim() || !selDesigns.length) ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 15 }}>
+            style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', cursor: busy ? 'wait' : (!(landingUrl || '').trim() || !selDesigns.length) ? 'not-allowed' : 'pointer', background: (busy || !(landingUrl || '').trim() || !selDesigns.length) ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 14 }}>
             {busy ? `⏳ ${t('autoCamp.launching', '실행 중…')}` : `🚀 ${t('autoCamp.launch', '광고 마케팅 자동 실행')}`}
           </button>
           {msg && <div style={{ marginTop: 10, padding: '10px 13px', borderRadius: 9, fontSize: 12, fontWeight: 600, background: msg.t === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)', color: msg.t === 'ok' ? '#16a34a' : '#dc2626' }}>{msg.m}</div>}
@@ -291,10 +291,10 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
       {campaigns.length > 0 && (
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 900, color: '#1e293b' }}>📡 {t('autoCamp.runningTitle', '실행중 자동 캠페인')} ({campaigns.length})</div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: '#1e293b' }}>📡 {t('autoCamp.runningTitle', '실행중 자동 캠페인')} ({campaigns.length})</div>
             {campaigns.some(c => c.status === 'active') && (
               <button onClick={pauseAllNow} disabled={killBusy}
-                style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.3)', cursor: killBusy ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 800, background: killBusy ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.1)', color: '#dc2626' }}>
+                style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid rgba(239,68,68,0.3)', cursor: killBusy ? 'wait' : 'pointer', fontSize: 11.5, fontWeight: 700, background: killBusy ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.1)', color: '#dc2626' }}>
                 {killBusy ? `⏳ ${t('autoCamp.killing', '정지 중…')}` : `🛑 ${t('autoCamp.killAll', '전체 긴급정지')}`}
               </button>
             )}
@@ -326,7 +326,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                   {/* [227차] 라이브 실시간 성과 — 매체 집행 결과(performance_metrics, 매시 ingest·30초 폴링) */}
                   {c.live && (c.live.spend > 0 || c.live.impressions > 0) && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10, padding: '9px 12px', borderRadius: 9, background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
-                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#16a34a', alignSelf: 'center' }}>📊 {t('autoCamp.liveTitle', '실시간 성과')}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#16a34a', alignSelf: 'center' }}>📊 {t('autoCamp.liveTitle', '실시간 성과')}</span>
                       {[[t('autoCamp.liveSpend', '집행'), fmt(c.live.spend)], [t('autoCamp.liveRevenue', '매출'), fmt(c.live.revenue)], ['ROAS', `${c.live.roas}x`], [t('autoCamp.liveConv', '전환'), c.live.conversions], ['CTR', `${c.live.clicks > 0 && c.live.impressions > 0 ? (c.live.clicks / c.live.impressions * 100).toFixed(1) : '0.0'}%`]].map(([lb, v], i) => (
                         <span key={i} style={{ fontSize: 11 }}><span style={{ color: '#94a3b8', fontWeight: 600 }}>{lb} </span><span style={{ fontWeight: 800, color: lb === 'ROAS' ? (c.live.roas >= 1 ? '#16a34a' : '#dc2626') : '#1e293b' }}>{v}</span></span>
                       ))}
@@ -336,7 +336,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                   {/* Phase3 — 실시간 최적화 */}
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed rgba(0,0,0,0.08)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed' }}>⚡ {t('autoCamp.optTitle', '실시간 효과 최적화')}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed' }}>⚡ {t('autoCamp.optTitle', '실시간 효과 최적화')}</span>
                       <button onClick={() => optimize(c)} disabled={optBusy === c.id}
                         style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: optBusy === c.id ? 'wait' : 'pointer', fontSize: 11, fontWeight: 700, background: optBusy === c.id ? 'rgba(124,58,237,0.4)' : 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#fff' }}>
                         {optBusy === c.id ? `⏳ ${t('autoCamp.optimizing', '분석 중…')}` : `⚡ ${t('autoCamp.optimizeNow', '지금 최적화')}`}
@@ -375,7 +375,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
                   {/* 크리에이티브 A/B 테스트 — variant별 성과·승자 */}
                   {(abTests[c.id] || []).length > 0 && (
                     <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed rgba(0,0,0,0.08)' }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#0ea5e9' }}>🧪 {t('autoCamp.abTitle', '크리에이티브 A/B 테스트')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0ea5e9' }}>🧪 {t('autoCamp.abTitle', '크리에이티브 A/B 테스트')}</div>
                       {(abTests[c.id] || []).map(tst => (
                         <div key={tst.id} style={{ marginTop: 6 }}>
                           <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>

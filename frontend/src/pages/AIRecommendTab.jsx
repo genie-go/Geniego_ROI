@@ -92,8 +92,8 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
             <div style={{ padding: '10px 14px', borderRadius: 10, background: '#4f8ef70f', border: budgetEditing ? '1.5px solid #4f8ef7' : '1px solid #4f8ef722', textAlign: 'center', cursor: 'pointer' }}
                 onClick={() => { if (!budgetEditing) { setBudgetEditing(true); setBudgetInputVal(String(activeBudget)); } }}>
-                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    {t('gAiRec.monthlyRecBudget')} <span style={{ fontSize: 8, color: '#4f8ef7' }}>{t('gAiRec.edit')}</span>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    {t('gAiRec.monthlyRecBudget')} <span style={{ fontSize: 10, color: '#4f8ef7' }}>{t('gAiRec.edit')}</span>
                 </div>
                 {budgetEditing ? (
                     <input autoFocus type="number" value={budgetInputVal}
@@ -105,7 +105,7 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
                     <div style={{ fontSize: 16, fontWeight: 900, color: '#4f8ef7' }}>{fmtWon(activeBudget)}</div>
                 )}
                 {customBudget !== null && (
-                    <div style={{ fontSize: 8, color: '#fbbf24', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 2 }}>
                         {t('gAiRec.original')} {result.monthly_budget}
                         <span style={{ marginLeft: 6, cursor: 'pointer', textDecoration: 'underline' }}
                             onClick={e => { e.stopPropagation(); setCustomBudget(null); }}>{t('gAiRec.reset')}</span>
@@ -113,17 +113,17 @@ function BudgetPanel({ result, customBudget, setCustomBudget, budgetEditing, set
                 )}
             </div>
             <div style={{ padding: '10px 14px', borderRadius: 10, background: '#22c55e0f', border: '1px solid #22c55e22', textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    {t('gAiRec.annualRecBudget')} <span style={{ fontSize: 8, color: '#22c55e' }}>{t('gAiRec.autoYear')}</span>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    {t('gAiRec.annualRecBudget')} <span style={{ fontSize: 10, color: '#22c55e' }}>{t('gAiRec.autoYear')}</span>
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 900, color: '#22c55e' }}>{fmtWon(annualBudget)}</div>
                 {customBudget !== null && (
-                    <div style={{ fontSize: 8, color: '#fbbf24', marginTop: 2 }}>{t('gAiRec.original')} {result.annual_budget}</div>
+                    <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 2 }}>{t('gAiRec.original')} {result.annual_budget}</div>
                 )}
             </div>
             {result.expected_roas && (
                 <div style={{ padding: '10px 14px', borderRadius: 10, background: '#f973160f', border: '1px solid #f9731622', textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('gAiRec.expectedRoas')}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('gAiRec.expectedRoas')}</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color: '#f97316' }}>{result.expected_roas}</div>
                 </div>
             )}
@@ -542,9 +542,9 @@ function AIRecommendTab() {
                 {CAT_OPTIONS.map(c => (
                     <button key={c.id} onClick={() => { setCatId(c.id); setResult(null); setStatus('idle'); setShowApproveAllBanner(false); setApproved({}); }} style={{ padding: '6px 18px', borderRadius: 99, border: `2px solid ${catId === c.id ? c.color : 'rgba(120,130,200,0.18)'}`,
                             background: catId === c.id ? c.color + '15' : 'transparent',
-                            color: catId === c.id ? c.color : 'var(--text-3)', fontWeight: 800, fontSize: 12, cursor: 'pointer', transition: 'all 0.17s'
+                            color: catId === c.id ? c.color : 'var(--text-3)', fontWeight: 700, fontSize: 12, cursor: 'pointer', transition: 'all 0.17s'
                         }}>
-                        {t('gCat.' + c.id + '_label')} <span style={{ fontSize: 9, opacity: 0.7 }}>({t('gCat.' + c.id + '_route')})</span>
+                        {t('gCat.' + c.id + '_label')} <span style={{ fontSize: 10, opacity: 0.7 }}>({t('gCat.' + c.id + '_route')})</span>
                     </button>
                 ))}
             </div>
@@ -555,7 +555,7 @@ function AIRecommendTab() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                         <div style={{ fontWeight: 800, fontSize: 13, color: cat.color }}>{t('gAiRec.salesInfo')}</div>
                         {catalogStats && !productInfoEdited && (
-                            <div style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: cat.color + '18', color: cat.color, border: `1px solid ${cat.color}33` }}>
+                            <div style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: cat.color + '18', color: cat.color, border: `1px solid ${cat.color}33` }}>
                                 {t('gAiRec.catalogAuto')}
                             </div>
                         )}
@@ -563,16 +563,16 @@ function AIRecommendTab() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 10 }}>
                         {[[t('gAiRec.skuCount'), 'skuCount', t('gAiRec.units')], [t('gAiRec.monthlyQty'), 'monthlyQty', t('gAiRec.units')], [t('gAiRec.avgPrice'), 'avgPrice', t('gAiRec.currencyWon')], [t('gAiRec.marginRate'), 'marginRate', '%'], [t('gAiRec.goalRevenue'), 'targetRevenue', t('gAiRec.currencyWon')]].map(([lbl, key, unit]) => (
                             <div key={key}>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>{lbl}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 3 }}>{lbl}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                     <input type="number" value={productInfo[key]} onChange={e => setProd(key, e.target.value)}
                                         style={{ flex: 1, background: 'rgba(0,0,0,0.35)', border: `1px solid ${cat.color}33`, borderRadius: 7, color: '#fff', padding: '5px 8px', fontSize: 11 }} />
-                                    <span style={{ fontSize: 9, color: 'var(--text-3)' }}>{unit}</span>
+                                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{unit}</span>
                                 </div>
                             </div>
                         ))}
                         <div>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>{t('gAiRec.period')}</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 3 }}>{t('gAiRec.period')}</div>
                             <div style={{ display: 'flex', gap: 6 }}>
                                 {[['monthly', t('gAiRec.monthly')], ['annual', t('gAiRec.annual')]].map(([v, l]) => (
                                     <button key={v} onClick={() => setProd('period', v)}
@@ -584,7 +584,7 @@ function AIRecommendTab() {
                         </div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 5 }}>{t('gAiRec.mainChannels')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 5 }}>{t('gAiRec.mainChannels')}</div>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {['Naver Shopping', 'Coupang', 'Own Mall', '11Street', 'Gmarket', 'Kakao Shopping', 'Amazon', 'Rakuten'].map(ch => (
                                 <button key={ch} onClick={() => toggleSalesCh(ch)}
@@ -617,7 +617,7 @@ function AIRecommendTab() {
                         position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
                         padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
                         background: status === 'loading' ? 'rgba(99,102,241,0.4)' : `linear-gradient(135deg,${cat.color},#6366f1)`,
-                        color: '#fff', fontWeight: 800, fontSize: 12, transition: 'all 0.2s' }}>
+                        color: '#fff', fontWeight: 700, fontSize: 12, transition: 'all 0.2s' }}>
                     {status === 'loading' ? '⏳' : t('gAiRec.aiAnalysis')}
                 </button>
             </div>
@@ -655,7 +655,7 @@ function AIRecommendTab() {
             {/* [283차 P0-1·P0-2] 실 집행 전제조건 — 랜딩 URL(광고 클릭 목적지) + 저장 소재. 둘 다 없으면 집행 차단. */}
             {status === 'done' && result && (
                 <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                    <div style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6 }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>
                         🔗 {t('gAiRec.landingLabel', '광고 랜딩 URL')} <span style={{ color: '#dc2626' }}>*</span>
                     </div>
                     <input type="url" value={landingUrl} onChange={e => setLandingUrl(e.target.value)}

@@ -56,7 +56,7 @@ function AuthPanel({ onSaved }) {
 
     return (
         <div style={{ padding: '16px 20px', borderRadius: 14, background: 'rgba(0,180,0,0.04)', border: '1px solid rgba(0,180,0,0.15)' }}>
-            <div style={{ fontWeight: 900, fontSize: 12, color: '#25D366', marginBottom: 12 }}>🔑 {t('wa.authInfo','WhatsApp Business API Auth Info')}</div>
+            <div style={{ fontWeight: 700, fontSize: 12, color: '#25D366', marginBottom: 12 }}>🔑 {t('wa.authInfo','WhatsApp Business API Auth Info')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 12 }}>
                 {[
                     { k: 'phone_number_id', l: t('wa.fieldPhoneId','Phone Number ID'), ph: '123456789012345' },

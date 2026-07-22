@@ -58,7 +58,7 @@ export default function PMRaid() {
             <div key={it.id} style={{ ...box, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#4f8ef722', color: '#4f8ef7' }}>{TYPE_LABEL[it.type] || it.type}</span>
-                <span style={{ width: 30, height: 24, lineHeight: '24px', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 12, background: sevColor(it.severity) + '22', color: sevColor(it.severity) }} title={t('pmx.raid.severity', '심각도')}>{it.severity}</span>
+                <span style={{ width: 30, height: 24, lineHeight: '24px', textAlign: 'center', borderRadius: 6, fontWeight: 700, fontSize: 12, background: sevColor(it.severity) + '22', color: sevColor(it.severity) }} title={t('pmx.raid.severity', '심각도')}>{it.severity}</span>
                 <b>{it.title}</b>
                 {it.owner && <span style={{ fontSize: 11, color: '#94a3b8' }}>👤 {it.owner}</span>}
               </div>

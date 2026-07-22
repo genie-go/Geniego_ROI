@@ -55,7 +55,7 @@ const GlassTooltip = ({ active, payload, label, currFmt }) => {
                 <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 3 }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: e.color, flexShrink: 0 }} />
                     <span style={{ color: '#64748b', fontSize: 11 }}>{e.name}:</span>
-                    <span style={{ color: '#1e293b', fontWeight: 800, fontSize: 12 }}>{currFmt ? currFmt(e.value) : Number(e.value).toLocaleString()}</span>
+                    <span style={{ color: '#1e293b', fontWeight: 700, fontSize: 12 }}>{currFmt ? currFmt(e.value) : Number(e.value).toLocaleString()}</span>
                 </div>
             ))}
         </div>
@@ -67,7 +67,7 @@ const StatusBadge = ({ status, t }) => {
     const isActive = status === 'active';
     return (
         <span style={{
-            padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 800,
+            padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: 0.5,
             background: isActive ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)',
             color: isActive ? '#16a34a' : '#d97706',
@@ -388,7 +388,7 @@ export default function AccountPerformance() {
                                 background: active ? c : 'transparent',
                                 color: active ? '#ffffff' : 'var(--text-2, #4b5563)',
                                 boxShadow: active ? `0 4px 20px ${c}40` : 'none',
-                                transform: active ? 'translateY(-1px)' : 'none' }}><span style={{ fontSize: 15 }}>{tb.icon}</span> {tb.label}</button>
+                                transform: active ? 'translateY(-1px)' : 'none' }}><span style={{ fontSize: 14 }}>{tb.icon}</span> {tb.label}</button>
                         );
                     })}
                 </div>
@@ -526,7 +526,7 @@ export default function AccountPerformance() {
                                             <td style={{ padding: '12px 24px', fontWeight: 700, fontSize: 13, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 10 }}>
                                                 <span style={{ fontSize: 10, color: '#4f8ef7', transition: 'transform 0.2s', transform: expandedCampaigns[campaign.id] ? 'rotate(90deg)' : 'none' }}>▶</span>
                                                 📁 {campaign.name}
-                                                <span style={{ fontSize: 9, padding: '2px 6px', background: '#f1f5f9', borderRadius: 4, marginLeft: 6, color: '#64748b' }}>{campaign.objective}</span>
+                                                <span style={{ fontSize: 10, padding: '2px 6px', background: '#f1f5f9', borderRadius: 4, marginLeft: 6, color: '#64748b' }}>{campaign.objective}</span>
                                             </td>
                                             <td style={{ textAlign: 'center', fontSize: 11, color: '#64748b', padding: '14px 12px' }}>{campaign.account_team}</td>
                                             <td style={{ textAlign: 'center', padding: '14px 12px' }}><StatusBadge status={campaign.status} t={t} /></td>
@@ -606,7 +606,7 @@ export default function AccountPerformance() {
 
                     {/* 10 Steps */}
                     <div style={{ ...CARD, padding: 24 }}>
-                        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 20, color: '#1e293b' }}>📖 {t('acctPerf.guideStepsTitle', 'Step-by-Step Guide (10 Steps)')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 20, color: '#1e293b' }}>📖 {t('acctPerf.guideStepsTitle', 'Step-by-Step Guide (10 Steps)')}</div>
                         <div style={{ display: 'grid', gap: 12 }}>
                             {[
                                 { n: 1, e: '🎯', c: '#4f8ef7' }, { n: 2, e: '📊', c: '#22c55e' },
@@ -617,7 +617,7 @@ export default function AccountPerformance() {
                             ].map((s) => (
                                 <div key={s.n} style={{ padding: '14px 18px', borderRadius: 12, borderLeft: `4px solid ${s.c}`, background: `${s.c}06` }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: s.c, color: '#fff', fontSize: 12, fontWeight: 900 }}>{s.n}</span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: s.c, color: '#fff', fontSize: 12, fontWeight: 700 }}>{s.n}</span>
                                         <span style={{ fontSize: 14, fontWeight: 700, color: s.c }}>{t(`acctPerf.guideStep${s.n}Title`, `Step ${s.n}`)}</span>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7, marginLeft: 36 }}>{t(`acctPerf.guideStep${s.n}Desc`, '')}</div>
@@ -628,7 +628,7 @@ export default function AccountPerformance() {
 
                     {/* Tab Reference */}
                     <div style={{ ...CARD, padding: 24 }}>
-                        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e293b' }}>🗂 {t('acctPerf.guideTabsTitle', 'Tab Reference')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1e293b' }}>🗂 {t('acctPerf.guideTabsTitle', 'Tab Reference')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
                             {[
                                 { icon: '📊', c: '#4f8ef7', name: t('acctPerf.guideTabDashboardName', 'Dashboard'), desc: t('acctPerf.guideTabDashboardDesc', 'Team budgets, objective KPIs, and revenue charts.') },
@@ -647,7 +647,7 @@ export default function AccountPerformance() {
 
                     {/* Pro Tips */}
                     <div style={{ ...CARD, padding: 24, background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.15)' }}>
-                        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1e293b' }}>💡 {t('acctPerf.guideTipsTitle', 'Pro Tips')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color: '#1e293b' }}>💡 {t('acctPerf.guideTipsTitle', 'Pro Tips')}</div>
                         <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#64748b', lineHeight: 2.2 }}>
                             {[1,2,3,4,5].map(n => <li key={n}>{t(`acctPerf.guideTip${n}`, '')}</li>)}
                         </ul>
@@ -655,7 +655,7 @@ export default function AccountPerformance() {
 
                     {/* FAQ */}
                     <div style={{ ...CARD, padding: 24 }}>
-                        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e293b' }}>❓ {t('acctPerf.guideFaqTitle', 'FAQ')}</div>
+                        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1e293b' }}>❓ {t('acctPerf.guideFaqTitle', 'FAQ')}</div>
                         <div style={{ display: 'grid', gap: 12 }}>
                             {[1,2,3,4,5].map(n => (
                                 <div key={n} style={{ padding: '12px 16px', borderRadius: 10, background: '#f8fafc', border: '1px solid rgba(0,0,0,0.04)' }}>

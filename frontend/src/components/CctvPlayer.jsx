@@ -168,7 +168,7 @@ export default function CctvPlayer({ camera, height = 260, onError }) {
                 <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', alignItems: 'center', gap: 5,
                               background: 'rgba(0,0,0,0.55)', padding: '3px 8px', borderRadius: 20 }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ef4444' }} />
-                    <span style={{ color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.5 }}>LIVE</span>
+                    <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: 0.5 }}>LIVE</span>
                 </div>
             )}
             <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8, color: '#e2e8f0', fontSize: 11,

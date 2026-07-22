@@ -89,7 +89,7 @@ export default function LiveGuest() {
               {bcast.state === 'idle' && <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                 <div style={{ fontSize: 40 }}>📷</div><div style={{ fontSize: 13, marginTop: 6 }}>{t('liveGuest.camOff', '카메라가 꺼져 있습니다')}</div>
               </div>}
-              {bcast.state === 'live' && <span style={{ position: 'absolute', top: 12, left: 12, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 6 }}>● {t('liveGuest.onair', '송출 중')}</span>}
+              {bcast.state === 'live' && <span style={{ position: 'absolute', top: 12, left: 12, background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>● {t('liveGuest.onair', '송출 중')}</span>}
             </div>
 
             <div style={{ background: 'rgba(255,255,255,.06)', borderRadius: 12, padding: 14, marginBottom: 12, fontSize: 13 }}>

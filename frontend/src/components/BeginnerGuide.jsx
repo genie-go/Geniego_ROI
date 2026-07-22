@@ -10,7 +10,7 @@ import { useT } from '../i18n/index.js';
 const S = {
   wrap: { background: 'linear-gradient(135deg,#eff6ff,#f5f3ff)', border: '1px solid #c7d2fe', borderRadius: 16, padding: 22, display: 'grid', gap: 16 },
   sec: { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 12, padding: '16px 18px' },
-  h: { fontWeight: 900, fontSize: 15, color: 'var(--text-1)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
+  h: { fontWeight: 900, fontSize: 14, color: 'var(--text-1)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
   p: { fontSize: 13, color: 'var(--text-2)', lineHeight: 1.75, margin: 0 },
   box: { flex: 1, minWidth: 180, background: '#f8fafc', border: '1px solid var(--border,#e2e8f0)', borderRadius: 10, padding: '12px 14px' },
   boxT: { fontWeight: 800, fontSize: 13, color: 'var(--text-1)', marginBottom: 4 },
@@ -69,7 +69,7 @@ export default function BeginnerGuide({ spec, defaultOpen = false }) {
   if (!spec || !Array.isArray(spec.sections)) return null;
   return (
     <div>
-      <button onClick={() => setOpen(v => !v)} style={{ padding: '8px 16px', borderRadius: 9, border: '1px solid var(--border,#e2e8f0)', background: open ? 'rgba(79,142,247,0.12)' : 'var(--surface,#fff)', color: open ? '#4f6ef7' : 'var(--text-2)', fontWeight: 800, fontSize: 12.5, cursor: 'pointer', marginBottom: open ? 14 : 0 }}>
+      <button onClick={() => setOpen(v => !v)} style={{ padding: '8px 16px', borderRadius: 9, border: '1px solid var(--border,#e2e8f0)', background: open ? 'rgba(79,142,247,0.12)' : 'var(--surface,#fff)', color: open ? '#4f6ef7' : 'var(--text-2)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', marginBottom: open ? 14 : 0 }}>
         {open ? `▲ ${t('guideCommon.hide', '이용 가이드 접기')}` : `📖 ${t('guideCommon.show', '처음이신가요? 이용 가이드 보기')}`}
       </button>
       {open && <div style={S.wrap}>{spec.sections.map((sec, i) => <Section key={i} sec={sec} />)}</div>}

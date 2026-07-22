@@ -27,7 +27,7 @@ export default function RoleViewBar() {
   return (
     <div style={{ margin: '0 6px 12px', border: '1px solid rgba(99,140,255,0.18)', borderRadius: 12, background: 'rgba(99,140,255,0.04)', padding: '8px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setOpen(o => !o)}>
-        <span style={{ fontSize: 12.5, fontWeight: 800 }}>🧭 {t('roleViews.title', '역할별 관점 (Role Views)')}</span>
+        <span style={{ fontSize: 12.5, fontWeight: 700 }}>🧭 {t('roleViews.title', '역할별 관점 (Role Views)')}</span>
         <span style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)' }}>{t('roleViews.sub', '직무에 맞는 화면으로 바로 이동 — 같은 순이익 데이터, 다른 관점')}</span>
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-3,#94a3b8)' }}>{open ? '▲' : '▼'}</span>
       </div>
@@ -36,7 +36,7 @@ export default function RoleViewBar() {
           {ROLES.map(r => (
             <button key={r.id} onClick={() => navigate(r.to)} title={r.desc}
               style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: '1px solid var(--border,#e2e8f0)', background: 'var(--card,#fff)', cursor: 'pointer' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text-1,#0f172a)' }}>{r.icon} {t('roleViews.role_' + r.id, r.ko)}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-1,#0f172a)' }}>{r.icon} {t('roleViews.role_' + r.id, r.ko)}</div>
               <div style={{ fontSize: 10, color: 'var(--text-3,#94a3b8)', marginTop: 2, lineHeight: 1.35 }}>{t('roleViews.desc_' + r.id, r.desc)}</div>
             </button>
           ))}

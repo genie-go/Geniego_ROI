@@ -177,7 +177,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         <div className="nav-item" style={{ opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' }} title="관리자가 비활성으로 설정한 메뉴입니다">
           <span className="nav-icon">{item.icon}</span>
           <span className="truncate" style={{ textDecoration: 'line-through' }}>{label}</span>
-          <span style={{ marginLeft: 'auto', fontSize: 9, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
         </div>
       );
     }
@@ -229,7 +229,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
         <span style={{ flex: 1, textAlign: "left", whiteSpace: "normal", overflowWrap: "break-word", wordBreak: "keep-all", lineHeight: 1.3 }}>{sectionLabel}</span>
         {hasActive && <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4f8ef7", flexShrink: 0 }} />}
         <span aria-hidden="true" style={{
-          fontSize: 9, color: "var(--text-3)", transition: "transform 200ms",
+          fontSize: 10, color: "var(--text-3)", transition: "transform 200ms",
           transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0,
         }}>▶</span>
       </button>
@@ -267,7 +267,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
                   <span className="nav-icon" style={{ fontSize: 12 }}>🔒</span>
                   <span className="truncate" style={{ color: "var(--text-3)" }}>{label}</span>
                   <span style={{
-                    marginLeft: "auto", fontSize: 7, padding: "1px 5px", borderRadius: 4,
+                    marginLeft: "auto", fontSize: 10, padding: "1px 5px", borderRadius: 4,
                     background: "rgba(99,102,241,0.15)", color: "#a5b4fc",
                     border: "1px solid rgba(99,102,241,0.25)", whiteSpace: "nowrap", flexShrink: 0,
                   }}>{t('g.upgradeLabel')}</span>
@@ -293,7 +293,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
                   }} />
                   <span className="nav-icon" style={{ fontSize: 12 }}>{item.icon}</span>
                   <span className="truncate" style={{ textDecoration: 'line-through' }}>{label}</span>
-                  <span style={{ marginLeft: 'auto', fontSize: 8, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(220,38,38,0.15)', color: '#dc2626' }}>비활성</span>
                 </div>
               );
             }
@@ -351,7 +351,7 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-2)' }}>{t('root_quickRecents', t('g.quickRecents', 'Recent'))}</span>
           {itemCount > 0 && (
             <span style={{
-              fontSize: 8, fontWeight: 800, padding: '1px 5px', borderRadius: 8,
+              fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 8,
               background: 'rgba(79,142,247,0.15)', color: '#4f8ef7',
             }}>{itemCount}</span>
           )}
@@ -372,8 +372,8 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
         {/* 탭 전환 */}
         {hasFavs && hasRecents && (
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
-            <button onClick={(e) => { e.stopPropagation(); setTab('favs'); }} style={{ flex: 1, padding: '5px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'favs' ? 'rgba(79,142,247,0.12)' : 'transparent', color: activeTab === 'favs' ? '#4f8ef7' : 'var(--text-3)', transition: 'all 150ms' }}>⭐{t('g.quickFavs', 'Favorites')} {favs.size}</button>
-            <button onClick={(e) => { e.stopPropagation(); setTab('recents'); }} style={{ flex: 1, padding: '5px 0', fontSize: 9, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'recents' ? 'rgba(34,197,94,0.1)' : 'transparent', color: activeTab === 'recents' ? '#22c55e' : 'var(--text-3)', transition: 'all 150ms' }}>🕐 {t('g.quickRecents', 'Recent')}</button>
+            <button onClick={(e) => { e.stopPropagation(); setTab('favs'); }} style={{ flex: 1, padding: '5px 0', fontSize: 10, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'favs' ? 'rgba(79,142,247,0.12)' : 'transparent', color: activeTab === 'favs' ? '#4f8ef7' : 'var(--text-3)', transition: 'all 150ms' }}>⭐{t('g.quickFavs', 'Favorites')} {favs.size}</button>
+            <button onClick={(e) => { e.stopPropagation(); setTab('recents'); }} style={{ flex: 1, padding: '5px 0', fontSize: 10, fontWeight: 700, border: 'none', cursor: 'pointer', background: activeTab === 'recents' ? 'rgba(34,197,94,0.1)' : 'transparent', color: activeTab === 'recents' ? '#22c55e' : 'var(--text-3)', transition: 'all 150ms' }}>🕐 {t('g.quickRecents', 'Recent')}</button>
           </div>
         )}
 
@@ -546,14 +546,14 @@ export default function Sidebar() {
           display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap",
         }}>
           {activeCampaignCount > 0 && (
-            <span style={{ fontSize: 9, color: "#22c55e", fontWeight: 700 }}>
+            <span style={{ fontSize: 10, color: "#22c55e", fontWeight: 700 }}>
               {(t('g.sidebarCampaignActive', '🚀 {n} campaigns')).replace(/\{\{n\}\}|\{n\}/g, activeCampaignCount)}
             </span>
           )}
           {unreadAlertCount > 0 && (
             <span
               onClick={() => navigate("/alert-policies")}
-              style={{ fontSize: 9, color: "#f59e0b", fontWeight: 700, cursor: "pointer" }}
+              style={{ fontSize: 10, color: "#f59e0b", fontWeight: 700, cursor: "pointer" }}
             >
               {(t('g.sidebarAlertCount', '🔔 {n} alerts')).replace(/\{\{n\}\}|\{n\}/g, unreadAlertCount)}
             </span>
@@ -578,10 +578,10 @@ export default function Sidebar() {
         border: `1px solid ${IS_DEMO_MODE ? 'rgba(251,146,60,0.35)' : 'rgba(79,142,247,0.2)'}`,
         textAlign: 'center',
       }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: IS_DEMO_MODE ? '#fb923c' : '#4f8ef7', marginBottom: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: IS_DEMO_MODE ? '#fb923c' : '#4f8ef7', marginBottom: 2 }}>
           {IS_DEMO_MODE ? t('sidebar.demoMode', '🧪 Demo Mode') : t('sidebar.prodMode', '🏢 Production System')}
         </div>
-        <div style={{ fontSize: 8, color: IS_DEMO_MODE ? 'rgba(251,146,60,0.7)' : 'rgba(79,142,247,0.6)', lineHeight: 1.4 }}>
+        <div style={{ fontSize: 10, color: IS_DEMO_MODE ? 'rgba(251,146,60,0.7)' : 'rgba(79,142,247,0.6)', lineHeight: 1.4 }}>
           {IS_DEMO_MODE ? t('sidebar.demoDesc', 'Explore all features with virtual data') : t('sidebar.prodDesc', 'Production Environment')}
         </div>
       </div>
@@ -626,11 +626,11 @@ export default function Sidebar() {
                 ? "linear-gradient(135deg,#fb923c,#f59e0b)"
                 : (isPro ? "linear-gradient(135deg,#4f8ef7,#6366f1)" : "linear-gradient(135deg,#eab308,#f59e0b)"),
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 900, color: 'var(--text-1)',
+              fontSize: 12, fontWeight: 700, color: 'var(--text-1)',
             }}>{user.name?.[0] || "U"}</div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.name}</div>
-              <div style={{ fontSize: 9, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
+              <div style={{ fontSize: 10, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
             </div>
           </div>
           {/* 회원 유형 배지 */}
@@ -638,26 +638,26 @@ export default function Sidebar() {
             {IS_DEMO_MODE ? (
               <>
                 <span style={{
-                  padding: '3px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+                  padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700,
                   background: 'linear-gradient(135deg, rgba(251,146,60,0.2), rgba(245,158,11,0.15))',
                   color: '#fb923c',
                   border: '1px solid rgba(251,146,60,0.4)',
                   animation: 'demoPulse 2s ease-in-out infinite',
                 }}>{t('sidebar.demoBadge', '🧪 Demo Member')}</span>
                 <span style={{
-                  fontSize: 8, color: 'rgba(251,146,60,0.6)', fontWeight: 600,
+                  fontSize: 10, color: 'rgba(251,146,60,0.6)', fontWeight: 600,
                 }}>{t('sidebar.demoSysDesc', 'Demo System')}</span>
               </>
             ) : (
               <>
                 <span style={{
-                  padding: "2px 8px", borderRadius: 99, fontSize: 9, fontWeight: 800,
+                  padding: "2px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700,
                   background: isPro ? "rgba(79,142,247,0.12)" : "rgba(234,179,8,0.12)",
                   color: isPro ? "#4f8ef7" : "#eab308",
                   border: `1px solid ${isPro ? "rgba(79,142,247,0.25)" : "rgba(234,179,8,0.25)"}`,
                 }}>{isPro ? t('sidebar.proBadge', '🚀 PRO') : t('sidebar.freeBadge', '⭐ Free')}</span>
                 <span style={{
-                  fontSize: 8, color: 'rgba(79,142,247,0.6)', fontWeight: 600,
+                  fontSize: 10, color: 'rgba(79,142,247,0.6)', fontWeight: 600,
                 }}>{t('sidebar.prodMember', 'Production Member')}</span>
               </>
             )}
@@ -668,7 +668,7 @@ export default function Sidebar() {
               display: 'block', width: '100%', padding: '6px 0', borderRadius: 7,
               background: 'linear-gradient(135deg, rgba(79,142,247,0.12), rgba(99,102,241,0.08))',
               border: '1px solid rgba(79,142,247,0.25)',
-              color: '#4f8ef7', fontSize: 9, fontWeight: 700,
+              color: '#4f8ef7', fontSize: 10, fontWeight: 700,
               textAlign: 'center', textDecoration: 'none',
               marginBottom: 6, transition: 'all 200ms',
             }}>
@@ -683,7 +683,7 @@ export default function Sidebar() {
               display: 'block', width: '100%', padding: '6px 0', borderRadius: 7,
               background: 'linear-gradient(135deg, rgba(251,146,60,0.12), rgba(245,158,11,0.08))',
               border: '1px solid rgba(251,146,60,0.3)',
-              color: '#fb923c', fontSize: 9, fontWeight: 700,
+              color: '#fb923c', fontSize: 10, fontWeight: 700,
               textAlign: 'center', textDecoration: 'none',
               marginBottom: 6, transition: 'all 200ms',
             }}>

@@ -309,7 +309,7 @@ function previewBadge(t, badge) {
 function Badge({ text, color }) {
     return (
         <span style={{
-            fontSize: 9, padding: "2px 7px", borderRadius: 20, fontWeight: 700,
+            fontSize: 10, padding: "2px 7px", borderRadius: 20, fontWeight: 700,
             background: `${color}18`, border: `1px solid ${color}44`, color,
             display: "inline-block" }}>{text}</span>
     );
@@ -427,7 +427,7 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
             <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
                 {ch.unlocks.map(u => (
                     <span key={u} style={{
-                        fontSize: 9, padding: "2px 8px", borderRadius: 20,
+                        fontSize: 10, padding: "2px 8px", borderRadius: 20,
                         background: `${ch.color}0d`, border: `1px solid ${ch.color}33`,
                         color: ch.color }}>✓ {u}</span>
                 ))}
@@ -642,7 +642,7 @@ export default function LicenseActivation() {
                                 )}
                             </div>
 
-                            <button onClick={activateLicense} disabled={licBusy || !licenseKey.trim()} style={{ padding: "14px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: '#fff', fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 8px 24px rgba(79,142,247,0.3)", opacity: licBusy || !licenseKey.trim() ? 0.6 : 1, transition: "all 0.2s" }}>
+                            <button onClick={activateLicense} disabled={licBusy || !licenseKey.trim()} style={{ padding: "14px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: '#fff', fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 8px 24px rgba(79,142,247,0.3)", opacity: licBusy || !licenseKey.trim() ? 0.6 : 1, transition: "all 0.2s" }}>
                                 {licBusy ? t('la.verifying', "⏳ 검증 중…") : t('la.activateBtn', "🚀 라이선스 활성화")}
                             </button>
 
@@ -670,7 +670,7 @@ export default function LicenseActivation() {
                             {t('la.activatedDesc1', '이제 채널 API Key를 등록하면 광고·판매·결제 채널의 실시간 데이터가 자동 동기화됩니다.')}<br />
                             {t('la.activatedDesc2', '아래 버튼을 클릭해 채널 API Key 관리 페이지에서 채널을 등록하세요.')}
                         </div>
-                        <button onClick={() => navigate("/api-keys")} style={{ padding: "14px 36px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: '#fff', fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 20px rgba(79,142,247,0.35)" }}>
+                        <button onClick={() => navigate("/api-keys")} style={{ padding: "14px 36px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: '#fff', fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 6px 20px rgba(79,142,247,0.35)" }}>
                             🔑 {t('la.goManageKeys', '채널 API Key 관리 페이지로 이동')}
                         </button>
                     </div>
@@ -715,7 +715,7 @@ export default function LicenseActivation() {
                                     <span style={{ fontSize: 16 }}>{c.icon}</span>
                                     <div>
                                         <div style={{ fontSize: 11, fontWeight: 700 }}>{c.name}</div>
-                                        <div style={{ fontSize: 9, color: "var(--text-3)" }}>{previewBadge(t, c.badge)}</div>
+                                        <div style={{ fontSize: 10, color: "var(--text-3)" }}>{previewBadge(t, c.badge)}</div>
                                     </div>
                                 </div>
                             ))}

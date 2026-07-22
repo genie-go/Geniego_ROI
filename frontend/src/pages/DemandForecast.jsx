@@ -134,8 +134,8 @@ export default function DemandForecast() {
                   [t('demandForecast.colReorder', '재주문점'), sf.reorder_point],
                   [t('demandForecast.onHand', '현재고'), onHand != null ? onHand : '—'],
                   [t('demandForecast.daysCover', '소진예상'), cover != null ? cover + t('demandForecast.daysUnit', '일') : '—']
-                ].map(([l, v]) => (<div key={l}><div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{l}</div><div style={{ fontSize: 17, fontWeight: 900, color: '#1e293b' }}>{v}</div></div>))}
-                {needOrder && <div style={{ fontSize: 12, fontWeight: 800, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '5px 10px' }}>⚠️ {t('demandForecast.needReorder', '재주문점 미만 — 발주 필요')}</div>}
+                ].map(([l, v]) => (<div key={l}><div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{l}</div><div style={{ fontSize: 16, fontWeight: 900, color: '#1e293b' }}>{v}</div></div>))}
+                {needOrder && <div style={{ fontSize: 12, fontWeight: 700, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '5px 10px' }}>⚠️ {t('demandForecast.needReorder', '재주문점 미만 — 발주 필요')}</div>}
               </div>
             ) : (
               <div style={{ fontSize: 12.5, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px' }}>
@@ -175,7 +175,7 @@ export default function DemandForecast() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
               {[t('demandForecast.featEnsemble', '멀티모델 앙상블 (Holt-Winters / Holt / 이동평균)'), t('demandForecast.featSeasonal', '계절성 분해 (주간)'), t('demandForecast.featSafety', '서비스 수준 안전재고 (95%)'), t('demandForecast.featReorder', '재주문점 최적화')].map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.08)" }}>
-                  <span style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontSize: 12, fontWeight: 800 }}>✓</span>
+                  <span style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#4f8ef7,#6366f1)", color: "#fff", fontSize: 12, fontWeight: 700 }}>✓</span>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{f}</span>
                 </div>
               ))}
@@ -195,7 +195,7 @@ export default function DemandForecast() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
               <div style={{ fontSize: 16, fontWeight: 800 }}>{t('demandForecast.tabForecast', 'SKU 예측')} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>· {t('demandForecast.next14', '향후 14일')}</span></div>
               <button onClick={runAutoReplenish} disabled={replenishing} title={t('demandForecast.replenishTitle', '재고가 재주문점 미만인 SKU에 발주 제안을 WMS 발주관리에 자동 생성')}
-                style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: replenishing ? 'default' : 'pointer', background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>
+                style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: replenishing ? 'default' : 'pointer', background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#fff', fontWeight: 700, fontSize: 12.5 }}>
                 {replenishing ? t('demandForecast.replenishing', '발주 생성 중…') : t('demandForecast.autoReplenish', '⚡ 자동발주 실행')}
               </button>
             </div>
@@ -213,7 +213,7 @@ export default function DemandForecast() {
                         <td style={td}>{it.name}</td>
                         <td style={td}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>{METHOD_LABEL[it.method] || it.method}</span></td>
                         <td style={{ ...td, fontWeight: 700, color: it.accuracy >= 80 ? '#16a34a' : it.accuracy >= 60 ? '#f59e0b' : '#64748b' }}>{it.accuracy > 0 ? it.accuracy + '%' : '—'}</td>
-                        <td style={td}>{it.abc_class ? <span title={`${t('demandForecast.serviceLevel', '서비스레벨')} ${it.service_level}%`} style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: it.abc_class === 'A' ? 'rgba(22,163,74,0.12)' : it.abc_class === 'B' ? 'rgba(245,158,11,0.12)' : 'rgba(100,116,139,0.12)', color: it.abc_class === 'A' ? '#16a34a' : it.abc_class === 'B' ? '#d97706' : '#64748b' }}>{it.abc_class}</span> : '—'}</td>
+                        <td style={td}>{it.abc_class ? <span title={`${t('demandForecast.serviceLevel', '서비스레벨')} ${it.service_level}%`} style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: it.abc_class === 'A' ? 'rgba(22,163,74,0.12)' : it.abc_class === 'B' ? 'rgba(245,158,11,0.12)' : 'rgba(100,116,139,0.12)', color: it.abc_class === 'A' ? '#16a34a' : it.abc_class === 'B' ? '#d97706' : '#64748b' }}>{it.abc_class}</span> : '—'}</td>
                         <td style={{ ...td, textAlign: 'right' }}>{it.avg_daily}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{it.forecast_sum}</td>
                         <td style={{ ...td, textAlign: 'right', color: '#f97316' }}>{it.safety_stock}</td>
@@ -301,7 +301,7 @@ export default function DemandForecast() {
                           <tr key={it.sku}>
                             <td style={{ ...td, fontFamily: 'monospace', fontSize: 11, color: '#4f8ef7' }}>{it.sku}</td>
                             <td style={td}>{it.name}</td>
-                            <td style={td}><span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: b.bg, color: b.fg }}>{b.label}</span></td>
+                            <td style={td}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: b.bg, color: b.fg }}>{b.label}</span></td>
                             <td style={{ ...td, textAlign: 'right' }}>{it.on_hand.toLocaleString()}</td>
                             <td style={{ ...td, fontSize: 11, color: '#64748b' }}>{it.last_sale || t('demandForecast.dsNever', '없음')}</td>
                             <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: it.days_since_sale == null ? '#dc2626' : (it.days_since_sale >= 90 ? '#dc2626' : '#d97706') }}>{it.days_since_sale == null ? '—' : it.days_since_sale + t('demandForecast.daysUnit', '일')}</td>

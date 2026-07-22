@@ -96,7 +96,7 @@ function useSafeCreators() {
 
 const Tag = memo(({ label, color = "#4f8ef7", bg }) => (
     <span style={{
-        fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
+        fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
         background: bg || color + "18", color, border: `1px solid ${color}33`
     }}>{label}</span>
 ));
@@ -157,7 +157,7 @@ const AttributionEditor = memo(function AttributionEditor({ creator, onClose, on
             <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', zIndex: 400 }} />
             <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(460px,95vw)', background: 'rgba(255,255,255,0.99)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 18, padding: 24, zIndex: 401, boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                    <div style={{ fontWeight: 800, fontSize: 15 }}>🎯 {t('influencer.attrSetup', '귀속 설정')} — {creator.name}</div>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>🎯 {t('influencer.attrSetup', '귀속 설정')} — {creator.name}</div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 20 }}>✕</button>
                 </div>
                 <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 14, lineHeight: 1.6 }}>
@@ -380,7 +380,7 @@ const ContractTab = memo(function ContractTab() {
                                     <tr key={c.id}>
                                         <td>
                                             <div style={{ fontWeight: 700 }}>{c.name}</div>
-                                            <div style={{ fontSize: 9, color:"#6b7280" }}>{c.id}</div>
+                                            <div style={{ fontSize: 10, color:"#6b7280" }}>{c.id}</div>
                                         </td>
                                         <td>
                                             <Tag label={ct.type === "flat" ? t("influencer.fixed","Fixed") : ct.type === "perf" ? t("influencer.performance","Performance") : t("influencer.fixedPerf","Fixed+Performance")} color="#4f8ef7" />
@@ -400,7 +400,7 @@ const ContractTab = memo(function ContractTab() {
                                             {ct.whitelist
                                                 ? <div>
                                                     <Tag label={t("influencerUGC.u_22", "Allowed")} color={wlColor} />
-                                                    <div style={{ fontSize: 9, color: wlColor, marginTop: 2 }}>
+                                                    <div style={{ fontSize: 10, color: wlColor, marginTop: 2 }}>
                                                         {dl === null ? "—" : dl < 0 ? t("influencer.expired","Expired") : dl + " " + t("influencer.daysLeft","days left")}
                                                     </div>
                                                 </div>
@@ -741,7 +741,7 @@ const ROITab = memo(function ROITab() {
                                         {c.name}
                                         {(() => {
                                             const o = deriveObjective(c); const om = OBJECTIVE_META[o];
-                                            return <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 99, background: om.color + '18', color: om.color, border: `1px solid ${om.color}33` }}>{om.icon} {t('influencer.' + om.key, om.label)}</span>;
+                                            return <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 99, background: om.color + '18', color: om.color, border: `1px solid ${om.color}33` }}>{om.icon} {t('influencer.' + om.key, om.label)}</span>;
                                         })()}
                                     </div>
                                     <div style={{ display: "flex", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
@@ -774,7 +774,7 @@ const ROITab = memo(function ROITab() {
                                     (() => { const ps = computePerformanceScore(c).score; return [t('influencer.objScore', '목표성과'), ps + t('influencer.scoreUnit', '점'), ps >= 75 ? "#22c55e" : ps >= 50 ? "#eab308" : "#ef4444"]; })(),
                                 ]; })().map(([l, v, col]) => (
                                     <div key={l} style={{ textAlign: "center", minWidth: 80 }}>
-                                        <div style={{ fontSize: 9, color:"#6b7280" }}>{l}</div>
+                                        <div style={{ fontSize: 10, color:"#6b7280" }}>{l}</div>
                                         <div style={{ fontWeight: 700, fontSize: 12, color: col }}>{v}</div>
                                     </div>
                                 ))}
@@ -843,14 +843,14 @@ const ROITab = memo(function ROITab() {
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6 }}>
                                     {[[t("influencer.engagement","Engagement"), pct(ct.engRate), "#a855f7"], [t("influencerUGC.u_74","Orders"), ct.orders + t("influencer.unitCases","건"), "#4f8ef7"], [t("influencerUGC.u_75","Revenue"), fmt(ct.revenue), "#f97316"]].map(([l, v, col]) => (
                                         <div key={l} style={{ textAlign: "center", padding: "6px 0", borderRadius: 8, background:"rgba(0,0,0,0.03)" }}>
-                                            <div style={{ fontSize: 9, color:"#6b7280" }}>{l}</div>
+                                            <div style={{ fontSize: 10, color:"#6b7280" }}>{l}</div>
                                             <div style={{ fontWeight: 800, color: col, fontSize: 13 }}>{v}</div>
                                         </div>
                                     ))}
                                 </div>
                                 <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
-                                    <button onClick={() => { window.location.href = '/auto-marketing'; }} className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>{t("influencer.adCreative","Ad Creative")}</button>
-                                    <button onClick={() => { window.location.href = '/digital-shelf'; }} className="btn-primary" style={{ fontSize: 9, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#14b8a6,#4f8ef7)" }}>{t("influencer.productPage","Product Page")}</button>
+                                    <button onClick={() => { window.location.href = '/auto-marketing'; }} className="btn-primary" style={{ fontSize: 10, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#6366f1,#a855f7)" }}>{t("influencer.adCreative","Ad Creative")}</button>
+                                    <button onClick={() => { window.location.href = '/digital-shelf'; }} className="btn-primary" style={{ fontSize: 10, padding: "4px 10px", flex: 1, background: "linear-gradient(135deg,#14b8a6,#4f8ef7)" }}>{t("influencer.productPage","Product Page")}</button>
                                 </div>
                             </div>
                         );
@@ -879,7 +879,7 @@ const ROITab = memo(function ROITab() {
                                     [t("influencerUGC.u_75", "Revenue"), fmt(ch.revenue)],
                                 ].map(([l, v]) => (
                                     <div key={l} style={{ padding: "6px 0" }}>
-                                        <div style={{ fontSize: 9, color: "#6b7280" }}>{l}</div>
+                                        <div style={{ fontSize: 10, color: "#6b7280" }}>{l}</div>
                                         <div style={{ fontWeight: 800, fontSize: 13, color: ch.color }}>{v}</div>
                                     </div>
                                 ))}
@@ -909,7 +909,7 @@ const InfluencerGuideTab = memo(function InfluencerGuideTab() {
                 <div style={{ fontSize: 13, color:'#374151', fontWeight:600, marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{g('guideSub')}</div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color:'#1f2937' }}>{g('guideStepsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
                     {STEPS.map((s,i) => (
                         <div key={i} style={{ background: s.c+'0a', border: '1px solid '+s.c+'25', borderRadius: 12, padding: 16 }}>
@@ -923,7 +923,7 @@ const InfluencerGuideTab = memo(function InfluencerGuideTab() {
                 </div>
             </div>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color:'#1f2937' }}>{g('guideTabsTitle')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 12 }}>
                     {TABS.map((tb,i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background:'rgba(255,255,255,0.95)', borderRadius: 10, border: '1px solid rgba(99,140,255,0.08)' }}>
@@ -937,7 +937,7 @@ const InfluencerGuideTab = memo(function InfluencerGuideTab() {
                 </div>
             </div>
             <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 14, padding: 20 }}>
-                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
+                <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color:'#1f2937' }}>💡 {g('guideTipsTitle')}</div>
                 <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color:'#6b7280', lineHeight: 2.2 }}>
                     {[1,2,3,4,5].map(n => <li key={n}>{g('guideTip'+n)}</li>)}
                 </ul>
@@ -1010,7 +1010,7 @@ const UGCTab = memo(function UGCTab() {
                     <div style={{ display: "grid", gap: 10 }}>
                         {negKeywords.map((k, i) => (
                             <div key={k.word} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: i === 0 ? "rgba(239,68,68,0.06)" : "rgba(0,0,0,0.03)", borderRadius: 8, border: `1px solid ${i === 0 ? "rgba(239,68,68,0.2)" : "rgba(99,140,255,0.08)"}` }}>
-                                <span style={{ fontWeight: 900, color:"#6b7280", width: 18, textAlign: "center", fontSize: 12 }}>{i + 1}</span>
+                                <span style={{ fontWeight: 700, color:"#6b7280", width: 18, textAlign: "center", fontSize: 12 }}>{i + 1}</span>
                                 <div style={{ flex: 1, fontWeight: 600, fontSize: 12 }}>{k.word}</div>
                                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                                     <div style={{ width: 60 }}><Bar v={k.count} max={43} color="#ef4444" h={4} /></div>
@@ -1064,7 +1064,7 @@ const UGCTab = memo(function UGCTab() {
                             <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
                                 <span style={{ fontSize: 11, color:"#6b7280" }}>👍 {r.helpful} {t("influencer.helpful","helpful")}</span>
                                 {r.sentiment === "negative" && (
-                                    <button onClick={() => { window.location.href = '/reviews-ugc'; }} className="btn-primary" style={{ fontSize: 9, padding: "2px 10px", background: "linear-gradient(135deg,#ef4444,#f97316)" }}>{t('influencer.csRespond')}</button>
+                                    <button onClick={() => { window.location.href = '/reviews-ugc'; }} className="btn-primary" style={{ fontSize: 10, padding: "2px 10px", background: "linear-gradient(135deg,#ef4444,#f97316)" }}>{t('influencer.csRespond')}</button>
                                 )}
                             </div>
                         </div>
@@ -1223,7 +1223,7 @@ const CreatorScoreModal = memo(function CreatorScoreModal({ creator, evalData, o
                                 { l: t('influencer.recPerf'), v: ((result.fee_recommendation.recommended_perf_rate || 0) * 100).toFixed(1) + "%" },
                             ].map(({ l, v }) => (
                                 <div key={l} style={{ textAlign: "center", padding: "10px 0", borderRadius: 10, background:"rgba(0,0,0,0.03)", border: "1px solid rgba(99,140,255,0.08)" }}>
-                                    <div style={{ fontSize: 9, color:"#6b7280" }}>{l}</div>
+                                    <div style={{ fontSize: 10, color:"#6b7280" }}>{l}</div>
                                     <div style={{ fontWeight: 800, fontSize: 13, color: contractColor, marginTop: 3 }}>{v}</div>
                                 </div>
                             ))}

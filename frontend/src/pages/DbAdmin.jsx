@@ -123,7 +123,7 @@ function DbAdmin() {
               <div style={{ fontSize: 22, marginBottom: 6 }}>{k.emoji}</div>
               {!loading && (
                 <span style={{
-                  fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                  fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
                   background: 'rgba(34,197,94,0.10)', color: '#22c55e',
                   border: '1px solid rgba(34,197,94,0.25)',
                 }}>LIVE</span>

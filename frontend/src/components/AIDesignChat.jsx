@@ -257,7 +257,7 @@ export default function AIDesignChat({ onApplied }) {
           <div style={{ padding: 16 }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
               {SAMPLE_CATEGORIES.map(c => (
-                <button key={c.cat} onClick={() => setGalCat(c.cat)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 800, background: galCat === c.cat ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: galCat === c.cat ? '#fff' : '#64748b' }}>{catLabel(c.cat, c.label)}</button>
+                <button key={c.cat} onClick={() => setGalCat(c.cat)} style={{ padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: galCat === c.cat ? 'linear-gradient(135deg,#a855f7,#4f8ef7)' : 'rgba(99,102,241,0.07)', color: galCat === c.cat ? '#fff' : '#64748b' }}>{catLabel(c.cat, c.label)}</button>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 12 }}>
@@ -301,7 +301,7 @@ export default function AIDesignChat({ onApplied }) {
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <img src={refImage} alt="참고" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid #cbd5e1' }} />
                 <button onClick={() => setRefImage(null)} title="참고 이미지 제거"
-                  style={{ position: 'absolute', top: -7, right: -7, width: 21, height: 21, borderRadius: '50%', border: '2px solid #fff', background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: '17px', cursor: 'pointer', padding: 0 }}>×</button>
+                  style={{ position: 'absolute', top: -7, right: -7, width: 21, height: 21, borderRadius: '50%', border: '2px solid #fff', background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 700, lineHeight: '17px', cursor: 'pointer', padding: 0 }}>×</button>
               </div>
               <span style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, lineHeight: 1.5 }}>📎 {t('aiChat.refAttached', '참고 이미지 첨부됨 — AI가 이 스타일·색감을 참고해 디자인해요')}</span>
             </div>
@@ -309,7 +309,7 @@ export default function AIDesignChat({ onApplied }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <input ref={fileRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
             <button onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title={t('aiChat.attachImage', '참고 이미지 업로드')}
-              style={{ flexShrink: 0, padding: '0 15px', borderRadius: 12, border: '1px solid #cbd5e1', background: refImage ? 'rgba(168,85,247,0.1)' : '#fff', color: refImage ? '#a855f7' : '#64748b', fontSize: 19, cursor: busy ? 'not-allowed' : 'pointer' }}>📎</button>
+              style={{ flexShrink: 0, padding: '0 15px', borderRadius: 12, border: '1px solid #cbd5e1', background: refImage ? 'rgba(168,85,247,0.1)' : '#fff', color: refImage ? '#a855f7' : '#64748b', fontSize: 20, cursor: busy ? 'not-allowed' : 'pointer' }}>📎</button>
             <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={refImage ? t('aiChat.placeholderRef', '참고 이미지로 만들 내용을 입력(비워도 됨)…') : t('aiChat.placeholder', '만들거나 수정할 내용을 입력… (예: 색을 더 밝게)')} style={inputStyle} disabled={busy} />
             <button onClick={() => send()} disabled={busy || (!input.trim() && !refImage)}
@@ -329,7 +329,7 @@ export default function AIDesignChat({ onApplied }) {
         </div>
         {/* #4 여러 컷(캐러셀) 수 선택 — 다음 생성부터 적용 */}
         <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#64748b' }}>🎞️ {t('aiChat.cuts', '컷')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>🎞️ {t('aiChat.cuts', '컷')}</span>
           {[1, 3, 4, 5].map(n => (
             <button key={n} onClick={() => setCuts(n)} title={n === 1 ? t('aiChat.single', '단일 광고') : `${n}${t('aiChat.cutCarousel', '컷 캐러셀(넘겨보기)')}`}
               style={{ padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: cuts === n ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : 'rgba(99,102,241,0.07)', color: cuts === n ? '#fff' : '#64748b' }}>{n === 1 ? t('aiChat.single', '단일') : n + t('aiChat.cutUnit', '컷')}</button>
@@ -356,7 +356,7 @@ export default function AIDesignChat({ onApplied }) {
               ))}
             </div>
             <button onClick={() => gotoFrame(frameIdx + 1)} disabled={frameIdx === frames.length - 1} style={navBtn(frameIdx === frames.length - 1)}>›</button>
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#64748b', marginLeft: 2 }}>{frameIdx + 1}/{frames.length}{t('aiChat.cutUnit', '컷')}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginLeft: 2 }}>{frameIdx + 1}/{frames.length}{t('aiChat.cutUnit', '컷')}</span>
           </div>
         )}
         {design && Array.isArray(design.hashtags) && design.hashtags.length > 0 && (
@@ -375,8 +375,8 @@ export default function AIDesignChat({ onApplied }) {
               </button>
             </div>
             <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button onClick={() => save('draft')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: '1px solid rgba(79,142,247,0.35)', cursor: saving ? 'wait' : 'pointer', background: 'rgba(79,142,247,0.07)', color: '#4f8ef7', fontWeight: 800, fontSize: 12.5 }}>📝 {t('aiChat.draft', '임시저장')}</button>
-              <button onClick={() => save('approved')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: 'none', cursor: saving ? 'wait' : 'pointer', background: saving ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>✅ {t('aiChat.save', '저장')}</button>
+              <button onClick={() => save('draft')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: '1px solid rgba(79,142,247,0.35)', cursor: saving ? 'wait' : 'pointer', background: 'rgba(79,142,247,0.07)', color: '#4f8ef7', fontWeight: 700, fontSize: 12.5 }}>📝 {t('aiChat.draft', '임시저장')}</button>
+              <button onClick={() => save('approved')} disabled={saving} style={{ padding: '10px 0', borderRadius: 10, border: 'none', cursor: saving ? 'wait' : 'pointer', background: saving ? 'rgba(34,197,94,0.4)' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 700, fontSize: 12.5 }}>✅ {t('aiChat.save', '저장')}</button>
             </div>
           </>
         )}

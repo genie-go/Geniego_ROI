@@ -118,7 +118,7 @@ export default function ReferralPromo({ lang = "en", onCta, compact = false }) {
 
         <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: 32, alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ flex: "1 1 460px", minWidth: 300 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", padding: "6px 14px", borderRadius: 999, background: "#e6efff", border: "1px solid #b9d0ff", color: "#1d4ed8" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", padding: "6px 14px", borderRadius: 999, background: "#e6efff", border: "1px solid #b9d0ff", color: "#1d4ed8" }}>
               🎁 {badge}
             </span>
             <h2 style={{ margin: "16px 0 10px", fontSize: compact ? 24 : 30, lineHeight: 1.22, fontWeight: 900, letterSpacing: -0.4, color: "#0f172a" }}>{title}</h2>
@@ -126,10 +126,10 @@ export default function ReferralPromo({ lang = "en", onCta, compact = false }) {
             {/* 확실성 보증 배지 — 진한 녹색 글자로 대비 확보(라이트 카드) */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 14, background: "#dcfce7", border: "1px solid #86efac", marginBottom: 16 }}>
               <span style={{ fontSize: 20 }}>✅</span>
-              <span style={{ fontSize: 15, fontWeight: 800, color: "#047857" }}>{guarantee}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: "#047857" }}>{guarantee}</span>
             </div>
 
-            <p style={{ margin: "0 0 14px", fontSize: 15, lineHeight: 1.7, color: "#334155" }}>{desc}</p>
+            <p style={{ margin: "0 0 14px", fontSize: 14, lineHeight: 1.7, color: "#334155" }}>{desc}</p>
             <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.65, color: "#64748b", display: "flex", gap: 8 }}>
               <span aria-hidden>🔒</span><span>{fairNote}</span>
             </p>
@@ -137,7 +137,7 @@ export default function ReferralPromo({ lang = "en", onCta, compact = false }) {
             {onCta && (
               <button onClick={onCta} style={{
                 marginTop: 22, padding: "13px 26px", borderRadius: 12, border: "none", cursor: "pointer",
-                background: "#4f8ef7", color: "#fff", fontWeight: 800, fontSize: 15,
+                background: "#4f8ef7", color: "#fff", fontWeight: 800, fontSize: 14,
                 boxShadow: "0 8px 22px rgba(79,142,247,0.35)",
               }}>{cta} →</button>
             )}
@@ -147,7 +147,7 @@ export default function ReferralPromo({ lang = "en", onCta, compact = false }) {
           <div style={{ flex: "0 1 320px", minWidth: 260, display: "grid", gap: 12 }}>
             {steps.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, background: "#fff", border: "1px solid #e5eaf2", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-                <div style={{ flex: "0 0 auto", width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", fontWeight: 900, fontSize: 15, background: i === 2 ? "#10b981" : "#4f8ef7", color: "#fff" }}>{i + 1}</div>
+                <div style={{ flex: "0 0 auto", width: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center", fontWeight: 900, fontSize: 14, background: i === 2 ? "#10b981" : "#4f8ef7", color: "#fff" }}>{i + 1}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.4, color: "#1e293b" }}>{s}</div>
               </div>
             ))}

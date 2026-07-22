@@ -88,7 +88,7 @@ function EmbedSnippet({ t }) {
       <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
         <textarea readOnly rows={2} value={snippet} onClick={e => e.target.select()}
           style={{ flex: 1, boxSizing: "border-box", fontFamily: "monospace", fontSize: 11, padding: "10px 12px", borderRadius: 8, border: "1px solid #fed7aa", background: "#fff", color: "#0f172a", resize: "vertical" }} />
-        <button onClick={copy} style={{ padding: "0 16px", fontSize: 12, fontWeight: 800, borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#f97316,#f7931e)", color: "#fff", whiteSpace: "nowrap" }}>
+        <button onClick={copy} style={{ padding: "0 16px", fontSize: 12, fontWeight: 700, borderRadius: 8, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#f97316,#f7931e)", color: "#fff", whiteSpace: "nowrap" }}>
           {copied ? t("webPopup.embedCopied", "복사됨 ✓") : t("webPopup.embedCopy", "코드 복사")}
         </button>
       </div>
@@ -126,7 +126,7 @@ function OverviewTab({ t }) {
         <Kpi label={t("webPopup.inactive")} value={String(inactive)} color="#9ca3af" icon="⏸️" />
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 12 }}>📈 {t("webPopup.popupPerf")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 12 }}>📈 {t("webPopup.popupPerf")}</div>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead><tr style={{ borderBottom: "2px solid #e5e7eb", color: "#6b7280" }}>
             <th style={{ textAlign: "left", padding: 8 }}>{t("webPopup.colName")}</th>
@@ -203,7 +203,7 @@ function PopupPreview({form,tpl,layout}){
   return (
     <div style={{ width:fw?360:320, background:"#fff", borderRadius:fw?0:20, boxShadow:"0 20px 60px rgba(0,0,0,.22)", overflow:"hidden", position:"relative" }}>
       {/* Badge Ribbon */}
-      <div style={{ position:"absolute", top:12, left:-6, background:t.accent, color:"#fff", fontWeight:800, fontSize:10, padding:"4px 14px 4px 10px", borderRadius:"0 4px 4px 0", zIndex:2, letterSpacing:1, boxShadow:"2px 2px 8px rgba(0,0,0,.15)" }}>{t.badge}</div>
+      <div style={{ position:"absolute", top:12, left:-6, background:t.accent, color:"#fff", fontWeight:700, fontSize:10, padding:"4px 14px 4px 10px", borderRadius:"0 4px 4px 0", zIndex:2, letterSpacing:1, boxShadow:"2px 2px 8px rgba(0,0,0,.15)" }}>{t.badge}</div>
       {/* Close btn */}
       <div style={{ position:"absolute", top:10, right:12, width:26, height:26, borderRadius:13, background:"rgba(0,0,0,.3)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:12, cursor:"pointer", zIndex:2 }}>✕</div>
       {/* Hero Image Area */}
@@ -219,7 +219,7 @@ function PopupPreview({form,tpl,layout}){
       {/* Bottom Area */}
       <div style={{ padding:"18px 24px 22px", textAlign:"center", background:layout==="gamify"?"linear-gradient(to bottom,#fff,#f0f7ff)":"#fff" }}>
         {layout==="gamify"&&<div style={{ fontSize:11, color:"#6b7280", marginBottom:8 }}>🎰 Spin the wheel for a chance to win!</div>}
-        <button style={{ width:"100%", padding:"12px 0", borderRadius:10, border:"none", background:t.gradient, color:"#fff", fontWeight:800, fontSize:15, cursor:"pointer", boxShadow:"0 4px 14px "+t.accent+"44", transition:"transform .15s" }}>{form.cta||"Get This Deal →"}</button>
+        <button style={{ width:"100%", padding:"12px 0", borderRadius:10, border:"none", background:t.gradient, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer", boxShadow:"0 4px 14px "+t.accent+"44", transition:"transform .15s" }}>{form.cta||"Get This Deal →"}</button>
         {form.linkUrl&&<div style={{ fontSize:11, color:t.accent, marginTop:8, fontWeight:600 }}>🔗 {form.linkUrl.replace(/https?:\/\//,"").slice(0,30)}</div>}
         <div style={{ fontSize:10, color:"#9ca3af", marginTop:8 }}>No spam · Unsubscribe anytime</div>
       </div>
@@ -387,11 +387,11 @@ function LiveTab({ t }) {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 8 }}>🔴 {t("webPopup.live")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 8 }}>🔴 {t("webPopup.live")}</div>
         <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>{t("webPopup.howItWorks")}</div>
         <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
           {[1, 2, 3, 4].map(i => (<div key={i} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <span style={{ width: 24, height: 24, borderRadius: 99, background: "#f97316", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{i}</span>
+            <span style={{ width: 24, height: 24, borderRadius: 99, background: "#f97316", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i}</span>
             <span style={{ fontSize: 13, color: "#374151" }}>{t("webPopup.step" + i)}</span>
           </div>))}
         </div>
@@ -536,14 +536,14 @@ function ABTab({ t }) {
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 18 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontWeight: 800, fontSize: 15, color: "#1f2937" }}>🧪 {t("webPopup.abResult", "A/B 테스트")}</span>
+            <span style={{ fontWeight: 800, fontSize: 14, color: "#1f2937" }}>🧪 {t("webPopup.abResult", "A/B 테스트")}</span>
             <select value={selId} onChange={e => setSelId(+e.target.value)}
               style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 13, minWidth: 180 }}>
               <option value={0}>{t("webPopup.abSelectPopup", "팝업 선택…")}</option>
               {popups.map(p => <option key={p.id} value={p.id}>{p.name || `#${p.id}`}</option>)}
             </select>
           </div>
-          <span style={{ padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 800, background: sb.bg, color: sb.fg }}>{sb.txt}</span>
+          <span style={{ padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700, background: sb.bg, color: sb.fg }}>{sb.txt}</span>
         </div>
         {test && test.significant && (
           <div style={{ marginTop: 10, fontSize: 12, color: "#16a34a", fontWeight: 700 }}>
@@ -659,7 +659,7 @@ function SettingsTab({ t }) {
 
   return (<div style={{ display: "grid", gap: 16 }}>
     <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-    <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>⚙️ {t("webPopup.globalSettings")}</div>
+    <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 16 }}>⚙️ {t("webPopup.globalSettings")}</div>
     {settings.map(s => (<div key={s.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f3f4f6" }}>
       <div><div style={{ fontWeight: 700, fontSize: 13, color: "#374151" }}>{t("webPopup." + s.key)}</div>
         <div style={{ fontSize: 12, color: "#9ca3af" }}>{t("webPopup." + s.desc)}</div></div>
@@ -703,7 +703,7 @@ function VapidConfigCard({ t }) {
   return (
     <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937" }}>🔔 {t("webPopup.vapidTitle", "웹 푸시(VAPID) 설정")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937" }}>🔔 {t("webPopup.vapidTitle", "웹 푸시(VAPID) 설정")}</div>
         {status && (status.configured
           ? <span style={{ fontSize: 11, fontWeight: 700, color: "#16a34a" }}>● {t("webPopup.vapidOn", "설정됨")}</span>
           : <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>● {t("webPopup.vapidOff", "미설정 — 웹푸시 구독 비활성")}</span>)}
@@ -745,16 +745,16 @@ function GuideTab() {
         <div style={{ fontSize: 13, color: "#374151", marginTop: 6, maxWidth: 620, margin: "6px auto 0", lineHeight: 1.7 }}>{g("guideSub")}</div>
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{g("guideStepsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 16 }}>{g("guideStepsTitle")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
           {steps.map(s => (<div key={s.n} style={{ display: "flex", gap: 12, padding: 14, background: s.c+'08', borderRadius: 12, border: '1px solid '+s.c+'20' }}>
-            <span style={{ width: 28, height: 28, borderRadius: 99, background: s.c, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{s.n}</span>
+            <span style={{ width: 28, height: 28, borderRadius: 99, background: s.c, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{s.n}</span>
             <div><div style={{ fontWeight: 700, fontSize: 13, color: s.c, lineHeight: 1.5 }}>{s.title}</div><div style={{ fontSize: 12, color: "#6b7280", marginTop: 2, lineHeight: 1.6 }}>{s.desc}</div></div>
           </div>))}
         </div>
       </div>
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 16 }}>{g("guideTabsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 16 }}>{g("guideTabsTitle")}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 }}>
           {tabFs.map(tf => (<div key={tf.n} style={{ display: "flex", gap: 10, padding: 12, background: "#f9fafb", borderRadius: 10, alignItems: "flex-start" }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>{tf.icon}</span>
@@ -764,7 +764,7 @@ function GuideTab() {
         </div>
       </div>
       {tips.length > 0 && <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", padding: 20, borderLeft: "4px solid #f97316" }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: "#1f2937", marginBottom: 12 }}>💡 {g("guideTipsTitle")}</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#1f2937", marginBottom: 12 }}>💡 {g("guideTipsTitle")}</div>
         {tips.map((tip, i) => (<div key={i} style={{ display: "flex", gap: 8, padding: "8px 0", borderBottom: "1px solid #f3f4f6" }}>
           <span style={{ color: "#374151", fontWeight: 800, fontSize: 13, lineHeight: 1.6 }} >💡</span><span style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.6 }}>{tip}</span>
         </div>))}

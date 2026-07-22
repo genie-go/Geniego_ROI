@@ -276,7 +276,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
             {/* Channel 규격 가이드 패널 */}
             {showSpecGuide && (
                 <div style={{ padding: '12px 16px', borderRadius: 10, background: accentColor + '09', border: `1px solid ${accentColor}30` }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: accentColor, marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: accentColor, marginBottom: 8 }}>
                         📐 {channelName || t('mediaEditor.adChannel', '광고 Channel')} {t('mediaEditor.recommendedSpec', '권장 규격')}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
@@ -284,8 +284,8 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                             <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.25)', border: `1px solid ${accentColor}22` }}>
                                 <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 3 }}>{s.name}</div>
                                 <div style={{ fontSize: 13, fontWeight: 900, color: accentColor, marginBottom: 2 }}>{s.size}</div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{t('mediaEditor.ratioLabel', '비율')}: {s.ratio}</div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{s.note}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>{t('mediaEditor.ratioLabel', '비율')}: {s.ratio}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{s.note}</div>
                             </div>
                         ))}
                     </div>
@@ -296,8 +296,8 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
             {aiCreative && (aiCreative.headline || aiCreative.copy) && (
                 <div style={{ padding: '10px 14px', borderRadius: 10, background: 'linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.1))', border: '1px solid rgba(99,102,241,0.28)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#a5b4fc', marginBottom: 2 }}>{t('mediaEditor.aiImportTitle', '🤖 AI 생성 텍스트 가져오기')}</div>
-                        <div style={{ fontSize: 9, color: 'var(--text-3)' }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#a5b4fc', marginBottom: 2 }}>{t('mediaEditor.aiImportTitle', '🤖 AI 생성 텍스트 가져오기')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
                             {t('mediaEditor.aiImportDesc', 'AI가 생성한 헤드라인·카피·CTA를 텍스트 레이어로 자동 Add합니다')}
                         </div>
                         {aiCreative.headline && (
@@ -308,7 +308,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                     </div>
                     <button
                         onClick={importAiText}
-                        style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: 'var(--text-1)', fontWeight: 800, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: 'var(--text-1)', fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         {aiImported ? t('mediaEditor.imported', '✅ 임포트됨') : t('mediaEditor.importText', '⬇ 텍스트 가져오기')}
                     </button>
                 </div>
@@ -339,7 +339,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                         {t('mediaEditor.maxFileSize', '최대 파일 크기: 100MB')}
                     </div>
                     <div>
-                        <span style={{ padding: '8px 24px', borderRadius: 9, background: `linear-gradient(135deg,${accentColor},#a855f7)`, color: 'var(--text-1)', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+                        <span style={{ padding: '8px 24px', borderRadius: 9, background: `linear-gradient(135deg,${accentColor},#a855f7)`, color: 'var(--text-1)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                             {t('mediaEditor.selectFile', '파일 선택')}
                         </span>
                     </div>
@@ -355,10 +355,10 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                     <div style={{ position: 'relative' }}>
                         {/* 파일명 배지 */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <div style={{ fontSize: 9, padding: '2px 10px', borderRadius: 99, background: accentColor + '18', color: accentColor, border: `1px solid ${accentColor}33`, fontWeight: 700 }}>
+                            <div style={{ fontSize: 10, padding: '2px 10px', borderRadius: 99, background: accentColor + '18', color: accentColor, border: `1px solid ${accentColor}33`, fontWeight: 700 }}>
                                 {media.type === 'video' ? t('mediaEditor.badgeVideo', '🎥 동영상') : t('mediaEditor.badgeImage', '🖼️ 이미지')}
                             </div>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {media.name}
                             </div>
                         </div>
@@ -433,13 +433,13 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                                     <button onClick={exportImage} style={{
                                         padding: '7px 18px', borderRadius: 9, border: 'none',
                                         background: `linear-gradient(135deg,${accentColor},#a855f7)`,
-                                        color: 'var(--text-1)', fontWeight: 800, fontSize: 11, cursor: 'pointer'
+                                        color: 'var(--text-1)', fontWeight: 700, fontSize: 11, cursor: 'pointer'
                                     }}>
                                         {t('mediaEditor.pngSave', '⬇️ PNG Save')}
                                     </button>
                                 )}
                                 {media.type === 'video' && (
-                                    <div style={{ fontSize: 9, color: 'var(--text-3)', padding: '4px 10px', borderRadius: 7, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', padding: '4px 10px', borderRadius: 7, background: 'var(--surface)', border: '1px solid var(--border)' }}>
                                         {t('mediaEditor.videoPreviewOnly', '💡 동영상: 텍스트 위치 미리보기만 지원')}
                                     </div>
                                 )}
@@ -452,7 +452,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
 
                     {/* 사이드 편집 패널 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 580, overflowY: 'auto', paddingRight: 2 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: accentColor, marginBottom: 2 }}>{t('mediaEditor.editPanelTitle', '✏️ 텍스트 편집 패널')}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: accentColor, marginBottom: 2 }}>{t('mediaEditor.editPanelTitle', '✏️ 텍스트 편집 패널')}</div>
 
                         {!sel && (
                             <div style={{ fontSize: 10, color: 'var(--text-3)', padding: '16px 10px', textAlign: 'center', border: '1px dashed rgba(150,150,200,0.2)', borderRadius: 10 }}>
@@ -463,21 +463,21 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                         {sel && (<>
                             {/* 텍스트 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.textContent', '텍스트 내용')}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.textContent', '텍스트 내용')}</div>
                                 <textarea value={sel.text} onChange={e => updateSel({ text: e.target.value })}
                                     rows={3} style={inputStyle} />
                             </div>
 
                             {/* 크기 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.sizeLabel', '크기')} {sel.fontSize}px</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.sizeLabel', '크기')} {sel.fontSize}px</div>
                                 <input type="range" min={8} max={100} value={sel.fontSize} onChange={e => updateSel({ fontSize: +e.target.value })}
                                     style={{ width: '100%', accentColor }} />
                             </div>
 
                             {/* 색상 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.fontColor', '글자 색상')}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.fontColor', '글자 색상')}</div>
                                 <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
                                     <input type="color" value={sel.color} onChange={e => updateSel({ color: e.target.value })}
                                         style={{ width: 32, height: 28, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'transparent' }} />
@@ -490,7 +490,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
 
                             {/* 폰트 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.font', '폰트')}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.font', '폰트')}</div>
                                 <select value={sel.fontFamily} onChange={e => updateSel({ fontFamily: e.target.value })}
                                     style={{ width: '100%', background: 'var(--border)', border: '1px solid rgba(150,150,200,0.2)', borderRadius: 6, color: 'var(--text-1)', padding: '5px 8px', fontSize: 11 }}>
                                     {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
@@ -516,35 +516,35 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
 
                             {/* 투명도 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.opacity', '투명도')} {sel.opacity ?? 100}%</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.opacity', '투명도')} {sel.opacity ?? 100}%</div>
                                 <input type="range" min={10} max={100} value={sel.opacity ?? 100} onChange={e => updateSel({ opacity: +e.target.value })}
                                     style={{ width: '100%', accentColor }} />
                             </div>
 
                             {/* 회전 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.rotation', '회전')} {sel.rotation}°</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.rotation', '회전')} {sel.rotation}°</div>
                                 <input type="range" min={-180} max={180} value={sel.rotation} onChange={e => updateSel({ rotation: +e.target.value })}
                                     style={{ width: '100%', accentColor }} />
                             </div>
 
                             {/* 줄간격 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.lineHeight', '줄간격')} {(sel.lineHeight || 1.4).toFixed(1)}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.lineHeight', '줄간격')} {(sel.lineHeight || 1.4).toFixed(1)}</div>
                                 <input type="range" min={1} max={3} step={0.1} value={sel.lineHeight || 1.4} onChange={e => updateSel({ lineHeight: +e.target.value })}
                                     style={{ width: '100%', accentColor }} />
                             </div>
 
                             {/* 위치 미세 조정 */}
                             <div>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.positionAdjust', '위치 조정')}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 4 }}>{t('mediaEditor.positionAdjust', '위치 조정')}</div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                                     <div>
-                                        <div style={{ fontSize: 8, color: 'var(--text-3)' }}>X {Math.round(sel.x)}%</div>
+                                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>X {Math.round(sel.x)}%</div>
                                         <input type="range" min={0} max={95} value={sel.x} onChange={e => updateSel({ x: +e.target.value })} style={{ width: '100%', accentColor }} />
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: 8, color: 'var(--text-3)' }}>Y {Math.round(sel.y)}%</div>
+                                        <div style={{ fontSize: 10, color: 'var(--text-3)' }}>Y {Math.round(sel.y)}%</div>
                                         <input type="range" min={0} max={95} value={sel.y} onChange={e => updateSel({ y: +e.target.value })} style={{ width: '100%', accentColor }} />
                                     </div>
                                 </div>
@@ -553,26 +553,26 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                             {/* 배경색 (bg Active 시) */}
                             {sel.bg && (
                                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                    <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{t('mediaEditor.bgColor', '배경색')}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('mediaEditor.bgColor', '배경색')}</div>
                                     <input type="color"
                                         value={sel.bgColor.replace(/rgba?\([^)]+\)/, '#000000').slice(0, 7) || '#000000'}
                                         onChange={e => updateSel({ bgColor: e.target.value + 'aa' })}
                                         style={{ width: 32, height: 26, border: 'none', borderRadius: 4, cursor: 'pointer', background: 'transparent' }} />
-                                    <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{t('mediaEditor.opacity', '투명도')}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('mediaEditor.opacity', '투명도')}</div>
                                 </div>
                             )}
 
                             {/* 레이어 순서 */}
                             <div style={{ display: 'flex', gap: 5 }}>
-                                <button onClick={() => moveLayerOrder(selId, -1)} style={{ ...btn(false), flex: 1, fontSize: 9 }}>{t('mediaEditor.moveForward', '▲ 앞으로')}</button>
-                                <button onClick={() => moveLayerOrder(selId, 1)} style={{ ...btn(false), flex: 1, fontSize: 9 }}>{t('mediaEditor.moveBack', '▼ Back')}</button>
+                                <button onClick={() => moveLayerOrder(selId, -1)} style={{ ...btn(false), flex: 1, fontSize: 10 }}>{t('mediaEditor.moveForward', '▲ 앞으로')}</button>
+                                <button onClick={() => moveLayerOrder(selId, 1)} style={{ ...btn(false), flex: 1, fontSize: 10 }}>{t('mediaEditor.moveBack', '▼ Back')}</button>
                             </div>
                         </>)}
 
                         {/* 레이어 목록 */}
                         {layers.length > 0 && (
                             <div style={{ marginTop: 6 }}>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 5, fontWeight: 700 }}>{t('mediaEditor.layerListTitle', '📋 텍스트 레이어 목록')}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 5, fontWeight: 700 }}>{t('mediaEditor.layerListTitle', '📋 텍스트 레이어 목록')}</div>
                                 {layers.map((l, i) => (
                                     <div key={l.id} onClick={() => setSelId(l.id)}
                                         style={{
@@ -581,9 +581,9 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                                             border: `1px solid ${selId === l.id ? accentColor + '44' : 'transparent'}`,
                                             cursor: 'pointer', marginBottom: 4, transition: 'all 0.15s'
                                         }}>
-                                        <span style={{ fontSize: 9, color: accentColor, fontWeight: 800, flexShrink: 0 }}>T{i + 1}</span>
-                                        <span style={{ flex: 1, fontSize: 9, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.text}</span>
-                                        <span onClick={e => { e.stopPropagation(); delLayer(l.id); }} style={{ fontSize: 9, color: '#ef4444', cursor: 'pointer', padding: '0 2px' }}>✕</span>
+                                        <span style={{ fontSize: 10, color: accentColor, fontWeight: 700, flexShrink: 0 }}>T{i + 1}</span>
+                                        <span style={{ flex: 1, fontSize: 10, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.text}</span>
+                                        <span onClick={e => { e.stopPropagation(); delLayer(l.id); }} style={{ fontSize: 10, color: '#ef4444', cursor: 'pointer', padding: '0 2px' }}>✕</span>
                                     </div>
                                 ))}
                             </div>
@@ -592,7 +592,7 @@ export default function MediaEditor({ channelName, channelId, accentColor = '#63
                         {/* 모든 레이어 초기화 */}
                         {layers.length > 0 && (
                             <button onClick={() => { setLayers([]); setSelId(null); }}
-                                style={{ marginTop: 4, padding: '4px 0', borderRadius: 7, border: '1px solid rgba(239,68,68,0.25)', background: 'transparent', color: '#ef4444', fontSize: 9, fontWeight: 700, cursor: 'pointer' }}>
+                                style={{ marginTop: 4, padding: '4px 0', borderRadius: 7, border: '1px solid rgba(239,68,68,0.25)', background: 'transparent', color: '#ef4444', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                                 {t('mediaEditor.resetAll', '🗑 All 텍스트 초기화')}
                             </button>
                         )}

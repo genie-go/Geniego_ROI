@@ -100,10 +100,10 @@ export default function MarketingMix() {
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 20px', color: '#0f172a', fontFamily: "'Pretendard','Inter',system-ui,sans-serif" }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 6 }}>
-        <h1 style={{ fontSize: 23, fontWeight: 900, letterSpacing: -0.5, margin: 0 }}>📐 {t('mmm.title', '마케팅 믹스 모델 (MMM) · 예산 최적화')}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: -0.5, margin: 0 }}>📐 {t('mmm.title', '마케팅 믹스 모델 (MMM) · 예산 최적화')}</h1>
         <div style={{ display: 'flex', gap: 6 }}>
           {[30, 60, 90, 180].map(d => (
-            <button key={d} onClick={() => setWin(d)} style={{ padding: '6px 12px', borderRadius: 8, border: window === d ? '2px solid #4f46e5' : '1px solid #e2e8f0', background: window === d ? 'rgba(79,70,229,0.1)' : '#fff', color: window === d ? '#4f46e5' : '#64748b', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{d}{t('mmm.daysUnit', '일')}</button>
+            <button key={d} onClick={() => setWin(d)} style={{ padding: '6px 12px', borderRadius: 8, border: window === d ? '2px solid #4f46e5' : '1px solid #e2e8f0', background: window === d ? 'rgba(79,70,229,0.1)' : '#fff', color: window === d ? '#4f46e5' : '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{d}{t('mmm.daysUnit', '일')}</button>
           ))}
         </div>
       </div>
@@ -121,10 +121,10 @@ export default function MarketingMix() {
       {anom && anom.ok && (anom.anomalies || []).length > 0 && (
         <div style={{ ...card, marginBottom: 18, borderColor: 'rgba(239,68,68,0.3)', background: 'linear-gradient(135deg,#fff7ed,#fef2f2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ fontWeight: 900, fontSize: 15 }}>🚨 {t('mmm.anomTitle', '이상 감지 (SPC) · 실시간 경보')}</div>
+            <div style={{ fontWeight: 900, fontSize: 14 }}>🚨 {t('mmm.anomTitle', '이상 감지 (SPC) · 실시간 경보')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#dc2626', background: 'rgba(239,68,68,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevCritical', '심각')} {anom.summary?.critical || 0}</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevWarning', '경고')} {anom.summary?.warning || 0}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', background: 'rgba(239,68,68,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevCritical', '심각')} {anom.summary?.critical || 0}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '3px 10px', borderRadius: 99 }}>{t('mmm.sevWarning', '경고')} {anom.summary?.warning || 0}</span>
             </div>
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
@@ -132,7 +132,7 @@ export default function MarketingMix() {
               const sev = a.severity === 'critical';
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid ' + (sev ? '#fecaca' : '#fed7aa') }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, color: '#fff', background: sev ? '#dc2626' : '#f59e0b', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{sev ? t('mmm.sevCritical', '심각') : t('mmm.sevWarning', '경고')}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: '#fff', background: sev ? '#dc2626' : '#f59e0b', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap' }}>{sev ? t('mmm.sevCritical', '심각') : t('mmm.sevWarning', '경고')}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, minWidth: 70 }}>{chName(a.channel)}</span>
                   <span style={{ fontSize: 12.5, color: '#334155' }}>
                     <b>{a.metric_label}</b> {a.direction} — {a.value}{a.unit} <span style={{ color: '#94a3b8' }}>({t('mmm.anomBaseline', '기준')} {a.expected}{a.unit}, {a.sigma}σ)</span>
@@ -151,7 +151,7 @@ export default function MarketingMix() {
       <div style={{ ...card, marginBottom: 18, background: 'linear-gradient(135deg,#eef2ff,#f5f3ff)', border: '1px solid #ddd6fe' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <div>
-            <div style={{ fontWeight: 900, fontSize: 15 }}>🤖 {t('mmm.aiTitle', 'AI 인사이트 리포트')}</div>
+            <div style={{ fontWeight: 900, fontSize: 14 }}>🤖 {t('mmm.aiTitle', 'AI 인사이트 리포트')}</div>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>{t('mmm.aiDesc', 'MMM·이상감지·성과 데이터를 종합해 경영진용 요약·원인·권장 액션을 자연어로 생성합니다.')}</div>
           </div>
           <button onClick={runInsight} disabled={insightBusy} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: insightBusy ? '#cbd5e1' : 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: '#fff', fontWeight: 800, fontSize: 13, cursor: insightBusy ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
@@ -192,7 +192,7 @@ export default function MarketingMix() {
         <>
           {/* 예산 최적화 패널 */}
           <div style={{ ...card, marginBottom: 18, background: 'linear-gradient(135deg,#eef2ff,#faf5ff)', border: '1px solid #ddd6fe' }}>
-            <div style={{ fontWeight: 900, fontSize: 15, marginBottom: 12 }}>🎯 {t('mmm.optTitle', '예측 예산 최적화')}</div>
+            <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>🎯 {t('mmm.optTitle', '예측 예산 최적화')}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 8 }}>
               <div>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, marginBottom: 4 }}>{t('mmm.dailyBudget', '총 일 예산 (원)')}</div>
@@ -266,7 +266,7 @@ export default function MarketingMix() {
             return (
               <div style={{ ...card, marginTop: 16, border: '1px solid #bbf7d0', background: 'linear-gradient(180deg,#f0fdf4,#ffffff)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                  <h2 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>💰 {t('mmm.frontierTitle', '이익 효율 프론티어 · 적정 총예산')}</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>💰 {t('mmm.frontierTitle', '이익 효율 프론티어 · 적정 총예산')}</h2>
                   <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700, background: '#dcfce7', borderRadius: 20, padding: '3px 10px' }}>{t('mmm.frontierBadge', '이익 최대화 · 경쟁사 미제공')}</span>
                 </div>
                 <div style={{ fontSize: 12, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
@@ -280,7 +280,7 @@ export default function MarketingMix() {
                     {[['revenue', t('mmm.objRevenue', '매출 최대')], ['profit', t('mmm.objProfit', '이익 최대')]].map(([v, lbl]) => {
                       const active = (autoObj?.objective || 'revenue') === v;
                       const disabled = objBusy || (v === 'profit' && autoObj && autoObj.profit_ready === false);
-                      return <button key={v} disabled={disabled} onClick={() => toggleAutoObj(v)} style={{ padding: '6px 14px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', background: active ? (v === 'profit' ? '#16a34a' : '#4f46e5') : '#fff', color: active ? '#fff' : (disabled ? '#cbd5e1' : '#475569'), fontSize: 12, fontWeight: 800 }}>{lbl}</button>;
+                      return <button key={v} disabled={disabled} onClick={() => toggleAutoObj(v)} style={{ padding: '6px 14px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', background: active ? (v === 'profit' ? '#16a34a' : '#4f46e5') : '#fff', color: active ? '#fff' : (disabled ? '#cbd5e1' : '#475569'), fontSize: 12, fontWeight: 700 }}>{lbl}</button>;
                     })}
                   </div>
                   {autoObj?.objective === 'profit' && <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>✓ {t('mmm.profitModeOn', '자동 재배분이 순이익 기준으로 실행됩니다')}</span>}
@@ -390,7 +390,7 @@ export default function MarketingMix() {
               return (
                 <div key={c.channel} style={card}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 900, fontSize: 15 }}><span style={{ color }}>●</span> {chName(c.channel)}</div>
+                    <div style={{ fontWeight: 900, fontSize: 14 }}><span style={{ color }}>●</span> {chName(c.channel)}</div>
                     <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700 }}>{t('mmm.fit', '적합도')} R²={c.r2}</div>
                   </div>
                   <ResponseCurve ch={c} color={color} nowLabel={t('mmm.nowMarker', '현재')} />
@@ -404,7 +404,7 @@ export default function MarketingMix() {
                     ].map(m => (
                       <div key={m.l} style={{ padding: '8px 10px', borderRadius: 10, background: '#f8fafc', border: '1px solid #eef2f7' }}>
                         <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>{m.l}</div>
-                        <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a' }}>{m.v}</div>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: '#0f172a' }}>{m.v}</div>
                       </div>
                     ))}
                   </div>
@@ -427,9 +427,9 @@ export default function MarketingMix() {
             return (
               <div style={{ ...card, marginTop: 18, borderColor: '#ddd6fe', background: 'linear-gradient(135deg,#faf5ff,#eef2ff)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
-                  <div style={{ fontWeight: 900, fontSize: 15 }}>🎲 {t('mmm.bayesTitle', '정식 Bayesian MMM — 기여도 사후분포 (95% 신뢰구간)')}</div>
+                  <div style={{ fontWeight: 900, fontSize: 14 }}>🎲 {t('mmm.bayesTitle', '정식 Bayesian MMM — 기여도 사후분포 (95% 신뢰구간)')}</div>
                   {bayes.channels.some(c => c.inference === 'mcmc') && (
-                    <span style={{ fontSize: 10.5, fontWeight: 800, color: '#6d28d9', background: 'rgba(124,58,237,0.12)', padding: '3px 10px', borderRadius: 99 }}>MCMC · 2-chain</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#6d28d9', background: 'rgba(124,58,237,0.12)', padding: '3px 10px', borderRadius: 99 }}>MCMC · 2-chain</span>
                   )}
                 </div>
                 <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14, lineHeight: 1.6 }}>{t('mmm.bayesDesc', '(β·κ·λ·σ) 전 파라미터를 Metropolis-Hastings MCMC로 결합 사후표본화해 곡선형태 불확실성까지 반영한 일 기여매출의 95% 신뢰구간·신뢰도(trust)·수렴진단(R̂)을 제공합니다.')}</div>
@@ -443,14 +443,14 @@ export default function MarketingMix() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
                           <div style={{ fontWeight: 800, fontSize: 13 }}><span style={{ color }}>●</span> {chName(c.channel)}</div>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: gradeColor(c.trust) }}>{t('mmm.bayesTrust', '신뢰도')} {Math.round((c.trust || 0) * 100)}%</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: gradeColor(c.trust) }}>{t('mmm.bayesTrust', '신뢰도')} {Math.round((c.trust || 0) * 100)}%</span>
                             {c.rhat != null && (
-                              <span title={t('mmm.bayesRhatTip', '겔만-루빈 수렴진단 — 1.1 이하면 수렴')} style={{ fontSize: 10, fontWeight: 800, color: c.converged ? '#16a34a' : '#d97706', background: c.converged ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)', padding: '2px 7px', borderRadius: 99 }}>
+                              <span title={t('mmm.bayesRhatTip', '겔만-루빈 수렴진단 — 1.1 이하면 수렴')} style={{ fontSize: 10, fontWeight: 700, color: c.converged ? '#16a34a' : '#d97706', background: c.converged ? 'rgba(22,163,74,0.1)' : 'rgba(217,119,6,0.1)', padding: '2px 7px', borderRadius: 99 }}>
                                 R̂={c.rhat}{c.converged ? ' ✓' : ''}
                               </span>
                             )}
                             {c.ess != null && (
-                              <span title={t('mmm.bayesEssTip', '유효표본수(ESS)=사후분포 독립표본 수(클수록 신뢰↑) · MCSE=몬테카를로 표준오차(작을수록 정밀). Stan/PyMC 표준 진단.')} style={{ fontSize: 10, fontWeight: 800, color: Number(c.ess) >= 200 ? '#16a34a' : '#d97706', background: 'rgba(99,102,241,0.08)', padding: '2px 7px', borderRadius: 99 }}>
+                              <span title={t('mmm.bayesEssTip', '유효표본수(ESS)=사후분포 독립표본 수(클수록 신뢰↑) · MCSE=몬테카를로 표준오차(작을수록 정밀). Stan/PyMC 표준 진단.')} style={{ fontSize: 10, fontWeight: 700, color: Number(c.ess) >= 200 ? '#16a34a' : '#d97706', background: 'rgba(99,102,241,0.08)', padding: '2px 7px', borderRadius: 99 }}>
                                 ESS={Math.round(Number(c.ess))}{c.mcse != null ? ` · MCSE ${Number(c.mcse).toFixed(3)}` : ''}{c.accept_rate != null ? ` · acc ${Math.round(Number(c.accept_rate) * 100)}%` : ''}
                               </span>
                             )}
@@ -481,7 +481,7 @@ export default function MarketingMix() {
             <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: 'var(--card-bg, #fff)', border: '1px solid #eef2f7' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                 <span style={{ fontWeight: 900, fontSize: 13 }}>🎯 {t('mmm.btTitle', 'MMM 예측 검증(OOS 백테스트)')}</span>
-                <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: bt.overall.grade === 'good' ? 'rgba(22,163,74,0.12)' : bt.overall.grade === 'fair' ? 'rgba(217,119,6,0.12)' : 'rgba(220,38,38,0.12)', color: bt.overall.grade === 'good' ? '#16a34a' : bt.overall.grade === 'fair' ? '#d97706' : '#dc2626' }}>
+                <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: bt.overall.grade === 'good' ? 'rgba(22,163,74,0.12)' : bt.overall.grade === 'fair' ? 'rgba(217,119,6,0.12)' : 'rgba(220,38,38,0.12)', color: bt.overall.grade === 'good' ? '#16a34a' : bt.overall.grade === 'fair' ? '#d97706' : '#dc2626' }}>
                   {bt.overall.grade === 'good' ? t('mmm.btGood', '우수') : bt.overall.grade === 'fair' ? t('mmm.btFair', '보통') : t('mmm.btPoor', '주의')}
                 </span>
                 <span style={{ fontSize: 11, color: '#94a3b8' }}>· {t('mmm.btAvgMape', '평균 오차(MAPE)')} {bt.overall.avg_oos_mape}% · {t('mmm.btCov', '95% 커버리지')} {bt.overall.avg_ci_coverage_95}% · {t('mmm.btHold', '검증')} {bt.holdout_days}{t('mmm.daysUnit', '일')}</span>

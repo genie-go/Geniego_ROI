@@ -123,7 +123,7 @@ export default function GenieAssistant() {
             <span style={{ position: 'absolute', right: -2, bottom: -2, width: 16, height: 16, borderRadius: '50%', background: '#22c55e', border: '2px solid #fff' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.25 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, whiteSpace: 'nowrap', color: '#4f46e5' }}>{title}</span>
+            <span style={{ fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', color: '#4f46e5' }}>{title}</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap' }}>💬 {sub}</span>
           </div>
         </button>
@@ -135,7 +135,7 @@ export default function GenieAssistant() {
           <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
             <GenieMark size={42} ring />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 900, fontSize: 15, lineHeight: 1.2 }}>{title}</div>
+              <div style={{ fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>{title}</div>
               <div style={{ fontSize: 11, opacity: 0.85 }}>{sub}</div>
             </div>
             <button onClick={reset} title={t('assistant.newChat', '새 대화')} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: 8, width: 30, height: 30, fontSize: 14 }}>✎</button>
@@ -206,7 +206,7 @@ export default function GenieAssistant() {
               <textarea ref={taRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} rows={1} placeholder={ph}
                 style={{ flex: 1, resize: 'none', maxHeight: 120, padding: '10px 12px', borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', fontFamily: 'inherit', lineHeight: 1.5 }} />
               <button onClick={() => send()} disabled={busy || !input.trim()}
-                style={{ width: 42, height: 42, borderRadius: 12, border: 'none', cursor: busy || !input.trim() ? 'default' : 'pointer', background: busy || !input.trim() ? '#cbd5e1' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontSize: 17, flexShrink: 0 }}>➤</button>
+                style={{ width: 42, height: 42, borderRadius: 12, border: 'none', cursor: busy || !input.trim() ? 'default' : 'pointer', background: busy || !input.trim() ? '#cbd5e1' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', fontSize: 16, flexShrink: 0 }}>➤</button>
             </div>
             <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 6, textAlign: 'center' }}>{t('assistant.disclaimer', 'GeniegoROI 사용 안내 도우미 · Enter 전송 · Shift+Enter 줄바꿈')}</div>
           </div>

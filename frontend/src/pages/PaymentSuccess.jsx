@@ -100,7 +100,7 @@ export default function PaymentSuccess() {
 
                     {/* 결제 상세 */}
                     <div style={{ padding: "20px 24px", borderRadius: 14, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24, textAlign: "left" }}>
-                        <div style={{ fontWeight: 800, fontSize: 12, color: "#4f8ef7", marginBottom: 12 }}>📋 {t('paymentSuccess.detailTitle', "결제 내역")}</div>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: "#4f8ef7", marginBottom: 12 }}>📋 {t('paymentSuccess.detailTitle', "결제 내역")}</div>
                         {[
                             [t('paymentSuccess.fieldPlan', "플랜"), `${planLabel} ${t('paymentSuccess.planWord', "플랜")}`],
                             [t('paymentSuccess.fieldCycle', "구독 주기"), cycleLabel],
@@ -119,7 +119,7 @@ export default function PaymentSuccess() {
 
                     <button
                         onClick={() => navigate("/dashboard")}
-                        style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: '#fff', fontWeight: 900, fontSize: 15, boxShadow: "0 6px 24px rgba(79,142,247,0.4)" }}
+                        style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#4f8ef7,#a855f7)", color: '#fff', fontWeight: 900, fontSize: 14, boxShadow: "0 6px 24px rgba(79,142,247,0.4)" }}
                     >🚀 {t('paymentSuccess.goDashboard', "대시보드로 이동")}</button>
                 </div>
             )}

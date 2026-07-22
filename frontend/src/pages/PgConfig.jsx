@@ -162,7 +162,7 @@ function PgConfig() {
                 <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.15, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{k.val}</div>
                 {!loading && (
                   <span style={{
-                    fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 4, flex: '0 0 auto',
+                    fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, flex: '0 0 auto',
                     background: 'rgba(34,197,94,0.10)', color: '#22c55e',
                     border: '1px solid rgba(34,197,94,0.25)',
                   }}>LIVE</span>

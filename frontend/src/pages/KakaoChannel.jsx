@@ -104,7 +104,7 @@ function ChannelBadge({ t }) {
     <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', padding:'6px 10px', borderRadius:10, background:'rgba(254,229,0,0.06)', border:'1px solid rgba(254,229,0,0.15)', fontSize:10, marginBottom:14 }}>
       <span style={{ fontWeight:700, color:'#eab308', fontSize:11 }}>🔗 {t('kakao.connectedChannels')}:</span>
       {kakaoChannels.map(ch => (
-        <span key={ch.key||ch.platform} style={{ background:'rgba(254,229,0,0.15)', color:'#eab308', border:'1px solid rgba(254,229,0,0.25)', borderRadius:6, padding:'1px 7px', fontSize:9, fontWeight:700 }}>{ch.platform||ch.key}</span>
+        <span key={ch.key||ch.platform} style={{ background:'rgba(254,229,0,0.15)', color:'#eab308', border:'1px solid rgba(254,229,0,0.25)', borderRadius:6, padding:'1px 7px', fontSize:10, fontWeight:700 }}>{ch.platform||ch.key}</span>
       ))}
     </div>
 );
@@ -164,7 +164,7 @@ function SettingsTab({ API }) {
     return (
         <div style={{ maxWidth: 640 }}>
             <div style={{ background: C.card, borderRadius: 14, padding: 24 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{t('kakao.setTit')}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{t('kakao.setTit')}</div>
                 <div style={{ fontSize: 12, color: C.muted, marginBottom: 20 }}>{t('kakao.setDesc')}</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {[
@@ -231,7 +231,7 @@ function TemplatesTab({ API }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             {/* Left: Registration Form */}
             <div style={{ background: C.card, borderRadius: 14, padding: 20 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>{t('kakao.tplRegTit')}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{t('kakao.tplRegTit')}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{t('kakao.fTplCode')}</div>
@@ -488,7 +488,7 @@ function GuideTab() {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -497,7 +497,7 @@ function GuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('kakao.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('kakao.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -508,9 +508,9 @@ function GuideTab() {
                         <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -547,7 +547,7 @@ function GuideTab() {
             {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
             {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
             {g('guideReadyTitle') ? <div style={{ background: "linear-gradient(135deg,#fffbe6,#fef3c7)", borderRadius: 16, border: "1px solid #fde68a", padding: "24px", textAlign: "center" }}>
-                <div style={{ fontWeight: 900, fontSize: 17, color: "#1e293b", marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                <div style={{ fontWeight: 900, fontSize: 16, color: "#1e293b", marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
                 <div style={{ fontSize: 12.5, color: "#1e293b", lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyDesc')}</div>
             </div> : null}
         </div>

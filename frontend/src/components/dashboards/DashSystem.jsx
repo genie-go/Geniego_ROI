@@ -314,10 +314,10 @@ const KPICard = React.memo(function KPICard({ ico, label, value, delta, col, hin
             <div style={{ fontSize:10, color: 'var(--text-3)', fontWeight:700, textTransform:'uppercase', letterSpacing:1 }}>{label}</div>
             <div style={{ fontSize:22, fontWeight:900, color:col, lineHeight:1.1, marginTop:3, textShadow:`0 0 18px ${col}55` }}>{value}</div>
           </div>
-          <div style={{ width:36, height:36, borderRadius:10, background:`${col}18`, border:`1px solid ${col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17 }}>{ico}</div>
+          <div style={{ width:36, height:36, borderRadius:10, background:`${col}18`, border:`1px solid ${col}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>{ico}</div>
         </div>
         <div style={{ display:'flex', justifyContent:'space-between' }}>
-          <span style={{ fontSize:11, color:delta <= 0 ? '#4ade80' : '#f87171', fontWeight:800, background:delta <= 0 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6 }}>
+          <span style={{ fontSize:11, color:delta <= 0 ? '#4ade80' : '#f87171', fontWeight:700, background:delta <= 0 ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', padding:'1px 6px', borderRadius:6 }}>
             {delta <= 0 ? '▼' : '▲'} {Math.abs(delta || 0)}
           </span>
           <span style={{ fontSize:10, color: 'var(--text-3)' }}>{hint}</span>
@@ -346,7 +346,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
             <div style={{ fontSize:16, fontWeight:900, color:isSecure ? '#22c55e' : '#f87171' }}>{txt('secShield')}</div>
             <div style={{ fontSize:11, color: 'var(--text-3)', marginTop:2 }}>{isSecure ? txt('secureActive') : `${txt('threatsBlocked')} ${threatCount}`}</div>
           </div>
-          <div style={{ padding:'6px 14px', borderRadius:8, fontSize:11, fontWeight:800, background:isSecure ? 'rgba(34,197,94,0.15)' : 'rgba(248,113,113,0.15)', color:isSecure ? '#4ade80' : '#f87171', border:`1px solid ${isSecure ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
+          <div style={{ padding:'6px 14px', borderRadius:8, fontSize:11, fontWeight:700, background:isSecure ? 'rgba(34,197,94,0.15)' : 'rgba(248,113,113,0.15)', color:isSecure ? '#4ade80' : '#f87171', border:`1px solid ${isSecure ? 'rgba(34,197,94,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
             {isSecure ? '✅ SECURE' : '⚠️ ALERT'}
           </div>
         </div>
@@ -360,7 +360,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
             <div key={m.l} style={{ background:'rgba(0,0,0,0.04)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:9, padding:'8px 10px', textAlign:'center' }}>
               <div style={{ fontSize:14, marginBottom:4 }}>{m.ico}</div>
               <div style={{ fontSize:14, fontWeight:900, color:m.col }}>{m.v}</div>
-              <div style={{ fontSize:8, color: 'var(--text-3)', marginTop:2, lineHeight:1.2 }}>{m.l}</div>
+              <div style={{ fontSize:10, color: 'var(--text-3)', marginTop:2, lineHeight:1.2 }}>{m.l}</div>
             </div>
           ))}
         </div>
@@ -369,7 +369,7 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
       <div style={{ background:'linear-gradient(145deg,rgba(248,250,252,0.95),rgba(241,245,249,0.90))', border: '1px solid var(--border)', borderRadius:12, padding:'14px 16px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
           <div style={{ fontSize:12, fontWeight:700, color: 'var(--text-3)', textTransform:'uppercase', letterSpacing:0.8 }}>{txt('securityLog')}</div>
-          <span style={{ fontSize:9, color: 'var(--text-3)', padding:'2px 8px', border: '1px solid var(--border)', borderRadius:6 }}>{alerts.length} events</span>
+          <span style={{ fontSize:10, color: 'var(--text-3)', padding:'2px 8px', border: '1px solid var(--border)', borderRadius:6 }}>{alerts.length} events</span>
         </div>
         {alerts.length === 0 ? (
           <div style={{ textAlign:'center', padding:'20px 0', color: 'var(--text-3)', fontSize:12 }}>✅ {txt('noThreats')}</div>
@@ -379,13 +379,13 @@ const SecurityPanel = React.memo(function SecurityPanel({ txt, secAlerts }) {
               const col = a.type === 'critical' ? '#f87171' : a.type === 'warn' ? '#eab308' : '#4f8ef7';
               return (
                 <div key={a.id || i} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, background:`${col}08`, border:`1px solid ${col}18` }}>
-                  <span style={{ fontSize:8, fontWeight:900, color:col, padding:'1px 5px', borderRadius:4, background:`${col}1a`, border:`1px solid ${col}25`, flexShrink:0 }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:col, padding:'1px 5px', borderRadius:4, background:`${col}1a`, border:`1px solid ${col}25`, flexShrink:0 }}>
                     {a.type === 'critical' ? txt('critical') : a.type === 'warn' ? txt('warning') : txt('info')}
                   </span>
                   <span style={{ flex:1, fontSize:10, color: 'var(--text-2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {a.message || a.msg || 'Security event'}
                   </span>
-                  <span style={{ fontSize:9, color: 'var(--text-3)', flexShrink:0 }}>{a.time || 'now'}</span>
+                  <span style={{ fontSize:10, color: 'var(--text-3)', flexShrink:0 }}>{a.time || 'now'}</span>
                 </div>
               );
             })}
@@ -545,9 +545,9 @@ export default function DashSystem() {
                       <span style={{ fontSize:14 }}>{m.icon}</span>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:10, fontWeight:700, color: 'var(--text-1)' }}>{m.name}</div>
-                        <div style={{ fontSize:9, color: 'var(--text-3)' }}>{sub}</div>
+                        <div style={{ fontSize:10, color: 'var(--text-3)' }}>{sub}</div>
                       </div>
-                      <span style={{ fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:4, background: statusBg, color: statusCol, border: `1px solid ${statusBorder}` }}>{(m.status || '—').toUpperCase()}</span>
+                      <span style={{ fontSize:10, fontWeight:700, padding:'2px 6px', borderRadius:4, background: statusBg, color: statusCol, border: `1px solid ${statusBorder}` }}>{(m.status || '—').toUpperCase()}</span>
                     </div>
                   );
                 })}

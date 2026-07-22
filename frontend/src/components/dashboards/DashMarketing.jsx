@@ -66,7 +66,7 @@ function StageHeader({ title, stage, t }) {
   return (
     <>
       <div style={sectionTitle}>{title}</div>
-      <div style={{ fontSize: 9.5, color: 'var(--text-3)', margin: '2px 0 6px', lineHeight: 1.45 }}>{note}</div>
+      <div style={{ fontSize: 10.5, color: 'var(--text-3)', margin: '2px 0 6px', lineHeight: 1.45 }}>{note}</div>
     </>
   );
 }
@@ -103,12 +103,12 @@ function ChannelDetailPanel({ channel, t, currFmt }) {
           {headerKpis.map(([l, v]) => (
             <div key={l} style={{ background: 'rgba(0,0,0,0.24)', borderRadius: 8, padding: '6px 8px' }}>
               <div style={sectionTitle}>{l}</div>
-              <div style={{ fontSize: 12, fontWeight: 900, color: 'var(--text-1)' }}>{v}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{v}</div>
             </div>
           ))}
         </div>
         {fb && (
-          <div style={{ marginTop: 8, fontSize: 9.5, color: '#f59e0b', lineHeight: 1.45 }}>
+          <div style={{ marginTop: 8, fontSize: 10.5, color: '#f59e0b', lineHeight: 1.45 }}>
             ⚠ {t('funnel.noObjectiveData', '캠페인 목적(objective) 데이터 미적재 — 채널 전체 합산을 표시합니다. 매체 연동·동기화 후 목적별 분류가 적용됩니다.')}
           </div>
         )}
@@ -180,7 +180,7 @@ function ChannelDetailPanel({ channel, t, currFmt }) {
       {/* 5. 매출 & ROI (전체 캠페인 합산) */}
       <div style={card}>
         <div style={sectionTitle}>{t('dash.revRoi2', '5. 매출 & ROI')}</div>
-        <div style={{ fontSize: 9.5, color: 'var(--text-3)', margin: '2px 0 6px' }}>{t('funnel.allCampaigns', '전체 캠페인 합산')}</div>
+        <div style={{ fontSize: 10.5, color: 'var(--text-3)', margin: '2px 0 6px' }}>{t('funnel.allCampaigns', '전체 캠페인 합산')}</div>
         <MetRow l={t('dash.adRev', '광고매출')} v={currFmt(fb ? (c.revenue || 0) : tot.revenue)} col="#eab308" />
         <MetRow l={t('dash.adSpend', '광고비')} v={currFmt(fb ? (c.spend || 0) : tot.spend)} col="#eab308" />
         <MetRow l="ROAS" v={(fb ? (c.roas || 0) : tot.roas).toFixed(2) + 'x'} col="#eab308" />
@@ -207,7 +207,7 @@ function SummaryPanel({ channels, totalRev, totalSpend, avgROAS, t, currFmt }) {
           ].map(m => (
             <div key={m.l}>
               <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 3 }}>{m.l}</div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: m.col }}>{m.v}</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: m.col }}>{m.v}</div>
             </div>
           ))}
         </div>
@@ -230,7 +230,7 @@ function SummaryPanel({ channels, totalRev, totalSpend, avgROAS, t, currFmt }) {
                 height: '100%', background: c.color, borderRadius: 3,
               }} />
             </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: c.color }}>{(c.roas || 0).toFixed(2)}x</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: c.color }}>{(c.roas || 0).toFixed(2)}x</span>
           </div>
         ))}
       </div>
@@ -250,7 +250,7 @@ function SummaryPanel({ channels, totalRev, totalSpend, avgROAS, t, currFmt }) {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
             {channels.map(c => (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9 }}>
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10 }}>
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: c.color }} />
                 <span style={{ color: 'var(--text-3)' }}>{c.name}</span>
               </div>
@@ -504,7 +504,7 @@ export default function DashMarketing({ period }) {
         }}>
           <span style={{ fontSize: 20 }}>🛡️</span>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#f87171' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#f87171' }}>
               {t('dash.securityAlert', 'Security Alert')}
             </div>
             <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
@@ -554,11 +554,11 @@ export default function DashMarketing({ period }) {
               }}>
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${m.color},${m.color}44)` }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-3)' }}>{m.label}</div>
-                  <span style={{ fontSize: 17 }}>{m.icon}</span>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }}>{m.label}</div>
+                  <span style={{ fontSize: 16 }}>{m.icon}</span>
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 900, color: m.color, lineHeight: 1.1 }}>{m.value}</div>
-                <span style={{ fontSize: 10, color: m.delta >= 0 ? '#4ade80' : '#f87171', fontWeight: 800 }}>
+                <span style={{ fontSize: 10, color: m.delta >= 0 ? '#4ade80' : '#f87171', fontWeight: 700 }}>
                   {m.delta >= 0 ? '▲' : '▼'} {Math.abs(m.delta).toFixed(1)}%
                 </span>
               </div>
@@ -608,12 +608,12 @@ export default function DashMarketing({ period }) {
                                 background: `linear-gradient(135deg,${c.color},${c.color}88)`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
                               }}>{c.icon}</div>
-                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-1)' }}>{c.name}</div>
+                              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-1)' }}>{c.name}</div>
                             </div>
                             <div style={{ fontSize: 20, fontWeight: 900, color: c.color }}>
                               {(c.roas || 0).toFixed(2)}<span style={{ fontSize: 11 }}>x</span>
                             </div>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)' }}>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
                               ROAS · {currFmt(c.revenue)}
                             </div>
                           </div>
@@ -651,19 +651,19 @@ export default function DashMarketing({ period }) {
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>{c.icon}</div>
                             <div>
-                              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-1)' }}>{c.name}</div>
-                              <div style={{ fontSize: 9, color: 'var(--text-3)' }}>{t('dash.clickForAnalysis', 'Click → 5-Section')}</div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-1)' }}>{c.name}</div>
+                              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('dash.clickForAnalysis', 'Click → 5-Section')}</div>
                             </div>
                           </div>
                           <div style={{ fontSize: 24, fontWeight: 900, color: c.color }}>
                             {(c.roas || 0).toFixed(2)}<span style={{ fontSize: 13 }}>x</span>
                           </div>
-                          <div style={{ fontSize: 9, color: 'var(--text-3)' }}>
+                          <div style={{ fontSize: 10, color: 'var(--text-3)' }}>
                             ROAS · {currFmt(c.revenue)}
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ flex: 1, marginRight: 8 }}>
-                              <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 3 }}>
+                              <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 3 }}>
                                 CTR {(c.ctr || 0).toFixed(1)}% · Conv {(c.convRate || 0).toFixed(1)}%
                               </div>
                               <div style={{ height: 3, background: 'var(--border)', borderRadius: 2 }}>
@@ -769,8 +769,8 @@ export default function DashMarketing({ period }) {
                             [t('dash.cpc', 'CPC'), currFmt(c.cpc), 'var(--text-2, #4b5563)'],
                           ].map(([l, v, col]) => (
                             <div key={l} style={{ background: 'var(--surface)', borderRadius: 7, padding: '5px 7px' }}>
-                              <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{l}</div>
-                              <div style={{ fontSize: 11, fontWeight: 900, color: col }}>{v}</div>
+                              <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>{l}</div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: col }}>{v}</div>
                             </div>
                           ))}
                         </div>

@@ -215,7 +215,7 @@ function TemplatesTab() {
                 </div>
             </div>
             <Card glow>
-                <div style={{ fontWeight:800, marginBottom:18, fontSize:15, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
+                <div style={{ fontWeight:800, marginBottom:18, fontSize:14, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:18 }}>{editId==="new"?"✨":"✏️"}</span>
                     {editId==="new"?(t("email.tplCreate", "Create Template")):(t("email.tplEdit", "Edit Template"))}
                 </div>
@@ -358,13 +358,13 @@ function CampaignsTab() {
                 return (
                   <Card glow>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:10,marginBottom:12}}>
-                      <div style={{fontWeight:800,fontSize:15,display:'flex',alignItems:'center',gap:8,color:'#1f2937'}}>
+                      <div style={{fontWeight:800,fontSize:14,display:'flex',alignItems:'center',gap:8,color:'#1f2937'}}>
                         <span style={{fontSize:18}}>📬</span>{t('email.delivTitle','딜리버러빌리티 건강도')}
                         <span style={{fontSize:10,color:'#9ca3af',fontWeight:600}}>· {deliv.window_days}{t('email.delivDays','일')}</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:10}}>
                         <span style={{fontSize:11,color:'#6b7280'}}>{t('email.delivRep','발신자 평판')}</span>
-                        <span style={{fontSize:12,fontWeight:800,color:gc,background:gc+'1a',padding:'4px 12px',borderRadius:8}}>{gl} · {rep.score}/100</span>
+                        <span style={{fontSize:12,fontWeight:700,color:gc,background:gc+'1a',padding:'4px 12px',borderRadius:8}}>{gl} · {rep.score}/100</span>
                       </div>
                     </div>
                     <div style={{display:'flex',flexWrap:'wrap',gap:18,alignItems:'center'}}>
@@ -408,7 +408,7 @@ function CampaignsTab() {
               </Card>
             )}
             <Card glow>
-                <div style={{ fontWeight:800, fontSize:15, marginBottom:16, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:16, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:18 }}>🚀</span>{t('email.cNew', "New Campaign")}
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:14 }}>
@@ -458,7 +458,7 @@ function CampaignsTab() {
                         <div style={{ marginTop:10, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", fontSize:11, color:'#b45309' }}>
                             <span>⚠️ {t('email.topicSuggest', '주제 미지정 캠페인은 주제별 수신거부가 적용되지 않습니다. 할인·프로모션 발송이라면 「프로모션·할인」을 지정하세요.')}</span>
                             <button type="button" onClick={()=>setForm(f=>({...f,topic:'promo'}))}
-                                style={{ padding:"4px 10px", borderRadius:7, border:'1px solid rgba(180,83,9,0.35)', background:'rgba(251,191,36,0.12)', color:'#b45309', fontSize:11, fontWeight:800, cursor:"pointer" }}>
+                                style={{ padding:"4px 10px", borderRadius:7, border:'1px solid rgba(180,83,9,0.35)', background:'rgba(251,191,36,0.12)', color:'#b45309', fontSize:11, fontWeight:700, cursor:"pointer" }}>
                                 {t('email.topicSuggestApply', '프로모션으로 지정')}
                             </button>
                         </div>
@@ -478,7 +478,7 @@ function CampaignsTab() {
                 </button>
             </Card>
             <Card style={{ padding:0, overflow:"hidden" }}>
-                <div style={{ padding:"16px 22px", fontWeight:800, fontSize:15, borderBottom:'1px solid rgba(0,0,0,0.06)', display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
+                <div style={{ padding:"16px 22px", fontWeight:800, fontSize:14, borderBottom:'1px solid rgba(0,0,0,0.06)', display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:16 }}>📊</span>{t('email.cStat', "Campaign Status")} ({emailCampaignsLinked.length})
                 </div>
                 <div style={{ overflowX:"auto" }}>
@@ -494,7 +494,7 @@ function CampaignsTab() {
                                 const clickR=c.total_sent>0?Math.round((c.clicked||0)/c.total_sent*100):0;
                                 const st=STATUS_MAP[c.status]||STATUS_MAP.draft;
                                 return (<tr key={c.id} style={{ borderTop:'1px solid rgba(0,0,0,0.04)', background:i%2?'rgba(0,0,0,0.01)':'transparent' }}>
-                                    <td style={{ padding:"12px 16px", fontWeight:600, color:'#1f2937' }}>{c.name}{(c.ab_test==1||c.ab_test===true) && <span title={t('email.abBadgeTip','A/B test active')} style={{ marginLeft:8, fontSize:9.5, fontWeight:800, color:'#6d28d9', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:6, padding:'1px 6px', verticalAlign:'middle' }}>🧪 A/B{c.ab_winner?` · ${c.ab_winner}✓`:''}</span>}</td>
+                                    <td style={{ padding:"12px 16px", fontWeight:600, color:'#1f2937' }}>{c.name}{(c.ab_test==1||c.ab_test===true) && <span title={t('email.abBadgeTip','A/B test active')} style={{ marginLeft:8, fontSize:10.5, fontWeight:700, color:'#6d28d9', background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.3)', borderRadius:6, padding:'1px 6px', verticalAlign:'middle' }}>🧪 A/B{c.ab_winner?` · ${c.ab_winner}✓`:''}</span>}</td>
                                     <td style={{ padding:"12px 16px", color:'#6b7280' }}>{c.template_name||"-"}</td>
                                     <td style={{ padding:"12px 16px", color:'#6b7280' }}>{c.targetSegmentName||c.segment_name||"All"}</td>
                                     <td style={{ padding:"12px 16px", color:'#374151' }}>{c.total_sent?.toLocaleString()||0}</td>
@@ -537,9 +537,9 @@ function AbResultModal({ t, campaign, isDemo, onClose }) {
         return (<div style={{ flex:1, padding:"16px 18px", borderRadius:14, background:isWin?'rgba(34,197,94,0.07)':'rgba(0,0,0,0.02)', border:'1px solid '+(isWin?'rgba(34,197,94,0.35)':'rgba(0,0,0,0.08)') }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                 <span style={{ fontWeight:900, fontSize:16, color:isWin?'#16a34a':'#374151' }}>Variant {label}</span>
-                {isWin && <span style={{ fontSize:10, fontWeight:800, color:'#fff', background:'#22c55e', borderRadius:6, padding:'2px 8px' }}>👑 {t('email.abWinner','WINNER')}</span>}
+                {isWin && <span style={{ fontSize:10, fontWeight:700, color:'#fff', background:'#22c55e', borderRadius:6, padding:'2px 8px' }}>👑 {t('email.abWinner','WINNER')}</span>}
             </div>
-            <div style={{ fontSize:30, fontWeight:900, color:isWin?'#16a34a':'#1f2937', lineHeight:1 }}>{(v.open_rate||0).toFixed(1)}<span style={{ fontSize:15 }}>%</span></div>
+            <div style={{ fontSize:30, fontWeight:900, color:isWin?'#16a34a':'#1f2937', lineHeight:1 }}>{(v.open_rate||0).toFixed(1)}<span style={{ fontSize:14 }}>%</span></div>
             <div style={{ fontSize:11, color:'#6b7280', marginTop:3, marginBottom:10 }}>{t('email.abOpenRate','Open rate')}</div>
             <div style={{ height:8, borderRadius:99, background:'rgba(0,0,0,0.06)', overflow:'hidden', marginBottom:12 }}>
                 <div style={{ width:`${Math.round((v.open_rate||0)/maxOpen*100)}%`, height:'100%', background:isWin?'#22c55e':'#a78bfa', borderRadius:99 }}/>
@@ -692,7 +692,7 @@ function AnalyticsTab() {
                 <KpiBadge icon="📦" label={t('email.anDelivery', "Delivery Rate")} value={deliveryRate+"%"} color={C.cyan} sub={analytics.totalFailed+" failed"}/>
             </div>
             <Card glow>
-                <div style={{ fontWeight:800, fontSize:15, marginBottom:18, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:18, display:"flex", alignItems:"center", gap:8, color:'#1f2937' }}>
                     <span style={{ fontSize:16 }}>📊</span>{t('email.anSegPerf', "Performance by Segment")}
                 </div>
                 {Object.keys(analytics.bySegment).length===0?(
@@ -730,11 +730,11 @@ function AnalyticsTab() {
                 });
                 return (
                     <Card glow>
-                        <div style={{ fontWeight:800, fontSize:15, marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, color:'#1f2937' }}>
+                        <div style={{ fontWeight:800, fontSize:14, marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, color:'#1f2937' }}>
                             <span style={{ display:"flex", alignItems:"center", gap:8 }}><span style={{ fontSize:16 }}>📈</span>{t('email.repTrendTitle', '딜리버러빌리티 평판 추이')}</span>
                             <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                                 <span style={{ fontSize:24, fontWeight:900, color:gColor(cur.grade) }}>{cur.rep_score}</span>
-                                <span style={{ fontSize:11, fontWeight:800, padding:'3px 10px', borderRadius:99, color:gColor(cur.grade), background:gColor(cur.grade)+'1a' }}>
+                                <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:99, color:gColor(cur.grade), background:gColor(cur.grade)+'1a' }}>
                                     {cur.grade==='good'?t('email.repGood','양호'):cur.grade==='warning'?t('email.repWarn','주의'):t('email.repRisk','위험')}
                                 </span>
                             </span>
@@ -773,7 +773,7 @@ function EmailChannelBadge({t}) {
     }
     return (<div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', padding:'6px 10px', borderRadius:10, background:'rgba(79,142,247,0.06)', border:'1px solid rgba(79,142,247,0.15)', fontSize:10, marginBottom:14 }}>
         <span style={{ fontWeight:700, color:C.accent, fontSize:11 }}>🔗 {t('email.connectedChannels', 'Connected')}:</span>
-        {emailCh.map(ch=>(<span key={ch.key||ch.platform} style={{ background:C.accent+'15', color:C.accent, border:'1px solid '+C.accent+'25', borderRadius:6, padding:'1px 7px', fontSize:9, fontWeight:700 }}>{ch.platform||ch.key}</span>))}
+        {emailCh.map(ch=>(<span key={ch.key||ch.platform} style={{ background:C.accent+'15', color:C.accent, border:'1px solid '+C.accent+'25', borderRadius:6, padding:'1px 7px', fontSize:10, fontWeight:700 }}>{ch.platform||ch.key}</span>))}
     </div>);
 }
 
@@ -802,7 +802,7 @@ function GuideTab() {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -811,7 +811,7 @@ function GuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('email.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('email.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -822,9 +822,9 @@ function GuideTab() {
                         <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -861,7 +861,7 @@ function GuideTab() {
             {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
             {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
             {g('guideReadyTitle') ? <div style={{ background: "linear-gradient(135deg,#eef2ff,#e0f2fe)", borderRadius: 16, border: "1px solid #c7d2fe", padding: "24px", textAlign: "center" }}>
-                <div style={{ fontWeight: 900, fontSize: 17, color: "#1e293b", marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                <div style={{ fontWeight: 900, fontSize: 16, color: "#1e293b", marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
                 <div style={{ fontSize: 12.5, color: "#1e293b", lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyDesc')}</div>
             </div> : null}
         </div>

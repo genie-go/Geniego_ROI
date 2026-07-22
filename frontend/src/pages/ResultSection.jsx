@@ -30,15 +30,15 @@ function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, ex
                     <div style={{ width: 32, height: 32, borderRadius: 9, background: color + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{icon}</div>
                     <div>
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                            <span style={{ fontWeight: 900, color, fontSize: 15 }}>#{idx + 1}</span>
+                            <span style={{ fontWeight: 900, color, fontSize: 14 }}>#{idx + 1}</span>
                             <span style={{ fontWeight: 800, fontSize: 13 }}>{ch.channel_name}</span>
-                            {ch.ad_type && <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: color + '18', color, border: `1px solid ${color}33` }}>{ch.ad_type}</span>}
+                            {ch.ad_type && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: color + '18', color, border: `1px solid ${color}33` }}>{ch.ad_type}</span>}
                         </div>
                         {ch.reason && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{ch.reason}</div>}
                     </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    {ch.effectiveness_score ? <div style={{ fontSize: 15, fontWeight: 900, color }}>{ch.effectiveness_score}</div> : null}
+                    {ch.effectiveness_score ? <div style={{ fontSize: 14, fontWeight: 900, color }}>{ch.effectiveness_score}</div> : null}
                     <div style={{ fontSize: 10, color: 'var(--text-3)' }}>₩{(ch.monthly_budget || 0).toLocaleString()}/mo</div>
                 </div>
             </div>
@@ -57,7 +57,7 @@ function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, ex
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 7 }}>
                         {kpis.map(([l, v]) => (
                             <div key={l} style={{ background: 'rgba(0,0,0,0.22)', borderRadius: 8, padding: '6px 9px' }}>
-                                <div style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2 }}>{l}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 2 }}>{l}</div>
                                 <div style={{ fontSize: 10, fontWeight: 700 }}>{v}</div>
                             </div>
                         ))}
@@ -70,7 +70,7 @@ function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, ex
                         ) : (
                             <AdMockup chId={ch.channel_id} headline={creative?.headline || ch.action_plan || ch.channel_name} copy={creative?.copy || ch.ad_type || ''} color={color} size={size} />
                         )}
-                        <button onClick={() => onRegenImg(ch.channel_id)} disabled={loading} style={{ marginTop: 5, width: '100%', padding: '4px 0', borderRadius: 6, border: 'none', background: color + '22', color, fontSize: 9, fontWeight: 700, cursor: loading ? 'default' : 'pointer' }}>
+                        <button onClick={() => onRegenImg(ch.channel_id)} disabled={loading} style={{ marginTop: 5, width: '100%', padding: '4px 0', borderRadius: 6, border: 'none', background: color + '22', color, fontSize: 10, fontWeight: 700, cursor: loading ? 'default' : 'pointer' }}>
                             {loading ? '⏳' : `🔄 ${t('gAiRec.regenImage', '이미지 재생성')}`}
                         </button>
                     </div>
@@ -78,9 +78,9 @@ function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, ex
                         {ch.action_plan && <div style={{ fontSize: 10, color: 'var(--text-2)', padding: '7px 10px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)', lineHeight: 1.6 }}>📋 {ch.action_plan}</div>}
                         {creative && (creative.headline || creative.copy) && (
                             <div style={{ padding: '7px 10px', borderRadius: 8, background: 'var(--surface)', border: `1px solid ${color}22` }}>
-                                {creative.headline && <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 3 }}>"{creative.headline}"</div>}
+                                {creative.headline && <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>"{creative.headline}"</div>}
                                 {creative.copy && <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.5 }}>{creative.copy}</div>}
-                                {creative.cta && <div style={{ marginTop: 4, fontSize: 9, padding: '2px 8px', borderRadius: 6, background: color + '18', color, display: 'inline-block', fontWeight: 700 }}>CTA: {creative.cta}</div>}
+                                {creative.cta && <div style={{ marginTop: 4, fontSize: 10, padding: '2px 8px', borderRadius: 6, background: color + '18', color, display: 'inline-block', fontWeight: 700 }}>CTA: {creative.cta}</div>}
                             </div>
                         )}
                     </div>
@@ -90,12 +90,12 @@ function ChannelResultCard({ ch, idx, creative, svcLabel, approved, executed, ex
                         {approved ? `✅ ${t('gAiRec.approved', '승인됨')}` : t('gAiRec.approve', '승인하기')}
                     </button>
                     {approved && !executed && (
-                        <button onClick={() => onExecute(ch)} disabled={executing} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', cursor: executing ? 'default' : 'pointer', background: executing ? 'rgba(99,102,241,0.3)' : `linear-gradient(135deg,${color},#6366f1)`, color: '#fff', fontWeight: 800, fontSize: 11 }}>
+                        <button onClick={() => onExecute(ch)} disabled={executing} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', cursor: executing ? 'default' : 'pointer', background: executing ? 'rgba(99,102,241,0.3)' : `linear-gradient(135deg,${color},#6366f1)`, color: '#fff', fontWeight: 700, fontSize: 11 }}>
                             {executing ? `⏳ ${t('gAiRec.running', '실행 중...')}` : `▶ ${t('gAiRec.runAd', '광고 자동화 실행')}`}
                         </button>
                     )}
                     {executed && (
-                        <div style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontWeight: 800, fontSize: 11, textAlign: 'center' }}>✅ {t('gAiRec.runDone', '자동화 실행 완료')}</div>
+                        <div style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontWeight: 700, fontSize: 11, textAlign: 'center' }}>✅ {t('gAiRec.runDone', '자동화 실행 완료')}</div>
                     )}
                 </div>
             </div>
@@ -123,15 +123,15 @@ function ResultSection(props) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                     {dataSource === 'fallback' ? (
                         <>
-                            <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', fontSize: 9, fontWeight: 700, color: '#fbbf24' }}>
+                            <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', fontSize: 10, fontWeight: 700, color: '#fbbf24' }}>
                                 {t('gAiRec.expertDb')}
                             </span>
-                            <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 9, color: '#a5b4fc' }}>
+                            <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 10, color: '#a5b4fc' }}>
                                 {t('gAiRec.benchmarkBase')}
                             </span>
                         </>
                     ) : (
-                        <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.35)', fontSize: 9, fontWeight: 700, color: '#818cf8' }}>
+                        <span style={{ padding: '2px 10px', borderRadius: 99, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.35)', fontSize: 10, fontWeight: 700, color: '#818cf8' }}>
                             🤖 Claude AI {t('gAiRec.analysisRes')} ({dataModel})
                         </span>
                     )}
@@ -168,7 +168,7 @@ function ResultSection(props) {
                 {/* Budget 근거 Panel */}
                 {(result.budget_rationale || result.product_analysis) && (
                     <div style={{ marginTop: 4, padding: '12px 14px', borderRadius: 10, background: 'linear-gradient(135deg,rgba(34,197,94,0.06),rgba(79,142,247,0.06))', border: '1px solid rgba(34,197,94,0.2)' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#22c55e', marginBottom: 8 }}>💰 {t('gAiRec.aiBudgetBase')}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', marginBottom: 8 }}>💰 {t('gAiRec.aiBudgetBase')}</div>
                         {result.budget_rationale && (
                             <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: result.product_analysis ? 8 : 0 }}>
                                 {result.budget_rationale}
@@ -185,7 +185,7 @@ function ResultSection(props) {
 
             {/* Channel Effectiveness Rank 바 Chart */}
             <div className="card card-glass" style={{ padding: 16 }}>
-                <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 10 }}>📊 {t('gAiRec.channelCompare')}</div>
+                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 10 }}>📊 {t('gAiRec.channelCompare')}</div>
                 {(result.channels || []).map((ch, idx) => (
                     <ChannelBarCard key={ch.channel_id} ch={{ ...ch, _idx: idx }} colors={CHANNEL_COLORS} icons={CHANNEL_ICONS} />
                 ))}
@@ -195,10 +195,10 @@ function ResultSection(props) {
             <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderRadius: 12, background: 'linear-gradient(135deg,rgba(79,142,247,0.1),rgba(168,85,247,0.1))', border: '1px solid rgba(99,102,241,0.25)', alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 18 }}>🎨</span>
                 <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#a5b4fc' }}>Ad Marketing Image Auto Generate</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#a5b4fc' }}>Ad Marketing Image Auto Generate</div>
                     <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('gAiRec.imgAutoCreateDesc')}</div>
                 </div>
-                <button onClick={() => { setActiveTab('images'); if (imgStatus === 'idle') genCreatives(result.channels || [], searchQ); }} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', color: '#fff', fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap' }}>
+                <button onClick={() => { setActiveTab('images'); if (imgStatus === 'idle') genCreatives(result.channels || [], searchQ); }} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', color: '#fff', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
                     {imgStatus === 'loading' ? `⏳ ${t('gAiRec.creating')}...` : imgStatus === 'done' ? `🖼 ${t('gAiRec.viewImg')}` : `🎨 ${t('gAiRec.startImgCreate')}`}
                 </button>
             </div>
@@ -224,7 +224,7 @@ function ResultSection(props) {
                                 <div style={{ fontSize: 13, fontWeight: 900, color: '#22c55e', marginBottom: 3 }}>All Channel Approval Done!</div>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{t('gAiRec.canCreateAd')}</div>
                             </div>
-                            <button onClick={() => { setActiveTab('images'); if (imgStatus === 'idle') genCreatives(result?.channels || [], searchQ || cat.label); setShowApproveAllBanner(false); }} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 900, fontSize: 12, whiteSpace: 'nowrap' }}>
+                            <button onClick={() => { setActiveTab('images'); if (imgStatus === 'idle') genCreatives(result?.channels || [], searchQ || cat.label); setShowApproveAllBanner(false); }} style={{ padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>
                                 🎨 {t('gAiRec.startMaterialCreate')} →
                             </button>
                         </div>
@@ -258,7 +258,7 @@ function ResultSection(props) {
                                     ✅ {t('gAiRec.allApprove')}
                                 </button>
                                 <button onClick={handleExecuteAll} disabled={approvedCount === 0}
-                                    style={{ padding: '8px 20px', borderRadius: 8, border: 'none', cursor: approvedCount > 0 ? 'pointer' : 'not-allowed', background: approvedCount > 0 ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: approvedCount > 0 ? '#fff' : 'var(--text-3)', fontWeight: 800, fontSize: 11 }}>
+                                    style={{ padding: '8px 20px', borderRadius: 8, border: 'none', cursor: approvedCount > 0 ? 'pointer' : 'not-allowed', background: approvedCount > 0 ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.05)', color: approvedCount > 0 ? '#fff' : 'var(--text-3)', fontWeight: 700, fontSize: 11 }}>
                                     🚀 {approvedCount}{t('gAiRec.runAllBatch')}
                                 </button>
                             </div>
@@ -319,7 +319,7 @@ function ResultSection(props) {
 
                             <button onClick={() => genCreatives(result.channels || [], searchQ)}
                                 disabled={imgStatus === 'loading'}
-                                style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: imgStatus === 'loading' ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 800, fontSize: 11 }}>
+                                style={{ padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: imgStatus === 'loading' ? 'rgba(99,102,241,0.3)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontWeight: 700, fontSize: 11 }}>
                                 {imgStatus === 'loading' ? '⏳ Creating...' : '\uD83D\uDD04 ' + t('gAiRec.recreateAll')}
                             </button>
                         </div>
@@ -364,7 +364,7 @@ function ResultSection(props) {
                         <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 14 }}>📅 {t('gAiRec.adCampaignTimeline')}</div>
                         {result.timeline.map((tl, i) => (
                             <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)', alignItems: 'flex-start' }}>
-                                <div style={{ width: 72, fontSize: 10, color: '#6366f1', fontWeight: 800, flexShrink: 0 }}>{tl.phase}</div>
+                                <div style={{ width: 72, fontSize: 10, color: '#6366f1', fontWeight: 700, flexShrink: 0 }}>{tl.phase}</div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>{tl.title}</div>
                                     <div style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.55 }}>{tl.detail}</div>

@@ -68,7 +68,7 @@ export default function AgencyAccess() {
             <div key={r.id} style={{ background: "var(--surface,#fff)", border: "1px solid var(--border,#e5e7eb)", borderRadius: 14, padding: 18, marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 10 }}>
                 <div>
-                  <div style={{ fontWeight: 700, color: "var(--text-1,#0f172a)", fontSize: 15 }}>{r.agency_name || r.agency_login}</div>
+                  <div style={{ fontWeight: 700, color: "var(--text-1,#0f172a)", fontSize: 14 }}>{r.agency_name || r.agency_login}</div>
                   <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
                     {r.agency_login} · {t("agencyAccess.reqScope", "요청 권한")}: {r.scope?.write ? t("agencyAccess.scopeRW", "읽기+쓰기") : t("agencyAccess.scopeRO", "읽기 전용")}
                     {r.approved_at ? ` · ${t("agencyAccess.approvedAt", "승인")} ${String(r.approved_at).slice(0, 10)}` : ""}

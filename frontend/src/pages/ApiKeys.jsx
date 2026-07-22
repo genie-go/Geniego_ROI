@@ -1318,7 +1318,7 @@ export default function ApiKeys() {
       {activeTab === 0 && !_IS_DEMO_ENV && user && (String(user.plan || '').toLowerCase() === 'admin' || String(user.plans || '').toLowerCase() === 'admin') && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <button onClick={() => setShowRegAdd(true)} title={t('ak.regAddChannelTitle','관리자: 새 채널을 레지스트리에 추가 (코드 수정 불필요, 카테고리 자동 분류·즉시 등록 UI 반영)')}
-            style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+            style={{ padding: '6px 13px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
             + {t('ak.regAddChannelBtn','채널 추가 (관리자)')}
           </button>
         </div>
@@ -1369,7 +1369,7 @@ export default function ApiKeys() {
         const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
         const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
         const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-        const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+        const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
         const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
         return (
         <div style={{ display: 'grid', gap: 18, color: '#1e293b' }}>
@@ -1378,7 +1378,7 @@ export default function ApiKeys() {
             <div style={{ fontWeight: 900, fontSize: 22, color: '#1e293b', marginBottom: 6, letterSpacing: '-0.02em', WebkitTextFillColor: '#1e293b' }}>{t('ak.guideTitle')}</div>
             <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{t('ak.guideSub')}</div>
             {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-              {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+              {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
             </div>}
           </div>
           {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -1389,9 +1389,9 @@ export default function ApiKeys() {
                 <div key={s.n} style={{ padding: '16px 18px', borderRadius: 14, background: s.color + '08', border: '1px solid ' + s.color + '22', display: 'flex', gap: 14, alignItems: 'start' }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + '15', border: '1px solid ' + s.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                   <div>
-                    {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                    {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                       <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                     </div>
                     <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -1415,7 +1415,7 @@ export default function ApiKeys() {
           {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
           {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
           {g('guideReadyTitle') ? <div style={{ background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)', borderRadius: 16, border: '1px solid #c7d2fe', padding: '24px', textAlign: 'center' }}>
-            <div style={{ fontWeight: 900, fontSize: 17, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+            <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
             <div style={{ fontSize: 12.5, color: '#1e293b', lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyDesc')}</div>
           </div> : null}
         </div>
@@ -1450,7 +1450,7 @@ export default function ApiKeys() {
         }}>
           <div onClick={e => e.stopPropagation()} style={{ maxWidth: 440, width: '90%', padding: 28, borderRadius: 16, background: 'var(--card-bg,#fff)', border: '1px solid rgba(0,0,0,0.1)', textAlign: 'center' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }} aria-hidden>{applyDone.ok ? '✅' : '⚠️'}</div>
-            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 8, color: applyDone.ok ? '#16a34a' : '#dc2626' }}>
+            <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8, color: applyDone.ok ? '#16a34a' : '#dc2626' }}>
               {applyDone.ok ? t('ak.applyDoneTitle', '발급 신청이 접수되었습니다') : t('ak.applyFailTitle', '발급 신청에 실패했습니다')}
             </div>
             {applyDone.ok ? (
@@ -1574,7 +1574,7 @@ function WebhookTab({ t, show }) {
     <div style={{ display: 'grid', gap: 16 }}>
       {/* 안내 */}
       <div style={{ ...card, background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)', border: '1px solid #c7d2fe' }}>
-        <div style={{ fontWeight: 900, fontSize: 15, color: '#1e293b', WebkitTextFillColor: '#1e293b', marginBottom: 6 }}>
+        <div style={{ fontWeight: 900, fontSize: 14, color: '#1e293b', WebkitTextFillColor: '#1e293b', marginBottom: 6 }}>
           🔔 {t('ak.whTitle', '실시간 Webhook 수신')}
         </div>
         <div style={{ fontSize: 12.5, color: '#475569', WebkitTextFillColor: '#475569', lineHeight: 1.8 }}>
@@ -1605,7 +1605,7 @@ function WebhookTab({ t, show }) {
         {/* 발급 직후 — 전체 토큰/URL 1회 노출 */}
         {justCreated && (
           <div style={{ marginTop: 14, padding: 14, borderRadius: 10, border: '1px dashed #22c55e', background: 'rgba(34,197,94,0.06)' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', WebkitTextFillColor: '#15803d', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#15803d', WebkitTextFillColor: '#15803d', marginBottom: 8 }}>
               ✅ {t('ak.whNew', '발급 완료 — 아래 Webhook URL 을 채널 콘솔에 등록하세요')}
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
@@ -1899,7 +1899,7 @@ function ApplyStatusPanel({ applies = [], onRefresh, t }) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '10px 14px', borderRadius: 10, background: '#f8fafc', border: '1px solid #eef2f7' }}>
               <span style={{ fontSize: 13, fontWeight: 800, minWidth: 90 }}>{a.channel}</span>
               <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>{a.ticket_id}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 800, color: s.c, background: s.bg, padding: '3px 10px', borderRadius: 99 }}>{s.label}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: s.c, background: s.bg, padding: '3px 10px', borderRadius: 99 }}>{s.label}</span>
               <span style={{ fontSize: 11, color: '#94a3b8' }}>{a.completed_at ? String(a.completed_at).slice(0, 10) : (a.requested_at ? String(a.requested_at).slice(0, 10) : '')}</span>
               {a.status === 'completed' && <span style={{ fontSize: 11, color: '#16a34a', width: '100%' }}>✅ {a.completed_note || t('ak.completeHint', '발급이 완료되었습니다. 발급된 키를 등록하면 즉시 자동 연동됩니다.')}</span>}
             </div>
@@ -2006,7 +2006,7 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
         {status === 'full' && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            marginBottom: 11, padding: '8px 10px', borderRadius: 9, fontSize: 12, fontWeight: 900, letterSpacing: 0.2,
+            marginBottom: 11, padding: '8px 10px', borderRadius: 9, fontSize: 12, fontWeight: 700, letterSpacing: 0.2,
             // [229차] ★발급 확인 완료 = 노랑 바탕 + 찐한 청색 글자(눈에 확 띄게). 등록/준비중은 녹/노랑 유지.
             color: isVerified ? '#0b2e8a' : '#fff',
             boxShadow: isVerified ? '0 4px 14px rgba(250,204,21,0.55)' : '0 4px 12px rgba(22,163,74,0.26)',
@@ -2043,17 +2043,17 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
           </div>
           {/* [현 차수] ★발급 확인 배지 — 실검증 통과 시에만 '발급 확인됨'(녹), 등록·미검증은 '발급 확인 대기'(주황). */}
           {verifiedNoSync ? (
-            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 700, whiteSpace: 'nowrap' }}
               title={t('ak.verifiedNoSyncHint','키는 검증됐으나 전용 동기화 어댑터는 연동 예정입니다(데이터는 아직 수집되지 않습니다).')}>🔑 {t('ak.issuanceVerifiedNoSync','키 검증됨·동기화 준비중')}</span>
           ) : isVerified ? (
-            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: '#ffe000', color: '#0b2e8a', border: '1px solid #0b2e8a', fontWeight: 900, whiteSpace: 'nowrap' }}
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#ffe000', color: '#0b2e8a', border: '1px solid #0b2e8a', fontWeight: 700, whiteSpace: 'nowrap' }}
               title={t('ak.verifiedHint','연동허브가 실제 채널 API로 키 발급을 검증했습니다(임의 표기 아님).')}>🎉 {t('ak.issuanceVerified','발급 확인됨')}</span>
           ) : needsVerify ? (
-            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 800, whiteSpace: 'nowrap' }}
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.14)', color: '#d97706', border: '1px solid rgba(245,158,11,0.4)', fontWeight: 700, whiteSpace: 'nowrap' }}
               title={t('ak.needVerifyHint','등록됨 — [발급 확인]을 눌러 실제 발급 여부를 검증하세요.')}>🔎 {t('ak.issuanceWait','발급 확인 대기')}</span>
           ) : (
             <span style={{
-              fontSize: 9, padding: '2px 8px', borderRadius: 20,
+              fontSize: 10, padding: '2px 8px', borderRadius: 20,
               background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700, whiteSpace: 'nowrap',
             }}>{status === 'none' ? t('ak.notRegistered','미등록')
                 : status === 'partial' ? `⚠️ ${t('ak.partialRegistered','일부 등록')}`
@@ -2065,7 +2065,7 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
           <div style={{ marginBottom: 8, padding: '7px 10px', borderRadius: 8, background: applySt.bg, border: `1px solid ${applySt.bd}`, fontSize: 10, lineHeight: 1.5 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 800, color: applySt.c }}>📨 {t('ak.applyBadge','발급 신청')}: {applySt.label}</span>
-              {apply.ticket_id && <span style={{ fontFamily: 'monospace', color: 'var(--text-3)', fontSize: 9 }}>{apply.ticket_id}</span>}
+              {apply.ticket_id && <span style={{ fontFamily: 'monospace', color: 'var(--text-3)', fontSize: 10 }}>{apply.ticket_id}</span>}
             </div>
             {applyOpen && (
               <div style={{ marginTop: 4, color: 'var(--text-2)' }}>
@@ -2075,14 +2075,14 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
                     <span>🔑 {t('ak.applyNextOauth','발급되면 아래 버튼으로 키(토큰)를 자동으로 가져옵니다 — 인가만 하면 즉시 수취·검증·연동됩니다.')}</span>
                     <button onClick={() => onOAuth(oauthProv, ch.key)} style={{
                       padding: '6px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                      background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 10.5, fontWeight: 800,
+                      background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 10.5, fontWeight: 700,
                       animation: 'akVerifyPulse 1.6s ease-in-out infinite',
                     }}>⚡ {t('ak.fetchIssuedKey','발급된 키 자동 가져오기')}</button>
                   </div>
                 ) : ISSUANCE_URL[ch.key] ? (
                   <>👉 {t('ak.applyNextSelf','콘솔에서 키를 발급한 뒤 아래 [등록]에 입력하면 실시간 검증·자동 연동됩니다.')} {' '}
                     <a href={ISSUANCE_URL[ch.key]} target="_blank" rel="noopener noreferrer" style={{ color: applySt.c, fontWeight: 800 }}>{t('ak.openConsole','발급 콘솔 열기')} ↗</a>
-                    <div style={{ marginTop: 3, color: 'var(--text-3)', fontSize: 9.5 }}>🔒 {t('ak.noAutoFetch','보안상 발급된 키는 자동으로 가져올 수 없습니다(사용자 콘솔 내부에만 존재) — 직접 등록해야 합니다.')}</div></>
+                    <div style={{ marginTop: 3, color: 'var(--text-3)', fontSize: 10.5 }}>🔒 {t('ak.noAutoFetch','보안상 발급된 키는 자동으로 가져올 수 없습니다(사용자 콘솔 내부에만 존재) — 직접 등록해야 합니다.')}</div></>
                 ) : (
                   <>👉 {t('ak.applyNextAgent','발급 완료 시 [등록]에 키를 입력하면 실시간 검증·자동 연동됩니다.')}</>
                 )}
@@ -2100,7 +2100,7 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
             border: `1px solid ${needsVerify ? 'rgba(245,158,11,0.55)' : 'rgba(79,142,247,0.25)'}`,
             cursor: (busy || !live) ? 'not-allowed' : 'pointer',
             background: needsVerify ? 'rgba(245,158,11,0.12)' : 'rgba(79,142,247,0.05)',
-            color: needsVerify ? '#b45309' : 'var(--text-2)', fontSize: 11, fontWeight: 800, opacity: (busy || !live) ? 0.55 : 1,
+            color: needsVerify ? '#b45309' : 'var(--text-2)', fontSize: 11, fontWeight: 700, opacity: (busy || !live) ? 0.55 : 1,
             animation: (needsVerify && !busy) ? 'akVerifyPulse 1.4s ease-in-out infinite' : 'none',
           }}>{busy ? `⏳` : (needsVerify ? `🔎 ${t('ak.verifyBtn','발급 확인')}` : `🔌 ${t('ak.testBtn','Test')}`)}</button>
         </div>
@@ -2109,17 +2109,17 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
           <button onClick={() => onManual(ch)} title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다(레이어 팝업).')} style={{
             marginTop: 6, width: '100%', padding: '7px 10px', borderRadius: 8,
             border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer',
-            background: 'rgba(99,102,241,0.06)', color: '#6366f1', fontSize: 10.5, fontWeight: 800,
+            background: 'rgba(99,102,241,0.06)', color: '#6366f1', fontSize: 10.5, fontWeight: 700,
           }}>📖 {t('ak.manualBtn','발급 매뉴얼 보기')}</button>
         )}
         {/* [현 차수] ★발급 확인 유도 — 등록됐으나 미검증인 라이브검증 채널: 실 발급 검증을 권유(임의 완료 표기 X). */}
         {needsVerify && !busy && (
-          <div style={{ marginTop: 7, fontSize: 9.5, color: '#b45309', textAlign: 'center', fontWeight: 700, lineHeight: 1.45 }}>
+          <div style={{ marginTop: 7, fontSize: 10.5, color: '#b45309', textAlign: 'center', fontWeight: 700, lineHeight: 1.45 }}>
             🔎 {t('ak.verifyNudge','등록됨 — [발급 확인]을 눌러 발급된 키가 실제 동작하는지 검증하세요. 확인되면 자동으로 발급 확인됨 표시됩니다.')}
           </div>
         )}
         {isVerified && !verifiedNoSync && (
-          <div style={{ marginTop: 7, fontSize: 9.5, color: '#16a34a', textAlign: 'center', fontWeight: 800, lineHeight: 1.4 }}>
+          <div style={{ marginTop: 7, fontSize: 10.5, color: '#16a34a', textAlign: 'center', fontWeight: 700, lineHeight: 1.4 }}>
             🎉 {t('ak.verifiedNudge','발급 확인됨 — 연동허브가 실제 채널 API로 검증했습니다.')}
           </div>
         )}
@@ -2130,23 +2130,23 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
           {oauthProv ? (
             <button onClick={() => onOAuth(oauthProv, ch.key)} title={t('ak.oauthHint','OAuth 인가만 하면 키가 자동 발급·등록되고 즉시 동기화됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer',
-              background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 10.5, fontWeight: 800,
+              background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 10.5, fontWeight: 700,
             }}>⚡ {t('ak.oauthConnect','원클릭 연결')}</button>
           ) : ISSUANCE_URL[ch.key] ? (
             <button onClick={() => onApply(ch)} title={t('ak.issueHint','이 채널은 운영팀 대행 발급이 불가합니다. 개발자 콘솔에서 직접 키를 발급한 뒤 [등록]으로 입력하면 즉시 연동됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.35)', cursor: 'pointer',
-              background: 'rgba(99,102,241,0.08)', color: '#6366f1', fontSize: 10.5, fontWeight: 800,
+              background: 'rgba(99,102,241,0.08)', color: '#6366f1', fontSize: 10.5, fontWeight: 700,
             }}>🔗 {t('ak.issueConnectBtn','직접 발급·연결')}</button>
           ) : (
             <button onClick={() => onApply(ch)} title={t('ak.applyHint','운영팀에 발급 대행을 신청합니다. 발급 후 자동 연동됩니다.')} style={{
               flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(245,158,11,0.35)', cursor: 'pointer',
-              background: 'rgba(245,158,11,0.08)', color: '#d97706', fontSize: 10.5, fontWeight: 800,
+              background: 'rgba(245,158,11,0.08)', color: '#d97706', fontSize: 10.5, fontWeight: 700,
             }}>📝 {t('ak.applyBtn','발급 대행 신청')}</button>
           )}
         </div>
         {/* [현 차수] 정직성: 전용 동기화 어댑터가 아직 없는 채널은 "연동 예정" 명시(자격증명 저장은 가능, 데이터 동기화는 추후). */}
         {!REAL_ADAPTER.has(ch.key) && (
-          <div style={{ marginTop: 7, fontSize: 9.5, color: 'var(--text-3)', textAlign: 'center', opacity: 0.85, lineHeight: 1.4 }}>
+          <div style={{ marginTop: 7, fontSize: 10.5, color: 'var(--text-3)', textAlign: 'center', opacity: 0.85, lineHeight: 1.4 }}>
             🔌 {t('ak.adapterPlanned','전용 동기화 어댑터 연동 예정 — 자격증명은 미리 저장됩니다')}
           </div>
         )}
@@ -2170,7 +2170,7 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
               {' '}<span style={{ color: '#d97706', fontWeight: 700 }}>{t('ak.companyMissing', '누락')}: {missingProfile.map((f) => PROFILE_LABELS[f] || f).join(', ')}</span>
             </div>
           </div>
-          <button onClick={() => setShowCompany(true)} style={{ flexShrink: 0, padding: '9px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', fontWeight: 800, fontSize: 12.5 }}>🏢 {t('ak.companyComplete', '회사정보 완성하기')} →</button>
+          <button onClick={() => setShowCompany(true)} style={{ flexShrink: 0, padding: '9px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#f59e0b,#ef4444)', color: '#fff', fontWeight: 700, fontSize: 12.5 }}>🏢 {t('ak.companyComplete', '회사정보 완성하기')} →</button>
         </div>
       ) : (
         <div style={{ padding: '10px 16px', borderRadius: 12, background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.25)', fontSize: 12, color: '#15803d', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2485,20 +2485,20 @@ function ConnectStepGuide({ channel, t, uiLang }) {
 
   const Step = ({ n, title, children }) => (
     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n}</span>
+      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text-1)', marginBottom: 3 }}>{title}</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-1)', marginBottom: 3 }}>{title}</div>
         <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.55 }}>{children}</div>
       </div>
     </div>
   );
   const linkBtn = (href, label, color) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, marginRight: 6, fontSize: 11, fontWeight: 800, color, textDecoration: 'none', padding: '5px 10px', border: `1px solid ${color}55`, borderRadius: 8 }}>{label}</a>
+    <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, marginRight: 6, fontSize: 11, fontWeight: 700, color, textDecoration: 'none', padding: '5px 10px', border: `1px solid ${color}55`, borderRadius: 8 }}>{label}</a>
   );
 
   return (
     <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(99,102,241,0.06),rgba(79,142,247,0.04))', border: '1px solid rgba(99,102,241,0.2)' }}>
-      <div style={{ fontSize: 12.5, fontWeight: 900, color: '#6366f1', marginBottom: 12 }}>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6366f1', marginBottom: 12 }}>
         🚀 {t('ak.csgTitle', '3단계만 따라 하면 연동 완료 — 자격증명만 등록하면 바로 실행됩니다')}
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -2580,17 +2580,17 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           <span style={{ fontSize: 28 }} aria-hidden>{channel.icon}</span>
           <div style={{ fontSize: 18, fontWeight: 800, flex: 1 }}>{channel.name} {t('ak.connectTitle','연동 등록')}</div>
           {MANUAL_KEYS.has(channel.key) && (
-            <a href={manualUrl(channel.key, uiLang)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
+            <a href={manualUrl(channel.key, uiLang)} target="_blank" rel="noopener noreferrer" title={t('ak.manualHint','API 키 발급 과정을 단계별로 안내합니다.')} style={{ fontSize: 11.5, fontWeight: 700, color: '#6366f1', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>📖 {t('ak.manualBtn','발급 매뉴얼')}</a>
           )}
           {signupUrl(channel.key) && (
-            <a href={signupUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.signupHint2','이 채널 계정이 없으면 먼저 가입하세요.')} style={{ fontSize: 11.5, fontWeight: 800, color: '#9333ea', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(147,51,234,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>🔗 {t('ak.signupShort','가입')}</a>
+            <a href={signupUrl(channel.key)} target="_blank" rel="noopener noreferrer" title={t('ak.signupHint2','이 채널 계정이 없으면 먼저 가입하세요.')} style={{ fontSize: 11.5, fontWeight: 700, color: '#9333ea', textDecoration: 'none', padding: '5px 9px', border: '1px solid rgba(147,51,234,0.3)', borderRadius: 8, whiteSpace: 'nowrap' }}>🔗 {t('ak.signupShort','가입')}</a>
           )}
         </div>
         {/* [현 차수] ★초보자용 3단계 따라하기 가이드 — 자격증명만 등록하면 바로 실행되는 경로 안내. */}
         <ConnectStepGuide channel={channel} t={t} uiLang={uiLang} />
         {postOauth && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.28)' }}>
-            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#16a34a', marginBottom: 4 }}>✅ {t('ak.oauthDoneTitle', { ch: channel.name, defaultValue: `${channel.name} OAuth 인증 완료!` })}</div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#16a34a', marginBottom: 4 }}>✅ {t('ak.oauthDoneTitle', { ch: channel.name, defaultValue: `${channel.name} OAuth 인증 완료!` })}</div>
             <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6 }}>{t('ak.oauthDoneDesc', '토큰은 자동 등록되었습니다. 동기화를 위해 아래 계정 정보만 입력하면 바로 연동·실행됩니다.')}</div>
             {coveredFields.length > 0 && (
               <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -2611,7 +2611,7 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
           <div style={{ marginBottom: 16, padding: '11px 13px', borderRadius: 12,
             background: regN >= remainFields.length ? 'rgba(34,197,94,0.07)' : 'rgba(245,158,11,0.08)',
             border: `1px solid ${regN >= remainFields.length ? 'rgba(34,197,94,0.28)' : 'rgba(245,158,11,0.3)'}` }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: regN >= remainFields.length ? '#16a34a' : '#b45309', marginBottom: missList.length ? 5 : 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: regN >= remainFields.length ? '#16a34a' : '#b45309', marginBottom: missList.length ? 5 : 0 }}>
               {regN >= remainFields.length
                 ? `✓ ${t('ak.allFieldsRegistered','모든 자격증명 항목이 등록되어 있습니다')}`
                 : `🔑 ${regN}/${remainFields.length} ${t('ak.registered','등록')} — ${t('ak.someMissing','일부 미등록')}`}
@@ -2632,8 +2632,8 @@ function ConnectModal({ channel, onClose, onSubmit, t, extraFields = {}, postOau
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span>{f.labelKey ? t(f.labelKey, f.label) : t('ak.field.' + channel.key + '.' + f.k, f.label)}{f.secret ? ' 🔒' : ''}</span>
                 {isReg
-                  ? <span style={{ fontSize: 10, fontWeight: 800, color: '#16a34a', background: 'rgba(34,197,94,0.12)', padding: '1px 8px', borderRadius: 20 }}>✓ {isVerified ? t('ak.fieldVerified','등록·확인됨') : t('ak.fieldRegistered','등록됨')}</span>
-                  : <span style={{ fontSize: 10, fontWeight: 800, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '1px 8px', borderRadius: 20 }}>✗ {t('ak.fieldMissing','미등록')}</span>}
+                  ? <span style={{ fontSize: 10, fontWeight: 700, color: '#16a34a', background: 'rgba(34,197,94,0.12)', padding: '1px 8px', borderRadius: 20 }}>✓ {isVerified ? t('ak.fieldVerified','등록·확인됨') : t('ak.fieldRegistered','등록됨')}</span>
+                  : <span style={{ fontSize: 10, fontWeight: 700, color: '#d97706', background: 'rgba(245,158,11,0.12)', padding: '1px 8px', borderRadius: 20 }}>✗ {t('ak.fieldMissing','미등록')}</span>}
               </span>
             )}>
               <input type={f.secret ? 'password' : 'text'} value={vals[f.k] || ''} autoComplete="new-password"
@@ -2678,7 +2678,7 @@ function ManualModal({ channel, onClose, t }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #e5e7eb', background: '#0f172a' }}>
           <span style={{ fontSize: 20 }} aria-hidden>{channel.icon || '📖'}</span>
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', flex: 1 }}>{channel.name} {t('ak.manualTitle','발급 매뉴얼')}</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', flex: 1 }}>{channel.name} {t('ak.manualTitle','발급 매뉴얼')}</div>
           <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#a5b4fc', textDecoration: 'none', padding: '6px 10px' }}>{t('ak.openNewTab','새 탭에서 열기')} ↗</a>
           <button onClick={onClose} aria-label={t('ak.close','닫기')} style={{ fontSize: 18, fontWeight: 900, color: '#fff', background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 8, width: 34, height: 34, cursor: 'pointer' }}>×</button>
         </div>
@@ -2797,14 +2797,14 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
            발급(콘솔) 이전 단계. signupUrl = 가입 페이지 우선, 없으면 발급 콘솔(가입 겸용) 폴백. */}
         {signupUrl(channel.key) && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.22)' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#9333ea', marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#9333ea', marginBottom: 6 }}>
               👤 {t('ak.signupTitle', { ch: channel.name, defaultValue: `${channel.name} 계정이 아직 없으신가요?` })}
             </div>
             <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 9 }}>
               {t('ak.signupDesc', { ch: channel.name, defaultValue: `API 키를 발급하려면 먼저 ${channel.name} 계정(판매자/개발자 등록)이 필요합니다. 아래 버튼으로 바로 가입하세요.` })}
             </div>
             <button onClick={() => { try { window.open(signupUrl(channel.key), '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: '#fff', fontSize: 12, fontWeight: 700 }}>
               🔗 {t('ak.signupBtn', { ch: channel.name, defaultValue: `${channel.name} 가입하러 가기` })} ↗
             </button>
             <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 7, lineHeight: 1.5 }}>
@@ -2816,7 +2816,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
         {/* [현 차수] ★발급 따라하기 — 초보자가 그대로 따라하면 발급되는 상세 단계(현재 UI 언어로 표시). */}
         {guideSteps && guideSteps.length > 0 && (
           <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 12, background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.22)' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#16a34a', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 8 }}>
               ✅ {t('ak.howToTitle', { ch: channel.name, defaultValue: `${channel.name} 발급 따라하기 (이대로만 따라하면 발급됩니다)` })}
             </div>
             <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 7 }}>
@@ -2833,7 +2833,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
                         <code style={{ flex: '1 1 220px', minWidth: 0, background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '6px 10px', borderRadius: 7, fontSize: 11, color: '#0f172a', overflowX: 'auto', whiteSpace: 'nowrap' }}>{copyVal}</code>
                         <button onClick={() => { try { navigator.clipboard.writeText(copyVal); setCopiedStep(i); setTimeout(() => setCopiedStep(-1), 1600); } catch { /* clipboard 차단 무시 */ } }}
-                          style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 800, background: copiedStep === i ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                          style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: copiedStep === i ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
                           {copiedStep === i ? t('ak.copied', '복사됨 ✓') : t('ak.copy', '복사')}
                         </button>
                       </div>
@@ -2857,11 +2857,11 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
             {/* [282차 R3] OAuth 리디렉션 URL 복사 박스 — 앱 등록 콘솔에 입력할 실제 값(언어 독립·모든 언어 표시) */}
             {OAUTH_REDIRECT_URL[channel.key] && (
               <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.25)' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', marginBottom: 6 }}>🔗 {t('ak.oauthRedirectLabel', 'OAuth 리디렉션 URL (앱 등록 시 이 값을 입력)')}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#4f46e5', marginBottom: 6 }}>🔗 {t('ak.oauthRedirectLabel', 'OAuth 리디렉션 URL (앱 등록 시 이 값을 입력)')}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <code style={{ flex: '1 1 240px', minWidth: 0, background: '#fff', border: '1px solid #e2e8f0', padding: '7px 10px', borderRadius: 7, fontSize: 11.5, color: '#0f172a', overflowX: 'auto', whiteSpace: 'nowrap' }}>{OAUTH_REDIRECT_URL[channel.key]}</code>
                   <button onClick={() => { try { navigator.clipboard.writeText(OAUTH_REDIRECT_URL[channel.key]); setCopiedStep(-2); setTimeout(() => setCopiedStep(-1), 1600); } catch { /* clipboard 차단 무시 */ } }}
-                    style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11.5, fontWeight: 800, background: copiedStep === -2 ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
+                    style={{ flexShrink: 0, padding: '7px 14px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 11.5, fontWeight: 700, background: copiedStep === -2 ? '#16a34a' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
                     {copiedStep === -2 ? t('ak.copied', '복사됨 ✓') : t('ak.copy', '복사')}
                   </button>
                 </div>
@@ -2869,7 +2869,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
             )}
             {ISSUANCE_URL[channel.key] && (
               <button onClick={() => { try { window.open(ISSUANCE_URL[channel.key], '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
-                style={{ width: '100%', marginTop: 10, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+                style={{ width: '100%', marginTop: 10, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontSize: 12, fontWeight: 700 }}>
                 🔗 {t('ak.openConsoleNow', '발급 콘솔 바로 열기')}
               </button>
             )}
@@ -2883,14 +2883,14 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
               {t('ak.applyDirect', { ch: channel.name, defaultValue: `① ${channel.name} 발급 콘솔에서 직접 발급 (즉시)` })}
             </div>
             <button onClick={() => { try { window.open(ISSUANCE_URL[channel.key], '_blank', 'noopener,noreferrer'); } catch { /* popup 차단 무시 */ } }}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.35)', cursor: 'pointer', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 800 }}>
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.35)', cursor: 'pointer', background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontSize: 12, fontWeight: 700 }}>
               🔗 {t('ak.openIssueConsole', { ch: channel.name, defaultValue: `${channel.name} 발급 콘솔 바로가기` })}
             </button>
             <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 7, lineHeight: 1.6 }}>
               {t('ak.applyConsoleHint','콘솔에서 발급한 키를 복사해 [등록] 버튼으로 입력하면 즉시 연동·실행됩니다.')}
             </div>
             {onRegister && (
-              <button onClick={() => onRegister(channel)} style={{ width: '100%', marginTop: 9, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 800 }}>
+              <button onClick={() => onRegister(channel)} style={{ width: '100%', marginTop: 9, padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#4f8ef7)', color: '#fff', fontSize: 12, fontWeight: 700 }}>
                 ✅ {t('ak.alreadyIssued', '발급받았어요 — 키 바로 등록하기')}
               </button>
             )}
@@ -2898,7 +2898,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
         )}
         {/* [227차] ISSUANCE_URL 없는 채널(계약형 등)도 이미 키가 있으면 바로 등록 가능 */}
         {!ISSUANCE_URL[channel.key] && onRegister && (
-          <button onClick={() => onRegister(channel)} style={{ width: '100%', marginBottom: 14, padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer', background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 12, fontWeight: 800 }}>
+          <button onClick={() => onRegister(channel)} style={{ width: '100%', marginBottom: 14, padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer', background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontSize: 12, fontWeight: 700 }}>
             ✅ {t('ak.alreadyHaveKey', '이미 발급받은 키가 있으면 — 바로 등록하기')}
           </button>
         )}
@@ -2913,7 +2913,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
 
         {/* 해당 채널 API 키 발급에 필요한 정보 입력 */}
         <div style={{ marginBottom: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(79,142,247,0.05)', border: '1px solid rgba(79,142,247,0.15)' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#4f8ef7', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#4f8ef7', marginBottom: 8 }}>
             🔑 {t('ak.applyChannelInfo', { ch: channel.name, defaultValue: `${channel.name} 발급에 필요한 정보` })}
           </div>
           {applyFieldKeys.map(fk => {
@@ -2933,7 +2933,7 @@ function ApplyModal({ channel, currentUser, onClose, onSubmit, onRegister, t }) 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>{t('ak.applyContactInfo','신청자(회원) 정보')}</div>
           <button type="button" onClick={() => setInfo(fromUser(currentUser))} title={t('ak.loadMyInfoHint','로그인한 회원 정보를 다시 불러옵니다')}
-            style={{ padding: '3px 9px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.35)', cursor: 'pointer', background: 'rgba(79,142,247,0.08)', color: '#4f8ef7', fontSize: 10.5, fontWeight: 800 }}>
+            style={{ padding: '3px 9px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.35)', cursor: 'pointer', background: 'rgba(79,142,247,0.08)', color: '#4f8ef7', fontSize: 10.5, fontWeight: 700 }}>
             👤 {t('ak.loadMyInfo','내 정보 불러오기')}
           </button>
         </div>

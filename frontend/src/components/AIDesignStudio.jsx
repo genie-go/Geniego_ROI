@@ -55,14 +55,14 @@ function CreativeApiConnect() {
   if (IS_DEMO) return null;
   const imgOn = st?.img?.configured, vidOn = st?.video?.configured;
   const inp = { width: '100%', boxSizing: 'border-box', padding: '9px 11px', borderRadius: 9, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 12.5, outline: 'none' };
-  const lab = { fontSize: 11, fontWeight: 800, color: '#334155', display: 'block', marginBottom: 5 };
+  const lab = { fontSize: 11, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 5 };
   return (
     <div style={{ ...card, padding: 0, overflow: 'hidden', borderColor: 'rgba(99,102,241,0.22)' }}>
       <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '13px 18px', border: 'none', background: 'linear-gradient(135deg,#0b1224,#1e1b4b)', color: '#fff', cursor: 'pointer' }}>
         <span style={{ fontSize: 13.5, fontWeight: 800 }}>🔌 {t('aiDesign.apiConnectTitle', '내 광고 디자인 생성 API 연동')} <span style={{ fontSize: 11, color: '#a5b4fc', fontWeight: 600 }}>({t('aiDesign.optional', '선택')})</span></span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99, background: imgOn ? 'rgba(34,197,94,0.2)' : 'rgba(148,163,184,0.2)', color: imgOn ? '#4ade80' : '#cbd5e1' }}>이미지 {imgOn ? '연동됨' : '미연동'}</span>
-          <span style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99, background: vidOn ? 'rgba(34,197,94,0.2)' : 'rgba(148,163,184,0.2)', color: vidOn ? '#4ade80' : '#cbd5e1' }}>동영상 {vidOn ? '연동됨' : '미연동'}</span>
+          <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: imgOn ? 'rgba(34,197,94,0.2)' : 'rgba(148,163,184,0.2)', color: imgOn ? '#4ade80' : '#cbd5e1' }}>이미지 {imgOn ? '연동됨' : '미연동'}</span>
+          <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: vidOn ? 'rgba(34,197,94,0.2)' : 'rgba(148,163,184,0.2)', color: vidOn ? '#4ade80' : '#cbd5e1' }}>동영상 {vidOn ? '연동됨' : '미연동'}</span>
           <span style={{ fontSize: 16, color: '#a5b4fc' }}>{open ? '▴' : '▾'}</span>
         </span>
       </button>
@@ -71,7 +71,7 @@ function CreativeApiConnect() {
           <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6, marginBottom: 14 }}>{t('aiDesign.apiConnectDesc', '본인이 가입한 이미지/동영상 생성 API(OpenAI·Stability·Replicate 등) 키를 등록하면, 실사 이미지·애니메이션 광고를 본인 계정·본인 비용으로 무제한 생성합니다. 키는 AES-256 암호화 저장됩니다. 미등록 시 플랫폼 기본(전역) 설정을 사용합니다.')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 900, color: '#1e293b', marginBottom: 9 }}>🖼️ {t('aiDesign.imgApi', '실사 이미지 생성 API')}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1e293b', marginBottom: 9 }}>🖼️ {t('aiDesign.imgApi', '실사 이미지 생성 API')}</div>
               <label style={lab}>{t('aiDesign.provider', '제공자')}</label>
               <select value={img.provider} onChange={e => setImg(i => ({ ...i, provider: e.target.value }))} style={{ ...inp, cursor: 'pointer', marginBottom: 9 }}>
                 <option value="openai">OpenAI (DALL·E / gpt-image)</option>
@@ -81,7 +81,7 @@ function CreativeApiConnect() {
               <input type="password" value={img.key} onChange={e => setImg(i => ({ ...i, key: e.target.value }))} placeholder={imgOn ? '••••••••  (변경 시에만 입력)' : 'sk-...'} style={inp} autoComplete="off" />
             </div>
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 900, color: '#1e293b', marginBottom: 9 }}>🎬 {t('aiDesign.videoApi', 'AI 동영상/애니메이션 생성 API')}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1e293b', marginBottom: 9 }}>🎬 {t('aiDesign.videoApi', 'AI 동영상/애니메이션 생성 API')}</div>
               <label style={lab}>{t('aiDesign.provider', '제공자')}</label>
               <select value={vid.provider} onChange={e => setVid(v => ({ ...v, provider: e.target.value }))} style={{ ...inp, cursor: 'pointer', marginBottom: 9 }}>
                 <option value="replicate">Replicate</option>
@@ -167,7 +167,7 @@ export default function AIDesignStudio({ onApplied }) {
         </div>
         <div style={{ position: 'relative' }}>
           {d.body && <div style={{ fontSize: 11, color: p.text || '#fff', opacity: 0.82, marginBottom: 10, lineHeight: 1.5 }}>{String(d.body).slice(0, 64)}</div>}
-          <div style={{ display: 'inline-block', padding: '8px 18px', borderRadius: 99, background: p.accent || '#22d3ee', color: p.bg || '#0f172a', fontWeight: 800, fontSize: 12.5 }}>{d.cta || '지금 보기'}</div>
+          <div style={{ display: 'inline-block', padding: '8px 18px', borderRadius: 99, background: p.accent || '#22d3ee', color: p.bg || '#0f172a', fontWeight: 700, fontSize: 12.5 }}>{d.cta || '지금 보기'}</div>
         </div>
       </div>
     );
@@ -194,20 +194,20 @@ export default function AIDesignStudio({ onApplied }) {
         <div style={{ fontSize: 18, fontWeight: 900, color: '#1e293b', marginBottom: 4 }}>✨ {t('aiDesign.title', 'AI 광고 디자인 스튜디오')}</div>
         <div style={{ fontSize: 12.5, color: '#475569', marginBottom: 16, lineHeight: 1.6 }}>{t('aiDesign.desc', '상품 설명과 카테고리·채널을 입력하면 AI가 채널별 최적 광고 디자인을 생성합니다. 미리보기로 확인하고 마음에 들 때까지 수정 후 적용하세요.')}</div>
 
-        <label style={{ fontSize: 12, fontWeight: 800, color: '#334155' }}>{t('aiDesign.productLabel', '상품 설명 *')}</label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{t('aiDesign.productLabel', '상품 설명 *')}</label>
         <textarea value={product} onChange={(e) => setProduct(e.target.value)} rows={3}
           placeholder={t('aiDesign.productPh', '예: 7일 만에 잔주름 개선, 저자극 비건 레티놀 세럼. 30대 여성 타깃, 프리미엄·신뢰감 강조')}
           style={{ width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '11px 13px', borderRadius: 10, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 13, resize: 'vertical', outline: 'none' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 12 }}>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: '#334155' }}>{t('aiDesign.categoryLabel', '카테고리')}</label>
+            <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{t('aiDesign.categoryLabel', '카테고리')}</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', marginTop: 6, padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontSize: 13, cursor: 'pointer' }}>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: '#334155' }}>{t('aiDesign.channelLabel', '채널 (복수 선택)')}</label>
+            <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>{t('aiDesign.channelLabel', '채널 (복수 선택)')}</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {CHANNELS.map((c) => {
                 const on = channels.includes(c.id);
@@ -268,7 +268,7 @@ export default function AIDesignStudio({ onApplied }) {
                       {sv?.loading ? `⏳ ${t('aiDesign.rendering', '디자인 중…')}` : `🎨 ${t('aiDesign.aiRender', 'AI 정밀 디자인')}`}
                     </button>
                     <button onClick={() => apply(d)}
-                      style={{ padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 800, fontSize: 12 }}>
+                      style={{ padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', fontWeight: 700, fontSize: 12 }}>
                       ✅ {t('aiDesign.apply', '적용하기')}
                     </button>
                   </div>

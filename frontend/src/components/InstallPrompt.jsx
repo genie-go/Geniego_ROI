@@ -76,7 +76,7 @@ export default function InstallPrompt() {
           {!iosHint && (
             <button onClick={install} style={{
               border: 'none', borderRadius: 9, padding: '8px 14px', cursor: 'pointer',
-              background: '#fff', color: '#1e3a8a', fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap',
+              background: '#fff', color: '#1e3a8a', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap',
             }}>{t('pwa.install', '설치')}</button>
           )}
           <button onClick={dismiss} aria-label="close" style={{

@@ -90,7 +90,7 @@ export default function JourneyCanvas({ nodes: initNodes, edges: initEdges, onSa
     <div>
       {/* 팔레트 + 액션 */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 800, color: '#64748b', marginRight: 4 }}>{t('journeyCanvas.addNode', '노드 추가:')}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginRight: 4 }}>{t('journeyCanvas.addNode', '노드 추가:')}</span>
         {Object.entries(NODE_TYPES).filter(([k]) => k !== 'trigger').map(([k, nt]) => (
           <button key={k} onClick={() => addNode(k)} style={paletteBtn(nt.color)}>{nt.icon} {t(nt.labelKey, nt.label)}</button>
         ))}
@@ -139,7 +139,7 @@ export default function JourneyCanvas({ nodes: initNodes, edges: initEdges, onSa
                   boxShadow: isSel ? `0 0 0 3px ${nt.color}33` : '0 2px 6px rgba(0,0,0,0.08)', userSelect: 'none', zIndex: isSel ? 5 : 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: nt.color }} />
-                  <span style={{ fontSize: 10, fontWeight: 800, color: nt.color }}>{nt.icon} {t(nt.labelKey, nt.label)}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: nt.color }}>{nt.icon} {t(nt.labelKey, nt.label)}</span>
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#1e293b', marginTop: 3, lineHeight: 1.25, wordBreak: 'break-all' }}>{nodeSummary(n, t)}</div>
               </div>

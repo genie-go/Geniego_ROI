@@ -78,7 +78,7 @@ export default function TeamMembers() {
   return (
     <div style={{ padding: 24, color: 'var(--text-1,#1e293b)', maxWidth: 1180, margin: '0 auto' }}>
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 23, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>👥 {t('teamMembers.title', '팀·멤버·권한 관리')}</div>
+        <div style={{ fontSize: 24, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>👥 {t('teamMembers.title', '팀·멤버·권한 관리')}</div>
         <div style={{ fontSize: 13, color: 'var(--text-3,#64748b)', marginTop: 5 }}>
           {t('teamMembers.descV2', '팀을 구성하고 팀·팀원 단위로 메뉴·기능·데이터 접근 권한을 부여합니다. 하위계정은 동일 회원(테넌트)으로 격리되어 같은 데이터를 공유합니다.')}
           {IS_DEMO && <span style={{ marginLeft: 8, color: '#f59e0b', fontWeight: 700 }}>· 🧪 {t('teamMembers.demoBadge', 'Demo (simulation)')}</span>}
@@ -575,7 +575,7 @@ function MatrixPanel({ t, canManage, isOwnerAdmin, flash }) {
               <tbody>
                 {Object.entries(grouped).map(([g, items]) => (
                   <React.Fragment key={g}>
-                    <tr><td colSpan={ACTIONS.length + 2} style={{ padding: '8px 10px 3px', fontSize: 11, fontWeight: 800, color: '#6366f1', textTransform: 'uppercase' }}>{t('teamPerms.grp_' + g, GROUP_LABEL[g] || g)}</td></tr>
+                    <tr><td colSpan={ACTIONS.length + 2} style={{ padding: '8px 10px 3px', fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase' }}>{t('teamPerms.grp_' + g, GROUP_LABEL[g] || g)}</td></tr>
                     {items.map(m => (
                       <tr key={m.key} style={{ borderBottom: '1px solid var(--border,#f1f5f9)' }}>
                         <td style={{ padding: '7px 10px', fontWeight: 600 }}>{m.ko}</td>

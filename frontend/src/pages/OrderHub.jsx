@@ -58,7 +58,7 @@ const COUNTRY_FLAG = { US: "🇺🇸", JP: "🇯🇵", SG: "🇸🇬", TH: "🇹
 const ch = id => DEFAULT_CHANNELS.find(c => c.id === id) || { name: id, icon: "🔌", color: "#4f8ef7" };
 
 function StatusBadge({ label, cls }) {
-    return <span className={`badge ${cls || 'badge'}`} style={{ fontSize: 9 }}>{label}</span>;
+    return <span className={`badge ${cls || 'badge'}`} style={{ fontSize: 10 }}>{label}</span>;
 }
 const STATUS_CLS = { paid: 'badge-blue', preparing: 'badge-yellow', shipping: 'badge-purple', delivered: 'badge-teal', confirmed: 'badge-green' };
 const CLAIM_CLS = { received: 'badge-blue', processing: 'badge-yellow', done: 'badge-green', rejected: 'badge-red' };
@@ -185,15 +185,15 @@ function LiveIngestBar({ tab }) {
         <div style={{ padding: "6px 12px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>{t('orderHub.liveFeedTitle')}</div>
-                <span className="badge badge-green" style={{ fontSize: 9 }}><span className="dot dot-green" /> LIVE · {orders.length + claimHistory.length + settlement.length}{t('orderHub.liveFeedCount')}</span>
+                <span className="badge badge-green" style={{ fontSize: 10 }}><span className="dot dot-green" /> LIVE · {orders.length + claimHistory.length + settlement.length}{t('orderHub.liveFeedCount')}</span>
             </div>
             <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, minHeight: 0 }}>
                 {feed.map(f => (
                     <div key={f.id} style={{ flexShrink: 0, padding: "4px 8px", borderRadius: 8, background: "rgba(79,142,247,0.06)", border: `1px solid ${typeColor(f.type)}22`, animation: "fadeIn 0.3s" }}>
                         <div style={{ display: "flex", gap: 5, alignItems: "center", marginBottom: 2 }}>
                             <span style={{ fontSize: 11 }}>{ch(f.ch).icon}</span>
-                            <span style={{ fontSize: 9, fontWeight: 700, color: typeColor(f.type), padding: "1px 5px", background: typeColor(f.type) + "18", borderRadius: 4 }}>{f.type}</span>
-                            <span style={{ fontSize: 9, color: "#6b7280" }}>{f.ts}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: typeColor(f.type), padding: "1px 5px", background: typeColor(f.type) + "18", borderRadius: 4 }}>{f.type}</span>
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>{f.ts}</span>
                         </div>
                         <div style={{ fontSize: 10, color: "#374151", maxWidth: 180, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.msg}</div>
                     </div>
@@ -575,7 +575,7 @@ function OrderTab() {
                         <tr key={o.id}>
                             <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#4f8ef7' }}>{o.id}</td>
                             <td><span style={{ fontSize: 11, marginRight: 6 }} >{ch(o.channel)?.icon}</span><span>{ch(o.channel)?.name}</span></td>
-                            <td><div style={{ fontSize: 9, fontWeight: 700, color: '#6b7280' }} >{o.name}</div><div>SKU: {o.sku}</div></td>
+                            <td><div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280' }} >{o.name}</div><div>SKU: {o.sku}</div></td>
                             <td style={{ textAlign: 'center' }}>{o.qty}</td>
                             <td style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 11 }}>{fmt(o.total)}</td>
                             <td style={{ fontSize: 11 }}>{o.buyer}</td>
@@ -590,10 +590,10 @@ function OrderTab() {
                             </td>
                             <td>
                                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                    {o.hasClaim && <span className="badge badge-red" style={{ fontSize: 9 }}>{t('orderHub.badgeClaim')}</span>}
-                                    {o.settled && <span className="badge badge-blue" style={{ fontSize: 9 }}>{t('orderHub.badgeSettled')}</span>}
-                                    {o.slaViolated && <span className="badge badge-yellow" style={{ fontSize: 9 }}>{t('orderHub.badgeSlaDelay')}</span>}
-                                    {o.tags?.map(tx => <span key={tx} className="badge" style={{ fontSize: 9 }}>{tx}</span>)}
+                                    {o.hasClaim && <span className="badge badge-red" style={{ fontSize: 10 }}>{t('orderHub.badgeClaim')}</span>}
+                                    {o.settled && <span className="badge badge-blue" style={{ fontSize: 10 }}>{t('orderHub.badgeSettled')}</span>}
+                                    {o.slaViolated && <span className="badge badge-yellow" style={{ fontSize: 10 }}>{t('orderHub.badgeSlaDelay')}</span>}
+                                    {o.tags?.map(tx => <span key={tx} className="badge" style={{ fontSize: 10 }}>{tx}</span>)}
                                 </div>
                             </td>
                             <td><button className="btn-ghost" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => setDetail(o)}>{t('orderHub.btnDetail')}</button></td>
@@ -611,7 +611,7 @@ function OrderTab() {
             {detail && (
                 <Drawer onClose={() => setDetail(null)}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: '#4f8ef7', fontFamily: 'monospace' }}>{detail.id}</div>
+                        <div style={{ fontWeight: 900, fontSize: 14, color: '#4f8ef7', fontFamily: 'monospace' }}>{detail.id}</div>
                         <button className="btn-ghost" style={{ padding: '5px 10px' }} onClick={() => setDetail(null)}>✕</button>
                     </div>
                     {[[t('orderHub.labelChannel'), ch(detail.channel)?.name], [t('orderHub.labelBuyer'), detail.buyer], [t('orderHub.labelProduct'), detail.name], ['SKU', detail.sku], [t('orderHub.labelQty'), detail.qty], [t('orderHub.labelTotal'), fmt(detail.total)], [t('orderHub.labelStatus'), statusLabels[detail.status] || detail.status], [t('orderHub.labelCarrier'), detail.carrier || '-'], [t('orderHub.labelTrackNo'), detail.trackingNo || '-'], [t('orderHub.labelOrderDate'), detail.orderedAt], [t('orderHub.labelWarehouse'), detail.wh]].map(([l, v]) => (
@@ -632,7 +632,7 @@ function CollectSettingTab() {
     return (
         <div style={{ display: 'grid', gap: 16 }}>
             <div className="card card-glass" style={{ padding: 20 }}>
-                <div style={{ fontWeight: 900, fontSize: 15, marginBottom: 12 }}>{t('orderHub.settingsTitle')}</div>
+                <div style={{ fontWeight: 900, fontSize: 14, marginBottom: 12 }}>{t('orderHub.settingsTitle')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16 }}>{t('orderHub.settingsDesc')}</div>
                 <div style={{ display: 'grid', gap: 12 }}>
                     {[
@@ -783,7 +783,7 @@ function IntlOrderTab() {
             {detail && (
                 <Drawer onClose={() => setDetail(null)}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: '#4f8ef7', fontFamily: 'monospace' }}>{detail.id}</div>
+                        <div style={{ fontWeight: 900, fontSize: 14, color: '#4f8ef7', fontFamily: 'monospace' }}>{detail.id}</div>
                         <button className="btn-ghost" style={{ padding: '5px 10px' }} onClick={() => setDetail(null)}>✕</button>
                     </div>
                     {[[t('orderHub.labelChannel'), INTL_CHANNELS.find(c => c.id === detail.ch)?.name || detail.ch], [t('orderHub.intlColCountry'), `${COUNTRY_FLAG[detail.country] || '🌐'} ${detail.country || '-'}`], [t('orderHub.labelBuyer'), detail.buyer], [t('orderHub.labelProduct'), detail.name], [t('orderHub.labelQty'), detail.qty], [t('orderHub.labelTotal'), fmt(detail.total || 0)], ['Incoterm', detail.incoterm || '-'], ['HS Code', detail.hsCode || '-'], [t('orderHub.intlEstDuty'), IS_DEMO ? fmt((detail.total || 0) * 0.08) : '—'], [t('orderHub.labelCarrier'), detail.carrier || '-'], [t('orderHub.labelTrackNo'), detail.trackingNo || '-'], [t('orderHub.labelOrderDate'), detail.at || '-']].map(([l, v]) => (
@@ -835,7 +835,7 @@ function B2BOrderTab() {
                         <div key={o.id} style={{ padding: "14px 16px", borderRadius: 12, background: 'var(--surface)', border: '1px solid #e5e7eb', display: "flex", alignItems: "center", gap: 16 }}>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontWeight: 800, fontSize: 12, color: '#1e293b' }}>{o.id}</span>
+                                    <span style={{ fontWeight: 700, fontSize: 12, color: '#1e293b' }}>{o.id}</span>
                                     <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 99, fontWeight: 700, background: "rgba(79,142,247,0.12)", color: "#4f8ef7", border: "1px solid rgba(79,142,247,0.25)" }}>{o.status}</span>
                                 </div>
                                 <div style={{ fontSize: 11, color: "#94a3b8" }}>{o.buyer} · SKU {o.skus}{t('orderHub.b2bSku')} · {o.qty}{t('orderHub.b2bUnitPcs')}</div>
@@ -984,7 +984,7 @@ function GuideTab() {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
 
     return (
@@ -995,7 +995,7 @@ function GuideTab() {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('orderHub.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('orderHub.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {/* 이용 대상 */}
@@ -1011,7 +1011,7 @@ function GuideTab() {
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>

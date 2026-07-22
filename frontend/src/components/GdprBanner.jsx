@@ -81,7 +81,7 @@ function ConsentPanel({ onSave, onClose }) {
             <div style={{ maxWidth: 640, margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: 'var(--text-1)' }}>🔒 {t('gdpr.panelTitle')}</div>
+                        <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-1)' }}>🔒 {t('gdpr.panelTitle')}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
                             {t('gdpr.panelSub')}
                         </div>
@@ -101,7 +101,7 @@ function ConsentPanel({ onSave, onClose }) {
                                 <div>
                                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 6 }}>
                                         {item.label}
-                                        {item.required && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>{item.requiredLabel}</span>}
+                                        {item.required && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>{item.requiredLabel}</span>}
                                     </div>
                                     <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3 }}>{item.desc}</div>
                                 </div>

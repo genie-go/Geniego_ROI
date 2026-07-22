@@ -137,7 +137,7 @@ export default function AgencyConsole() {
       <div style={{ maxWidth: 420, margin: "60px auto", padding: 28, background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
         <div style={{ textAlign: "center", marginBottom: 18 }}>
           <div style={{ fontSize: 34 }}>🏢</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "#0f172a" }}>대행사 콘솔</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>대행사 콘솔</div>
           <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>담당 클라이언트를 한 곳에서 관리하세요</div>
         </div>
         <form onSubmit={doLogin}>
@@ -241,6 +241,6 @@ const card = () => ({ background: "#fff", border: "1px solid #e5e7eb", borderRad
 const kpiTile = (label, val) => (
   <div style={{ background: "#f8fafc", borderRadius: 10, padding: "14px 16px" }}>
     <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>{label}</div>
-    <div style={{ fontSize: 19, fontWeight: 800, color: "#0f172a" }}>{val}</div>
+    <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{val}</div>
   </div>
 );

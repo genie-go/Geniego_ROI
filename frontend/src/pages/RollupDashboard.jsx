@@ -997,7 +997,7 @@ function ProductPerfTab({ period, n, txt, fc }) {
                 <td style={{ ...S.tdCell, textAlign:'right', color:'#64748b' }}>{fc.c(p.aov)}</td>
                 <td style={{ ...S.tdCell, textAlign:'right', fontWeight:700, color: p.gross_profit==null?'#94a3b8':(p.gross_profit>=0?'#16a34a':'#ef4444') }}>{p.gross_profit==null?'—':fc.c(p.gross_profit)}{p.margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.margin}%)</span>:null}</td>
                 {/* [Phase1 순이익] 매출−원가−광고비−마켓수수료. *=수수료 추정/미반영(정산 연동 시 자동 실값). */}
-                <td style={{ ...S.tdCell, textAlign:'right', fontWeight:800, color: p.net_profit==null?'#94a3b8':(p.net_profit>=0?'#16a34a':'#ef4444') }} title={p.fees_source==='settlement'?'실 정산 기준':p.fees_source==='estimated'?'마켓수수료 요율 추정':'마켓수수료 미반영'}>{p.net_profit==null?'—':fc.c(p.net_profit)}{p.net_margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.net_margin}%)</span>:null}{p.net_profit!=null&&p.fees_source&&p.fees_source!=='settlement'?<span style={{color:'#f59e0b',fontSize:9}}> *</span>:null}</td>
+                <td style={{ ...S.tdCell, textAlign:'right', fontWeight:800, color: p.net_profit==null?'#94a3b8':(p.net_profit>=0?'#16a34a':'#ef4444') }} title={p.fees_source==='settlement'?'실 정산 기준':p.fees_source==='estimated'?'마켓수수료 요율 추정':'마켓수수료 미반영'}>{p.net_profit==null?'—':fc.c(p.net_profit)}{p.net_margin!=null?<span style={{color:'#94a3b8',fontWeight:400,fontSize:10}}> ({p.net_margin}%)</span>:null}{p.net_profit!=null&&p.fees_source&&p.fees_source!=='settlement'?<span style={{color:'#f59e0b',fontSize:10}}> *</span>:null}</td>
                 <td style={{ ...S.tdCell }}>{p.top_channel||'—'}</td>
                 <td style={{ ...S.tdCell }}>{PP_COUNTRY_LABEL[p.top_country]||p.top_country||'—'}</td>
                 <td style={{ ...S.tdCell, textAlign:'right', color: p.return_rate>12?'#ef4444':'#22c55e' }}>{fc.pct(p.return_rate)}</td>
@@ -1258,7 +1258,7 @@ function GuideTab({ txt }) {
       <div style={{ display: 'grid', gap: 10 }}>
         {steps.map((s, i) => (
           <div key={i} style={{ display: 'flex', gap: 14, padding: '16px 18px', borderRadius: 14, ...S.card }}>
-            <div data-step-badge="true" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#4f8ef7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 900, color: '#fff', flexShrink: 0, boxShadow: '0 2px 8px rgba(79,142,247,0.4)' }}>{i + 1}</div>
+            <div data-step-badge="true" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#4f8ef7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900, color: '#fff', flexShrink: 0, boxShadow: '0 2px 8px rgba(79,142,247,0.4)' }}>{i + 1}</div>
             <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, fontWeight: 500, alignSelf: 'center' }}>{s}</div>
           </div>
         ))}
@@ -1371,7 +1371,7 @@ function ChannelProductMatrixTab({ period, n, txt, fc }) {
                 <div style={{ fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
                 <div style={{ fontSize:10, color: (p.total?.net_profit??0)>=0?'#16a34a':'#ef4444' }}>{txt('ppNetProfit','순이익')} {fc.c(p.total?.net_profit||0)}</div>
               </td>
-              <td style={{ ...S.tdCell, textAlign:'center' }}>{p.recommend_channel ? <span style={{ color:'#16a34a', fontWeight:800, fontSize:11 }}>{CPM_CH_LABEL[p.recommend_channel]||p.recommend_channel}</span> : <span style={{ color:'#cbd5e1' }}>—</span>}</td>
+              <td style={{ ...S.tdCell, textAlign:'center' }}>{p.recommend_channel ? <span style={{ color:'#16a34a', fontWeight:700, fontSize:11 }}>{CPM_CH_LABEL[p.recommend_channel]||p.recommend_channel}</span> : <span style={{ color:'#cbd5e1' }}>—</span>}</td>
               {cols.map(c=>{
                 const cell = p.cells?.[c];
                 if (!cell) return <td key={c} style={{ ...S.tdCell, textAlign:'center', color:'#e2e8f0' }}>·</td>;
@@ -1380,7 +1380,7 @@ function ChannelProductMatrixTab({ period, n, txt, fc }) {
                   <td key={c} style={{ ...S.tdCell, textAlign:'right' }} title={`${cell.reason||''}${cell.spend!=null?`\n${txt('cpmSpend','광고비')} ${Math.round(cell.spend).toLocaleString()}`:''}${cell.cac!=null?` · CAC ${Math.round(cell.cac).toLocaleString()}`:''}${cell.conversions!=null?` · ${txt('cpmConv','전환')} ${cell.conversions}`:''}${cell.ctr!=null?` · CTR ${cell.ctr}%`:''}${cell.profit_roi!=null?` · ${txt('cpmProfitRoi','순이익ROI')} ${cell.profit_roi}%`:''}`}>
                     <div style={{ fontWeight:800, color: cell.net_profit==null?'#64748b':(cell.net_profit>=0?'#16a34a':'#ef4444') }}>{cell.net_profit==null?(cell.revenue!=null?fc.c(cell.revenue):'—'):fc.c(cell.net_profit)}</div>
                     {cell.roas!=null && <div style={{ fontSize:10, color:'#64748b' }}>ROAS {cell.roas}x</div>}
-                    {cell.action && cell.action!=='sales' && <div style={{ fontSize:9, fontWeight:700, color:act.c, background:act.bg, borderRadius:4, padding:'1px 4px', display:'inline-block', marginTop:2 }}>{act.l}</div>}
+                    {cell.action && cell.action!=='sales' && <div style={{ fontSize:10, fontWeight:700, color:act.c, background:act.bg, borderRadius:4, padding:'1px 4px', display:'inline-block', marginTop:2 }}>{act.l}</div>}
                   </td>
                 );
               })}

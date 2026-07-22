@@ -94,7 +94,7 @@ function GoalTab({ goals, setGoals }) {
                         <div style={{ fontSize: 28, marginBottom: 8 }}>{g.icon}</div>
                         <div style={{ fontSize: 13, fontWeight: 800, color: goals[g.key] ? g.color : '#475569', marginBottom: 6 }}>{g.label}</div>
                         <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>{g.desc}</div>
-                        <div style={{ marginTop: 12, padding: '4px 10px', borderRadius: 20, width: 'fit-content', background: goals[g.key] ? g.color : 'rgba(100,116,139,0.1)', color: goals[g.key] ? '#fff' : '#94a3b8', fontSize: 10, fontWeight: 800 }}>{goals[g.key] ? t('channelKpiPage.selected') : t('channelKpiPage.clickSelect')}
+                        <div style={{ marginTop: 12, padding: '4px 10px', borderRadius: 20, width: 'fit-content', background: goals[g.key] ? g.color : 'rgba(100,116,139,0.1)', color: goals[g.key] ? '#fff' : '#94a3b8', fontSize: 10, fontWeight: 700 }}>{goals[g.key] ? t('channelKpiPage.selected') : t('channelKpiPage.clickSelect')}
                         </div>
                     </div>
                 ))}
@@ -144,8 +144,8 @@ function ChannelRoleTab() {
                 {ROLES.map(r => (
                     <div key={r.ch} style={{ ...CARD, borderColor: r.color + '30' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                            <div style={{ fontSize: 15, fontWeight: 900, color: r.color }}>{r.ch}</div>
-                            <span style={{ padding: '3px 10px', borderRadius: 20, background: r.color + '18', color: r.color, fontSize: 10, fontWeight: 800 }}>{r.role}</span>
+                            <div style={{ fontSize: 14, fontWeight: 900, color: r.color }}>{r.ch}</div>
+                            <span style={{ padding: '3px 10px', borderRadius: 20, background: r.color + '18', color: r.color, fontSize: 10, fontWeight: 700 }}>{r.role}</span>
                         </div>
                         <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.6, marginBottom: 10 }}>{r.desc}</div>
                         <div style={LBL}>{t('channelKpiPage.coreKpis')}</div>
@@ -310,7 +310,7 @@ function ContentKpiTab({ globalOrderStats }) {
                     ].map(([v, max, col, lbl], j) => (
                         <div key={j}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                <span style={{ color: '#94a3b8', fontSize: 9 }}>{lbl}</span>
+                                <span style={{ color: '#94a3b8', fontSize: 10 }}>{lbl}</span>
                                 <span style={{ color: col, fontWeight: 700 }}>{v.toLocaleString()}</span>
                             </div>
                             <div style={{ height: 4, background: 'rgba(0,0,0,0.06)', borderRadius: 2 }}>
@@ -368,7 +368,7 @@ function CommunityKpiTab({ globalOrderStats }) {
                                 <div style={{ height: 3, background: 'rgba(0,0,0,0.06)', borderRadius: 2, marginTop: 4 }}>
                                     <div style={{ width: `${(v / (tot||1)) * 100}%`, height: '100%', background: p.color, borderRadius: 2 }} />
                                 </div>
-                                <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>{((v / (tot||1)) * 100).toFixed(0)}% {t('channelKpiPage.share', 'share')}</div>
+                                <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{((v / (tot||1)) * 100).toFixed(0)}% {t('channelKpiPage.share', 'share')}</div>
                             </div>
                         ))}
                     </div>
@@ -434,7 +434,7 @@ function KpiTargetTab({ kpiTargets, globalOrderStats, globalBudgetStats, globalC
                                 {it.unit === 'currency' ? csym : ''}{actual.toLocaleString()}{it.unit === '%' ? '%' : ''}
                             </div>
                             <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>{t('channelKpiPage.targetLabel','Target')} {it.unit === 'currency' ? csym : ''}{tgt.toLocaleString()}{it.unit === '%' ? '%' : ''}</div>
-                            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: ok ? C.green : C.red }}>{ok ? t('channelKpiPage.achievedOk') : t('channelKpiPage.belowTarget')}</div>
+                            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: ok ? C.green : C.red }}>{ok ? t('channelKpiPage.achievedOk') : t('channelKpiPage.belowTarget')}</div>
                         </div>
                     );
                 })}
@@ -537,7 +537,7 @@ function MonitoringTab({ goals, kpiTargets }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={runAI} disabled={status === 'loading'}
-                        style={{ flex: 1, padding: '9px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', background: status === 'loading' ? 'rgba(79,142,247,0.3)' : '#4f8ef7', color: '#fff', fontWeight: 800, fontSize: 11, transition: 'all 0.2s' }}>
+                        style={{ flex: 1, padding: '9px 14px', borderRadius: 9, border: 'none', cursor: 'pointer', background: status === 'loading' ? 'rgba(79,142,247,0.3)' : '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 11, transition: 'all 0.2s' }}>
                         {status === 'loading' ? t('channelKpiPage.aiAnalyzing') : t('channelKpiPage.runAi')}
                     </button>
                     <button onClick={loadHistory}
@@ -584,11 +584,11 @@ function MonitoringTab({ goals, kpiTargets }) {
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                                 <div style={{ background: 'rgba(34,197,94,0.07)', borderRadius: 7, padding: '7px 9px', border: '1px solid rgba(34,197,94,0.14)' }}>
-                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.green, marginBottom: 4 }}>{t('channelKpiPage.strengths')}</div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, color: C.green, marginBottom: 4 }}>{t('channelKpiPage.strengths')}</div>
                                     {(ch.strengths || []).map((s, i) => <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>??{s}</div>)}
                                 </div>
                                 <div style={{ background: 'rgba(239,68,68,0.07)', borderRadius: 7, padding: '7px 9px', border: '1px solid rgba(239,68,68,0.14)' }}>
-                                    <div style={{ fontSize: 9, fontWeight: 700, color: C.red, marginBottom: 4 }}>{t('channelKpiPage.weaknesses')}</div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, color: C.red, marginBottom: 4 }}>{t('channelKpiPage.weaknesses')}</div>
                                     {(ch.weaknesses || []).map((w, i) => <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>??{w}</div>)}
                                 </div>
                             </div>
@@ -706,7 +706,7 @@ function WebAnalyticsTab() {
             <div style={{ background: 'linear-gradient(135deg,rgba(227,116,0,0.08),rgba(37,99,235,0.06))', border: '1px solid rgba(227,116,0,0.2)', borderRadius: 14, padding: 18 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 24 }}>📈</span>
-                    <div style={{ fontWeight: 900, fontSize: 17, color: '#1e293b' }}>{t('channelKpiPage.tabWeb', '웹 분석 (GA4·Adobe)')}</div>
+                    <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b' }}>{t('channelKpiPage.tabWeb', '웹 분석 (GA4·Adobe)')}</div>
                 </div>
                 <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, lineHeight: 1.6 }}>
                     {t('channelKpiPage.webDesc', '연동허브에서 Google Analytics 4·Adobe Analytics 자격증명을 등록하면 세션·사용자·전환·매출이 채널그룹·소스/매체별로 인바운드 수집됩니다. 광고 성과와 분리된 유입 분석입니다.')}
@@ -830,7 +830,7 @@ function KeywordPerfTab() {
                 {rows.map((r, i) => (
                   <tr key={i}>
                     <td style={td}>{r.channel}</td>
-                    <td style={{ ...td, fontWeight: 600 }}>{r.keyword}{r.match_type ? <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 5 }}>{r.match_type}</span> : null}</td>
+                    <td style={{ ...td, fontWeight: 600 }}>{r.keyword}{r.match_type ? <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 5 }}>{r.match_type}</span> : null}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{Number(r.impressions || 0).toLocaleString()}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{Number(r.clicks || 0).toLocaleString()}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{fmt(r.spend)}</td>
@@ -950,11 +950,11 @@ export default function ChannelKPI() {
                         {Object.entries(channelBudgets).slice(0, 6).map(([id, ch]) => (
                             <div key={id} style={{ padding: '8px 10px', borderRadius: 10, background: `${ch.color}10`, border: `1px solid ${ch.color}30`, textAlign: 'center' }}>
                                 <div style={{ fontSize: 14 }}>{ch.icon}</div>
-                                <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>{ch.name}</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: ch.roas >= ch.targetRoas ? '#16a34a' : '#dc2626' }}>
+                                <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{ch.name}</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: ch.roas >= ch.targetRoas ? '#16a34a' : '#dc2626' }}>
                                     {ch.roas.toFixed(1)}x
                                 </div>
-                                <div style={{ fontSize: 8, color: '#94a3b8' }}>Target {ch.targetRoas}x</div>
+                                <div style={{ fontSize: 10, color: '#94a3b8' }}>Target {ch.targetRoas}x</div>
                             </div>
                         ))}
                     </div>
@@ -1000,7 +1000,7 @@ export default function ChannelKPI() {
                             <div style={{ fontSize: 13, color: '#334155', WebkitTextFillColor: '#334155', marginTop: 6, maxWidth: 600, margin: '6px auto 0', lineHeight: 1.7 }}>{ckg('guideSub')}</div>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{ckg('guideStepsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1e40af' }}>{ckg('guideStepsTitle')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
                                 {[{n:'1️⃣',k:'guideStep1',c:'#2563eb'},{n:'2️⃣',k:'guideStep2',c:'#16a34a'},{n:'3️⃣',k:'guideStep3',c:'#7c3aed'},{n:'4️⃣',k:'guideStep4',c:'#d97706'},{n:'5️⃣',k:'guideStep5',c:'#ea580c'},{n:'6️⃣',k:'guideStep6',c:'#0891b2'}].map((s,i) => (
                                     <div key={i} style={{ background: s.c+'08', border: `1px solid ${s.c}22`, borderRadius: 12, padding: 16 }}>
@@ -1014,7 +1014,7 @@ export default function ChannelKPI() {
                             </div>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1e40af' }}>{ckg('guideTabsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1e40af' }}>{ckg('guideTabsTitle')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
                                 {[{icon:'🎯',k:'guideGoal',c:'#2563eb'},{icon:'🔀',k:'guideRole',c:'#7c3aed'},{icon:'⚙️',k:'guideSetup',c:'#16a34a'},{icon:'📣',k:'guideSns',c:'#db2777'},{icon:'📝',k:'guideContent',c:'#ea580c'},{icon:'💬',k:'guideCommunity',c:'#ca8a04'},{icon:'🎯',k:'guideTarget',c:'#dc2626'},{icon:'🤖',k:'guideMonitor',c:'#0891b2'}].map((tb,i) => (
                                     <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(248,250,252,0.95)', borderRadius: 10, border: '1px solid rgba(0,0,0,0.05)' }}>
@@ -1028,7 +1028,7 @@ export default function ChannelKPI() {
                             </div>
                         </div>
                         <div style={{ background: 'rgba(22,163,74,0.04)', border: '1px solid rgba(22,163,74,0.20)', borderRadius: 16, padding: 20 }}>
-                            <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1e40af' }}>💡 {ckg('guideTipsTitle')}</div>
+                            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color: '#1e40af' }}>💡 {ckg('guideTipsTitle')}</div>
                             <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#64748b', lineHeight: 2.2 }}>
                                 <li>{ckg('guideTip1')}</li>
                                 <li>{ckg('guideTip2')}</li>

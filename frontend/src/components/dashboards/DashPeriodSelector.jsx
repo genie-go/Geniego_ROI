@@ -220,7 +220,7 @@ export default function DashPeriodSelector({ value, onChange, compact = false })
               width: '100%', padding: '9px 0', borderRadius: 8,
               border: 'none', cursor: 'pointer',
               background: 'linear-gradient(135deg, #4f8ef7, #6366f1)',
-              color: '#fff', fontWeight: 800, fontSize: 12,
+              color: '#fff', fontWeight: 700, fontSize: 12,
               boxShadow: '0 4px 14px rgba(79,142,247,0.35)',
               transition: 'all 0.2s',
             }}

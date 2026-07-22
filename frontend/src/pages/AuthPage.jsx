@@ -517,7 +517,7 @@ function TermsModal({ open, onClose, category }) {
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#ffffff', borderRadius: 16, width: '100%', maxWidth: 600, maxHeight: '80vh', display: 'flex', flexDirection: 'column', border: '1px solid #e2e8f0', boxShadow: '0 20px 60px rgba(15,23,42,0.18)' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #eef2f7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0f172a' }}>📋 {content.title}</h3>
+          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0f172a' }}>📋 {content.title}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 20, cursor: 'pointer', padding: '0 4px' }}>✕</button>
         </div>
         <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, fontSize: 12, color: '#334155', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
@@ -553,7 +553,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
     <>
       <TermsModal open={!!modalCat} onClose={() => setModalCat(null)} category={modalCat} />
       <div style={{ display: 'grid', gap: 8, padding: 14, borderRadius: 12, background: '#f8fafc', border: '1px solid #cbd5e1' }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 2 }}>📋 {t('auth.termsAgreeTitle', '약관 동의')}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 2 }}>📋 {t('auth.termsAgreeTitle', '약관 동의')}</div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '11px 10px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', minHeight: 44, boxSizing: 'border-box' }}>
           <input type="checkbox" checked={agreeAll} onChange={e => handleAllToggle(e.target.checked)}
             style={{ accentColor: '#2563eb', width: 20, height: 20, flexShrink: 0 }} />
@@ -565,7 +565,7 @@ function TermsAgreementSection({ agreeTerms, setAgreeTerms, agreePrivacy, setAgr
               <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
                 style={{ accentColor: '#2563eb', width: 18, height: 18, flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: '#334155', fontWeight: 600, lineHeight: 1.4 }}>
-                <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, marginRight: 6, background: required ? '#fee2e2' : '#e2e8f0', color: required ? '#dc2626' : '#64748b' }}>{required ? t('auth.requiredTag') : t('auth.optionalTag')}</span>
+                <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 6, marginRight: 6, background: required ? '#fee2e2' : '#e2e8f0', color: required ? '#dc2626' : '#64748b' }}>{required ? t('auth.requiredTag') : t('auth.optionalTag')}</span>
                 {label}
               </span>
             </label>
@@ -603,7 +603,7 @@ function Field({ label, type = "text", value, onChange, placeholder, required, a
           /* [현 차수 리디자인] 과거 입력 글자색이 #fff 라 밝은 카드 위에서 흰-on-흰(저장소의 알려진 트랩)이었다.
              밝은 SaaS 테마에 맞춰 잉크색·흰 배경·부드러운 포커스 링으로 재정의. */
           className="gr-input"
-          style={{ padding: isPw ? "0 46px 0 16px" : "0 16px", borderRadius: 12, border: "1px solid #dbe5f0", background: disabled ? "#f8fafc" : "#fff", color: disabled ? '#94a3b8' : '#14213d', fontSize: 15, outline: "none", transition: "border-color 160ms, box-shadow 160ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
+          style={{ padding: isPw ? "0 46px 0 16px" : "0 16px", borderRadius: 12, border: "1px solid #dbe5f0", background: disabled ? "#f8fafc" : "#fff", color: disabled ? '#94a3b8' : '#14213d', fontSize: 14, outline: "none", transition: "border-color 160ms, box-shadow 160ms", width: "100%", boxSizing: "border-box", cursor: disabled ? "not-allowed" : "text" }}
           onFocus={e => { e.target.style.borderColor = "#2563eb"; e.target.style.boxShadow = "0 0 0 4px rgba(37,99,235,0.09)"; }}
           onBlur={e => { e.target.style.borderColor = "#dbe5f0"; e.target.style.boxShadow = "none"; }}
         />
@@ -721,7 +721,7 @@ function PhoneVerifyField({ t, purpose, setPhone, getEmail, onSuccess, onUnavail
   const inStyle = { width: "100%", padding: "10px 12px", borderRadius: 9, border: "1px solid #cbd5e1", fontSize: 13, boxSizing: "border-box" };
   const miniBtn = (onClick, txt, tone = "#4f8ef7") => (
     <button type="button" onClick={onClick} disabled={busy || verified}
-      style={{ padding: "10px 12px", borderRadius: 9, border: "none", whiteSpace: "nowrap", background: (busy || verified) ? "#94a3b8" : tone, color: "#fff", fontWeight: 800, fontSize: 12, cursor: (busy || verified) ? "not-allowed" : "pointer" }}>{txt}</button>
+      style={{ padding: "10px 12px", borderRadius: 9, border: "none", whiteSpace: "nowrap", background: (busy || verified) ? "#94a3b8" : tone, color: "#fff", fontWeight: 700, fontSize: 12, cursor: (busy || verified) ? "not-allowed" : "pointer" }}>{txt}</button>
   );
   const locked = sent || verified;
 
@@ -752,7 +752,7 @@ function PhoneVerifyField({ t, purpose, setPhone, getEmail, onSuccess, onUnavail
           {miniBtn(verify, busy ? "…" : t("auth.otpVerifyBtn", "확인"), "#22c55e")}
         </div>
       )}
-      {devCode && <div style={{ fontSize: 12, fontWeight: 800, color: "#b45309", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 8, padding: "6px 10px" }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {devCode}</div>}
+      {devCode && <div style={{ fontSize: 12, fontWeight: 700, color: "#b45309", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 8, padding: "6px 10px" }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {devCode}</div>}
       {info && !devCode && <div style={{ fontSize: 11, color: "#64748b" }}>{info}</div>}
       {err && <div style={{ fontSize: 11, color: "#ef4444" }}>{err}</div>}
     </div>
@@ -801,7 +801,7 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
 
   const tabBtn = (v, label) => (
     <button type="button" onClick={() => { setView(v); setErr(""); setFound(null); }}
-      style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
+      style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
         background: view === v ? "rgba(79,142,247,0.18)" : "transparent", color: view === v ? "#4f8ef7" : "#64748b" }}>{label}</button>
   );
   const submitBtn = (onClick, label) => (
@@ -814,7 +814,7 @@ function AccountRecovery({ t, initial = "findId", resetToken = "", onClose }) {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 4000, background: "rgba(2,6,23,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 22, boxShadow: "0 24px 70px rgba(15,23,42,0.18)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontWeight: 900, fontSize: 15, color: "#0f172a" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
+          <div style={{ fontWeight: 900, fontSize: 14, color: "#0f172a" }}>🔑 {t("auth.recoveryTitle", "계정 찾기")}</div>
           <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
         {view !== "reset" && view !== "done" && view !== "sent" && (
@@ -1072,7 +1072,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       <div className="gr-envbadge" style={{ padding: '10px 14px', borderRadius: 10, background: `${envColor}0D`, border: `1px solid ${envColor}33`, display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 18 }}>{envIcon}</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: envColor }}>{envLabel}</div>
+          <div style={{ fontWeight: 700, fontSize: 12, color: envColor }}>{envLabel}</div>
           <div style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{t('auth.loginEnvDesc')}</div>
         </div>
       </div>
@@ -1098,7 +1098,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
               : t('auth.mfaPrompt', '인증 앱의 6자리 코드 또는 복구 코드를 입력하세요.')}
           </div>
           {mfaInfo && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", color: "#16a34a", fontSize: 11 }}>📨 {mfaInfo}</div>}
-          {mfaDevCode && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", color: "#b45309", fontSize: 12, fontWeight: 800 }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {mfaDevCode}</div>}
+          {mfaDevCode && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", color: "#b45309", fontSize: 12, fontWeight: 700 }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {mfaDevCode}</div>}
           <Field label={t('auth.mfaCodeLabel', '인증 코드')} type="text" value={otp} onChange={setOtp} placeholder="000000" autoComplete="one-time-code" />
           {mfaMethod !== 'totp' && (
             <button type="button" onClick={async () => { setOtp(""); setError(null); try { await login(email, password, loginType, "", "", remember); } catch (e2) { if (e2.mfaRequired) { setMfaInfo(e2.message || t('auth.mfaResent', '인증 코드를 다시 보냈습니다.')); } else { setError(e2.message); } } }}
@@ -1114,7 +1114,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       {wrongSite && (
         <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.45)", display: "grid", gap: 9 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", lineHeight: 1.6 }}>ℹ️ {error}</div>
-          <a href={wrongSite.url} style={{ display: "block", textAlign: "center", padding: "10px 0", borderRadius: 9, background: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", fontWeight: 900, fontSize: 12.5, textDecoration: "none" }}>
+          <a href={wrongSite.url} style={{ display: "block", textAlign: "center", padding: "10px 0", borderRadius: 9, background: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
             {wrongSite.site === 'demo' ? t('auth.goDemoSite', '🎪 데모 체험 사이트로 이동') : t('auth.goProdSite', '🏢 운영 사이트로 이동')} →
           </a>
         </div>
@@ -1198,7 +1198,7 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ fontSize: 12, fontWeight: 800, color: '#fff', textAlign: "center" }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', textAlign: "center" }}>
         {t("auth.planTypeTitle")}
       </div>
 
@@ -1214,7 +1214,7 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
             <div style={{ fontWeight: 800, fontSize: 13, color: "#22c55e" }}>{t("auth.freePlan")}</div>
             <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{t("auth.freePlanDesc")}</div>
           </div>
-          <div style={{ padding: "3px 10px", borderRadius: 99, background: "rgba(34,197,94,0.12)", color: "#22c55e", fontSize: 10, fontWeight: 800 }}>{t("auth.freeBadge")}</div>
+          <div style={{ padding: "3px 10px", borderRadius: 99, background: "rgba(34,197,94,0.12)", color: "#22c55e", fontSize: 10, fontWeight: 700 }}>{t("auth.freeBadge")}</div>
         </div>
       </button>
 
@@ -1231,7 +1231,7 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
               <div style={{ fontWeight: 800, fontSize: 13, color: "#a855f7" }}>{t("auth.paidPlan")}</div>
               <div style={{ fontSize: 11, color: "var(--text-3)", marginTop: 2 }}>{t("auth.paidPlanDesc")}</div>
             </div>
-            <div style={{ padding: "3px 10px", borderRadius: 99, background: "rgba(168,85,247,0.15)", color: "#a855f7", fontSize: 10, fontWeight: 800 }}>{t("auth.paidBadge")}</div>
+            <div style={{ padding: "3px 10px", borderRadius: 99, background: "rgba(168,85,247,0.15)", color: "#a855f7", fontSize: 10, fontWeight: 700 }}>{t("auth.paidBadge")}</div>
           </div>
         </button>
 
@@ -1246,17 +1246,17 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
                   background: selectedPaid === p.id ? `${p.color}1A` : "rgba(255,255,255,0.02)",
                   border: `1.5px solid ${selectedPaid === p.id ? p.color : "rgba(99,140,255,0.15)"}`,
                   position: "relative", transition: "all 150ms" }}>
-                  {p.popular && <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: p.color, color: "#fff", fontSize: 8, fontWeight: 800, padding: "2px 7px", borderRadius: 99 }}>POPULAR</div>}
-                  {p.badge && !p.popular && <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: p.color, color: "#fff", fontSize: 8, fontWeight: 800, padding: "2px 7px", borderRadius: 99 }}>{p.badge}</div>}
-                  <div style={{ fontWeight: 800, fontSize: 12, color: p.color }}>{p.label}</div>
+                  {p.popular && <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: p.color, color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99 }}>POPULAR</div>}
+                  {p.badge && !p.popular && <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: p.color, color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99 }}>{p.badge}</div>}
+                  <div style={{ fontWeight: 700, fontSize: 12, color: p.color }}>{p.label}</div>
                   <div style={{ fontSize: 11, color: '#fff', marginTop: 2, fontWeight: 700 }}>
                     {getDisplayPrice(p.id, p.priceFallback)}
                   </div>
                   {/* [현 차수] 부가세 별도 표기 — 실제 표시 가격일 때만(맞춤견적/미설정 제외) */}
                   {/\d/.test(getDisplayPrice(p.id, p.priceFallback)) && (
-                    <div style={{ fontSize: 8, color: "var(--text-3)", marginTop: 1, opacity: 0.85 }}>{t("appPricing.exclVat", "(VAT 별도)")}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1, opacity: 0.85 }}>{t("appPricing.exclVat", "(VAT 별도)")}</div>
                   )}
-                  <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 1 }}>{p.desc}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{p.desc}</div>
                   {selectedPaid === p.id && <div style={{ fontSize: 14, color: p.color, marginTop: 4 }}>✓</div>}
                 </button>
               ))}
@@ -1283,22 +1283,22 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
                   background: "linear-gradient(135deg,rgba(34,197,94,0.12),rgba(16,185,129,0.06))",
                   border: "1px solid rgba(34,197,94,0.35)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                    <span style={{ fontSize: 15 }}>🎁</span>
-                    <span style={{ fontSize: 12.5, fontWeight: 900, color: "#16a34a" }}>{bt("trialTitle", trialLang)}</span>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", background: "rgba(34,197,94,0.16)", padding: "2px 7px", borderRadius: 99 }}>{bt("trialBadge", trialLang)}</span>
+                    <span style={{ fontSize: 14 }}>🎁</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#16a34a" }}>{bt("trialTitle", trialLang)}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#16a34a", background: "rgba(34,197,94,0.16)", padding: "2px 7px", borderRadius: 99 }}>{bt("trialBadge", trialLang)}</span>
                   </div>
                   <div style={{ fontSize: 10.5, color: "#cbd5e1", lineHeight: 1.6 }}>{bt("trialDesc", trialLang)}</div>
                 </div>
 
                 {/* Target */}
                 <div style={{ padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 10 }}>
-                  <div style={{ fontSize: 9, color: "#7c8fa8", fontWeight: 700, marginBottom: 2 }}>{t("auth.recommendedFor")}</div>
+                  <div style={{ fontSize: 10, color: "#7c8fa8", fontWeight: 700, marginBottom: 2 }}>{t("auth.recommendedFor")}</div>
                   <div style={{ fontSize: 10, color: "#cbd5e1", lineHeight: 1.5 }}>{selectedPlanCfg.target}</div>
                 </div>
 
                 {/* Features */}
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 9, color: "#7c8fa8", fontWeight: 700, marginBottom: 6 }}>{t("auth.includedFeatures")}</div>
+                  <div style={{ fontSize: 10, color: "#7c8fa8", fontWeight: 700, marginBottom: 6 }}>{t("auth.includedFeatures")}</div>
                   <div style={{ display: "grid", gap: 4 }}>
                     {selectedPlanCfg.features.map((f, i) => (
                       <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 10, color: "#cbd5e1", lineHeight: 1.5 }}>
@@ -1312,10 +1312,10 @@ function PlanSelector({ planType, setPlanType, selectedPaid, setSelectedPaid }) 
                 {/* Not included */}
                 {selectedPlanCfg.notIncluded && selectedPlanCfg.notIncluded.length > 0 && (
                   <div>
-                    <div style={{ fontSize: 9, color: "#7c8fa8", fontWeight: 700, marginBottom: 4 }}>{t("auth.premiumOnly")}</div>
+                    <div style={{ fontSize: 10, color: "#7c8fa8", fontWeight: 700, marginBottom: 4 }}>{t("auth.premiumOnly")}</div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                       {selectedPlanCfg.notIncluded.map((item, i) => (
-                        <span key={i} style={{ fontSize: 9, padding: "2px 8px", borderRadius: 99, background: "rgba(99,140,255,0.06)", border: "1px solid rgba(99,140,255,0.12)", color: "#475569" }}>{item}</span>
+                        <span key={i} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(99,140,255,0.06)", border: "1px solid rgba(99,140,255,0.12)", color: "#475569" }}>{item}</span>
                       ))}
                     </div>
                   </div>
@@ -1390,7 +1390,7 @@ function FreeRegisterForm({ onSwitch, onBack, variant = "demo" }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: isProd ? "rgba(79,142,247,0.06)" : "rgba(34,197,94,0.06)", border: isProd ? "1px solid rgba(79,142,247,0.2)" : "1px solid rgba(34,197,94,0.2)" }}>
         <span style={{ fontSize: 18 }}>{isProd ? "🏢" : "🌱"}</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: isProd ? "#4f8ef7" : "#22c55e" }}>
+          <div style={{ fontWeight: 700, fontSize: 12, color: isProd ? "#4f8ef7" : "#22c55e" }}>
             {isProd ? t('auth.prodRegisterTitle') : t("auth.freeTrialTitle")}
           </div>
           <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>
@@ -1661,7 +1661,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
         <React.Fragment key={s}>
           <div style={{
             width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 800, flexShrink: 0,
+            fontSize: 11, fontWeight: 700, flexShrink: 0,
             background: step >= s ? PLAN_CFG.color : "rgba(99,140,255,0.1)",
             color: step >= s ? "#fff" : "var(--text-3)",
             boxShadow: step === s ? `0 0 0 3px ${PLAN_CFG.color}33` : "none" }}>{s}</div>
@@ -1681,7 +1681,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", borderRadius: 12, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)" }}>
           <span style={{ fontSize: 20 }}>🚀</span>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 12.5, color: "#16a34a" }}>{t("auth.convertTitle", "데모 체험 정보로 운영(유료) 회원 전환")}</div>
+            <div style={{ fontWeight: 700, fontSize: 12.5, color: "#16a34a" }}>{t("auth.convertTitle", "데모 체험 정보로 운영(유료) 회원 전환")}</div>
             <div style={{ fontSize: 10.5, color: "var(--text-3)", marginTop: 3, lineHeight: 1.6 }}>{t("auth.convertNote", "데모에서 입력한 가입 정보만 자동으로 채웠습니다. 플랜·주소·새 비밀번호 등 나머지 필수 정보만 입력하면 즉시 운영 회원으로 전환됩니다. ※ 데모의 체험용 가상 데이터는 운영 계정으로 이관되지 않습니다.")}</div>
           </div>
         </div>
@@ -1690,7 +1690,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: `${PLAN_CFG.color}0D`, border: `1px solid ${PLAN_CFG.color}33` }}>
         <span style={{ fontSize: 20 }}>💎</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 12, color: PLAN_CFG.color }}>{PLAN_CFG.label} {t("auth.paidPlanTitle", { plan: "" })}</div>
+          <div style={{ fontWeight: 700, fontSize: 12, color: PLAN_CFG.color }}>{PLAN_CFG.label} {t("auth.paidPlanTitle", { plan: "" })}</div>
           <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{t("auth.paidPlanNote")}</div>
         </div>
         <button type="button" onClick={step === 1 ? onBack : () => setStep(s => s - 1)}
@@ -1753,7 +1753,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
       {step === 3 && (
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-2)", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", marginBottom: 8 }}>
               {t("auth.salesChannelTitle")} <span style={{ color: "#ef4444" }}>*</span>{" "}
               <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 400 }}>{t("auth.salesChannelNote")}</span>
             </div>
@@ -1772,7 +1772,7 @@ function PaidRegisterForm({ selectedPlan, onBack, onSwitch, prefill = {} }) {
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-2)", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-2)", marginBottom: 8 }}>
               {t("auth.adChannelTitle")}{" "}
               <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 400 }}>{t("auth.adChannelNote")}</span>
             </div>
@@ -1917,7 +1917,7 @@ function CycleSelectorSection({ planCfg, planPeriods, cycleMonths, setCycleMonth
                 <div style={{
                   marginTop: 4, padding: '1px 6px', borderRadius: 8,
                   background: sel ? 'rgba(253,224,71,0.18)' : 'rgba(34,197,94,0.12)',
-                  color: sel ? '#fde047' : '#16a34a', fontSize: 9, fontWeight: 800, display: 'inline-block',
+                  color: sel ? '#fde047' : '#16a34a', fontSize: 10, fontWeight: 700, display: 'inline-block',
                 }}>−{c.discountPct}%</div>
               )}
             </button>
@@ -1992,7 +1992,7 @@ function SeatSelectorSection({ planCfg, seatTiers, seatTier, setSeatTier, seatPr
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <button type="button" style={stepBtn} onClick={() => setSeatTier(isCustom && customN > 2 ? `custom:${customN - 1}` : '1')}>−</button>
-              <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 900, fontSize: 15, color: isCustom ? '#fde047' : 'var(--text-3)' }}>{isCustom ? customN : '—'}</span>
+              <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 900, fontSize: 14, color: isCustom ? '#fde047' : 'var(--text-3)' }}>{isCustom ? customN : '—'}</span>
               <button type="button" style={stepBtn} onClick={() => setSeatTier(`custom:${isCustom ? Math.min(9, customN + 1) : 2}`)}>+</button>
             </div>
           </div>
@@ -2147,7 +2147,7 @@ function AdminKeyRecovery({ t, onClose }) {
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 4200, background: "rgba(2,6,23,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 22, boxShadow: "0 24px 70px rgba(15,23,42,0.18)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontWeight: 900, fontSize: 15, color: "#0f172a" }}>🔑 {t("adminKeyRec.title", "접속키 찾기 (최고관리자)")}</div>
+          <div style={{ fontWeight: 900, fontSize: 14, color: "#0f172a" }}>🔑 {t("adminKeyRec.title", "접속키 찾기 (최고관리자)")}</div>
           <button type="button" onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", fontSize: 20, cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
         {err && <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", fontSize: 11, marginBottom: 12 }}>{err}</div>}
@@ -2163,7 +2163,7 @@ function AdminKeyRecovery({ t, onClose }) {
               ? primaryBtn(send, t("adminKeyRec.sendBtn", "인증번호 받기"))
               : (
                 <div style={{ display: "grid", gap: 10 }}>
-                  {devCode && <div style={{ fontSize: 12, fontWeight: 800, color: "#b45309", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 8, padding: "6px 10px" }}>🔧 {t("adminKeyRec.devCode", "테스트 인증번호")}: {devCode}</div>}
+                  {devCode && <div style={{ fontSize: 12, fontWeight: 700, color: "#b45309", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: 8, padding: "6px 10px" }}>🔧 {t("adminKeyRec.devCode", "테스트 인증번호")}: {devCode}</div>}
                   {info && !devCode && <div style={{ fontSize: 11, color: "#64748b" }}>{info}</div>}
                   <input inputMode="numeric" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/[^0-9]/g, ""))} placeholder={t("adminKeyRec.codePh", "인증번호 6자리")} style={inStyle} />
                   {primaryBtn(verify, t("adminKeyRec.verifyBtn", "인증 확인"))}
@@ -2309,7 +2309,7 @@ function AdminLoginForm({ onBack }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
         <span style={{ fontSize: 20 }}>🔐</span>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: "#ef4444" }}>{t('authPage.adminLoginTitle', '플랫폼 관리자 로그인')}</div>
+          <div style={{ fontWeight: 700, fontSize: 12, color: "#ef4444" }}>{t('authPage.adminLoginTitle', '플랫폼 관리자 로그인')}</div>
           <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>{t('authPage.adminLoginDesc', '접속 코드 인증 후 관리자 계정으로 로그인합니다')}</div>
         </div>
       </div>
@@ -2332,7 +2332,7 @@ function AdminLoginForm({ onBack }) {
                   color: on ? o.c : "#64748b", fontWeight: on ? 800 : 600, fontSize: 12,
                   opacity: (_isLocal && !on) ? 0.5 : 1, transition: "all 0.15s" }}>
                 <div>{o.icon} {o.label}</div>
-                <div style={{ fontSize: 9, marginTop: 2, opacity: 0.85 }}>
+                <div style={{ fontSize: 10, marginTop: 2, opacity: 0.85 }}>
                   {on ? t('authPage.adminConnected', '현재 접속 중') : t('authPage.adminSwitchOnSelect', '선택 시 전환')}
                 </div>
               </button>
@@ -2372,7 +2372,7 @@ function AdminLoginForm({ onBack }) {
                 🔐 {mfaMethod === 'sms' ? t('auth.mfaPromptSms', '문자로 보낸 6자리 인증 코드(또는 복구 코드)를 입력하세요.') : t('auth.mfaPromptEmail', '이메일로 보낸 6자리 인증 코드(또는 복구 코드)를 입력하세요.')}
               </div>
               {mfaInfo && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", color: "#16a34a", fontSize: 11 }}>📨 {mfaInfo}</div>}
-              {mfaDevCode && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", color: "#b45309", fontSize: 12, fontWeight: 800 }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {mfaDevCode}</div>}
+              {mfaDevCode && <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.4)", color: "#b45309", fontSize: 12, fontWeight: 700 }}>🔧 {t("auth.otpDevCode", "테스트 인증번호")}: {mfaDevCode}</div>}
               <Field label={t('auth.mfaCodeLabel', '인증 코드')} type="text" value={otp} onChange={setOtp} placeholder="000000" autoComplete="one-time-code" />
             </div>
           )}
@@ -2431,7 +2431,7 @@ function AuthLanguageSelector() {
                 <span style={{ fontSize: 18, width: 24, textAlign: "center" }}>{opt.flag}</span>
                 <div style={{ flex: 1, textAlign: "left" }}>
                   <div style={{ fontSize: 12, fontWeight: lang === opt.code ? 700 : 500, color: lang === opt.code ? "#4f8ef7" : "var(--text-1)" }}>{opt.label}</div>
-                  <div style={{ fontSize: 9, color: "var(--text-3)", marginTop: 1 }}>{opt.name}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{opt.name}</div>
                 </div>
                 {lang === opt.code && <span style={{ color: "#4f8ef7", fontSize: 14, fontWeight: 800 }}>✓</span>}
               </button>
@@ -2678,7 +2678,7 @@ export default function AuthPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)" }}>
                 <span style={{ fontSize: 18 }}>🏢</span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 12, color: "#4f8ef7" }}>{t('auth.prodRegisterTitle')}</div>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: "#4f8ef7" }}>{t('auth.prodRegisterTitle')}</div>
                   <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 1 }}>{t('auth.prodRegisterSelectPlan')}</div>
                 </div>
                 <button type="button" onClick={() => handleSwitch('login')} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 18 }}>✕</button>

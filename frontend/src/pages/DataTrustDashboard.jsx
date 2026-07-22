@@ -154,7 +154,7 @@ export default function DataTrustDashboard() {
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: (ST[s.status] || ST.warning).c }} />
                 <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{s.name}</span>
                 {typeof s.completeness === 'number' && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{tr('completeness', '완전성')} {s.completeness}%</span>}
-                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: (ST[s.status] || ST.warning).c + '22', color: (ST[s.status] || ST.warning).c }}>{(ST[s.status] || ST.warning).l}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: (ST[s.status] || ST.warning).c + '22', color: (ST[s.status] || ST.warning).c }}>{(ST[s.status] || ST.warning).l}</span>
               </div>
             ))}
           </div>
@@ -174,7 +174,7 @@ export default function DataTrustDashboard() {
                 <div key={i} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface2, var(--surface))', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{ln.analysis || ln.domain || ln.metric || tr('lineageDomain', '분석 지표')}</span>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: traceable ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)', color: traceable ? '#16a34a' : '#dc2626' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: traceable ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)', color: traceable ? '#16a34a' : '#dc2626' }}>
                       {traceable ? tr('lineageTraceable', '원천 추적가능') : tr('lineageNoSource', '원천 미연결')}
                     </span>
                   </div>
@@ -205,7 +205,7 @@ export default function DataTrustDashboard() {
                 <span style={{ fontSize: 18 }}>{c.ok ? '✅' : '⚠️'}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>{c.label}</span>
                 {/* [현 차수 잔여] 검증 출처 정직 표기 — 실측(감사로그 등) vs 플랫폼 표준(설계 약속) */}
-                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.verified ? 'rgba(34,197,94,0.16)' : 'rgba(148,163,184,0.16)', color: c.verified ? '#16a34a' : 'var(--text-3)' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.verified ? 'rgba(34,197,94,0.16)' : 'rgba(148,163,184,0.16)', color: c.verified ? '#16a34a' : 'var(--text-3)' }}>
                   {c.verified ? tr('compVerified', '실측') : tr('compStandard', '플랫폼 표준')}
                 </span>
               </div>

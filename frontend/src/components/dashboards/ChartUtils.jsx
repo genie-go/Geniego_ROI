@@ -34,7 +34,7 @@ export function fmt(n, { prefix = '', suffix = '', digits = 1 } = {}) {
 // 차트 공통 텍스트 속성 — 모두 11px로 통일
 // 206차: 차트 SVG(viewBox)가 컨테이너 폭으로 확대 렌더되어 11px 축 라벨이 화면에서 ~16-20px로
 //   커져 HTML 텍스트와 불일치. 9px로 축소해 확대 후 일반 텍스트(~11-13px)와 일관성 유지.
-const FONT = { fontSize: 9, fontFamily: 'inherit', fontWeight: 500 };
+const FONT = { fontSize: 10, fontFamily: 'inherit', fontWeight: 500 };
 
 // ── LineChart ─────────────────────────────────────────────────────────────
 //  hover 크로스헤어 툴팁(채널명+수치) 지원. format(v)=축/툴팁 값 포맷(기본 fmt).

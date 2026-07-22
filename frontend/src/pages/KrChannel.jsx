@@ -120,7 +120,7 @@ function ChannelsTab() {
                 {channels.map((ch) => (
                     <div key={ch.channel_key} className="card" style={{ borderLeft: `3px solid ${chColor(ch.channel_key)}` }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                            <span style={{ fontWeight: 800, fontSize: 15 }}>{ch.display_name}</span>
+                            <span style={{ fontWeight: 800, fontSize: 14 }}>{ch.display_name}</span>
                             <Badge label={ch.channel_key} color={chColor(ch.channel_key)} />
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, fontSize: 11, color: "#94a3b8" }}>

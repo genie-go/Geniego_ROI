@@ -97,18 +97,18 @@ export default function GuideArrival() {
         @keyframes gwNextPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
       `}</style>
       <div style={{ position: "fixed", top: "calc(58px + env(safe-area-inset-top,0px))", left: "50%", transform: "translateX(-50%)", zIndex: 2147482000, maxWidth: "94vw", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 14, background: "linear-gradient(135deg,#f59e0b,#ef4444)", color: "#fff", boxShadow: "0 10px 30px rgba(239,68,68,0.4)", animation: "gwHintIn .35s ease-out", flexWrap: "wrap", justifyContent: "center" }}>
-        <span style={{ fontSize: 11, fontWeight: 900, background: "rgba(255,255,255,0.25)", padding: "2px 9px", borderRadius: 999 }}>STEP {stepNo}</span>
-        <span style={{ fontSize: 17 }}>👉</span>
+        <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(255,255,255,0.25)", padding: "2px 9px", borderRadius: 999 }}>STEP {stepNo}</span>
+        <span style={{ fontSize: 16 }}>👉</span>
         <span style={{ fontSize: 13, fontWeight: 800, whiteSpace: "normal", lineHeight: 1.4, maxWidth: 460 }}>{cur.hint}</span>
         {/* 복수 선택·등록 단계: '더 추가' vs '다음 단계' 선택을 먼저 물어봄 */}
         {cur.multi && asking ? (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11.5, fontWeight: 800 }}>{ask.q}</span>
-            <button onClick={() => setAsking(false)} style={{ flexShrink: 0, fontSize: 12, fontWeight: 900, color: "#b45309", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.92)", padding: "6px 12px", borderRadius: 9 }}>{ask.more}</button>
-            <button onClick={goNext} style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 900, color: "#fff", border: "none", cursor: "pointer", background: "linear-gradient(135deg,#16a34a,#15803d)", padding: "6px 14px", borderRadius: 9 }}>{cur.nextLabel || "다음 단계 →"}</button>
+            <span style={{ fontSize: 11.5, fontWeight: 700 }}>{ask.q}</span>
+            <button onClick={() => setAsking(false)} style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#b45309", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.92)", padding: "6px 12px", borderRadius: 9 }}>{ask.more}</button>
+            <button onClick={goNext} style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: "#fff", border: "none", cursor: "pointer", background: "linear-gradient(135deg,#16a34a,#15803d)", padding: "6px 14px", borderRadius: 9 }}>{cur.nextLabel || "다음 단계 →"}</button>
           </span>
         ) : (
-          <button onClick={() => { if (cur.multi && !isLast) setAsking(true); else goNext(); }} style={{ animation: "gwNextPulse 1.3s ease-in-out infinite", flexShrink: 0, fontSize: 12.5, fontWeight: 900, color: isLast ? "#fff" : "#b45309", border: "none", cursor: "pointer", background: isLast ? "linear-gradient(135deg,#16a34a,#15803d)" : "#fff", padding: "7px 16px", borderRadius: 9, boxShadow: "0 3px 10px rgba(0,0,0,0.2)" }}>
+          <button onClick={() => { if (cur.multi && !isLast) setAsking(true); else goNext(); }} style={{ animation: "gwNextPulse 1.3s ease-in-out infinite", flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: isLast ? "#fff" : "#b45309", border: "none", cursor: "pointer", background: isLast ? "linear-gradient(135deg,#16a34a,#15803d)" : "#fff", padding: "7px 16px", borderRadius: 9, boxShadow: "0 3px 10px rgba(0,0,0,0.2)" }}>
             {isLast ? (cur.execLabel || "🚀 실행 / 완료") : (cur.nextLabel || "✓ 완료 · 다음 단계 →")}
           </button>
         )}

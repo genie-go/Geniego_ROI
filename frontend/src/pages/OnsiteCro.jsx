@@ -93,7 +93,7 @@ export default function OnsiteCro() {
             <div className="hero-desc">{t('cro.desc', '랜딩·팝업·CTA 변형을 A/B로 실험하고, 방문자 결정론 버킷팅으로 노출/전환을 수집해 통계적 승자를 판정합니다.')}</div>
           </div>
         </div>
-        <button onClick={toggleGuide} style={{ marginTop: 12, padding: '8px 16px', borderRadius: 9, border: '1px solid var(--border,#e2e8f0)', background: showGuide ? 'rgba(79,142,247,0.12)' : 'var(--surface,#fff)', color: showGuide ? '#4f6ef7' : 'var(--text-2)', fontWeight: 800, fontSize: 12.5, cursor: 'pointer' }}>
+        <button onClick={toggleGuide} style={{ marginTop: 12, padding: '8px 16px', borderRadius: 9, border: '1px solid var(--border,#e2e8f0)', background: showGuide ? 'rgba(79,142,247,0.12)' : 'var(--surface,#fff)', color: showGuide ? '#4f6ef7' : 'var(--text-2)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer' }}>
           {showGuide ? `▲ ${t('cro.guideHide', '이용 가이드 접기')}` : `📖 ${t('cro.guideShow', '처음이신가요? 이용 가이드 보기')}`}
         </button>
       </div>
@@ -121,12 +121,12 @@ export default function OnsiteCro() {
             <option value="new">{t('cro.visNew', '신규')}</option>
             <option value="returning">{t('cro.visReturning', '재방문')}</option>
           </select>
-          <button onClick={create} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 12, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>+ {t('cro.create', '실험 생성')}</button>
+          <button onClick={create} style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12, background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>+ {t('cro.create', '실험 생성')}</button>
           {msg && <span style={{ fontSize: 11.5, color: '#0e7490', fontWeight: 700 }}>{msg}</span>}
         </div>
         {/* [257차] 노코드 변경 빌더 — B 변형에 코드 없이 DOM 변경 정의(Optimizely식). 백엔드/비콘/클라 이미 지원. */}
         <div style={{ marginTop: 12, borderTop: '1px dashed var(--border,#e2e8f0)', paddingTop: 12 }}>
-          <button type="button" onClick={() => setShowChanges(v => !v)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', background: showChanges ? 'rgba(124,58,237,0.1)' : 'var(--surface,#fff)', color: showChanges ? '#7c3aed' : 'var(--text-2)', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
+          <button type="button" onClick={() => setShowChanges(v => !v)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border,#e2e8f0)', background: showChanges ? 'rgba(124,58,237,0.1)' : 'var(--surface,#fff)', color: showChanges ? '#7c3aed' : 'var(--text-2)', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
             🎨 {t('cro.noCodeTitle', '노코드 변경(B 변형) — 코드 없이 요소 바꾸기')} {showChanges ? '▲' : '▼'}
             {(form.changesB || []).length > 0 && <span style={{ marginLeft: 6, fontSize: 10.5, background: '#7c3aed', color: '#fff', borderRadius: 6, padding: '1px 6px' }}>{form.changesB.length}</span>}
           </button>
@@ -175,10 +175,10 @@ export default function OnsiteCro() {
                   {c.action !== 'hide' && c.action !== 'remove' && (
                     <input value={c.value} onChange={e => updChange(i, 'value', e.target.value)} placeholder={c.action === 'redirect' ? t('cro.valUrlPh', '이동할 URL') : (c.action === 'css' ? t('cro.valCssPh', '값(#ff0000, 18px)') : (c.action === 'img' ? t('cro.valImgPh', '이미지 URL') : (c.action === 'class' ? t('cro.valClassPh', '클래스명') : (c.action === 'attr' ? t('cro.valAttrPh', '속성값') : (c.action === 'insert' ? t('cro.valInsertPh', '삽입할 HTML') : t('cro.valTextPh', '새 문구/HTML'))))))} style={{ ...inp, flex: 1, minWidth: 160 }} />
                   )}
-                  <button type="button" onClick={() => rmChange(i)} title={t('cro.rmChange', '변경 삭제')} style={{ padding: '6px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', color: '#991b1b', cursor: 'pointer', fontWeight: 800, fontSize: 12 }}>✕</button>
+                  <button type="button" onClick={() => rmChange(i)} title={t('cro.rmChange', '변경 삭제')} style={{ padding: '6px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', color: '#991b1b', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>✕</button>
                 </div>
               ))}
-              <button type="button" onClick={addChange} style={{ justifySelf: 'start', padding: '6px 12px', borderRadius: 8, border: '1px dashed var(--border,#c7d2fe)', background: 'transparent', color: '#7c3aed', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>+ {t('cro.addChange', '변경 추가')}</button>
+              <button type="button" onClick={addChange} style={{ justifySelf: 'start', padding: '6px 12px', borderRadius: 8, border: '1px dashed var(--border,#c7d2fe)', background: 'transparent', color: '#7c3aed', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>+ {t('cro.addChange', '변경 추가')}</button>
             </div>
           )}
         </div>
@@ -217,7 +217,7 @@ export default function OnsiteCro() {
                 </div>
                 {editInfo && editInfo.id === e.id && (
                   <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.25)' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', marginBottom: 6 }}>🎨 {t('cro.veHowTitle', '비주얼 에디터 실행 방법')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 6 }}>🎨 {t('cro.veHowTitle', '비주얼 에디터 실행 방법')}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 8 }}>
                       {t('cro.veHow', '① 아래 북마클릿 코드를 복사해 브라우저 북마크의 URL로 저장하세요. ② 편집할 내 사이트(라이브 페이지)를 연 뒤 그 북마크를 클릭하면 편집기가 뜹니다. ③ 요소를 클릭해 텍스트·숨기기·스타일을 바꾸고 저장하면 변형 B에 반영됩니다. (토큰 1시간 유효)')}
                     </div>
@@ -271,7 +271,7 @@ function CroGuide({ t }) {
   const G = {
     wrap: { background: 'linear-gradient(135deg,#eff6ff,#f5f3ff)', border: '1px solid #c7d2fe', borderRadius: 16, padding: 22, display: 'grid', gap: 18 },
     sec: { background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 12, padding: '16px 18px' },
-    h: { fontWeight: 900, fontSize: 15, color: 'var(--text-1)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
+    h: { fontWeight: 900, fontSize: 14, color: 'var(--text-1)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 },
     p: { fontSize: 13, color: 'var(--text-2)', lineHeight: 1.75, margin: 0 },
     box: { flex: 1, minWidth: 180, background: '#f8fafc', border: '1px solid var(--border,#e2e8f0)', borderRadius: 10, padding: '12px 14px' },
     boxT: { fontWeight: 800, fontSize: 13, color: 'var(--text-1)', marginBottom: 4 },

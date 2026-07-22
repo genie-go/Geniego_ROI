@@ -79,13 +79,13 @@ export default function DashGuide() {
           {g('subtitle', 'Learn all Dashboard features step by step.')}
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#4f46e5', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#4f46e5', color: '#fff', fontWeight: 700, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             🎓 {g('beginnerBadge', 'Beginner Guide')}
           </span>
-          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#059669', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#059669', color: '#fff', fontWeight: 700, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             ⏱ {g('timeBadge', '5 min read')}
           </span>
-          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#7c3aed', color: '#fff', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+          <span style={{ fontSize: 11, padding: '5px 14px', borderRadius: 20, background: '#7c3aed', color: '#fff', fontWeight: 700, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
             🌐 {g('langBadge', '15 Languages')}
           </span>
         </div>
@@ -93,7 +93,7 @@ export default function DashGuide() {
 
       {/* ── Where to Start ───────────────────────────────────────── */}
       <div style={{ ...CARD, background: `${C.accent}08`, borderColor: `${C.accent}30` }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 10, color: '#4f46e5' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 10, color: '#4f46e5' }}>
           🧭 {g('whereToStart', 'Where do I start?')}
         </div>
         <div style={{ fontSize: 13, color: '#374151', lineHeight: 2.0, whiteSpace: 'pre-line' }}>
@@ -103,7 +103,7 @@ export default function DashGuide() {
 
       {/* ── 15-Step Guide ────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>
           {g('stepsTitle', '🚀 Complete Guide — 15 Steps')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
@@ -121,7 +121,7 @@ export default function DashGuide() {
 
       {/* ── Tab Descriptions ─────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>
           {g('tabsTitle', '📋 Tab-by-Tab Reference')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
@@ -139,7 +139,7 @@ export default function DashGuide() {
 
       {/* ── Key Features ──────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>
           {g('featuresTitle', '✨ Key Features')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
@@ -157,7 +157,7 @@ export default function DashGuide() {
 
       {/* ── Expert Tips ───────────────────────────────────────────── */}
       <div style={{ ...CARD, background: 'rgba(34,197,94,0.05)', borderColor: C.green + '30' }}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 12, color: '#1f2937' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 12, color: '#1f2937' }}>
           💡 {g('tipsTitle', 'Expert Tips')}
         </div>
         <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 13, color: '#374151', lineHeight: 2.2 }}>
@@ -171,7 +171,7 @@ export default function DashGuide() {
 
       {/* ── FAQ ───────────────────────────────────────────────────── */}
       <div style={CARD}>
-        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 16, color: '#1f2937' }}>
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16, color: '#1f2937' }}>
           ❓ {g('faqTitle', 'Frequently Asked Questions')}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -191,7 +191,7 @@ export default function DashGuide() {
         borderColor: C.green + '40', textAlign: 'center', padding: '18px 24px',
       }}>
         <div style={{ fontSize: 30, lineHeight: 1 }}>🚀</div>
-        <div style={{ fontWeight: 900, fontSize: 17, marginTop: 6, color: '#059669' }}>
+        <div style={{ fontWeight: 900, fontSize: 16, marginTop: 6, color: '#059669' }}>
           {g('readyTitle', '🎉 You\'re Ready to Start!')}
         </div>
         <div style={{ fontSize: 12.5, color: '#374151', marginTop: 4, maxWidth: 500, margin: '4px auto 0', lineHeight: 1.6 }}>

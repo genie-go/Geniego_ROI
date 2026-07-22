@@ -408,7 +408,7 @@ export default function AdStatusAnalysis() {
                                         {row.parent && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{row.parent}</div>}
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'right', color: '#22c55e', fontFamily: 'monospace', fontWeight: 700 }}>
-                                        {fmt(row.conv)} <span style={{ fontSize:9, color:'var(--text-3)' }}>{t("marketing.purchaseWord")}</span>
+                                        {fmt(row.conv)} <span style={{ fontSize:10, color:'var(--text-3)' }}>{t("marketing.purchaseWord")}</span>
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'right', fontFamily: 'monospace', color: '#a5b4fc', fontWeight: 600 }}>{row.cpa}</td>
                                     <td style={{ padding: '12px', textAlign: 'right', color: '#f97316', fontFamily: 'monospace', fontWeight: 700 }}>{'\u20a9'}{fmt(row.spend)}</td>

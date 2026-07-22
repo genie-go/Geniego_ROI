@@ -118,7 +118,7 @@ function RiskBadge({ risk, t }) {
   const label = t(`audit.risk${r.charAt(0).toUpperCase() + r.slice(1)}`) || r.toUpperCase();
   return (
     <span style={{
-      padding: "1px 7px", borderRadius: 99, fontSize: 9, fontWeight: 800,
+      padding: "1px 7px", borderRadius: 99, fontSize: 10, fontWeight: 700,
       background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}44`,
       letterSpacing: 0.5 }}>{label}</span>
   );
@@ -149,7 +149,7 @@ function SecurityBanner({ alerts, t }) {
           <div style={{ fontWeight: 800, fontSize: 14, color: "#ef4444" }}>{t("audit.securityAlertTitle")}</div>
           <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{t("audit.securityAlertDesc")}</div>
         </div>
-        <span style={{ marginLeft: "auto", padding: "3px 10px", borderRadius: 99, background: "rgba(239,68,68,0.2)", color: "#ef4444", fontSize: 11, fontWeight: 800 }}>{alerts.length} {t("audit.countUnit")}</span>
+        <span style={{ marginLeft: "auto", padding: "3px 10px", borderRadius: 99, background: "rgba(239,68,68,0.2)", color: "#ef4444", fontSize: 11, fontWeight: 700 }}>{alerts.length} {t("audit.countUnit")}</span>
       </div>
       <div style={{ display: "grid", gap: 6 }}>
         {alerts.slice(0, 3).map((a, i) => (
@@ -230,8 +230,8 @@ function UsageGuide({ t }) {
             {steps.map(i => (
               <div key={i} style={{ padding: 14, borderRadius: 12, background: "rgba(168,85,247,0.03)", border: "1px solid rgba(168,85,247,0.08)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, background: "linear-gradient(135deg,#a855f7,#4f8ef7)", color: '#fff' }}>{i}</span>
-                  <span style={{ fontWeight: 800, fontSize: 12, color: colors[i - 1] }}>{t(`audit.guideStep${i}Title`)}</span>
+                  <span style={{ width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, background: "linear-gradient(135deg,#a855f7,#4f8ef7)", color: '#fff' }}>{i}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12, color: colors[i - 1] }}>{t(`audit.guideStep${i}Title`)}</span>
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{t(`audit.guideStep${i}Desc`)}</p>
               </div>
@@ -446,7 +446,7 @@ export default function Audit() {
         return (
           <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--border,#e2e8f0)', borderRadius: 14, padding: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-              <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 🛡️ {t('audit.cmplTitle', '컴플라이언스 준비도')}
                 <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontWeight: 600 }}>{(posture.frameworks || []).join(' · ')}</span>
               </div>
@@ -465,10 +465,10 @@ export default function Audit() {
                   <div key={i} style={{ border: '1px solid var(--border,#e2e8f0)', borderLeft: `3px solid ${s.c}`, borderRadius: 9, padding: '8px 11px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{c.title}</span>
-                      <span style={{ fontSize: 9.5, fontWeight: 700, color: s.c, background: s.c + '1a', padding: '2px 7px', borderRadius: 5, whiteSpace: 'nowrap' }}>{s.l}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: s.c, background: s.c + '1a', padding: '2px 7px', borderRadius: 5, whiteSpace: 'nowrap' }}>{s.l}</span>
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3, lineHeight: 1.4 }}>{c.evidence}</div>
-                    <div style={{ fontSize: 9.5, color: 'var(--text-3)', marginTop: 3, opacity: 0.8 }}>SOC2 {c.soc2} · ISO {c.iso}</div>
+                    <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 3, opacity: 0.8 }}>SOC2 {c.soc2} · ISO {c.iso}</div>
                   </div>
                 );
               })}
@@ -591,7 +591,7 @@ export default function Audit() {
               <div key={l.id || i} style={{ padding: "8px 10px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 8 }}>
                 <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#ef4444" }}>{ACTION_ICONS[l.action]} {t(`audit.action_${l.action}`) || (l.action || '').replace(/_/g, " ")}</span>
-                  <span style={{ fontSize: 9, color: "var(--text-3)", marginLeft: "auto" }}>{timeAgo(l.at, t)}</span>
+                  <span style={{ fontSize: 10, color: "var(--text-3)", marginLeft: "auto" }}>{timeAgo(l.at, t)}</span>
                 </div>
                 <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.4 }}>{l.detail}</div>
                 <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 3 }}>{t("audit.byActor")} {l.actor}</div>
@@ -680,7 +680,7 @@ export default function Audit() {
                         <div style={{ fontWeight: 600, color: l.actor === "system" || l.actor === "operator" ? "var(--text-3)" : "var(--text-1)" }}>
                           {l.actor}
                         </div>
-                        <div style={{ fontSize: 9, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: 0.3 }}>{l.role}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: 0.3 }}>{l.role}</div>
                       </td>
                       <td><ActionBadge action={l.action} t={t} /></td>
                       <td><RiskBadge risk={l.risk} t={t} /></td>

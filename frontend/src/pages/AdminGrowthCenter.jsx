@@ -82,7 +82,7 @@ function PlatformContextToggle() {
   };
   return (
     <button onClick={toggle} title="기존 메뉴를 GeniegoROI 플랫폼 자체 데이터로 전환"
-      style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800,
+      style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
         background: on ? "linear-gradient(90deg,#7c3aed,#4f8ef7)" : "rgba(124,58,237,0.12)", color: on ? "#fff" : "#7c3aed" }}>
       {on ? t('adminGrowthCenter.platformToggleOnLabel', '🚀 플랫폼 컨텍스트 ON (끄기)') : "🚀 기존 메뉴를 플랫폼 컨텍스트로 전환"}
     </button>
@@ -493,8 +493,8 @@ function ChannelAnalysisTab({ flash }) {
       {loading && <div style={S.card}>분석 중…</div>}
       {!loading && (d?.best || d?.worst) && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
-          {d.best && <div style={{ ...S.card, borderColor: "#22c55e" }}><div style={{ color: "#16a34a", fontWeight: 800, fontSize: 12 }}>🏆 최고 효과</div><div style={{ fontSize: 17, fontWeight: 900 }}>{d.best.label}</div><div style={{ fontSize: 12 }}>효과 {d.best.effectiveness} · ROAS {d.best.roas}x</div><div style={{ fontSize: 11, color: "#16a34a", marginTop: 4 }}>→ {d.best.action}</div></div>}
-          {d.worst && <div style={{ ...S.card, borderColor: "#ef4444" }}><div style={{ color: "#dc2626", fontWeight: 800, fontSize: 12 }}>⚠️ 최저 효과</div><div style={{ fontSize: 17, fontWeight: 900 }}>{d.worst.label}</div><div style={{ fontSize: 12 }}>효과 {d.worst.effectiveness} · ROAS {d.worst.roas}x</div><div style={{ fontSize: 11, color: "#dc2626", marginTop: 4 }}>→ {d.worst.action}</div></div>}
+          {d.best && <div style={{ ...S.card, borderColor: "#22c55e" }}><div style={{ color: "#16a34a", fontWeight: 700, fontSize: 12 }}>🏆 최고 효과</div><div style={{ fontSize: 16, fontWeight: 900 }}>{d.best.label}</div><div style={{ fontSize: 12 }}>효과 {d.best.effectiveness} · ROAS {d.best.roas}x</div><div style={{ fontSize: 11, color: "#16a34a", marginTop: 4 }}>→ {d.best.action}</div></div>}
+          {d.worst && <div style={{ ...S.card, borderColor: "#ef4444" }}><div style={{ color: "#dc2626", fontWeight: 700, fontSize: 12 }}>⚠️ 최저 효과</div><div style={{ fontSize: 16, fontWeight: 900 }}>{d.worst.label}</div><div style={{ fontSize: 12 }}>효과 {d.worst.effectiveness} · ROAS {d.worst.roas}x</div><div style={{ fontSize: 11, color: "#dc2626", marginTop: 4 }}>→ {d.worst.action}</div></div>}
         </div>
       )}
       {!loading && chs.length === 0 && (

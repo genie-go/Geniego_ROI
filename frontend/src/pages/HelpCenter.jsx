@@ -337,7 +337,7 @@ export default function HelpCenter() {
                         <div style={{ display: "grid", gap: 14 }}>
                             {MENU_DOCS.map(section => (
                                 <div key={section.section} style={card}>
-                                    <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', marginBottom: 12 }}>
+                                    <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-1)', marginBottom: 12 }}>
                                         {section.section}
                                     </div>
                                     <div style={{ display: "grid", gap: 8 }}>
@@ -363,14 +363,14 @@ export default function HelpCenter() {
                                                     <div style={{ padding: "12px 14px 16px", borderTop: "1px solid var(--border)" }}>
                                                         {/* 메뉴 개요 */}
                                                         <div style={{ padding: "12px 14px", borderRadius: 10, marginBottom: 14, background: "linear-gradient(135deg,rgba(79,142,247,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(79,142,247,0.2)", fontSize: 12, color: "var(--text-2)", lineHeight: 1.8 }}>
-                                                            <div style={{ fontSize: 10, fontWeight: 800, color: "#4f8ef7", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.8px" }}>📌 {t("help.menuOverview")}</div>
+                                                            <div style={{ fontSize: 10, fontWeight: 700, color: "#4f8ef7", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.8px" }}>📌 {t("help.menuOverview")}</div>
                                                             💡 {m.desc}
                                                         </div>
 
                                                         {/* 데이터 Count집·정규화 출처 */}
                                                         {m.dataFrom && m.dataFrom.length > 0 && (
                                                             <div style={{ marginBottom: 14 }}>
-                                                                <div style={{ fontSize: 11, fontWeight: 800, color: "#22c55e", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                                                                <div style={{ fontSize: 11, fontWeight: 700, color: "#22c55e", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                                                                     <span style={{ background: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 20, border: "1px solid rgba(34,197,94,0.3)" }}>📥 {t("help.dataSource")}</span>
                                                                 </div>
                                                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -384,7 +384,7 @@ export default function HelpCenter() {
                                                         {/* 제공 Info */}
                                                         {m.provides && m.provides.length > 0 && (
                                                             <div style={{ marginBottom: 14 }}>
-                                                                <div style={{ fontSize: 11, fontWeight: 800, color: "#a855f7", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                                                                <div style={{ fontSize: 11, fontWeight: 700, color: "#a855f7", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                                                                     <span style={{ background: "rgba(168,85,247,0.15)", padding: "2px 8px", borderRadius: 20, border: "1px solid rgba(168,85,247,0.3)" }}>📊 {t("help.menuProvides")}</span>
                                                                 </div>
                                                                 <div style={{ display: "grid", gap: 5 }}>
@@ -401,13 +401,13 @@ export default function HelpCenter() {
                                                         {/* 이 메뉴로 무엇을 할 Count 있나 */}
                                                         {m.canDo && m.canDo.length > 0 && (
                                                             <div style={{ marginBottom: 14 }}>
-                                                                <div style={{ fontSize: 11, fontWeight: 800, color: "#f59e0b", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                                                                <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                                                                     <span style={{ background: "rgba(245,158,11,0.15)", padding: "2px 8px", borderRadius: 20, border: "1px solid rgba(245,158,11,0.3)" }}>🎯 {t("help.menuCanDo")}</span>
                                                                 </div>
                                                                 <div style={{ display: "grid", gap: 5 }}>
                                                                     {m.canDo.map((c, i) => (
                                                                         <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "6px 10px", borderRadius: 8, background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)" }}>
-                                                                            <span style={{ color: "#f59e0b", fontWeight: 900, flexShrink: 0, fontSize: 12, marginTop: 1 }}>→</span>
+                                                                            <span style={{ color: "#f59e0b", fontWeight: 700, flexShrink: 0, fontSize: 12, marginTop: 1 }}>→</span>
                                                                             <span style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>{c}</span>
                                                                         </div>
                                                                     ))}
@@ -416,20 +416,20 @@ export default function HelpCenter() {
                                                         )}
 
                                                         {/* 사용 단계 */}
-                                                        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                                             📋 {t("help.howToUse")}
                                                         </div>
                                                         <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
                                                             {(m.how || []).map((step, i) => (
                                                                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "8px 10px", borderRadius: 8, background: 'var(--surface)', border: "1px solid var(--border)" }}>
-                                                                    <span style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: '#fff' }}>{i + 1}</span>
+                                                                    <span style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg,#4f8ef7,#a855f7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: '#fff' }}>{i + 1}</span>
                                                                     <span style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>{step}</span>
                                                                 </div>
                                                             ))}
                                                         </div>
 
                                                         {/* Permissionper 가능 Actions */}
-                                                        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                                                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.6px" }}>
                                                             👥 {t("help.rolePermissions")}
                                                         </div>
                                                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginBottom: 12 }}>
@@ -442,7 +442,7 @@ export default function HelpCenter() {
                                                                     padding: "8px 10px", borderRadius: 8,
                                                                     background: `${r.color}08`, border: `1px solid ${r.color}25`
                                                                 }}>
-                                                                    <div style={{ fontSize: 10, fontWeight: 800, color: r.color, marginBottom: 4 }}>{r.role}</div>
+                                                                    <div style={{ fontSize: 10, fontWeight: 700, color: r.color, marginBottom: 4 }}>{r.role}</div>
                                                                     <div style={{ fontSize: 11, color: "var(--text-2)", lineHeight: 1.5 }}>{r.task}</div>
                                                                 </div>
                                                             ))}
@@ -497,7 +497,7 @@ export default function HelpCenter() {
                     {tab === "apikeys" && Array.isArray(API_GUIDE) && (
                         <div style={{ display: "grid", gap: 14 }}>
                             <div style={{ ...card, padding: "14px 18px" }}>
-                                <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text-1)', marginBottom: 6 }}>{t("help.apiTitle")}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-1)', marginBottom: 6 }}>{t("help.apiTitle")}</div>
                                 <div style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.7 }}
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(t("help.apiSubtitle")) }} />
                             </div>
@@ -514,7 +514,7 @@ export default function HelpCenter() {
                                                 padding: "8px 12px", borderRadius: 8,
                                                 background: `${g.color}08`, border: `1px solid ${g.color}22`
                                             }}>
-                                                <span style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: '#fff' }}>{i + 1}</span>
+                                                <span style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: g.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: '#fff' }}>{i + 1}</span>
                                                 <span style={{ fontSize: 12, color: "var(--text-2)" }}>{step}</span>
                                             </div>
                                         ))}
@@ -534,7 +534,7 @@ export default function HelpCenter() {
                     {tab === "roles" && Array.isArray(ROLES) && (
                         <div style={{ display: "grid", gap: 16 }}>
                             <div style={{ ...card, padding: "14px 18px" }}>
-                                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>{t("help.rolesTitle")}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6 }}>{t("help.rolesTitle")}</div>
                                 <div style={{ fontSize: 12, color: "var(--text-3)" }}>{t("help.rolesSub")}</div>
                             </div>
                             {ROLES.map(r => (
@@ -553,7 +553,7 @@ export default function HelpCenter() {
 
                                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                                         <div>
-                                            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase" }}>{t("help.accessRights")}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase" }}>{t("help.accessRights")}</div>
                                             <div style={{ display: "grid", gap: 4 }}>
                                                 {r.tasks.map((task, i) => (
                                                     <div key={i} style={{
@@ -565,7 +565,7 @@ export default function HelpCenter() {
                                             </div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase" }}>{t("help.dailyChecklist")}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", marginBottom: 8, textTransform: "uppercase" }}>{t("help.dailyChecklist")}</div>
                                             <div style={{ display: "grid", gap: 4 }}>
                                                 {r.daily.map((d, i) => (
                                                     <div key={i} style={{ fontSize: 11, color: "var(--text-2)", padding: "6px 10px", borderRadius: 6, background: 'var(--surface)', border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>

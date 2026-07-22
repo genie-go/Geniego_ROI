@@ -161,7 +161,7 @@ const NotificationDropdown = memo(function NotificationDropdown({ alerts, onDism
             }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 11, color: 'var(--text-1)', lineHeight: 1.5 }}>{alert.msg}</div>
-              <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 3 }}>{alert.time}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>{alert.time}</div>
             </div>
             <button onClick={(e) => { e.stopPropagation(); onDismiss(alert.id); }} style={{
               background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 10,
@@ -313,7 +313,7 @@ export default function Topbar() {
             }}
             title={t('topbar.demoResetTitle', '🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장')}
             style={{
-              padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              padding: '2px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700,
               background: 'rgba(251,146,60,0.12)', color: '#fb923c',
               border: '1px solid rgba(251,146,60,0.3)', cursor: 'pointer',
               flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -341,7 +341,7 @@ export default function Topbar() {
             }}
             title={t('topbar.convertTitle', '데모 가입정보로 운영(유료) 회원 전환 — 체험용 가상데이터는 이관되지 않습니다')}
             style={{
-              padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              padding: '2px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700,
               background: 'rgba(34,197,94,0.14)', color: '#16a34a',
               border: '1px solid rgba(34,197,94,0.35)', cursor: 'pointer',
               flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -356,7 +356,7 @@ export default function Topbar() {
         {isAdmin && (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <span style={{
-              padding: '2px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+              padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700,
               background: IS_DEMO ? 'rgba(251,146,60,0.15)' : 'rgba(34,197,94,0.15)',
               color: IS_DEMO ? '#fb923c' : '#22c55e',
               border: `1px solid ${IS_DEMO ? 'rgba(251,146,60,0.35)' : 'rgba(34,197,94,0.35)'}`,
@@ -365,7 +365,7 @@ export default function Topbar() {
               href={IS_DEMO ? 'https://www.genieroi.com/admin' : 'https://demo.genieroi.com/admin'}
               title={IS_DEMO ? t('topbar.switchToProdTitle', '운영 시스템(실데이터) 관리로 전환') : t('topbar.switchToDemoTitle', '데모(체험) 환경 관리로 전환')}
               style={{
-                padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800, textDecoration: 'none',
+                padding: '2px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700, textDecoration: 'none',
                 background: IS_DEMO ? 'rgba(34,197,94,0.12)' : 'rgba(251,146,60,0.12)',
                 color: IS_DEMO ? '#22c55e' : '#fb923c',
                 border: `1px solid ${IS_DEMO ? 'rgba(34,197,94,0.35)' : 'rgba(251,146,60,0.35)'}`,
@@ -405,7 +405,7 @@ export default function Topbar() {
                 : (isLightTopbar ? 'rgba(79,142,247,0.06)' : 'rgba(99,140,255,0.1)'),
               cursor: 'pointer', transition: 'all 150ms',
               color: isLightTopbar ? '#1e40af' : '#93c5fd',
-              fontSize: 11, fontWeight: 800,
+              fontSize: 11, fontWeight: 700,
               height: 34,
             }}
             onMouseEnter={e => e.currentTarget.style.background = isLightTopbar ? 'rgba(79,142,247,0.15)' : 'rgba(99,140,255,0.2)'}
@@ -418,7 +418,7 @@ export default function Topbar() {
             <span className="topbar-lang-label" style={{ maxWidth: 50, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {(LANG_OPTIONS_TOPBAR.find(l => l.code === lang) || {}).label || lang.toUpperCase()}
             </span>
-            <span style={{ fontSize: 8, opacity: 0.6 }}>▼</span>
+            <span style={{ fontSize: 10, opacity: 0.6 }}>▼</span>
           </button>
 
           {showLang && (
@@ -430,7 +430,7 @@ export default function Topbar() {
               zIndex: 200, padding: 6, overflowY: 'auto',
               scrollbarWidth: 'thin', scrollbarColor: 'rgba(99,140,255,0.3) transparent',
             }}>
-              <div style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', padding: '6px 8px', letterSpacing: 1, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', padding: '6px 8px', letterSpacing: 1, textTransform: 'uppercase' }}>
                 🌐 Language · 언어
               </div>
               {LANG_OPTIONS_TOPBAR.map(l => {
@@ -450,7 +450,7 @@ export default function Topbar() {
                   >
                     <span style={{ fontSize: 16, flexShrink: 0 }}>{l.flag}</span>
                     <span style={{ flex: 1, textAlign: 'left', color: isActive ? '#60a5fa' : '#e2e8f0' }}>{l.label}</span>
-                    <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>{l.code.toUpperCase()}</span>
+                    <span style={{ fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{l.code.toUpperCase()}</span>
                     {isActive && <span style={{ fontSize: 10, color: '#60a5fa', flexShrink: 0 }}>✓</span>}
                   </button>
                 );
@@ -485,7 +485,7 @@ export default function Topbar() {
               boxShadow: '0 16px 48px rgba(0,0,0,0.5)', backdropFilter: 'blur(20px)',
               zIndex: 200, padding: 6,
             }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', padding: '6px 8px', letterSpacing: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', padding: '6px 8px', letterSpacing: 1 }}>
                 🎨 THEME
               </div>
               {THEMES.map(th => (
@@ -534,7 +534,7 @@ export default function Topbar() {
                 position: 'absolute', top: 2, right: 2,
                 minWidth: 16, height: 16, borderRadius: 99,
                 background: '#ef4444', color: '#fff',
-                fontSize: 8, fontWeight: 900,
+                fontSize: 10, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0 4px',
                 boxShadow: '0 2px 8px rgba(239,68,68,0.5)',
@@ -623,7 +623,7 @@ const ProfileDropdown = memo(function ProfileDropdown({ user, navigate, logout, 
             animation: 'fadeInDown 150ms ease-out',
           }}>
             {/* [259차] 드롭다운 헤더 — 프로필 관리 명시 */}
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3, #94a3b8)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>👤 {t('topbar.myProfile', '나의 프로필 관리')}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3, #94a3b8)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>👤 {t('topbar.myProfile', '나의 프로필 관리')}</div>
             {/* 사용자 정보 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--border, rgba(99,140,255,0.1))' }}>
               <div style={{
@@ -1147,7 +1147,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
                 flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
                 background: tab === t.id ? 'linear-gradient(135deg,#4f8ef7,#6366f1)' : 'transparent',
                 color: tab === t.id ? '#fff' : 'var(--text-3, #94a3b8)',
-                fontSize: 12, fontWeight: 800, transition: 'all 200ms',
+                fontSize: 12, fontWeight: 700, transition: 'all 200ms',
                 boxShadow: tab === t.id ? '0 4px 12px rgba(79,142,247,0.3)' : 'none',
               }}
             >{t.label}</button>
@@ -1184,11 +1184,11 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
                 <div style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)', marginTop: 2 }}>{user.email}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                   <span style={{
-                    padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 800,
+                    padding: '2px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700,
                     background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.25)',
                   }}>{(user.plan || 'free').toUpperCase()}</span>
                   {user.company && <span style={{
-                    padding: '2px 10px', borderRadius: 99, fontSize: 9, fontWeight: 700,
+                    padding: '2px 10px', borderRadius: 99, fontSize: 10, fontWeight: 700,
                     background: 'rgba(168,85,247,0.1)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.2)',
                   }}>{user.company}</span>}
                 </div>
@@ -1230,7 +1230,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
 
             {/* [현 차수] ★회사 상세정보 — API 키 발급신청 등에서 [회사 정보 가져오기]로 재사용(중복입력 제거) */}
             <div style={{ borderTop: '1px solid var(--border, rgba(99,140,255,0.1))', paddingTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-2,#475569)', marginBottom: 4 }}>🏢 {t('profile.companyDetailTitle', '회사 상세정보')}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2,#475569)', marginBottom: 4 }}>🏢 {t('profile.companyDetailTitle', '회사 상세정보')}</div>
               <div style={{ fontSize: 10.5, color: 'var(--text-3,#94a3b8)', marginBottom: 10, lineHeight: 1.5 }}>{t('profile.companyDetailHint', '여기 등록해두면 API 키 발급신청 등에서 [내 정보 불러오기]로 자동 입력됩니다 (중복 입력 불필요).')}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -1376,7 +1376,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
           <div style={{ display: 'grid', gap: 16 }}>
             {/* 196차 #AI — 플랫폼 AI(Claude) API 키 설정 (최상단·강조) : 실시간 AI 광고 디자인·분석 활성화 */}
             <div style={{ padding: '16px', borderRadius: 14, background: aiKeySet ? 'rgba(34,197,94,0.06)' : 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(79,142,247,0.06))', border: `1.5px solid ${aiKeySet ? 'rgba(34,197,94,0.3)' : 'rgba(168,85,247,0.3)'}` }}>
-              <div style={{ fontSize: 15, fontWeight: 900, color: 'var(--text-1, #0f172a)', marginBottom: 6 }}>🤖 {t('profile.aiKeyTitle', 'AI 엔진(Claude) API 키')}</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--text-1, #0f172a)', marginBottom: 6 }}>🤖 {t('profile.aiKeyTitle', 'AI 엔진(Claude) API 키')}</div>
               <div style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 12, color: 'var(--text-2, #475569)' }}>
                 {aiKeySet ? `✅ ${t('profile.aiKeyOn', 'AI 엔진이 활성화되어 실시간 AI 광고 디자인·분석을 사용합니다.')}`
                   : `⚠️ ${t('profile.aiKeyOff', 'AI 키 미설정 — 현재는 내장 템플릿으로 동작합니다. Anthropic API 키(sk-ant-...)를 입력하면 실시간 AI 디자인이 활성화됩니다.')}`}
@@ -1625,7 +1625,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
 
             {/* [259차] 자동 로그아웃(유휴 시간) 설정 — 계정 프로필 관리 통합(기존 AuthContext autoLogoutMin 배선·UI 누락 해소) */}
             <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.15)' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text-1, #e2e8f0)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>⏱️ {t('profile.autoLogoutTitle', '자동 로그아웃 (유휴 시간)')}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-1, #e2e8f0)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>⏱️ {t('profile.autoLogoutTitle', '자동 로그아웃 (유휴 시간)')}</div>
               <div style={{ fontSize: 11, color: 'var(--text-3, #94a3b8)', marginBottom: 10, lineHeight: 1.6 }}>{t('profile.autoLogoutDesc', '설정한 시간 동안 활동이 없으면 자동으로 로그아웃됩니다. 이 기기(브라우저)에 적용됩니다.')}</div>
               <select value={autoLogoutMin} onChange={e => setAutoLogoutMin(parseInt(e.target.value, 10) || 0)}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border, rgba(99,140,255,0.2))', background: 'var(--surface-2, rgba(255,255,255,0.03))', color: 'var(--text-1, #e2e8f0)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
@@ -1649,11 +1649,11 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
             {Array.isArray(sessions) && sessions.map((s) => (
               <div key={s.id} style={{ padding: '12px 14px', borderRadius: 12, background: s.current ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${s.current ? 'rgba(34,197,94,0.25)' : 'var(--border, rgba(99,140,255,0.15))'}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 15 }}>{/Mobile|Android|iPhone|iPad/i.test(s.ua || '') ? '📱' : '🖥️'}</span>
-                  <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1, #e2e8f0)' }}>
+                  <span style={{ fontSize: 14 }}>{/Mobile|Android|iPhone|iPad/i.test(s.ua || '') ? '📱' : '🖥️'}</span>
+                  <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-1, #e2e8f0)' }}>
                     {(s.ua || '').replace(/\(.*?\)/g, '').split(' ').slice(0, 3).join(' ') || t('profile.sessUnknownDevice', '알 수 없는 기기')}
                   </span>
-                  {s.current && <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9, fontWeight: 800, background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>{t('profile.sessCurrent', '현재 기기')}</span>}
+                  {s.current && <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>{t('profile.sessCurrent', '현재 기기')}</span>}
                 </div>
                 <div style={{ fontSize: 10.5, color: 'var(--text-3, #94a3b8)' }}>
                   IP: {s.ip || '-'} · {t('profile.sessSince', '로그인')}: {(s.created_at || '').slice(0, 16).replace('T', ' ')}

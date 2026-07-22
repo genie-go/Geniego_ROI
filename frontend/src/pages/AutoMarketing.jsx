@@ -815,7 +815,7 @@ export default function AutoMarketing() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 300px' }}>
                             <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #a855f7, #4f8ef7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 4px 14px rgba(168,85,247,0.3)', flexShrink: 0 }}>🚀</div>
                             <div style={{ minWidth: 0 }}>
-                                <div className="hero-title am-hero-title" style={{ fontSize: 19, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+                                <div className="hero-title am-hero-title" style={{ fontSize: 20, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
                                     {t("marketing.autoTitle")}
                                 </div>
                                 <div className="hero-desc am-hero-desc" style={{ fontSize: 11, color: '#475569', marginTop: 2, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -826,7 +826,7 @@ export default function AutoMarketing() {
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
                             <button
                                 onClick={() => navigate('/campaign-manager')}
-                                style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #4f8ef7', cursor: 'pointer', background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', fontSize: 11, fontWeight: 800, boxShadow: '0 2px 8px rgba(79,142,247,0.2)' }}
+                                style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #4f8ef7', cursor: 'pointer', background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', fontSize: 11, fontWeight: 700, boxShadow: '0 2px 8px rgba(79,142,247,0.2)' }}
                             >{t("marketing.goCampaignMgr")}</button>
                             <button
                                 onClick={() => navigate('/help')}
@@ -835,7 +835,7 @@ export default function AutoMarketing() {
                             {/* [237차] 진행순서 설명서 → 인앱 '📖 이용 가이드' 서브탭(순차 완료 위저드)로 일원화 */}
                             <button
                                 onClick={() => setTab('guide')}
-                                style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #a855f7', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontSize: 11, fontWeight: 800 }}
+                                style={{ padding: '7px 14px', borderRadius: 10, border: '2px solid #a855f7', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontSize: 11, fontWeight: 700 }}
                             >📖 {t("marketing.goGuide", "진행순서 설명서")}</button>
                         </div>
                     </div>
@@ -889,7 +889,7 @@ export default function AutoMarketing() {
                             <div style={{ fontSize:16, fontWeight:900, color:'#0f172a' }}>📊 {t('marketing.effTitle', '채널 효과 전수 분석')}</div>
                             <div style={{ fontSize:12, color:'#64748b', marginTop:4 }}>{t('marketing.effSubtitle', '실측 전수 데이터(진실 ROAS·CAC·전환·추세)를 종합한 효과점수입니다. 최고=예산 증액 후보, 최저=회수·정지 후보. 자가학습 prior 반영.')}</div>
                         </div>
-                        <button onClick={loadEffectiveness} style={{ marginLeft:'auto', padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#22c55e,#4f8ef7)', color:'#fff', fontWeight:800, fontSize:12 }}>🔄 {t('marketing.effRefresh', '새로고침')}</button>
+                        <button onClick={loadEffectiveness} style={{ marginLeft:'auto', padding:'8px 16px', borderRadius:10, border:'none', cursor:'pointer', background:'linear-gradient(135deg,#22c55e,#4f8ef7)', color:'#fff', fontWeight:700, fontSize:12 }}>🔄 {t('marketing.effRefresh', '새로고침')}</button>
                     </div>
 
                     {effLoading && <div style={{ ...cardStyle, textAlign:'center', color:'#64748b', fontSize:13 }}>{t('marketing.effLoading', '분석 중…')}</div>}
@@ -906,7 +906,7 @@ export default function AutoMarketing() {
                                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
                                     {effData.best && (
                                         <div style={{ ...cardStyle, borderColor:'rgba(34,197,94,0.4)', background:'rgba(34,197,94,0.06)' }}>
-                                            <div style={{ fontSize:11, fontWeight:800, color:'#16a34a' }}>🏆 {t('marketing.effBest', '최고 효과 채널')}</div>
+                                            <div style={{ fontSize:11, fontWeight:700, color:'#16a34a' }}>🏆 {t('marketing.effBest', '최고 효과 채널')}</div>
                                             <div style={{ fontSize:18, fontWeight:900, color:'#0f172a', marginTop:4 }}>{chLabel(effData.best.channel)}</div>
                                             <div style={{ fontSize:12, color:'#15803d', marginTop:2 }}>{t('marketing.effScore', '효과점수')} {effData.best.effectiveness} · ROAS {effData.best.roas}x</div>
                                             <div style={{ fontSize:11, color:'#16a34a', marginTop:6, fontWeight:700 }}>→ {effData.best.action}</div>
@@ -914,7 +914,7 @@ export default function AutoMarketing() {
                                     )}
                                     {effData.worst && (
                                         <div style={{ ...cardStyle, borderColor:'rgba(220,38,38,0.4)', background:'rgba(220,38,38,0.06)' }}>
-                                            <div style={{ fontSize:11, fontWeight:800, color:'#dc2626' }}>⚠️ {t('marketing.effWorst', '최저 효과 채널')}</div>
+                                            <div style={{ fontSize:11, fontWeight:700, color:'#dc2626' }}>⚠️ {t('marketing.effWorst', '최저 효과 채널')}</div>
                                             <div style={{ fontSize:18, fontWeight:900, color:'#0f172a', marginTop:4 }}>{chLabel(effData.worst.channel)}</div>
                                             <div style={{ fontSize:12, color:'#b91c1c', marginTop:2 }}>{t('marketing.effScore', '효과점수')} {effData.worst.effectiveness} · ROAS {effData.worst.roas}x</div>
                                             <div style={{ fontSize:11, color:'#dc2626', marginTop:6, fontWeight:700 }}>→ {effData.worst.action}</div>
@@ -945,8 +945,8 @@ export default function AutoMarketing() {
                                                 <tr key={r.channel} style={{ textAlign:'right', borderBottom:'1px solid rgba(0,0,0,0.04)' }}>
                                                     <td style={{ textAlign:'left', padding:'8px 6px', fontWeight:800, color:'#0f172a' }}>
                                                         {chLabel(r.channel)}
-                                                        {r.learned && <span title={t('marketing.effLearned', '자가학습 반영')} style={{ marginLeft:6, fontSize:9, color:'#7c3aed', fontWeight:700 }}>🧠</span>}
-                                                        {r.truth_adjusted && <span title={t('marketing.effTruth', '진실 ROAS 보정')} style={{ marginLeft:4, fontSize:9, color:'#0ea5e9', fontWeight:700 }}>✓</span>}
+                                                        {r.learned && <span title={t('marketing.effLearned', '자가학습 반영')} style={{ marginLeft:6, fontSize:10, color:'#7c3aed', fontWeight:700 }}>🧠</span>}
+                                                        {r.truth_adjusted && <span title={t('marketing.effTruth', '진실 ROAS 보정')} style={{ marginLeft:4, fontSize:10, color:'#0ea5e9', fontWeight:700 }}>✓</span>}
                                                     </td>
                                                     <td style={{ padding:'8px 6px' }}>
                                                         <div style={{ display:'flex', alignItems:'center', gap:6, justifyContent:'flex-end' }}>
@@ -963,7 +963,7 @@ export default function AutoMarketing() {
                                                     <td style={{ padding:'8px 6px', color:'#475569' }}>{r.cvr}</td>
                                                     <td style={{ padding:'8px 6px', color:'#475569' }}>{fmt(r.spend)}</td>
                                                     <td style={{ textAlign:'center', padding:'8px 6px' }}>
-                                                        <span style={{ padding:'3px 9px', borderRadius:20, fontSize:10, fontWeight:800, color:v.clr, background:v.bg, whiteSpace:'nowrap' }}>{v.label}</span>
+                                                        <span style={{ padding:'3px 9px', borderRadius:20, fontSize:10, fontWeight:700, color:v.clr, background:v.bg, whiteSpace:'nowrap' }}>{v.label}</span>
                                                     </td>
                                                 </tr>
                                             );
@@ -1006,7 +1006,7 @@ export default function AutoMarketing() {
                     <CardBillingGuide />
                     {/* ── 단계별 운영 가이드 ── */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight:800, fontSize:17, marginBottom:18, color:'#1e293b' }}>{t('marketing.guideStepsTitle')}</div>
+                        <div style={{ fontWeight:800, fontSize:16, marginBottom:18, color:'#1e293b' }}>{t('marketing.guideStepsTitle')}</div>
                         {[
                           {phaseKey:'guidePhaseA',phaseIcon:'🚀',phaseColor:'#4f8ef7',steps:[{n:'1',k:'guideStep1',c:'#4f8ef7',icon:'🔐'},{n:'2',k:'guideStep2',c:'#6366f1',icon:'🔗'},{n:'3',k:'guideStep3',c:'#8b5cf6',icon:'📊'}]},
                           {phaseKey:'guidePhaseB',phaseIcon:'⚙️',phaseColor:'#a855f7',steps:[{n:'4',k:'guideStep4',c:'#a855f7',icon:'💰'},{n:'5',k:'guideStep5',c:'#c026d3',icon:'🏷️'},{n:'6',k:'guideStep6',c:'#d946ef',icon:'📡'},{n:'7',k:'guideStep7',c:'#e879f9',icon:'🎯'}]},
@@ -1023,8 +1023,8 @@ export default function AutoMarketing() {
                               {ph.steps.map((s,si) => (
                                 <div key={si} style={{ background:s.c+'08', border:`1px solid ${s.c}20`, borderRadius:12, padding:16 }}>
                                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-                                    <span style={{ width:28, height:28, borderRadius:8, background:s.c, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800, flexShrink:0 }}>{s.n}</span>
-                                    <span style={{ fontSize:15 }}>{s.icon}</span>
+                                    <span style={{ width:28, height:28, borderRadius:8, background:s.c, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>{s.n}</span>
+                                    <span style={{ fontSize:14 }}>{s.icon}</span>
                                     <span style={{ fontWeight:700, fontSize:13, color:s.c }}>{t(`marketing.${s.k}Title`)}</span>
                                   </div>
                                   <div style={{ fontSize:12, color:'#64748b', lineHeight:1.7, whiteSpace:'pre-line' }}>{t(`marketing.${s.k}Desc`)}</div>
@@ -1036,7 +1036,7 @@ export default function AutoMarketing() {
                     </div>
                     {/* ── 탭별 기능 안내 ── */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight:800, fontSize:17, marginBottom:16, color:'#1e293b' }}>{t('marketing.guideTabsTitle')}</div>
+                        <div style={{ fontWeight:800, fontSize:16, marginBottom:16, color:'#1e293b' }}>{t('marketing.guideTabsTitle')}</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
                             {[{icon:'🎨',k:'guideTabCreative',c:'#06b6d4'},{icon:'⚙',k:'guideTabSetup',c:'#a855f7'},{icon:'🤖',k:'guideTabPreview',c:'#4f8ef7'},{icon:'📖',k:'guideTabGuide',c:'#6366f1'}].map((tb,i) => (
                                 <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'12px 14px', background:'rgba(241,245,249,0.7)', borderRadius:10, border:'1px solid rgba(99,140,255,0.08)' }}>
@@ -1051,7 +1051,7 @@ export default function AutoMarketing() {
                     </div>
                     {/* ── 전문가 팁 ── */}
                     <div style={{ ...cardStyle, background:'rgba(34,197,94,0.05)', borderColor:'rgba(34,197,94,0.3)' }}>
-                        <div style={{ fontWeight:800, fontSize:17, marginBottom:12, color:'#1e293b' }}>💡 {t('marketing.guideTipsTitle')}</div>
+                        <div style={{ fontWeight:800, fontSize:16, marginBottom:12, color:'#1e293b' }}>💡 {t('marketing.guideTipsTitle')}</div>
                         <ul style={{ margin:0, padding:'0 0 0 18px', fontSize:13, color:'#64748b', lineHeight:2.2 }}>
                             <li>{t('marketing.guideTip1')}</li>
                             <li>{t('marketing.guideTip2')}</li>
@@ -1062,7 +1062,7 @@ export default function AutoMarketing() {
                     </div>
                     {/* ── FAQ ── */}
                     <div style={cardStyle}>
-                        <div style={{ fontWeight:800, fontSize:17, marginBottom:14, color:'#1e293b' }}>❓ {t('marketing.guideFaqTitle','자주 묻는 질문')}</div>
+                        <div style={{ fontWeight:800, fontSize:16, marginBottom:14, color:'#1e293b' }}>❓ {t('marketing.guideFaqTitle','자주 묻는 질문')}</div>
                         <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                             {[1,2,3,4,5].map(n => (
                                 <div key={n} style={{ padding:'12px 14px', background:'rgba(241,245,249,0.6)', borderRadius:10, border:'1px solid rgba(99,140,255,0.08)' }}>
@@ -1096,7 +1096,7 @@ export default function AutoMarketing() {
                                 <strong style={{ color: isLight ? '#1d4ed8' : "#4f8ef7" }}>{t('marketing.creativeSyncDesc3')}</strong>{t('marketing.creativeSyncDesc4')}
                             </div>
                         </div>
-                        <button onClick={() => setTab("setup")} style={{ padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#06b6d4,#a855f7)", color: '#fff', fontWeight: 800, fontSize: 11, whiteSpace: "nowrap" }}>⚙ {t('marketing.creativeGoSetup')}</button>
+                        <button onClick={() => setTab("setup")} style={{ padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#06b6d4,#a855f7)", color: '#fff', fontWeight: 700, fontSize: 11, whiteSpace: "nowrap" }}>⚙ {t('marketing.creativeGoSetup')}</button>
                     </div>
                     <CreativeStudioTab
                         sourcePage="auto-marketing"
@@ -1123,7 +1123,7 @@ export default function AutoMarketing() {
                                 {t('marketing.aiHubDesc4')}
                             </div>
                         </div>
-                        <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: "linear-gradient(135deg,#a855f7,#6366f1)", color: '#fff', fontWeight: 800, fontSize: 11 }}>🚀 {t('marketing.aiHubBtn')}</button>
+                        <button onClick={() => navigate('/campaign-manager')} style={{ padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", whiteSpace: "nowrap", background: "linear-gradient(135deg,#a855f7,#6366f1)", color: '#fff', fontWeight: 700, fontSize: 11 }}>🚀 {t('marketing.aiHubBtn')}</button>
                     </div>
 
                     <CrossLinkBar links={BUDGET_LINKS} note="광고 예산·캠페인" noteKey="crossLink.budgetNote" />
@@ -1154,7 +1154,7 @@ export default function AutoMarketing() {
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#4f8ef7", marginBottom: 14 }}>② {t("marketing.budgetSetup")}</div>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
                             {[300000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000].map(v => (
-                                <button key={v} onClick={() => { setBudget(v); setCustomBudget(""); handleBudgetChange(v); }} style={{ padding: "8px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, cursor: "pointer", backgroundColor: effectiveBudget === v && !customBudget ? "rgba(79,142,247,0.15)" : "rgba(79,142,247,0.08)", color: effectiveBudget === v && !customBudget ? "#dc2626" : "#334155", border: effectiveBudget === v && !customBudget ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)", boxShadow: effectiveBudget === v && !customBudget ? "0 2px 8px rgba(79,142,247,0.25)" : "none" }}>
+                                <button key={v} onClick={() => { setBudget(v); setCustomBudget(""); handleBudgetChange(v); }} style={{ padding: "8px 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", backgroundColor: effectiveBudget === v && !customBudget ? "rgba(79,142,247,0.15)" : "rgba(79,142,247,0.08)", color: effectiveBudget === v && !customBudget ? "#dc2626" : "#334155", border: effectiveBudget === v && !customBudget ? "2px solid #4f8ef7" : "1px solid rgba(99,140,255,0.2)", boxShadow: effectiveBudget === v && !customBudget ? "0 2px 8px rgba(79,142,247,0.25)" : "none" }}>
                                     {fmt(v)}
                                 </button>
                             ))}
@@ -1195,7 +1195,7 @@ export default function AutoMarketing() {
                                 { k: 'growth', icon: '🚀', label: t('marketing.objGrowth', '성장·전환량 극대화') },
                             ].map(o => (
                                 <button key={o.k} onClick={() => setObjective(o.k)} style={{ textAlign: 'left', padding: "10px 12px", borderRadius: 10, cursor: "pointer", fontSize: 12, fontWeight: 700, background: objective === o.k ? "rgba(168,85,247,0.12)" : "rgba(168,85,247,0.04)", color: objective === o.k ? "#7c3aed" : "#475569", border: objective === o.k ? "2px solid #a855f7" : "1px solid rgba(168,85,247,0.18)" }}>
-                                    <span style={{ fontSize: 15, marginRight: 6 }}>{o.icon}</span>{o.label}
+                                    <span style={{ fontSize: 14, marginRight: 6 }}>{o.icon}</span>{o.label}
                                 </button>
                             ))}
                         </div>
@@ -1207,7 +1207,7 @@ export default function AutoMarketing() {
                                 { k: 'marginal', icon: '📉', label: t('marketing.allocMarginal', '한계수익 최적화'), desc: t('marketing.allocMarginalDesc', '체감수익 곡선 — 다음 1원의 한계ROAS가 목표 밑이면 정지(과투자 방지·예산 절감)') },
                             ].map(o => (
                                 <button key={o.k} onClick={() => setOptMode(o.k)} style={{ textAlign: 'left', padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: optMode === o.k ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.04)', color: optMode === o.k ? '#15803d' : '#475569', border: optMode === o.k ? '2px solid #22c55e' : '1px solid rgba(34,197,94,0.18)' }}>
-                                    <div><span style={{ fontSize: 15, marginRight: 6 }}>{o.icon}</span>{o.label}</div>
+                                    <div><span style={{ fontSize: 14, marginRight: 6 }}>{o.icon}</span>{o.label}</div>
                                     <div style={{ fontSize: 10, fontWeight: 500, color: '#64748b', marginTop: 3, lineHeight: 1.4 }}>{o.desc}</div>
                                 </button>
                             ))}
@@ -1345,12 +1345,12 @@ export default function AutoMarketing() {
                                             <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
                                                 {/* API 연동 상태 뱃지 */}
                                                 {apiOk ? (
-                                                    <span style={{ fontSize: 8, color: "#22c55e", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 4, fontWeight: 700 }}>🔗 API {t('marketing.connStatusOk')}</span>
+                                                    <span style={{ fontSize: 10, color: "#22c55e", background: "rgba(34,197,94,0.12)", padding: "1px 6px", borderRadius: 4, fontWeight: 700 }}>🔗 API {t('marketing.connStatusOk')}</span>
                                                 ) : (
-                                                    <span style={{ fontSize: 8, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "1px 6px", borderRadius: 4, fontWeight: 700, cursor: "pointer" }}>🔑 {t('marketing.connStatusNeed')}</span>
+                                                    <span style={{ fontSize: 10, color: "#f59e0b", background: "rgba(245,158,11,0.12)", padding: "1px 6px", borderRadius: 4, fontWeight: 700, cursor: "pointer" }}>🔑 {t('marketing.connStatusNeed')}</span>
                                                 )}
-                                                {isRecommended && <span style={{ fontSize: 8, color: "#22c55e", background: "rgba(34,197,94,0.12)", padding: "1px 5px", borderRadius: 4, fontWeight: 700 }}>AI</span>}
-                                                {!budgetOk && apiOk && <span style={{ fontSize: 9, color: "#ef4444", background: "rgba(239,68,68,0.1)", padding: "1px 6px", borderRadius: 4 }}>{t("marketing.minBudget")} {fmt(ch.minBudget)}</span>}
+                                                {isRecommended && <span style={{ fontSize: 10, color: "#22c55e", background: "rgba(34,197,94,0.12)", padding: "1px 5px", borderRadius: 4, fontWeight: 700 }}>AI</span>}
+                                                {!budgetOk && apiOk && <span style={{ fontSize: 10, color: "#ef4444", background: "rgba(239,68,68,0.1)", padding: "1px 6px", borderRadius: 4 }}>{t("marketing.minBudget")} {fmt(ch.minBudget)}</span>}
                                                 {selAds.includes(ch.id) && <span style={{ fontSize: 10, color: ch.color, fontWeight: 700 }}>✓</span>}
                                             </div>
                                         </div>
@@ -1358,7 +1358,7 @@ export default function AutoMarketing() {
                                         <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>{t('marketing.cpmApprox')}{fmt(ch.cpm)}{ch.strength.length ? ' · ' + ch.strength.join(", ") : ''}</div>
                                         {/* API 미연동 시 연동 안내 메시지 */}
                                         {!apiOk && (
-                                            <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "rgba(245,158,11,0.06)", border: "1px dashed rgba(245,158,11,0.25)", fontSize: 9, color: "#f59e0b", lineHeight: 1.5 }}>
+                                            <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "rgba(245,158,11,0.06)", border: "1px dashed rgba(245,158,11,0.25)", fontSize: 10, color: "#f59e0b", lineHeight: 1.5 }}>
                                                 🔗 {t('marketing.connClickToSetup')}
                                             </div>
                                         )}
@@ -1383,7 +1383,7 @@ export default function AutoMarketing() {
                                     </div>
                                 </div>
                                 {lastRecommend?.budgetTier && (
-                                    <div style={{ marginLeft: "auto", padding: "4px 12px", borderRadius: 99, background: "linear-gradient(135deg,rgba(34,197,94,0.15),rgba(79,142,247,0.15))", border: "1px solid rgba(34,197,94,0.3)", fontSize: 11, fontWeight: 800, color: "#22c55e" }}>
+                                    <div style={{ marginLeft: "auto", padding: "4px 12px", borderRadius: 99, background: "linear-gradient(135deg,rgba(34,197,94,0.15),rgba(79,142,247,0.15))", border: "1px solid rgba(34,197,94,0.3)", fontSize: 11, fontWeight: 700, color: "#22c55e" }}>
                                         {lastRecommend.budgetTier}
                                     </div>
                                 )}
@@ -1436,13 +1436,13 @@ export default function AutoMarketing() {
                                                         display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
                                                         borderBottom: `1px solid ${ex.color}22` }}>
                                                         <span style={{ fontSize: 16 }}>{ex.icon}</span>
-                                                        <span style={{ fontWeight: 800, fontSize: 12, color: ex.color }}>
+                                                        <span style={{ fontWeight: 700, fontSize: 12, color: ex.color }}>
                                                             {t(`marketing.ch_${chId}`)}
                                                         </span>
                                                         <div style={{ display: "flex", gap: 4, marginLeft: "auto", flexWrap: "wrap" }}>
                                                             {ex.kpi.map(k => (
                                                                 <span key={k} style={{
-                                                                    fontSize: 9, fontWeight: 700, color: ex.color,
+                                                                    fontSize: 10, fontWeight: 700, color: ex.color,
                                                                     background: `${ex.color}15`,
                                                                     padding: "2px 7px", borderRadius: 6 }}>{k}</span>
                                                             ))}
@@ -1527,7 +1527,7 @@ export default function AutoMarketing() {
                     </div>
 
                     {/* 전략 Create Button */}
-                    <button onClick={handleGenerate} disabled={generating || !selCats.length || !selAds.length} style={{ padding: "16px 0", borderRadius: 12, border: "none", cursor: generating || !selCats.length || !selAds.length ? "not-allowed" : "pointer", background: generating || !selCats.length || !selAds.length ? "rgba(99,140,255,0.2)" : "linear-gradient(135deg,#4f8ef7,#a855f7,#f97316)", color: '#fff', fontWeight: 900, fontSize: 15, letterSpacing: 0.5, opacity: !selCats.length || !selAds.length ? 0.5 : 1, boxShadow: generating ? "none" : "0 4px 20px rgba(79,142,247,0.3)", transition: "all 200ms" }}>
+                    <button onClick={handleGenerate} disabled={generating || !selCats.length || !selAds.length} style={{ padding: "16px 0", borderRadius: 12, border: "none", cursor: generating || !selCats.length || !selAds.length ? "not-allowed" : "pointer", background: generating || !selCats.length || !selAds.length ? "rgba(99,140,255,0.2)" : "linear-gradient(135deg,#4f8ef7,#a855f7,#f97316)", color: '#fff', fontWeight: 900, fontSize: 14, letterSpacing: 0.5, opacity: !selCats.length || !selAds.length ? 0.5 : 1, boxShadow: generating ? "none" : "0 4px 20px rgba(79,142,247,0.3)", transition: "all 200ms" }}>
                         {generating ? t("marketing.generating") : t("marketing.generateBtn")}
                     </button>
                     {(!selCats.length || !selAds.length) && (
@@ -1596,7 +1596,7 @@ export default function AutoMarketing() {
                                 {(strategy.engine || strategy.rationale) && (
                                     <div style={{ ...cardStyle, padding: "12px 16px", background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.18)" }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: strategy.rationale ? 6 : 0 }}>
-                                            {strategy.engine && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(168,85,247,0.15)', color: '#7c3aed', fontSize: 10, fontWeight: 800 }}>🧠 {strategy.engine}</span>}
+                                            {strategy.engine && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(168,85,247,0.15)', color: '#7c3aed', fontSize: 10, fontWeight: 700 }}>🧠 {strategy.engine}</span>}
                                             {strategy.objective && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', fontSize: 10, fontWeight: 700 }}>{t('marketing.objTag', '목표')}: {strategy.objective}</span>}
                                         </div>
                                         {strategy.rationale && <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>{strategy.rationale}</div>}
@@ -1624,7 +1624,7 @@ export default function AutoMarketing() {
                                                                 const val = parseInt(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                                                 handleAllocChange(ch.id, val); }} style={{ width: 90, padding: "4px 8px", background: "#f1f5f9",
                                                                 border: `1px solid ${ch.color}55`, borderRadius: 6, color: ch.color,
-                                                                fontWeight: 800, textAlign: "right", fontSize: 11, outline: "none"
+                                                                fontWeight: 700, textAlign: "right", fontSize: 11, outline: "none"
                                                             }}
                                                         />
                                                         <span style={{ color: '#64748b' }}>({pct}%)</span>
@@ -1658,13 +1658,13 @@ export default function AutoMarketing() {
                                                 )}
                                                 {/* [265차 확장] 한계ROAS(marginal_roas)·포화곡선 적합(curve_fit)=water-filling 배분의 채널별 근거. 서버가 이미 반환·매핑돼 있으나 미렌더였음. */}
                                                 {marginalRoas != null && (
-                                                    <div style={{ marginTop: 6, fontSize: 9.5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                                    <div style={{ marginTop: 6, fontSize: 10.5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                                                         <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', color: '#16a34a', fontWeight: 800 }} title={t('marketing.marginalRoasTip', '한계 ROAS=추가 1원 지출당 예상 매출. 채널 간 한계ROAS 균등화가 최적 배분(water-filling).')}>{t('marketing.marginalRoas', '한계ROAS')} {Number(marginalRoas).toFixed(2)}x</span>
                                                         {curveFit && curveFit.r2 != null && <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(99,102,241,0.1)', color: '#6366f1', fontWeight: 700 }} title={t('marketing.satFitTip', '지출→매출 포화곡선 적합도(R²). truth_adjusted=진실ROAS 보정 반영.')}>{t('marketing.satFit', '포화적합')} R²={Number(curveFit.r2).toFixed(2)}{curveFit.truth_adjusted ? ' ✓' : ''}</span>}
                                                     </div>
                                                 )}
                                                 {(exploration || channelRationale) && (
-                                                    <div style={{ marginTop: 6, fontSize: 9.5, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                                    <div style={{ marginTop: 6, fontSize: 10.5, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                                         {exploration && <span style={{ padding: '1px 6px', borderRadius: 10, background: 'rgba(168,85,247,0.12)', color: '#7c3aed', fontWeight: 800 }}>🧭 {t('marketing.exploreBadge', '탐색')}</span>}
                                                         {source && <span style={{ padding: '1px 6px', borderRadius: 10, background: source === 'measured' ? 'rgba(34,197,94,0.12)' : 'rgba(99,140,255,0.1)', color: source === 'measured' ? '#16a34a' : '#4f8ef7', fontWeight: 700 }}>{source === 'measured' ? t('marketing.srcMeasured', '실측') : (source === 'blended' ? t('marketing.srcBlended', '블렌드') : t('marketing.srcBenchmark', '벤치마크'))}</span>}
                                                         {channelRationale && <span style={{ flex: 1, minWidth: 120 }}>{channelRationale}</span>}

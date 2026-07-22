@@ -54,7 +54,7 @@ function DetailPanel({ c }) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                     {[{ l: t('kpi.k_3', 'ROAS'), v: `${c.roas}×`, col: c.color }, { l: t('kpi.k_4', 'Revenue'), v: fmtC(c.rev), col: '#22c55e' }, { l: t('kpi.k_5', 'Ad Spend'), v: fmtC(c.spend), col: '#f97316' }, { l: t('kpi.k_6', 'CTR'), v: `${c.ctr}%`, col: '#a855f7' }, { l: t('kpi.k_7', 'Conv'), v: `${c.conv}%`, col: '#ec4899' }, { l: t('kpi.k_8', 'CPC'), v: fmtC(c.cpc), col: '#14d9b0' }].map(m => (
                         <div key={m.l} style={{ background: 'var(--surface)', borderRadius: 8, padding: '7px 10px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.7 }}>{m.l}</div>
+                            <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.7 }}>{m.l}</div>
                             <div style={{ fontSize: 14, fontWeight: 900, color: m.col }}>{m.v}</div>
                         </div>
                     ))}
@@ -88,7 +88,7 @@ function DetailPanel({ c }) {
                         <div style={{ flex: 1, height: 12, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                             <div style={{ width: `${(v / maxAge) * 100}%`, height: '100%', background: `hsl(${200 + i * 30},70%,55%)`, borderRadius: 3 }} />
                         </div>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: `hsl(${200 + i * 30},70%,65%)`, width: 24, textAlign: 'right'}}>{v}%</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: `hsl(${200 + i * 30},70%,65%)`, width: 24, textAlign: 'right'}}>{v}%</span>
                     </div>
                 ))}
             </div>
@@ -120,7 +120,7 @@ function DetailPanel({ c }) {
                         <div style={{ height: 14, background: 'var(--surface)', borderRadius: 4, overflow: 'hidden' }}>
                             <div style={{ width: `${(v / maxFun) * 100}%`, height: '100%', background: `linear-gradient(90deg,${FC[i]},${FC[i]}88)`, borderRadius: 4, boxShadow: `0 0 5px ${FC[i]}44` }} />
                         </div>
-                        {i > 0 && c.funnel[i-1] > 0 && <div style={{ fontSize: 9, color: 'var(--text-3)', textAlign: 'right', marginTop: 1 }}>
+                        {i > 0 && c.funnel[i-1] > 0 && <div style={{ fontSize: 10, color: 'var(--text-3)', textAlign: 'right', marginTop: 1 }}>
                             ↓ {(((c.funnel[i - 1] - v) / c.funnel[i - 1]) * 100).toFixed(1)}% {t('dash.dropOff', 'drop-off')}
                         </div>}
                     </div>
@@ -281,7 +281,7 @@ export default function DashChannelKPI({ period }) {
                 광고비/ROAS 는 채널 단위라 상품 귀속 불가 → 상품모드에선 배지에서 빼고 위 마케팅 패널(어트리뷰션)로 안내. */}
             {prodKpi ? (
                 <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', padding: '4px 0', alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, background: 'rgba(79,142,247,0.12)', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 20, padding: '3px 10px', color: '#4f8ef7', fontWeight: 800 }}>
+                    <span style={{ fontSize: 10, background: 'rgba(79,142,247,0.12)', border: '1px solid rgba(79,142,247,0.3)', borderRadius: 20, padding: '3px 10px', color: '#4f8ef7', fontWeight: 700 }}>
                         🛍️ {prodKpi.name}
                     </span>
                     <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 20, padding: '3px 10px', color: '#22c55e', fontWeight: 700 }}>
@@ -296,7 +296,7 @@ export default function DashChannelKPI({ period }) {
                     <span style={{ fontSize: 10, background:'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 20, padding: '3px 10px', color: '#ef4444', fontWeight: 700 }}>
                         ↩ {t('dashboard.productMkt.returnRate', '반품률')} {prodKpi.return_rate ?? 0}%
                     </span>
-                    <span style={{ fontSize: 9.5, color: 'var(--text-3)' }}>
+                    <span style={{ fontSize: 10.5, color: 'var(--text-3)' }}>
                         ● {t('dash.realTimeBlendedRoas', 'Real-time · Blended ROAS')} {budgetStats?.blendedRoas?.toFixed(2) || '0.00'}x · 💸 {fmtC(budgetStats?.totalSpent || 0)} <span style={{ opacity: 0.8 }}>({t('dashboard.productScope.allBasis', '이 화면은 전체 기준')})</span>
                     </span>
                 </div>
@@ -330,8 +330,8 @@ export default function DashChannelKPI({ period }) {
                         }}>
                             <div style={{ background: 'var(--bg-card, rgba(255,255,255,0.95))', borderRadius: 13, padding: '10px 12px', height: 104, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.7 }}>{c.icon} {c.id === 'naver' ? t('dash.naverName', 'Naver') : c.name.split(' ')[0]}</span>
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: c.pct >= 80 ? '#4ade80' : c.pct >= 65 ? '#fde047' : '#f87171', background: c.pct >= 80 ? 'rgba(74,222,128,0.12)' : 'rgba(0,0,0,0.2)', padding: '1px 6px', borderRadius: 5 }}>{c.pct}%</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.7 }}>{c.icon} {c.id === 'naver' ? t('dash.naverName', 'Naver') : c.name.split(' ')[0]}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: c.pct >= 80 ? '#4ade80' : c.pct >= 65 ? '#fde047' : '#f87171', background: c.pct >= 80 ? 'rgba(74,222,128,0.12)' : 'rgba(0,0,0,0.2)', padding: '1px 6px', borderRadius: 5 }}>{c.pct}%</span>
                                 </div>
                                 <div style={{ fontSize: 26, fontWeight: 900, color: c.color, lineHeight: 1, textShadow: `0 0 18px ${c.color}60` }}>{c.roas}<span style={{ fontSize: 13 }}>×</span></div>
                                 <div style={{ fontSize: 10, color: 'var(--text-3)' }}>ROAS · {fmtC(c.rev)}</div>
@@ -393,12 +393,12 @@ export default function DashChannelKPI({ period }) {
                                     <div style={{ width: 3, height: 20, borderRadius: 2, background: c.color, flexShrink: 0, boxShadow: `0 0 6px ${c.color}66` }} />
                                     <span style={{ fontWeight: 700, color: 'var(--text-1)' }}>{c.id === 'naver' ? t('dash.naverName', 'Naver') : c.name}</span>
                                 </div>
-                                <span style={{ fontSize: 15, fontWeight: 900, color: c.color, textShadow: `0 0 10px ${c.color}55` }}>{c.roas}×</span>
+                                <span style={{ fontSize: 14, fontWeight: 900, color: c.color, textShadow: `0 0 10px ${c.color}55` }}>{c.roas}×</span>
                                 <div>
                                     <div style={{ height: 5, background: 'var(--border)', borderRadius: 3, marginBottom: 3 }}>
                                         <div style={{ width: `${c.pct}%`, height: '100%', background: `linear-gradient(90deg,${c.pct >= 80 ? '#22c55e' : c.pct >= 65 ? '#eab308' : '#ef4444'},rgba(255,255,255,0.3))`, borderRadius: 3 }} />
                                     </div>
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: c.pct >= 80 ? '#4ade80' : c.pct >= 65 ? '#fde047' : '#f87171' }}>{c.pct}%</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: c.pct >= 80 ? '#4ade80' : c.pct >= 65 ? '#fde047' : '#f87171' }}>{c.pct}%</span>
                                 </div>
                                 <span style={{ color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>{fmtC(c.spend)}</span>
                                 <span style={{ color: 'var(--text-3)' }}>{c.ctr}%</span>

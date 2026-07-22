@@ -45,7 +45,7 @@ function KpiCard({ icon, label, value, sub, color, gauge }) {
         <span style={SUB}>{label}</span>
         <span style={{ fontSize: 18 }}>{icon}</span>
       </div>
-      <div style={{ fontSize: 23, fontWeight: 900, color, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 900, color, lineHeight: 1.1 }}>{value}</div>
       {gauge != null && (
         <div style={{ height: 6, background: '#eef2f7', borderRadius: 3, marginTop: 8, overflow: 'hidden' }}>
           <div style={{ width: `${Math.max(0, Math.min(100, gauge))}%`, height: '100%', background: color, borderRadius: 3, transition: 'width .5s' }} />
@@ -484,7 +484,7 @@ export const WmsTollProcessingTab = memoGuard(function WmsTollProcessingTab() {
           const st = stLabel(o.status);
           return (
             <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: st.c + '18', color: st.c }}>{st.l}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: st.c + '18', color: st.c }}>{st.l}</span>
               <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#4f8ef7' }}>{o.id}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>{o.partner}</span>
               <span style={{ fontSize: 12, color: '#475569' }}>📦 {o.inName || o.inSku} <strong>{Number(o.inQty).toLocaleString()}</strong> → {o.outName || o.outSku || '—'} {o.outQty ? <strong>{Number(o.outQty).toLocaleString()}</strong> : ''}</span>
@@ -518,11 +518,11 @@ export const WmsTollProcessingTab = memoGuard(function WmsTollProcessingTab() {
                     <tr key={o.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '8px 6px', fontFamily: 'monospace', fontSize: 10, color: '#4f8ef7' }}>{o.id}</td>
                       <td style={{ padding: '8px 6px', fontWeight: 700 }}>{o.partner}</td>
-                      <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(Number(o.inQty) || 0).toLocaleString()}<div style={{ fontSize: 9, color: '#94a3b8' }}>{o.inSku}</div></td>
-                      <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(Number(o.outQty) || 0).toLocaleString()}<div style={{ fontSize: 9, color: '#94a3b8' }}>{o.outSku || '—'}</div></td>
+                      <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(Number(o.inQty) || 0).toLocaleString()}<div style={{ fontSize: 10, color: '#94a3b8' }}>{o.inSku}</div></td>
+                      <td style={{ padding: '8px 6px', textAlign: 'right' }}>{(Number(o.outQty) || 0).toLocaleString()}<div style={{ fontSize: 10, color: '#94a3b8' }}>{o.outSku || '—'}</div></td>
                       <td style={{ padding: '8px 6px', textAlign: 'right', color: yld == null ? '#94a3b8' : yld >= 95 ? '#16a34a' : yld >= 85 ? '#f97316' : '#ef4444', fontWeight: 700 }}>{yld == null ? '—' : yld + '%'}</td>
                       <td style={{ padding: '8px 6px', fontSize: 10, color: '#64748b' }}>{o.startDate || '—'}{o.doneDate ? ` ~ ${o.doneDate}` : o.dueDate ? ` ~ (${o.dueDate})` : ''}</td>
-                      <td style={{ padding: '8px 6px' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: st.c + '18', color: st.c }}>{st.l}</span></td>
+                      <td style={{ padding: '8px 6px' }}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: st.c + '18', color: st.c }}>{st.l}</span></td>
                     </tr>
                   );
                 })}

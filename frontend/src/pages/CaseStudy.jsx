@@ -76,7 +76,7 @@ export default function CaseStudy() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
         <span style={{ fontSize: 30 }}>{c.logo}</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{c.company}</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{c.company}</div>
           <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{tr('ind_' + c.industry, c.industry)} · {c.period}{tr('months', '개월')}</div>
         </div>
         <button onClick={(e) => { e.stopPropagation(); toggleBookmark(c.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
@@ -86,15 +86,15 @@ export default function CaseStudy() {
       <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12, minHeight: 38 }}>{tr(c.sk, c.summaryKo)}</div>
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.18)' }}>
-          <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 700 }}>ROI</div>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>ROI</div>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#16a34a' }}>+{c.roi}%</div>
         </div>
         <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderRadius: 10, background: 'rgba(79,142,247,0.08)', border: '1px solid rgba(79,142,247,0.18)' }}>
-          <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 700 }}>ROAS</div>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>ROAS</div>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#2563eb' }}>{c.after.roas}x</div>
         </div>
         <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderRadius: 10, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.18)' }}>
-          <div style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 700 }}>{tr('rating', '평점')}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700 }}>{tr('rating', '평점')}</div>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#ca8a04' }}>{c.rating}</div>
         </div>
       </div>
@@ -180,12 +180,12 @@ export default function CaseStudy() {
             <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 18 }}>{tr(detail.sk, detail.summaryKo)}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div style={{ padding: 14, borderRadius: 12, background: 'rgba(148,163,184,0.1)', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', marginBottom: 8 }}>{tr('before', '도입 전')}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 8 }}>{tr('before', '도입 전')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-2)' }}>ROAS {detail.before.roas}x</div>
                 <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{tr('revenue', '매출')} {detail.before.revenue}{tr('millionUnit', 'M')}</div>
               </div>
               <div style={{ padding: 14, borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a', marginBottom: 8 }}>{tr('after', '도입 후')}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', marginBottom: 8 }}>{tr('after', '도입 후')}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-1)', fontWeight: 700 }}>ROAS {detail.after.roas}x</div>
                 <div style={{ fontSize: 12, color: 'var(--text-1)', fontWeight: 700 }}>{tr('revenue', '매출')} {detail.after.revenue}{tr('millionUnit', 'M')}</div>
               </div>
@@ -209,15 +209,15 @@ export default function CaseStudy() {
           <div style={{ background: 'var(--surface2, rgba(255,255,255,0.025))', border: '1px solid rgba(79,142,247,0.15)', borderRadius: 16, padding: 24 }}>
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
               <div style={{ fontSize: 36, marginBottom: 6 }}>📚</div>
-              <h2 style={{ fontSize: 19, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '성공 사례 이용 가이드')}</h2>
+              <h2 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 6px', color: 'var(--text-1)' }}>{tr('guideTitle', '성공 사례 이용 가이드')}</h2>
               <p style={{ color: 'var(--text-3)', fontSize: 12, margin: 0 }}>{tr('guideSub', '초보자도 이 가이드만 보면 벤치마크 사례를 찾아 우리 전략에 적용할 수 있습니다')}</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} style={{ padding: 14, borderRadius: 12, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', color: '#fff' }}>{i}</span>
-                    <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
+                    <span style={{ width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, background: 'linear-gradient(135deg,#4f8ef7,#a855f7)', color: '#fff' }}>{i}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-1)' }}>{tr(`guideStep${i}Title`, '')}</span>
                   </div>
                   <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, margin: 0 }}>{tr(`guideStep${i}Desc`, '')}</p>
                 </div>

@@ -145,11 +145,11 @@ export default function MenuAccessManager() {
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <button onClick={applyPolicyDefaults} disabled={isDemoMode || loading}
-          style={{ padding: '8px 16px', background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)', color: '#c7d2fe', fontWeight: 800, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
+          style={{ padding: '8px 16px', background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)', color: '#c7d2fe', fontWeight: 700, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
           ✨ {t('menuAccess.applyPolicy', '정책 기본값 적용(요금제 등급)')}
         </button>
         <button onClick={saveAll} disabled={isDemoMode || loading || saving}
-          style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: '#fff', fontWeight: 800, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
+          style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: '#fff', fontWeight: 700, borderRadius: 8, cursor: isDemoMode ? 'not-allowed' : 'pointer', fontSize: 12 }}>
           💾 {saving === '__all__' ? t('menuAccess.saving', '저장 중…') : t('menuAccess.saveAll', '전체 저장(배포)')}
         </button>
         <button onClick={load} disabled={loading}
@@ -172,7 +172,7 @@ export default function MenuAccessManager() {
                   <th key={p.plan_id} style={{ padding: '10px 8px', textAlign: 'center', minWidth: 120 }}>
                     <div style={{ fontWeight: 900, color: planColor(p.plan_id), fontSize: 13 }}>{p.name}</div>
                     <button onClick={() => savePlan(p.plan_id)} disabled={isDemoMode || !!saving}
-                      style={{ marginTop: 6, padding: '4px 10px', fontSize: 10, fontWeight: 800, borderRadius: 6, border: 'none', cursor: isDemoMode ? 'not-allowed' : 'pointer', background: saving === p.plan_id ? '#475569' : 'rgba(16,185,129,0.18)', color: '#6ee7b7' }}>
+                      style={{ marginTop: 6, padding: '4px 10px', fontSize: 10, fontWeight: 700, borderRadius: 6, border: 'none', cursor: isDemoMode ? 'not-allowed' : 'pointer', background: saving === p.plan_id ? '#475569' : 'rgba(16,185,129,0.18)', color: '#6ee7b7' }}>
                       {saving === p.plan_id ? '…' : `💾 ${t('menuAccess.saveBtn2', '저장')}`}
                     </button>
                   </th>
@@ -183,13 +183,13 @@ export default function MenuAccessManager() {
               {rows.map(sec => (
                 <React.Fragment key={sec.section}>
                   <tr>
-                    <td colSpan={plans.length + 1} style={{ padding: '10px 12px', background: 'rgba(99,102,241,0.08)', fontWeight: 900, color: '#a5b4fc', fontSize: 12, borderTop: '1px solid var(--border, #1f2937)' }}>{sec.section}</td>
+                    <td colSpan={plans.length + 1} style={{ padding: '10px 12px', background: 'rgba(99,102,241,0.08)', fontWeight: 700, color: '#a5b4fc', fontSize: 12, borderTop: '1px solid var(--border, #1f2937)' }}>{sec.section}</td>
                   </tr>
                   {sec.items.map(it => (
                     <tr key={it.menuKey} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                       <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: 'var(--surface, #111827)', color: '#e5e7eb' }}>
                         {it.label}
-                        <span style={{ marginLeft: 8, fontSize: 9, color: '#64748b' }}>{it.menuKey} · ≥{requiredPlanForMenu(it.menuKey)}</span>
+                        <span style={{ marginLeft: 8, fontSize: 10, color: '#64748b' }}>{it.menuKey} · ≥{requiredPlanForMenu(it.menuKey)}</span>
                       </td>
                       {plans.map(p => {
                         const on = !!access[p.plan_id]?.[it.menuKey];

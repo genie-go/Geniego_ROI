@@ -435,7 +435,7 @@ export default function JourneyBuilder() {
                         <div style={{ ...CARD, minHeight: CONTENT_MIN }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
                                 <button onClick={() => setCanvasId(null)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', color: '#475569', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>← 목록</button>
-                                <div style={{ fontWeight: 900, fontSize: 15, color: '#1e293b' }}>🗺️ {cj?.name || '여정'} — 비주얼 플로우 편집</div>
+                                <div style={{ fontWeight: 900, fontSize: 14, color: '#1e293b' }}>🗺️ {cj?.name || '여정'} — 비주얼 플로우 편집</div>
                                 <span style={{ fontSize: 11, color: '#94a3b8' }}>트리거 유형: {trigLabel(cj?.trigger_type)}</span>
                             </div>
                             <JourneyCanvas nodes={cj?.nodes} edges={cj?.edges} onSave={saveCanvas} saving={canvasSaving} />
@@ -465,7 +465,7 @@ export default function JourneyBuilder() {
                         {/* Create Button */}
                         <div style={CARD}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div><div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
+                                <div><div style={{ fontWeight: 800, fontSize: 14, color: '#334155' }}>🗺️ {tr(K.tabBuilder)}</div><div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{tr(K.sub)}</div></div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                     <button onClick={openTemplates} style={{ padding: '10px 18px', borderRadius: 12, border: '1px solid rgba(168,85,247,0.4)', cursor: 'pointer', background: 'rgba(168,85,247,0.1)', color: '#7c3aed', fontWeight: 800, fontSize: 13 }}>{t('journeyBuilder.startWithTemplate', '✨ 추천 여정으로 시작')}</button>
                                     <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false }); setShowCreate(true); }} style={{ padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 16px rgba(79,142,247,0.3)' }}>+ {tr(K.createJourney)}</button>
@@ -484,7 +484,7 @@ export default function JourneyBuilder() {
                                             <div><div style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{j.name}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{trigLabel(j.trigger_type)} → {(j.channels || []).map(c => c.toUpperCase()).join(', ')}</div></div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
-                                            <button onClick={() => setCanvasId(j.id)} style={{ padding: '4px 11px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.1)', color: '#2563eb', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>{t('journeyBuilder.visualEdit', '🗺️ 비주얼 편집')}</button>
+                                            <button onClick={() => setCanvasId(j.id)} style={{ padding: '4px 11px', borderRadius: 7, border: '1px solid rgba(79,142,247,0.4)', background: 'rgba(79,142,247,0.1)', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t('journeyBuilder.visualEdit', '🗺️ 비주얼 편집')}</button>
                                             <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}>{cfg.icon} {stsLabel(j.status)}</span>
                                         </div>
                                     </div>
@@ -524,7 +524,7 @@ export default function JourneyBuilder() {
                 {tab === 'list' && (
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         <div style={{ ...CARD, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155' }}>📋 {tr(K.tabList)} ({journeys.length})</div>
+                            <div style={{ fontWeight: 800, fontSize: 14, color: '#334155' }}>📋 {tr(K.tabList)} ({journeys.length})</div>
                             <button onClick={() => { setEditId(null); setForm({ name: '', trigger_type: 'signup', segment: '', channels: ['email'], delay: 'none', topic: '', sto: false }); setShowCreate(true); }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#4f8ef7,#06b6d4)', color: '#fff', fontWeight: 700, fontSize: 12 }}>+ {tr(K.createJourney)}</button>
                         </div>
                         {journeys.length === 0 ? (
@@ -546,7 +546,7 @@ export default function JourneyBuilder() {
                                                 >
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, gap: 8 }}>
                                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                                            <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name}</div>
+                                                            <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name}</div>
                                                             <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{j.createdAt}</div>
                                                         </div>
                                                         <div style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{cfg.icon} {stsLabel(j.status)}</div>
@@ -602,7 +602,7 @@ export default function JourneyBuilder() {
                     <div style={{ display: 'grid', gap: 14, minHeight: CONTENT_MIN, alignContent: 'start' }}>
                         {/* Execution History */}
                         <div style={CARD}>
-                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>🚀 {tr(K.executionHistory)} ({journeyExecutions.length})</div>
+                            <div style={{ fontWeight: 800, fontSize: 14, color: '#334155', marginBottom: 14 }}>🚀 {tr(K.executionHistory)} ({journeyExecutions.length})</div>
                             {journeyExecutions.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📜</div><div>{tr(K.noLogs)}</div></div>
                             ) : (
@@ -617,7 +617,7 @@ export default function JourneyBuilder() {
                                             <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 600 }}>{tr(K.logCompleted)} {e.completed?.toLocaleString() || 0}</span>
                                             {e.emailsSent > 0 && <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>📧 {e.emailsSent?.toLocaleString()}</span>}
                                             {e.kakaoSent > 0 && <span style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600 }}>💬 {e.kakaoSent?.toLocaleString()}</span>}
-                                            {e.revenue > 0 && <span style={{ fontSize: 11, color: '#f97316', fontWeight: 800 }}>{fmtW(e.revenue)}</span>}
+                                            {e.revenue > 0 && <span style={{ fontSize: 11, color: '#f97316', fontWeight: 700 }}>{fmtW(e.revenue)}</span>}
                                         </div>
                                     </div>
                                 ))}</div>
@@ -625,7 +625,7 @@ export default function JourneyBuilder() {
                         </div>
                         {/* Trigger Logs */}
                         <div style={CARD}>
-                            <div style={{ fontWeight: 800, fontSize: 15, color: '#334155', marginBottom: 14 }}>⚡ {tr(K.recentLogs)} ({journeyTriggers.length})</div>
+                            <div style={{ fontWeight: 800, fontSize: 14, color: '#334155', marginBottom: 14 }}>⚡ {tr(K.recentLogs)} ({journeyTriggers.length})</div>
                             {journeyTriggers.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, marginBottom: 8, color: '#94a3b8' }} ><div>📝</div><div>{tr(K.noLogs)}</div></div>
                             ) : (
@@ -700,7 +700,7 @@ export default function JourneyBuilder() {
                     const faqs = []; for (let i = 1; i <= 6; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
                     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
                     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-                    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+                    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
                     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
                     return (
                     <div className="guide-section" style={{ display: 'grid', gap: 18, minHeight: CONTENT_MIN, alignContent: 'start', color: '#1e293b' }}>
@@ -709,7 +709,7 @@ export default function JourneyBuilder() {
                             <div style={{ fontWeight: 900, fontSize: 22, color: '#1e293b', marginBottom: 6, letterSpacing: '-0.02em', WebkitTextFillColor: '#1e293b' }}>{tr(K.guideTitle)}</div>
                             <div style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{tr(K.guideSub)}</div>
                             {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                                {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                                {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                             </div>}
                         </div>
                         {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -720,9 +720,9 @@ export default function JourneyBuilder() {
                                     <div key={s.n} style={{ padding: '16px 18px', borderRadius: 14, background: s.color + '08', border: '1px solid ' + s.color + '22', display: 'flex', gap: 14, alignItems: 'start' }}>
                                         <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + '15', border: '1px solid ' + s.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                                         <div>
-                                            {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                            {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                                <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                                <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + '20', padding: '2px 8px', borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                                 <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                             </div>
                                             <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -746,7 +746,7 @@ export default function JourneyBuilder() {
                         {g('guideSecurityTitle') ? <div style={{ ...card, background: 'rgba(239,68,68,0.04)', borderColor: 'rgba(239,68,68,0.2)' }}><div style={secTitle}>🔒 {g('guideSecurityTitle')}</div><div style={pre}>{g('guideSecurityDesc')}</div></div> : null}
                         {g('guideOpsTitle') ? <div style={card}><div style={secTitle}>🛠️ {g('guideOpsTitle')}</div><div style={pre}>{g('guideOpsDesc')}</div></div> : null}
                         {g('guideReadyTitle') ? <div style={{ background: 'linear-gradient(135deg,#eef2ff,#cffafe)', borderRadius: 16, border: '1px solid #a5f3fc', padding: '24px', textAlign: 'center' }}>
-                            <div style={{ fontWeight: 900, fontSize: 17, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
+                            <div style={{ fontWeight: 900, fontSize: 16, color: '#1e293b', marginBottom: 8, WebkitTextFillColor: '#1e293b' }}>🎉 {g('guideReadyTitle')}</div>
                             <div style={{ fontSize: 12.5, color: '#1e293b', lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-line', maxWidth: 720, margin: '0 auto', WebkitTextFillColor: '#1e293b' }}>{g('guideReadyDesc')}</div>
                         </div> : null}
                     </div>
@@ -791,7 +791,7 @@ export default function JourneyBuilder() {
                                 if (ch.disabled) return (
                                     <button key={ch.id} type="button" disabled title={ch.reason}
                                         style={{ padding: '8px 16px', borderRadius: 10, border: '1px dashed #e2e8f0', cursor: 'not-allowed', background: '#f8fafc', color: '#cbd5e1', fontWeight: 700, fontSize: 12 }}>
-                                        {ch.icon} {ch.label} <span style={{ fontSize: 10, fontWeight: 800 }}>({t('journeyBuilder.chUnsupported', '미지원')})</span>
+                                        {ch.icon} {ch.label} <span style={{ fontSize: 10, fontWeight: 700 }}>({t('journeyBuilder.chUnsupported', '미지원')})</span>
                                     </button>
                                 );
                                 return (<button key={ch.id} onClick={() => setForm(p => ({ ...p, channels: sel ? p.channels.filter(x => x !== ch.id) : [...p.channels, ch.id] }))} style={{ padding: '8px 16px', borderRadius: 10, border: sel ? `2px solid ${CH_COLORS[ch.id]}` : '1px solid #e2e8f0', cursor: 'pointer', background: sel ? `${CH_COLORS[ch.id]}12` : '#f8fafc', color: sel ? CH_COLORS[ch.id] : '#64748b', fontWeight: 700, fontSize: 12 }}>{ch.icon} {ch.label}</button>);

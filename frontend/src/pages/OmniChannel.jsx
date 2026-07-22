@@ -390,8 +390,8 @@ function ProductsTab({ t }) {
                                         <td style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</td>
                                         <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#6b7280' }}>{p.sku}</td>
                                         <td style={{ fontWeight: 700, color: '#22c55e' }}>{fmt(p.price)}</td>
-                                        <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#f59e0b' }}>{fmt(Math.round(commAmt))} <span style={{ fontSize: 9, opacity: 0.7 }}>({(rate.commission * 100).toFixed(0)}%)</span></td>
-                                        <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#6366f1' }}>{rate.vat > 0 ? `${fmt(Math.round(vatAmt))}` : '—'} <span style={{ fontSize: 9, opacity: 0.7 }}>({(rate.vat * 100).toFixed(0)}%)</span></td>
+                                        <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#f59e0b' }}>{fmt(Math.round(commAmt))} <span style={{ fontSize: 10, opacity: 0.7 }}>({(rate.commission * 100).toFixed(0)}%)</span></td>
+                                        <td style={{ fontFamily: 'monospace', fontSize: 10, color: '#6366f1' }}>{rate.vat > 0 ? `${fmt(Math.round(vatAmt))}` : '—'} <span style={{ fontSize: 10, opacity: 0.7 }}>({(rate.vat * 100).toFixed(0)}%)</span></td>
                                         <td style={{ color: p.inventory < 20 ? '#ef4444' : p.inventory < 80 ? '#eab308' : '#22c55e', fontWeight: 700 }}>{p.inventory}</td>
                                         <td style={{ fontSize: 11, color: '#6b7280' }}>{p.category || '—'}</td>
                                         <td><Tag label={p.status === 'active' ? t('omniChannel.statusActive') : (p.status || t('omniChannel.statusActive'))} color={p.status === 'active' ? '#22c55e' : '#666'} /></td>
@@ -697,7 +697,7 @@ function OverviewTab({ channelStatus, t }) {
                                     </td>
                                     <td><Tag label={c.type || t('omniChannel.colChannel')} color="#6366f1" /></td>
                                     <td><Tag label={st.label} color={st.color} /></td>
-                                    <td style={{ fontFamily: 'monospace', fontSize: 11, color: '#f59e0b', fontWeight: 700 }}>{(rate.commission * 100).toFixed(0)}% <span style={{ fontSize: 9, color: '#6b7280', fontWeight: 400 }}>+VAT {(rate.vat * 100).toFixed(0)}%</span></td>
+                                    <td style={{ fontFamily: 'monospace', fontSize: 11, color: '#f59e0b', fontWeight: 700 }}>{(rate.commission * 100).toFixed(0)}% <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 400 }}>+VAT {(rate.vat * 100).toFixed(0)}%</span></td>
                                     <td style={{ textAlign: 'center', color: '#4f8ef7', fontWeight: 700 }}>{(c.product_count || 0).toLocaleString()}</td>
                                     <td style={{ textAlign: 'center' }}>{(c.order_count || 0).toLocaleString()}</td>
                                     <td style={{ fontWeight: 700, color: '#22c55e' }}>{fmt(c.revenue || 0)}</td>
@@ -730,7 +730,7 @@ function GuideTab({ t }) {
     const faqs = []; for (let i = 1; i <= 8; i++) { const q = g('guideFaq' + i + 'Q'); if (q) faqs.push({ q, a: g('guideFaq' + i + 'A') }); }
     const badges = [{ i: '🔰', k: 'guideBeginnerBadge', c: '#22c55e' }, { i: '⏱️', k: 'guideTimeBadge', c: '#4f8ef7' }, { i: '🌐', k: 'guideLangBadge', c: '#a855f7' }];
     const card = { background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20 };
-    const secTitle = { fontWeight: 900, fontSize: 15, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
+    const secTitle = { fontWeight: 900, fontSize: 14, color: '#1e293b', marginBottom: 12, WebkitTextFillColor: '#1e293b' };
     const pre = { whiteSpace: 'pre-line', fontSize: 12.5, color: '#374151', lineHeight: 1.9, WebkitTextFillColor: '#374151' };
     return (
         <div style={{ display: "grid", gap: 18 }}>
@@ -739,7 +739,7 @@ function GuideTab({ t }) {
                 <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", marginBottom: 6, letterSpacing: "-0.02em", WebkitTextFillColor: "#1e293b" }}>{t('omniChannel.guideTitle')}</div>
                 <div style={{ fontSize: 13, color: "#1e293b", lineHeight: 1.7, fontWeight: 600, maxWidth: 720, margin: '0 auto', WebkitTextFillColor: "#1e293b" }}>{t('omniChannel.guideSub')}</div>
                 {g('guideBeginnerBadge') && <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 800, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
+                    {badges.map((b, i) => g(b.k) ? <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, background: `${b.c}18`, color: b.c, fontSize: 12, fontWeight: 700, WebkitTextFillColor: b.c }}>{b.i} {g(b.k)}</span> : null)}
                 </div>}
             </div>
             {g('guideLearnTitle') ? <div style={{ ...card, background: 'rgba(79,142,247,0.04)', borderColor: 'rgba(79,142,247,0.2)' }}><div style={secTitle}>🎯 {g('guideLearnTitle')}</div><div style={pre}>{g('guideLearnDesc')}</div></div> : null}
@@ -751,9 +751,9 @@ function GuideTab({ t }) {
                         <div key={s.n} style={{ padding: "16px 18px", borderRadius: 14, background: s.color + "08", border: "1px solid " + s.color + "22", display: "flex", gap: 14, alignItems: "start" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: s.color + "15", border: "1px solid " + s.color + "33", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
                             <div>
-                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 800, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
+                                {s.phase ? <div style={{ fontSize: 10, fontWeight: 700, color: s.color, marginBottom: 4, opacity: 0.85, WebkitTextFillColor: s.color }}>{s.phase}</div> : null}
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "20", padding: "2px 8px", borderRadius: 20, WebkitTextFillColor: s.color }}>STEP {s.n}</span>
                                     <span style={{ fontWeight: 800, fontSize: 14, color: s.color, WebkitTextFillColor: s.color }}>{s.title}</span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, whiteSpace: 'pre-line', WebkitTextFillColor: '#374151' }}>{s.desc}</div>
@@ -935,7 +935,7 @@ function OmniChannelInner() {
                 <button key={tb.id} onClick={()=>setTab(tb.id)}
                   style={{ padding:'8px 14px', borderRadius:10, border:'none', cursor:'pointer', fontWeight:700, fontSize:11, background:tab===tb.id?'#2563eb':'#ffffff', color:tab===tb.id?'#ffffff':'#374151', transition:'all 150ms' }}>
                   <div>{tb.label}</div>
-                  <div style={{ fontSize:9, fontWeight:400, opacity:0.7, marginTop:1 }}>{tb.desc}</div>
+                  <div style={{ fontSize:10, fontWeight:400, opacity:0.7, marginTop:1 }}>{tb.desc}</div>
                 </button>
               ))}
             </div>

@@ -203,7 +203,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
 
             {pairInfo && (
                 <div className="card card-glass" style={{ padding: 16, border: '1px solid rgba(139,92,246,0.4)' }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6 }}>🔑 {t('wms.cctv.pairTitle', '브리지 페어코드(API 키)')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>🔑 {t('wms.cctv.pairTitle', '브리지 페어코드(API 키)')}</div>
                     <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8 }}>
                         {t('wms.cctv.pairHint', '현장 PC에서 아래 코드로 에이전트를 1회 페어링하세요. 이 코드는 지금만 표시됩니다.')}
                     </div>
@@ -223,7 +223,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
 
             {showBridges && (
                 <div className="card card-glass" style={{ padding: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 4 }}>🖥️ {t('wms.cctv.bridgeTitle', '온프렘 브리지')}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>🖥️ {t('wms.cctv.bridgeTitle', '온프렘 브리지')}</div>
                     <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
                         {t('wms.cctv.bridgeIntro', 'P2P·ActiveX·독자VMS 등 인터넷으로 표준 스트림을 열지 않는 장비는, 현장 PC에 브리지 에이전트를 설치하면 LAN에서 물어 자동 재생됩니다.')}
                     </div>
@@ -239,7 +239,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                                 <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', flexWrap: 'wrap' }}>
                                     <div style={{ minWidth: 0 }}>
                                         <span style={{ fontWeight: 700, fontSize: 12 }}>{b.name}</span>
-                                        <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 20,
+                                        <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20,
                                                        background: b.online ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.2)', color: b.online ? '#16a34a' : '#64748b' }}>
                                             {b.online ? t('wms.cctv.online', '온라인') : (b.paired ? t('wms.cctv.offline', '오프라인') : t('wms.cctv.unpaired', '미연결'))}
                                         </span>
@@ -272,7 +272,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
 
             {showForm && (
                 <div className="card card-glass" style={{ padding: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
                         {form.id ? t('wms.cctv.editTitle', '카메라 수정') : t('wms.cctv.newTitle', '새 카메라 자격등록')}
                     </div>
 
@@ -407,7 +407,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
             {wall && (
                 <div className="card card-glass" style={{ padding: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <div style={{ fontSize: 12, fontWeight: 800 }}>▣ {t('wms.cctv.wallTitle', '전체 카메라')} ({cams.filter(c => c.active).length})</div>
+                        <div style={{ fontSize: 12, fontWeight: 700 }}>▣ {t('wms.cctv.wallTitle', '전체 카메라')} ({cams.filter(c => c.active).length})</div>
                         <Btn onClick={() => setWall(false)} color="#6b7280" small>{t('wms.cctv.closeBtn', '닫기')}</Btn>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(auto-fill,minmax(260px,1fr))' : 'repeat(auto-fill,minmax(320px,1fr))', gap: 10 }}>
@@ -424,7 +424,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
             {viewing && !wall && (
                 <div className="card card-glass" style={{ padding: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <div style={{ fontSize: 12, fontWeight: 800 }}>{viewing.name}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700 }}>{viewing.name}</div>
                         <Btn onClick={() => setViewing(null)} color="#6b7280" small>{t('wms.cctv.closeBtn', '닫기')}</Btn>
                     </div>
                     <CctvPlayer camera={viewing} height={compact ? 300 : 420} />
@@ -441,7 +441,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                         <div key={c.id} className="card card-glass" style={{ padding: 12, opacity: c.active ? 1 : 0.55 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
                                 <div style={{ minWidth: 0 }}>
-                                    <div style={{ fontWeight: 800, fontSize: 12 }}>{c.name}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 12 }}>{c.name}</div>
                                     <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, wordBreak: 'break-all' }}>
                                         {c.place && <>📍 {c.place} · </>}
                                         {c.wh_id ? whName(c.wh_id) : t('wms.cctv.noWarehouse', '창고 미지정(임의 장소)')}
@@ -452,7 +452,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                                     </div>
                                 </div>
                                 {c.test_status && (
-                                    <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                                    <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
                                                    background: c.test_status === 'ok' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
                                                    color: c.test_status === 'ok' ? '#16a34a' : '#dc2626' }}>
                                         {c.test_status === 'ok' ? t('wms.cctv.statOk', '연결됨') : t('wms.cctv.statFail', '연결실패')}
@@ -489,7 +489,7 @@ export default function CctvManager({ whId = '', warehouses = [], compact = fals
                                 ].filter(r => r[1]);
                                 return (
                                     <div style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(13,148,136,0.06)', border: '1px solid rgba(13,148,136,0.2)' }}>
-                                        <div style={{ fontSize: 11, fontWeight: 800, color: '#0f766e', marginBottom: 6 }}>ℹ {t('wms.cctv.infoTitle', 'CCTV 장비 정보')}</div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#0f766e', marginBottom: 6 }}>ℹ {t('wms.cctv.infoTitle', 'CCTV 장비 정보')}</div>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 10px', fontSize: 11 }}>
                                             {rows.map(([k, v]) => (
                                                 <React.Fragment key={k}>

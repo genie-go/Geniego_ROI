@@ -107,14 +107,14 @@ function Admin() {
           </div>
         </div>
         <a href="https://www.genieroi.com/admin" style={{
-          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
+          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, textDecoration: "none",
           background: !IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.12)",
           color: !IS_DEMO ? "#fff" : "#22c55e",
           border: `1px solid ${!IS_DEMO ? "#22c55e" : "rgba(34,197,94,0.4)"}`,
           cursor: "pointer", whiteSpace: "nowrap",
         }}>{t('admin.envSwitch.prodBtn','🏢 운영 시스템')} {!IS_DEMO ? t('admin.envSwitch.current','(현재)') : "보기"}</a>
         <a href="https://demo.genieroi.com/admin" style={{
-          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 800, textDecoration: "none",
+          padding: "9px 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, textDecoration: "none",
           background: IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.12)",
           color: IS_DEMO ? "#fff" : "#fb923c",
           border: `1px solid ${IS_DEMO ? "#fb923c" : "rgba(251,146,60,0.4)"}`,
@@ -226,7 +226,7 @@ function SectionCard({ title, items }) {
               background: "linear-gradient(135deg,#6366f1,#4f8ef7)",
               color: "#fff",
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
             }}>✓</span>
             <span style={{ fontSize: 13, fontWeight: 600 }}>{it}</span>
           </div>
@@ -397,7 +397,7 @@ function TabAiEngine() {
       <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
         background: aiKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(168,85,247,0.12), rgba(79,142,247,0.08))",
         border: `1.5px solid ${aiKeySet ? "rgba(34,197,94,0.3)" : "rgba(168,85,247,0.3)"}` }}>
-        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🤖 AI 엔진(Claude) API 키</div>
+        <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>🤖 AI 엔진(Claude) API 키</div>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
           {aiKeySet
             ? "✅ AI 엔진이 활성화되어 있습니다. 전체 이용자가 실시간 AI 광고 디자인·분석을 사용합니다."
@@ -420,7 +420,7 @@ function TabAiEngine() {
       <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
         background: imgKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(236,72,153,0.10), rgba(168,85,247,0.07))",
         border: `1.5px solid ${imgKeySet ? "rgba(34,197,94,0.3)" : "rgba(236,72,153,0.3)"}` }}>
-        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🖼️ 실사 이미지 생성 API</div>
+        <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>🖼️ 실사 이미지 생성 API</div>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
           {imgKeySet
             ? "✅ 실사 이미지 생성이 활성화되어 있습니다. 대화형 AI 디자인이 실사 비주얼을 생성해 매거진급 광고를 만듭니다."
@@ -448,7 +448,7 @@ function TabAiEngine() {
       <div style={{ borderRadius: 16, padding: "24px 26px", marginBottom: 20,
         background: vidKeySet ? "rgba(34,197,94,0.06)" : "linear-gradient(135deg, rgba(6,182,212,0.10), rgba(79,142,247,0.07))",
         border: `1.5px solid ${vidKeySet ? "rgba(34,197,94,0.3)" : "rgba(6,182,212,0.3)"}` }}>
-        <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 6 }}>🎥 AI 동영상 생성 API</div>
+        <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>🎥 AI 동영상 생성 API</div>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-2)", marginBottom: 16 }}>
           {vidKeySet
             ? "✅ AI 동영상 생성이 활성화되어 있습니다. 대화형 AI 디자인의 '🎥 동영상' 모드로 광고 영상을 생성합니다."
@@ -472,7 +472,7 @@ function TabAiEngine() {
       {/* SMTP — 부가(이메일 발송/2FA) */}
       <div style={{ borderRadius: 16, padding: "22px 26px",
         background: "rgba(255,255,255,0.03)", border: `1px solid ${smtpSet ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}` }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>📧 이메일 발송(SMTP) 설정</div>
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>📧 이메일 발송(SMTP) 설정</div>
         <div style={{ fontSize: 12, lineHeight: 1.7, color: "var(--text-3)", marginBottom: 12 }}>
           {smtpSet ? "✅ SMTP 설정됨 — 이메일 OTP·비밀번호 재설정 발송에 사용됩니다." : "이메일 2단계 인증·비밀번호 재설정 메일 발송에 사용됩니다. 발신 이메일은 변경 가능합니다."}
         </div>
@@ -501,7 +501,7 @@ function TabAiEngine() {
        *  하드코딩하면 ①14개국에 한글이 새고 ②챗봇이 이 기능을 영원히 모른다. */}
       <div style={{ borderRadius: 16, padding: "22px 26px",
         background: "rgba(255,255,255,0.03)", border: `1px solid ${twilioSet ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.08)"}` }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>💬 {t('adminSms.title', '인증 SMS(Twilio) 설정')}</div>
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>💬 {t('adminSms.title', '인증 SMS(Twilio) 설정')}</div>
         <div style={{ fontSize: 12, lineHeight: 1.7, color: "var(--text-3)", marginBottom: 12 }}>
           {twilioSet
             ? `✅ ${t('adminSms.onNote', 'Twilio 설정됨 — 로그인 2단계 인증·휴대폰 본인확인·비밀번호 재설정 SMS가 모두 Twilio로 발송됩니다.')}`
@@ -630,7 +630,7 @@ function TabChannelOauth() {
         <div style={{ display: 'flex', gap: 8 }}>
           <input type="email" value={notifyEmail} onChange={e => setNotifyEmail(e.target.value)} autoComplete="off" placeholder="ops@your-company.com"
             style={{ flex: 1, boxSizing: 'border-box', padding: '10px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-1)', fontSize: 12.5, outline: 'none' }} />
-          <button onClick={saveNotify} disabled={notifyBusy} style={{ padding: '10px 18px', borderRadius: 9, border: 'none', cursor: notifyBusy ? 'not-allowed' : 'pointer', background: notifyBusy ? 'rgba(79,142,247,0.25)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 12.5, fontWeight: 800 }}>{notifyBusy ? '저장 중...' : '저장'}</button>
+          <button onClick={saveNotify} disabled={notifyBusy} style={{ padding: '10px 18px', borderRadius: 9, border: 'none', cursor: notifyBusy ? 'not-allowed' : 'pointer', background: notifyBusy ? 'rgba(79,142,247,0.25)' : 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>{notifyBusy ? '저장 중...' : '저장'}</button>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))', gap: 14 }}>
@@ -643,7 +643,7 @@ function TabChannelOauth() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 20 }}>{p.icon}</span>
                 <span style={{ fontWeight: 800, fontSize: 13.5, flex: 1 }}>{p.name}</span>
-                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 9px', borderRadius: 20, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.12)', color: on ? '#4ade80' : '#94a3b8' }}>{on ? '✅ 활성' : '미설정'}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: on ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.12)', color: on ? '#4ade80' : '#94a3b8' }}>{on ? '✅ 활성' : '미설정'}</span>
               </div>
               {/* Redirect URI 안내 */}
               <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginBottom: 4 }}>① provider 콘솔에 등록할 Redirect URI</div>

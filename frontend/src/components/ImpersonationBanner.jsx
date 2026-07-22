@@ -33,7 +33,7 @@ export default function ImpersonationBanner() {
       color: "#fff", fontSize: 12.5, fontWeight: 700, zIndex: 50,
       boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
     }}>
-      <span style={{ fontSize: 15 }}>🪟</span>
+      <span style={{ fontSize: 14 }}>🪟</span>
       <span>관리자 대행 열람(회원세션) — <b>{label}</b>
         {imp.email && imp.name ? <span style={{ opacity: 0.85, fontWeight: 500 }}> ({imp.email})</span> : null}
         {imp.plan ? <span style={{ marginLeft: 6, padding: "1px 8px", borderRadius: 20, background: "rgba(255,255,255,0.2)", fontSize: 10.5, textTransform: "uppercase" }}>{imp.plan}</span> : null}

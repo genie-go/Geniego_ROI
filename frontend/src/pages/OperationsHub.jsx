@@ -106,7 +106,7 @@ function ProductTab() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:10 }}>
         {[{l:t('operations.statusActive'),v:kpis.active,c:'#22c55e',icon:'\ud83d\udfe2'},{l:t('operations.statusPaused'),v:kpis.paused,c:'#eab308',icon:'\u23f8'},{l:t('operations.statusSoldout'),v:kpis.soldout,c:'#ef4444',icon:'\ud83d\udd34'},{l:t('operations.statusLowStock'),v:kpis.lowStock,c:'#f97316',icon:'\u26a0\ufe0f'},{l:t('operations.avgMargin'),v:kpis.avgMargin+'%',c:'#4f8ef7',icon:'\ud83d\udcca'},{l:t('operations.stockAsset'),v:fmtW(kpis.totalValue),c:'#a855f7',icon:'\ud83d\udcb0'}].map(({l,v,c,icon})=>(
           <div key={l} style={{padding:'10px 12px',borderRadius:12,background:`${c}0d`,border:`1px solid ${c}22`,textAlign:'center'}}>
-            <div style={{ fontSize:9, color:'var(--text-3)', fontWeight:700, marginBottom:2 }}>{icon} {l}</div>
+            <div style={{ fontSize:10, color:'var(--text-3)', fontWeight:700, marginBottom:2 }}>{icon} {l}</div>
             <div style={{ fontSize:16, fontWeight:900, color:c }}>{v}</div>
           </div>
         ))}
@@ -151,7 +151,7 @@ function ProductTab() {
               {filtered.length===0&&<tr><td colSpan={10} style={{ textAlign:'center', color:'var(--text-3)', padding:40 }}>{t('operations.noProducts')}</td></tr>}
               {filtered.map(p=>{const sc=STATUS_CFG[p.status];const low=isLow(p);return(
                 <tr key={p.id} style={{ background:low?'rgba(249,115,22,0.03)':p.status==='soldout'?'rgba(239,68,68,0.03)':'' }}>
-                  <td><div style={{ fontWeight:700, fontSize:9, fontFamily:'monospace', color:'#4f8ef7', marginTop:1 }} >{p.name}</div><div>{p.sku}</div></td>
+                  <td><div style={{ fontWeight:700, fontSize:10, fontFamily:'monospace', color:'#4f8ef7', marginTop:1 }} >{p.name}</div><div>{p.sku}</div></td>
                   <td style={{ fontSize:11, color:'var(--text-3)' }}>{p.category}</td>
                   <td style={{ fontSize:11 }}>{p.supplier}</td>
                   <td style={{ textAlign:'center', fontFamily:'monospace', fontWeight:700, fontSize:13 }}>{fmtW(p.price)}</td>
@@ -188,7 +188,7 @@ function ProductTab() {
             <tbody>
               {filtered.map(p=>{const m=margin(p);return(
                 <tr key={p.id}>
-                  <td><div style={{ fontWeight:700, fontSize:9, fontFamily:'monospace', color:'#4f8ef7' }} >{p.name}</div><div>{p.sku}</div></td>
+                  <td><div style={{ fontWeight:700, fontSize:10, fontFamily:'monospace', color:'#4f8ef7' }} >{p.name}</div><div>{p.sku}</div></td>
                   <td style={{ fontSize:11, color:'var(--text-3)' }}>{p.supplier}</td>
                   <td style={{ textAlign:'right', fontFamily:'monospace', fontSize:12 }}>{fmtW(p.cost)}</td>
                   <td style={{ textAlign:'right', fontFamily:'monospace', fontSize:12, color:'var(--text-3)' }}>{p.supplyPrice?fmtW(p.supplyPrice):'\u2014'}</td>
@@ -321,7 +321,7 @@ function CampaignTab() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:10, marginBottom:12 }}>
               {[[t('operations.budget'),fmtW(c.budget),"#4f8ef7"],[t('operations.spent'),fmtW(c.spend),"#f97316"],["ROAS",c.roas?c.roas+"x":"\u2014","#22c55e"],[t('operations.impressions'),(c.impressions>=1e6?(c.impressions/1e6).toFixed(1)+"M":(c.impressions/1000).toFixed(0)+"K"),"#a855f7"],[t('operations.clicks'),(c.clicks/1000).toFixed(1)+"K","#14d9b0"]].map(([l,v,col])=>(
                 <div key={l} style={{ textAlign:"center", padding:"8px 4px", borderRadius:10, background:"rgba(9,15,30,0.5)" }}>
-                  <div style={{ fontSize:9, color:"var(--text-3)", fontWeight:700, marginBottom:3 }}>{l}</div>
+                  <div style={{ fontSize:10, color:"var(--text-3)", fontWeight:700, marginBottom:3 }}>{l}</div>
                   <div style={{ fontSize:14, fontWeight:800, color:col }}>{v}</div>
                 </div>
               ))}
@@ -469,8 +469,8 @@ function UsageGuide({t}) {
             {steps.map(i=>(
               <div key={i} style={{ padding:14, borderRadius:12, background:"rgba(249,115,22,0.03)", border:"1px solid rgba(249,115,22,0.08)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                  <span style={{ width:24, height:24, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, background:"linear-gradient(135deg,#f97316,#a855f7)", color: '#fff' }}>{i}</span>
-                  <span style={{ fontWeight:800, fontSize:12, color:"#f97316" }}>{t(`operations.guideStep${i}Title`)}</span>
+                  <span style={{ width:24, height:24, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, background:"linear-gradient(135deg,#f97316,#a855f7)", color: '#fff' }}>{i}</span>
+                  <span style={{ fontWeight:700, fontSize:12, color:"#f97316" }}>{t(`operations.guideStep${i}Title`)}</span>
                 </div>
                 <p style={{ fontSize:11, color:'var(--text-3)', lineHeight:1.6, margin:0 }}>{t(`operations.guideStep${i}Desc`)}</p>
               </div>

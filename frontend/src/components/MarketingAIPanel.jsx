@@ -298,9 +298,9 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                     {/* All 요약 */}
                     <div style={CARD}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
-                            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1.2 }}>📋 마케팅 종합 AI 결론</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1.2 }}>📋 마케팅 종합 AI 결론</div>
                             <span style={{
-                                fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 20,
+                                fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
                                 background: (result.engine === 'rule-based') ? 'rgba(148,163,184,0.15)' : 'rgba(79,142,247,0.15)',
                                 color: (result.engine === 'rule-based') ? '#94a3b8' : '#7eaefb',
                                 border: `1px solid ${(result.engine === 'rule-based') ? 'rgba(148,163,184,0.3)' : 'rgba(79,142,247,0.3)'}`
@@ -340,7 +340,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                             const col = flat ? 'var(--text-3)' : (up ? '#4ade80' : '#f87171');
                             return (
                                 <div style={{ background: 'rgba(0,0,0,0.22)', borderRadius: 8, padding: '8px 10px', flex: '1 1 90px' }}>
-                                    <div style={{ fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase' }}>{label}</div>
+                                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>{label}</div>
                                     <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
                                         {flat ? '—' : `${up ? '▲' : '▼'} ${Math.abs(v)}${pp ? '%p' : '%'}`}
                                     </div>
@@ -349,7 +349,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                         };
                         return (
                             <div style={CARD}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{tx('changeTitle')}</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{tx('changeTitle')}</div>
                                 {ca.period_days ? <div style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 10 }}>{tx('vsPrev', { d: ca.period_days })}</div> : null}
                                 {result.change_analysis && (
                                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -369,7 +369,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                         {result.anomalies.map((a, i) => (
                                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: `${SEV[a.severity] || '#94a3b8'}14`, border: `1px solid ${SEV[a.severity] || '#94a3b8'}33` }}>
-                                                <span style={{ fontSize: 10, fontWeight: 900, color: SEV[a.severity] || '#94a3b8', minWidth: 44 }}>{a.metric}</span>
+                                                <span style={{ fontSize: 10, fontWeight: 700, color: SEV[a.severity] || '#94a3b8', minWidth: 44 }}>{a.metric}</span>
                                                 <span style={{ fontSize: 11.5, color: 'var(--text-2)', lineHeight: 1.45 }}>{a.note}</span>
                                             </div>
                                         ))}
@@ -410,7 +410,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                         {(result.channels || []).map(ch => (
                             <div key={ch.name} style={{ ...CARD, padding: '18px', borderTop: `3px solid ${GRADE_COL[ch.grade] || '#4f8ef7'}`, marginBottom: 0 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{ch.name}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{ch.name}</div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--surface)', padding: '4px 10px', borderRadius: 20 }}>
                                         <span style={{ fontSize: 14, fontWeight: 900, color: GRADE_COL[ch.grade] || '#fff' }}>{ch.grade}</span>
                                         <span style={{ fontSize: 14, fontWeight: 800, color: '#4f8ef7' }}>{ch.score}점</span>
@@ -425,8 +425,8 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                                         return (
                                             <div key={k} style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 8, padding: '8px 10px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                                                    <span style={{ fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase' }}>{LBL[k] || k}</span>
-                                                    <span style={{ fontSize: 10, fontWeight: 800, color: '#4f8ef7' }}>{v}</span>
+                                                    <span style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase' }}>{LBL[k] || k}</span>
+                                                    <span style={{ fontSize: 10, fontWeight: 700, color: '#4f8ef7' }}>{v}</span>
                                                 </div>
                                                 <div style={{ width: '100%', height: 4, background: 'var(--border)', borderRadius: 2 }}>
                                                     <div style={{
@@ -441,11 +441,11 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                                 {/* 강점·개선 */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
                                     <div style={{ background: 'rgba(34,197,94,0.06)', borderRadius: 8, padding: '10px 12px', border: '1px solid rgba(34,197,94,0.1)' }}>
-                                        <div style={{ fontSize: 10, fontWeight: 800, color: '#4ade80', marginBottom: 6 }}>▲ 강점</div>
+                                        <div style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', marginBottom: 6 }}>▲ 강점</div>
                                         {(ch.strengths || []).map((s, i) => <div key={i} style={{ fontSize: 11, color: 'var(--text-2)', margin: '3px 0', lineHeight: 1.4 }}>{s}</div>)}
                                     </div>
                                     <div style={{ background: 'rgba(248,113,113,0.06)', borderRadius: 8, padding: '10px 12px', border: '1px solid rgba(248,113,113,0.1)' }}>
-                                        <div style={{ fontSize: 10, fontWeight: 800, color: '#f87171', marginBottom: 6 }}>▼ 개선</div>
+                                        <div style={{ fontSize: 10, fontWeight: 700, color: '#f87171', marginBottom: 6 }}>▼ 개선</div>
                                         {(ch.weaknesses || []).map((w, i) => <div key={i} style={{ fontSize: 11, color: 'var(--text-2)', margin: '3px 0', lineHeight: 1.4 }}>{w}</div>)}
                                     </div>
                                 </div>
@@ -466,7 +466,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
                     {(result.budget_reallocation || []).length > 0 && (
                         <div style={CARD}>
                             <div style={{
-                                fontSize: 12, fontWeight: 800, color: 'var(--text-3)',
+                                fontSize: 12, fontWeight: 700, color: 'var(--text-3)',
                                 marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1
                             }}>
                                 💰 예산 최적화 추천
@@ -495,7 +495,7 @@ export default function MarketingAIPanel({ channels = {}, campaigns = [], compar
             {history && (
                 <div style={CARD}>
                     <div style={{
-                        fontSize: 12, fontWeight: 800, color: 'var(--text-3)',
+                        fontSize: 12, fontWeight: 700, color: 'var(--text-3)',
                         marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1
                     }}>📜 분석 이력 (최근 5건)</div>
                     {history.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', padding: '10px 0' }}>데이터가 없습니다</div>}

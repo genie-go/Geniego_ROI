@@ -231,7 +231,7 @@ function LiveOverlay({ interactive, t }) {
       {/* 활성 투표 실시간 결과 */}
       {poll && Array.isArray(poll.results) && (
         <div style={{ position: 'absolute', left: 10, bottom: 10, width: 220, background: 'rgba(15,23,42,0.72)', color: '#fff', borderRadius: 10, padding: '8px 10px', backdropFilter: 'blur(6px)' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, marginBottom: 6 }}>📊 {poll.question || t('liveCommerce.livePoll', '실시간 투표')} · {poll.total || 0}{t('liveCommerce.votesUnit', '표')}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>📊 {poll.question || t('liveCommerce.livePoll', '실시간 투표')} · {poll.total || 0}{t('liveCommerce.votesUnit', '표')}</div>
           {poll.results.slice(0, 4).map((o, i) => {
             const pct = Math.round((Number(o.votes) || 0) / pollTotal * 100);
             return (
@@ -248,7 +248,7 @@ function LiveOverlay({ interactive, t }) {
         <div style={{ position: 'absolute', left: 10, top: 10, display: 'flex', gap: 8, alignItems: 'center', background: 'rgba(15,23,42,0.72)', color: '#fff', borderRadius: 10, padding: '6px 10px', maxWidth: 260, backdropFilter: 'blur(6px)' }}>
           {feat.image ? <img src={feat.image} alt="" style={{ width: 34, height: 34, borderRadius: 7, objectFit: 'cover' }} /> : <span style={{ fontSize: 20 }}>🛍️</span>}
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{feat.name}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{feat.name}</div>
             <div style={{ fontSize: 11, color: '#22c55e', fontWeight: 700 }}>{Number(feat.special_price || feat.price || 0).toLocaleString()}{t('liveCommerce.won', '원')}</div>
           </div>
         </div>
@@ -309,7 +309,7 @@ export default function LiveCommerce() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
         <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>🎬 {t('liveCommerce.title', '라이브 커머스')}</h1>
         {active?.status === 'live'
-          ? <span style={{ background: C.live, color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 12px', borderRadius: 20, animation: 'pulse 1.5s infinite' }}>● LIVE</span>
+          ? <span style={{ background: C.live, color: '#fff', fontSize: 12, fontWeight: 700, padding: '3px 12px', borderRadius: 20, animation: 'pulse 1.5s infinite' }}>● LIVE</span>
           : <span style={{ background: '#f1f5f9', color: C.sub, fontSize: 12, fontWeight: 700, padding: '3px 12px', borderRadius: 20 }}>OFF AIR</span>}
         {IS_DEMO && <span style={{ background: '#ede9fe', color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>DEMO</span>}
       </div>
@@ -484,14 +484,14 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
               <div style={{ fontSize: 44 }}>📷</div>
               <div style={{ fontSize: 13, marginTop: 6 }}>{t('liveCommerce.camOff', '카메라가 꺼져 있습니다')}</div>
             </div>}
-            {isLive && <span style={{ position: 'absolute', top: 12, left: 12, background: C.live, color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 6 }}>● LIVE</span>}
+            {isLive && <span style={{ position: 'absolute', top: 12, left: 12, background: C.live, color: '#fff', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>● LIVE</span>}
             <span style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>👁 {stats?.viewers ?? 0}</span>
             {/* 현재 노출 상품 오버레이 */}
             {featured && <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, background: 'rgba(255,255,255,.95)', borderRadius: 10, padding: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ fontSize: 28 }}>{featured.image || '🛍️'}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 13, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{featured.name}</div>
-                <div style={{ fontSize: 12, color: C.live, fontWeight: 800 }}>{money(featured.special_price || featured.price)}
+                <div style={{ fontSize: 12, color: C.live, fontWeight: 700 }}>{money(featured.special_price || featured.price)}
                   {Number(featured.special_price) > 0 && Number(featured.special_price) < Number(featured.price) && <span style={{ color: C.sub, textDecoration: 'line-through', fontWeight: 500, marginLeft: 6 }}>{money(featured.price)}</span>}</div>
               </div>
               <span style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.stock', '재고')} {featured.stock}</span>
@@ -703,7 +703,7 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
             <span style={{ fontSize: 16 }}>{m.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 700 }}>{d.label || m.name}
-                <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: d.status === 'live' ? '#fee2e2' : '#f1f5f9', color: d.status === 'live' ? '#ef4444' : C.sub }}>{d.status === 'live' ? '● LIVE' : 'IDLE'}</span></div>
+                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10, background: d.status === 'live' ? '#fee2e2' : '#f1f5f9', color: d.status === 'live' ? '#ef4444' : C.sub }}>{d.status === 'live' ? '● LIVE' : 'IDLE'}</span></div>
               <div style={{ fontSize: 10, color: C.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.rtmp_url || t('liveCommerce.rtmpUnset', '(RTMP URL 미설정)')} · {d.hasKey ? '🔑 ' + d.stream_key : t('liveCommerce.noKey', '키 없음')}</div>
             </div>
             <button onClick={() => toggle(d)} title={t('liveCommerce.toggle', '활성/비활성')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}>{d.enabled ? '🟢' : '⚪'}</button>
@@ -901,7 +901,7 @@ const SessionsTab = memo(function SessionsTab({ sessions, setActiveId, reload, t
         {sessions.length === 0 ? <div style={{ color: C.sub, fontSize: 13 }}>{t('liveCommerce.noSessionYet', '생성된 방송이 없습니다. 우측에서 새 방송을 만드세요.')}</div>
           : sessions.map(s => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
-              <span style={{ background: (STATUS[s.status] || STATUS.ended).c + '18', color: (STATUS[s.status] || STATUS.ended).c, fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6, minWidth: 56, textAlign: 'center' }}>{(STATUS[s.status] || STATUS.ended).l}</span>
+              <span style={{ background: (STATUS[s.status] || STATUS.ended).c + '18', color: (STATUS[s.status] || STATUS.ended).c, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, minWidth: 56, textAlign: 'center' }}>{(STATUS[s.status] || STATUS.ended).l}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 13 }}>{s.title}</div>
                 <div style={{ fontSize: 11, color: C.sub }}>{s.host || '—'} · {(s.channels || []).map(c => channelMeta(c).icon).join(' ') || t('liveCommerce.noChannel', '송출채널 미지정')}{s.scheduled_at ? ' · ' + s.scheduled_at : ''}</div>
@@ -989,7 +989,7 @@ const IntegrationsTab = memo(function IntegrationsTab({ t }) {
                 return <div key={ch.id} onClick={() => navigate(tgt.route)} style={{ cursor: 'pointer', border: `1px solid ${on ? '#86efac' : C.border}`, borderRadius: 10, padding: 12, background: on ? '#f0fdf4' : '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 22 }}>{ch.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ch.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ch.name}</div>
                     <div style={{ fontSize: 10, color: on ? '#16a34a' : C.sub, fontWeight: 700 }}>
                       {!tracked ? '↗ ' + t('liveCommerce.manageInMenu', '담당 메뉴에서 관리')
                         : on ? '● ' + t('liveCommerce.connected', '연결됨')
@@ -1070,7 +1070,7 @@ const GuestsTab = memo(function GuestsTab({ session, t }) {
             <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 10px', borderRadius: 9, border: `1px solid ${C.border}` }}>
               <span style={{ fontWeight: 700, fontSize: 13 }}>{g.role === 'cohost' ? '⭐' : '🎙️'} {g.name}</span>
               <span style={{ fontSize: 10, color: C.sub }}>{g.role === 'cohost' ? t('liveCommerce.guestCohost', '코호스트') : t('liveCommerce.guestGuest', '게스트')}</span>
-              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 9.5, fontWeight: 800, background: (stColor[g.status] || '#94a3b8') + '22', color: stColor[g.status] || '#94a3b8' }}>{g.status}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 99, fontSize: 10.5, fontWeight: 700, background: (stColor[g.status] || '#94a3b8') + '22', color: stColor[g.status] || '#94a3b8' }}>{g.status}</span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 5 }}>
                 {g.status === 'joined' && <Btn small ghost onClick={() => setStatus(g, 'muted')}>{t('liveCommerce.guestMute', '음소거')}</Btn>}
                 {g.status === 'muted' && <Btn small ghost onClick={() => setStatus(g, 'joined')}>{t('liveCommerce.guestUnmute', '해제')}</Btn>}
@@ -1241,7 +1241,7 @@ const LiveInteractive = memo(function LiveInteractive({ sid, isHost, t }) {
       {/* 이모지 반응 바 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {LIVE_EMOJIS.map(e => <button key={e} onClick={() => react(e)} style={{ fontSize: 18, background: 'rgba(0,0,0,0.04)', border: `1px solid ${C.border}`, borderRadius: 10, padding: '4px 9px', cursor: 'pointer' }}>{e}</button>)}
-        <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 800, color: '#ec4899' }}>❤ {reTotal.toLocaleString()}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: '#ec4899' }}>❤ {reTotal.toLocaleString()}</span>
       </div>
       {recent.length > 0 && <div style={{ fontSize: 16, letterSpacing: 1, marginBottom: 10, opacity: 0.85 }}>{recent.slice(-14).join('')}</div>}
       {/* 투표(호스트 생성) */}
@@ -1345,7 +1345,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
           {/* [현 차수] WHEP 실시간 영상 — 재생 시 플레이스홀더 위로 표시 */}
           <video ref={videoRef} playsInline autoPlay style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: playing ? 'block' : 'none', zIndex: 0 }} />
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ background: session.status === 'live' ? '#ef4444' : '#64748b', color: '#fff', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 6 }}>{session.status === 'live' ? '● LIVE' : 'VOD'}</span>
+            <span style={{ background: session.status === 'live' ? '#ef4444' : '#64748b', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{session.status === 'live' ? '● LIVE' : 'VOD'}</span>
             <span style={{ background: 'rgba(0,0,0,.5)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>👁 {stats?.viewers ?? 0}</span>
           </div>
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', color: '#fff', visibility: playing ? 'hidden' : 'visible' }}>
@@ -1364,7 +1364,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
         <div style={{ fontSize: 34 }}>{featured.image || '🛍️'}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 14 }}>{featured.name}</div>
-          <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 900 }}>{money(featured.special_price || featured.price)}
+          <div style={{ fontSize: 14, color: '#ef4444', fontWeight: 900 }}>{money(featured.special_price || featured.price)}
             {Number(featured.special_price) > 0 && Number(featured.special_price) < Number(featured.price) && <span style={{ color: C.sub, textDecoration: 'line-through', fontWeight: 500, fontSize: 12, marginLeft: 6 }}>{money(featured.price)}</span>}</div>
           <div style={{ fontSize: 11, color: C.sub }}>{t('liveCommerce.stock', '재고')} {featured.stock} · {t('liveCommerce.sold', '판매')} {featured.sold || 0}</div>
         </div>
@@ -1388,7 +1388,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
               <span style={{ fontSize: 22 }}>{p.image || '🛍️'}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 12 }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 800 }}>{money(p.special_price || p.price)}</div>
+                <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 700 }}>{money(p.special_price || p.price)}</div>
               </div>
               <Btn small color="#ef4444" onClick={() => buy(p)} disabled={Number(p.stock) <= 0}>{Number(p.stock) <= 0 ? t('liveCommerce.soldOut', '품절') : t('liveCommerce.buy', '구매')}</Btn>
               <Btn small ghost onClick={() => commentOrder(p)}>💬 {t('liveCommerce.commentOrder', '댓글주문')}</Btn>

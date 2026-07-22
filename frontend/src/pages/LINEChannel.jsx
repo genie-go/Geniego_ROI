@@ -163,7 +163,7 @@ function CampaignsTab({ campaigns, templates = [], isDemo = false, onChanged }) 
                         {[[t('line.metricSent','Sent'), (c.sent || 0).toLocaleString()], [t('line.metricOpenRate','Open Rate'), `${c.sent ? (((c.opened || 0) / c.sent) * 100).toFixed(1) : (c.open_rate ?? 0)}%`], [t('line.metricClickRate','Click Rate'), `${c.sent ? (((c.clicked || 0) / c.sent) * 100).toFixed(1) : (c.click_rate ?? 0)}%`]].map(([l, v]) => (
                             <div key={l} style={{ background: 'var(--surface)', borderRadius: 8, padding: "10px 12px" }}>
                                 <div style={{ fontSize: 10, color: C.muted, marginBottom: 4 }}>{l}</div>
-                                <div style={{ fontWeight: 800, fontSize: 15 }}>{v}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14 }}>{v}</div>
                             </div>
                         ))}
                     </div>

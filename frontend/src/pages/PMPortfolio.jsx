@@ -66,7 +66,7 @@ export default function PMPortfolio() {
 
       {sel && rollup && rollup.summary && (
         <div style={{ ...tile, borderColor: '#334155' }}>
-          <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>📊 {sel.name} — {t('pmx.pf.rollup', '롤업 EVM')}</div>
+          <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>📊 {sel.name} — {t('pmx.pf.rollup', '롤업 EVM')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 16 }}>
             <Metric label={t('pmx.pf.projects', '프로젝트')} v={rollup.summary.projects} c="#4f8ef7" />
             <Metric label={t('pmx.evm.completion', '완성도')} v={`${rollup.summary.completion_pct}%`} c="#06b6d4" />

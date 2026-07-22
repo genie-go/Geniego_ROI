@@ -10,7 +10,7 @@ const S = {
     wrap: { maxWidth: 780, margin: "0 auto", padding: "0 28px 80px" },
     section: { marginBottom: 40 },
     h2: { fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 },
-    h3: { fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 10, marginTop: 20 },
+    h3: { fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 10, marginTop: 20 },
     p: { fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 2, marginBottom: 12 },
     ul: { paddingLeft: 20, marginBottom: 16 },
     li: { fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 2.2 },

@@ -28,7 +28,7 @@ function Section({ title, emoji, open, setOpen, hidden, onToggleHidden, children
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderBottom: open ? `1px solid ${C.border}` : "none", background: "#f1f5f9" }}>
                 <button onClick={() => setOpen(o => !o)} style={{ background: "none", border: "none", cursor: "pointer", flex: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 18 }}>{emoji}</span>
-                    <span style={{ fontSize: 15, fontWeight: 900, color: C.text1 }}>{title}</span>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: C.text1 }}>{title}</span>
                     <span style={{ fontSize: 12, color: C.text3 }}>{open ? t('siteIntroAdmin.collapse', '▼ 접기') : t('siteIntroAdmin.expand', '▶ 펼치기')}</span>
                 </button>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: hidden ? "#dc2626" : C.text2, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -158,7 +158,7 @@ export default function SiteIntroAdmin() {
                 <div style={{ display: "grid", gap: 8 }}>
                     {history.map(h => (
                         <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: "#f8fafc", border: `1px solid ${C.border}` }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: C.accent, width: 70 }}>{h.ymd}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: C.accent, width: 70 }}>{h.ymd}</span>
                             <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: C.text1 }}>{h.title}</span>
                             <button onClick={() => editHistory(h)} style={btn("#eef2ff", "#4338ca")}>편집</button>
                             <button onClick={() => delHistory(h.id)} style={btn("#fef2f2", "#dc2626")}>삭제</button>

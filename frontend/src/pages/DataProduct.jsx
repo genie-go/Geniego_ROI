@@ -158,8 +158,8 @@ function PipelineStep({ icon, title, sub, color, arrow }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ display: "grid", gap: 4, padding: "14px 18px", borderRadius: 12, minWidth: 140, textAlign: "center", background: `${color}10`, border: `1.5px solid ${color}40` }}>
                 <div style={{ fontSize: 22 }}>{icon}</div>
-                <div style={{ fontWeight: 800, fontSize: 11, color }}>{title}</div>
-                <div style={{ fontSize: 9, color: "var(--text-3)" }}>{sub}</div>
+                <div style={{ fontWeight: 700, fontSize: 11, color }}>{title}</div>
+                <div style={{ fontSize: 10, color: "var(--text-3)" }}>{sub}</div>
             {arrow && <div style={{ fontSize: 18, color: "var(--text-3)", fontWeight: 900 }}>→</div>}
         </div>
     </div>
@@ -349,7 +349,7 @@ export default function DataProduct() {
                         ].map(k => (
                             <div key={k.l} style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.15)" }}>
                                 <span style={{ fontWeight: 900, fontSize: 14, color: "#4f8ef7" }}>{k.v}</span>
-                                <span style={{ fontSize: 9, color: "var(--text-3)", marginLeft: 5 }}>{k.l}</span>
+                                <span style={{ fontSize: 10, color: "var(--text-3)", marginLeft: 5 }}>{k.l}</span>
                             </div>
                         ))}
                         {connectedChannels.length > 0 && <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#a855f718", color: "#a855f7", border: "1px solid #a855f733" }}>🔗 {connectedChannels.length} {t("dataProduct.channelsLinked")}</span>}
@@ -364,8 +364,8 @@ export default function DataProduct() {
                             flex: 1, padding: "10px 6px", border: "none", cursor: "pointer", textAlign: "center", borderRadius: "8px 8px 0 0",
                             background: tab === tb.id ? "rgba(79,142,247,0.08)" : "transparent",
                             borderBottom: `2px solid ${tab === tb.id ? "#4f8ef7" : "transparent"}`, transition: "all 200ms" }}>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.icon} {tb.label}</div>
-                            <div style={{ fontSize: 8, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: tab === tb.id ? "var(--text-1)" : "var(--text-2)" }}>{tb.icon} {tb.label}</div>
+                            <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{tb.desc}</div>
                         </button>
                     ))}
                 </div>
@@ -389,7 +389,7 @@ export default function DataProduct() {
                         </div>
 
                         <div className="card card-glass fade-up" style={{ padding: 20 }}>
-                            <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 14 }}>🌐 {t("dataProduct.coverageTitle")}</div>
+                            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 14 }}>🌐 {t("dataProduct.coverageTitle")}</div>
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 10 }}>
                                 {[
                                     { region: t("dataProduct.regionDomAds"), platforms: ["Kakao Moment", "Naver SearchAds", "Naver GFA", "Coupang Ads", "11st Ads"], color: "#22c55e" },
@@ -400,9 +400,9 @@ export default function DataProduct() {
                                     { region: t("dataProduct.regionGblUgc"), platforms: ["TikTok Creator", "Instagram Global", "YouTube Global"], color: "#ec4899" },
                                 ].map(g => (
                                     <div key={g.region} style={{ padding: 12, borderRadius: 10, background: `${g.color}07`, border: `1px solid ${g.color}25` }}>
-                                        <div style={{ fontWeight: 800, fontSize: 10, color: g.color, marginBottom: 8 }}>{g.region}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 10, color: g.color, marginBottom: 8 }}>{g.region}</div>
                                         {g.platforms.map(p => (
-                                            <div key={p} style={{ fontSize: 9, color: g.color, marginBottom: 3, display: "flex", alignItems: "center", gap: 5 }} ><span>▪</span>{p}</div>
+                                            <div key={p} style={{ fontSize: 10, color: g.color, marginBottom: 3, display: "flex", alignItems: "center", gap: 5 }} ><span>▪</span>{p}</div>
                                         ))}
                                     </div>
                                 ))}
@@ -412,7 +412,7 @@ export default function DataProduct() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
                             {Object.entries(C).filter(([k]) => k !== "common" && k !== "unified").map(([k, v]) => (
                                 <div key={k} style={{ padding: 16, borderRadius: 12, background: v.bg, border: `1px solid ${v.border}` }}>
-                                    <div style={{ fontWeight: 900, fontSize: 12, color: v.text, marginBottom: 8 }}>{v.label} {t("dataProduct.domainLabel")}</div>
+                                    <div style={{ fontWeight: 700, fontSize: 12, color: v.text, marginBottom: 8 }}>{v.label} {t("dataProduct.domainLabel")}</div>
                                     <div style={{ fontSize: 10, color: "var(--text-3)" }}>
                                         {SCHEMA.filter(f => f.domain === k).length} {t("dataProduct.stdFields")} · {METRICS.filter(m => m.domain === k).length} {t("dataProduct.derivedMetrics")} · {RULES.filter(r => r.domain === k || r.domain === "unified").length} {t("dataProduct.notifRules")}
                                     </div>
@@ -443,9 +443,9 @@ export default function DataProduct() {
                                         const col = C[f.domain] || C.common;
                                         return (
                                             <tr key={f.field}>
-                                                <td><span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 9, background: col.bg, color: col.text, fontWeight: 700, border: `1px solid ${col.border}` }}>{f.domain}</span></td>
+                                                <td><span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 10, background: col.bg, color: col.text, fontWeight: 700, border: `1px solid ${col.border}` }}>{f.domain}</span></td>
                                                 <td><code style={{ fontSize: 10, color: "#4f8ef7" }}>{f.field}</code></td>
-                                                <td><code style={{ fontSize: 9, color: "#a855f7" }}>{f.type}</code></td>
+                                                <td><code style={{ fontSize: 10, color: "#a855f7" }}>{f.type}</code></td>
                                                 <td style={{ textAlign: "center", color: f.nullable ? "#f59e0b" : "#22c55e" }}>{f.nullable ? "Y" : "N"}</td>
                                                 <td style={{ color: "var(--text-2)" }}>{f.desc}</td>
                                                 <td style={{ color: "var(--text-3)", fontStyle: "italic" }}>{f.example || "—"}</td>
@@ -473,19 +473,19 @@ export default function DataProduct() {
                                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                         <div style={{ width: 10, height: 10, borderRadius: 3, background: p.color, flexShrink: 0 }} />
                                         <div>
-                                            <div style={{ fontWeight: 800, fontSize: 11 }}>{p.platform}</div>
-                                            <div style={{ fontSize: 9, color: "var(--text-3)" }}>{p.region} · {p.type}</div>
+                                            <div style={{ fontWeight: 700, fontSize: 11 }}>{p.platform}</div>
+                                            <div style={{ fontSize: 10, color: "var(--text-3)" }}>{p.region} · {p.type}</div>
                                         </div>
                                     </div>
                                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                         <thead><tr>
-                                            <th style={{ fontSize: 9, textAlign: "left", padding: "3px 6px", color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.1)" }}>{t("dataProduct.rawField")}</th>
-                                            <th style={{ fontSize: 9, textAlign: "left", padding: "3px 6px", color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.1)" }}>{t("dataProduct.stdField")}</th>
+                                            <th style={{ fontSize: 10, textAlign: "left", padding: "3px 6px", color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.1)" }}>{t("dataProduct.rawField")}</th>
+                                            <th style={{ fontSize: 10, textAlign: "left", padding: "3px 6px", color: "var(--text-3)", borderBottom: "1px solid rgba(99,140,255,0.1)" }}>{t("dataProduct.stdField")}</th>
                                         </tr></thead>
                                         <tbody>{p.fields.map(f => (
                                             <tr key={f.raw}>
-                                                <td style={{ fontSize: 9, padding: "3px 6px", color: "#f59e0b", fontFamily: "monospace" }}>{f.raw}</td>
-                                                <td style={{ fontSize: 9, padding: "3px 6px", color: "#4f8ef7", fontFamily: "monospace" }}>{f.std}</td>
+                                                <td style={{ fontSize: 10, padding: "3px 6px", color: "#f59e0b", fontFamily: "monospace" }}>{f.raw}</td>
+                                                <td style={{ fontSize: 10, padding: "3px 6px", color: "#4f8ef7", fontFamily: "monospace" }}>{f.std}</td>
                                             </tr>
                                         ))}</tbody>
                                     </table>
@@ -500,17 +500,17 @@ export default function DataProduct() {
                     <div style={{ display: "grid", gap: 12 }}>
                         {METRIC_GROUPS.map(grp => (
                             <div key={grp.key} className="card card-glass fade-up" style={{ padding: 16 }}>
-                                <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 12 }}>{grp.label}</div>
+                                <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 12 }}>{grp.label}</div>
                                 <table className="table" style={{ fontSize: 10, width: "100%" }}>
                                     <thead><tr><th style={{ textAlign: "left" }} >{t("dataProduct.colMetricName")}</th><th>{t("dataProduct.colFormula")}</th><th>{t("dataProduct.colUnit")}</th><th>{t("dataProduct.colDescription")}</th><th>{t("dataProduct.colThreshold")}</th></tr></thead>
                                     <tbody>
                                         {METRICS.filter(m => m.group === grp.key).map(m => (
                                             <tr key={m.name}>
                                                 <td><strong style={{ color: "#4f8ef7" }}>{m.name}</strong></td>
-                                                <td><code style={{ fontSize: 9, color: "#a855f7", background: "rgba(168,85,247,0.06)", padding: "2px 5px", borderRadius: 4 }}>{m.formula}</code></td>
+                                                <td><code style={{ fontSize: 10, color: "#a855f7", background: "rgba(168,85,247,0.06)", padding: "2px 5px", borderRadius: 4 }}>{m.formula}</code></td>
                                                 <td style={{ color: "#22c55e", fontWeight: 700 }}>{m.unit}</td>
                                                 <td style={{ color: "var(--text-2)" }}>{m.desc}</td>
-                                                <td style={{ fontSize: 9, color: m.threshold ? "#f59e0b" : "var(--text-3)" }}>{m.threshold || "—"}</td>
+                                                <td style={{ fontSize: 10, color: m.threshold ? "#f59e0b" : "var(--text-3)" }}>{m.threshold || "—"}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -531,17 +531,17 @@ export default function DataProduct() {
                                         <span style={{ fontSize: 18 }}>{sev[2]}</span>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-                                                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-3)" }}>{r.id}</span>
-                                                <span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 9, fontWeight: 700, background: `${sev[0]}15`, color: sev[0] }}>{r.severity.toUpperCase()}</span>
-                                                <span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 9, fontWeight: 700, background: "rgba(99,140,255,0.1)", color: "var(--text-2)" }}>{r.domain}</span>
+                                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)" }}>{r.id}</span>
+                                                <span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 10, fontWeight: 700, background: `${sev[0]}15`, color: sev[0] }}>{r.severity.toUpperCase()}</span>
+                                                <span style={{ padding: "2px 7px", borderRadius: 99, fontSize: 10, fontWeight: 700, background: "rgba(99,140,255,0.1)", color: "var(--text-2)" }}>{r.domain}</span>
                                             </div>
-                                            <div style={{ fontWeight: 900, fontSize: 12, marginBottom: 4 }}>{r.title}</div>
+                                            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 4 }}>{r.title}</div>
                                             <div style={{ fontSize: 10, color: "var(--text-3)", marginBottom: 8 }}>{r.desc}</div>
-                                            <div style={{ fontSize: 9, padding: "5px 10px", borderRadius: 6, background: "rgba(99,140,255,0.06)", border: "1px solid rgba(99,140,255,0.1)", fontFamily: "monospace", color: "#4f8ef7", marginBottom: 10 }}>
+                                            <div style={{ fontSize: 10, padding: "5px 10px", borderRadius: 6, background: "rgba(99,140,255,0.06)", border: "1px solid rgba(99,140,255,0.1)", fontFamily: "monospace", color: "#4f8ef7", marginBottom: 10 }}>
                                                 <strong>{t("dataProduct.trigger")}:</strong> {r.trigger}
                                             </div>
                                             <div style={{ display: "grid", gap: 4 }}>
-                                                <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-3)" }}>{t("dataProduct.autoAction")}:</div>
+                                                <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)" }}>{t("dataProduct.autoAction")}:</div>
                                                 {r.actions.map((a, i) => (
                                                     <div key={i} style={{ fontSize: 10, display: "flex", gap: 6, alignItems: "center" }}>
                                                         <span style={{ color: sev[0], fontWeight: 700 }}>→</span>
@@ -549,7 +549,7 @@ export default function DataProduct() {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div style={{ marginTop: 10, fontSize: 9, color: "var(--text-3)", borderTop: "1px solid rgba(99,140,255,0.08)", paddingTop: 8, fontFamily: "monospace" }}>{r.pipeline}</div>
+                                            <div style={{ marginTop: 10, fontSize: 10, color: "var(--text-3)", borderTop: "1px solid rgba(99,140,255,0.08)", paddingTop: 8, fontFamily: "monospace" }}>{r.pipeline}</div>
                                         </div>
                                     </div>
                                 </div>

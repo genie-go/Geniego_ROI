@@ -72,7 +72,7 @@ function PopupModal({ popup, onClose, onDismissToday, onDismissWeek }) {
                             padding: "4px 16px", borderRadius: 99,
                             background: popup.badge_color || "rgba(79,142,247,0.15)",
                             border: `1px solid ${popup.badge_color || "rgba(79,142,247,0.3)"}`,
-                            color: "#4f8ef7", fontSize: 11, fontWeight: 800,
+                            color: "#4f8ef7", fontSize: 11, fontWeight: 700,
                         }}>{popup.badge_text}</span>
                     </div>
                 )}
