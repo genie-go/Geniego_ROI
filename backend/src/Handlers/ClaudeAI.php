@@ -560,6 +560,59 @@ KB;
         return null;
     }
 
+    /**
+     * [289차 후속 / MEA 057 D-1] AI 게이트웨이 관측 스냅샷 — 관측 정본(`SystemMetrics`)이 quota 상태를
+     *   읽기 위한 유일한 공개 접근자. ★캡·테이블 지식을 외부로 복제하지 않기 위한 단일 출처(헌법 V4).
+     *
+     * ★정직 미산출 승계(057 SystemMetrics null · 058 Mmm optimized:false · 059 PriceOpt null/422):
+     *   quota 인프라(테이블/DB)가 없거나 조회 실패 시 사용량을 **0이 아니라 null** 로 반환하고
+     *   `measured=false` + `reason` 을 함께 준다. **0은 "호출이 없었다"로 오독되지만 실제로는
+     *   "측정 자체가 불가"이므로 완전히 다른 사실이다.**
+     *
+     * ★provider 를 호출하지 않는다(비용 0·지연 0) — DB 읽기 전용.
+     * @param string $tenant 빈 문자열이면 플랫폼 전체 합계(테넌트별 내역은 반환하지 않는다 — 격리).
+     */
+    public static function quotaSnapshot(string $tenant = ''): array {
+        $caps = [
+            'calls'  => self::quotaCap('AI_DAILY_CALL_CAP',  self::Q_CALL_CAP),
+            'tokens' => self::quotaCap('AI_DAILY_TOKEN_CAP', self::Q_TOKEN_CAP),
+            'img'    => self::quotaCap('AI_DAILY_IMG_CAP',   self::Q_IMG_CAP),
+        ];
+        $out = [
+            'measured' => false,
+            'reason'   => null,
+            'date'     => gmdate('Y-m-d'),
+            'scope'    => trim($tenant) !== '' ? 'tenant' : 'platform',
+            'caps'     => $caps,
+            'used'     => ['calls' => null, 'tokens' => null, 'img_calls' => null],
+        ];
+        try {
+            $pdo = Db::pdo();
+            self::ensureQuotaTable($pdo);
+            $day = gmdate('Y-m-d');
+            if (trim($tenant) !== '') {
+                $s = $pdo->prepare("SELECT COALESCE(calls,0) c, COALESCE(tokens,0) t, COALESCE(img_calls,0) i FROM ai_usage_quota WHERE tenant_id=? AND usage_date=? LIMIT 1");
+                $s->execute([trim($tenant), $day]);
+            } else {
+                // 플랫폼 합계만(테넌트 식별자 미반환 — 교차 노출 금지).
+                $s = $pdo->prepare("SELECT COALESCE(SUM(calls),0) c, COALESCE(SUM(tokens),0) t, COALESCE(SUM(img_calls),0) i FROM ai_usage_quota WHERE usage_date=?");
+                $s->execute([$day]);
+            }
+            $r = $s->fetch(\PDO::FETCH_ASSOC);
+            // 행이 없으면 "오늘 호출 0" 이 실제 사실이다(테이블은 정상 조회됨) → 0 으로 확정.
+            $out['measured'] = true;
+            $out['used'] = [
+                'calls'     => (int)($r['c'] ?? 0),
+                'tokens'    => (int)($r['t'] ?? 0),
+                'img_calls' => (int)($r['i'] ?? 0),
+            ];
+        } catch (\Throwable $e) {
+            // ★측정 불가 — 0 으로 위장하지 않는다.
+            $out['reason'] = 'quota_store_unavailable';
+        }
+        return $out;
+    }
+
     /** 성공한 provider 호출 後. 사용량 누적(driver-aware upsert). */
     private static function quotaConsume(string $tenant, string $kind = 'text', int $tokens = 0): void {
         $tenant = trim($tenant) !== '' ? trim($tenant) : 'unknown';

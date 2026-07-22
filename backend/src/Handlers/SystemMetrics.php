@@ -72,6 +72,7 @@ final class SystemMetrics
             self::probeDisk(),
             self::probeTenants(),
             self::probeMigrations(),
+            self::probeAi(),
             self::probeSelf(),
         ];
 
@@ -111,6 +112,9 @@ final class SystemMetrics
                     unset($mm['detail']['server_version'], $mm['detail']['error']);
                 }
                 if ($mid === 'tenants') { $mm['detail'] = ['restricted' => true]; }
+                // [289차 후속] AI 프로브 — 가동상태(status/latency)는 노출하되 플랫폼 quota 캡·소진량은
+                //   admin 만(비용 정책 정찰 방지). 기존 tenants 제한과 동일 원칙.
+                if ($mid === 'ai') { $mm['detail'] = ['restricted' => true]; }
             }
             unset($mm);
             $payload['cron'] = ['restricted' => true];
@@ -346,6 +350,69 @@ final class SystemMetrics
                 'latency_ms' => round((microtime(true) - $t0) * 1000, 1),
                 'rpm' => null, 'uptime' => null, 'error_rate' => null,
                 'detail' => ['error' => $e->getMessage()],
+            ];
+        }
+    }
+
+    /**
+     * [289차 후속 / MEA 057 D-1] AI 게이트웨이 프로브 — 종전 8개 프로브에 AI 축이 전무해
+     *   "AI 가 살아있는지·공용키 quota 가 얼마나 남았는지"를 관측할 수단이 없었다(MEA 057 판정).
+     *
+     * ★provider(Anthropic) 를 호출하지 않는다 — 프로브가 과금·지연을 유발하면 안 되므로
+     *   키 설정 여부(로컬 판정)와 quota 스토어 조회(DB 읽기)만 수행한다.
+     * ★quota 캡/테이블 지식은 복제하지 않고 `ClaudeAI::quotaSnapshot()` 단일 출처에서 받는다(헌법 V4).
+     * ★정직 미산출: 측정 불가 시 사용량을 0 이 아니라 **null + reason** 으로 표기(0 은 "호출 없음"으로 오독).
+     * ★테넌트 격리: 플랫폼 합계만 조회하며 테넌트별 내역은 반환하지 않는다.
+     */
+    private static function probeAi(): array
+    {
+        $t0 = microtime(true);
+        $base = ['id' => 'ai', 'name' => 'AI Gateway', 'icon' => '🤖',
+                 'rpm' => null, 'uptime' => null, 'error_rate' => null];
+        try {
+            $configured = \Genie\Handlers\ClaudeAI::aiKeyConfigured();
+            $snap = \Genie\Handlers\ClaudeAI::quotaSnapshot(); // 플랫폼 합계
+            $lat  = round((microtime(true) - $t0) * 1000, 2);
+
+            $caps = $snap['caps'] ?? [];
+            $used = $snap['used'] ?? [];
+            $measured = (bool)($snap['measured'] ?? false);
+
+            // 잔여율 — 측정 가능할 때만 산출(불가 시 null 유지).
+            $remain = null;
+            if ($measured) {
+                $ratios = [];
+                foreach ([['calls', 'calls'], ['tokens', 'tokens'], ['img_calls', 'img']] as [$uk, $ck]) {
+                    $cap = (int)($caps[$ck] ?? 0);
+                    if ($cap > 0 && $used[$uk] !== null) $ratios[] = max(0.0, 1.0 - ((int)$used[$uk] / $cap));
+                }
+                if ($ratios) $remain = round(min($ratios), 3); // 가장 빠듯한 축 기준
+            }
+
+            // status — 키 미설정/측정불가/한도임박을 정직 구분. 'ok'|'degraded' 어휘는 기존 프로브와 동일.
+            if (!$configured)                    { $status = 'degraded'; $note = 'api_key_not_configured'; }
+            elseif (!$measured)                  { $status = 'degraded'; $note = (string)($snap['reason'] ?? 'quota_unmeasurable'); }
+            elseif ($remain !== null && $remain <= 0.0) { $status = 'degraded'; $note = 'daily_quota_exhausted'; }
+            else                                 { $status = 'ok';       $note = null; }
+
+            return $base + [
+                'status' => $status,
+                'latency_ms' => $lat,
+                'detail' => [
+                    'key_configured'  => $configured,
+                    'measured'        => $measured,
+                    'usage_date'      => $snap['date'] ?? null,
+                    'daily_caps'      => $caps,
+                    'daily_used'      => $used,          // 측정 불가 시 전 항목 null
+                    'remaining_ratio' => $remain,        // 측정 불가 시 null
+                    'note'            => $note,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            return $base + [
+                'status' => 'down',
+                'latency_ms' => round((microtime(true) - $t0) * 1000, 2),
+                'detail' => ['error' => $e->getMessage(), 'measured' => false],
             ];
         }
     }
