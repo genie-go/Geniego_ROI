@@ -1,3 +1,104 @@
+# NEXT_SESSION 인계서
+
+## [289차 후속] MEA Part 064 — Enterprise Quantum Computing Readiness & Advanced Computing 설계 완결 (2026-07-22)
+
+**상태: 설계 명세 7문서 · 코드 변경 0 · 테이블 0 · 배포 없음 · NOT_CERTIFIED**
+
+### ★★핵심 판정 — ABSENT-total, 단 **"부실"이 아니라 "사업 범위 밖(out of scope)"**
+
+**§5 Canonical Entity 15종 전량 ABSENT** · 형식 용어 **전량 0**.
+062의 2종 PARTIAL-weak 조차 없어 **MEA 시리즈 실재도 최저 기록 갱신**.
+
+**부재증명(rg -w 실측 0)**: `quantum`·`qubit`·`qpu`·`superposition`·`entanglement`·`annealing`·`shor`·`grover` · SDK(`qiskit`·`cirq`·`braket`·`ionq`·`rigetti`·`dwave`) · `hpc`·`slurm`·`cuda`·`mpi`·`openmp` · **`cluster`**·**`workload`**·**`scheduler`**·`orchestrat` · PQC(`pqc`·`post_quantum`·`quantum_safe`·`kyber`·`dilithium`·`lattice`) · 엔티티 15종 전부.
+★**`cluster`·`workload`·`scheduler`가 0인 것이 결정적** — 일반 소프트웨어에서도 흔한 단어조차 없다 = **연산 인프라 개념 자체가 코드베이스에 부재**.
+
+> ★**그러나 결함이 아니다.** GeniegoROI는 **단일 호스트 PHP 8.1/MySQL 커머스·마케팅 SaaS**이고, 양자컴퓨팅·HPC 클러스터·GPU 스케줄링은 **이 제품이 파는 것이 아니다**.
+
+### ★★063과의 결정적 차이 (본 Part 핵심)
+
+| | 063 ESG | **064 Quantum/HPC** |
+|---|---|---|
+| 표면(메뉴·탭)·유료게이트·15개국라벨·챗봇 약속 | **있음** | **없음** |
+| 실체 | 없음 | 없음 |
+| **성격** | **약속-실체 불일치(실결함)** | **정직한 부재** |
+
+> **063은 팔고 있는데 없었다. 064는 팔지도 않고 없다.** 같은 ABSENT라도 **행동을 요구하는지가 정반대**다.
+
+★**판정 어휘 제5항 신설**: "미달"vs**"사업 범위 밖(out of scope)"**
+★**MEA 성격 4분류 확장**: 엔진O/RegistryX(058~061) · 엔진자체X(062) · 표면만O(063) · **사업 범위 밖(064·신설)**
+
+### ★★§13 PQC — 본 Part 유일한 실질 산출 (ADR D-2)
+
+§1~§12·§14~§19는 사업 범위 밖이나, **PQC만은 현재 보유 자산에 대한 실제 리스크 축**이라 노출면을 실측했다.
+
+**비대칭 5개소 — 전부 외부 표준 종속이라 선제 교체 불가**
+
+| file:line | 정체 | 알고리즘 |
+|---|---|---|
+| `WebPush.php:620`(`vapidJwt`:611) | Web Push VAPID | **ES256**(EC P-256) |
+| `Connectors.php:3817`(`:3808` alg) | Google 서비스계정 OAuth2 JWT | **RS256** |
+| `DataExport.php:602`(`rs256`:595) | JWT 서명 | **RS256** |
+| `EnterpriseAuth.php:536` | SSO 서명 **검증** | RSA/EC+SHA256 |
+| `EnterpriseAuth.php:600` | SAML XML c14n **검증** | RSA/EC+SHA256 |
+
+**대칭 — 교체 대상 아님**: `Crypto.php:121` **AES-256-GCM**(+`:113~114` **fail-closed**) · **`hash_hmac('sha256')` 48개소** → Grover 하에서 유효강도 절반(≈128비트)이나 **여전히 안전 영역**.
+**최대 노출 = TLS(nginx 종단)** = 앱 코드 밖·인프라 계층. **PKI/KMS/HSM 부재는 062 확정 상속·재판정 금지**.
+
+> ★★**"양자내성 암호 도입"=거짓 / "양자에 취약"=과장.**
+> 정직한 표현 = **"앱 계층에 선제 교체 대상이 사실상 없고, 노출은 외부 표준과 인프라 TLS에 있다."**
+
+★**별건(양자 무관)**: `hash_hmac('sha1')` 2 · `('md5')` 1 = 이미 약한 해시. **단 외부 채널 API 스펙 강제일 수 있어 용도 확인 선행 필요**(본 Part 범위 밖).
+
+### ★설계 제약 6종 (ADR D-1~D-6)
+
+1. **D-1** 성격=**사업 범위 밖** · §1~§12·§14~§19는 **로드맵 등재도 하지 않는다**
+2. **D-2** §13 PQC만 실질 축, **결론은 "지금 할 일이 거의 없다"**
+3. **D-3** 정본 고정(신설 금지): 계측=**`SystemMetrics`** · 감사=**`SecurityAudit`** · 대시보드=**`SystemMonitor`/`DashSystem`**(176차 ZERO-MOCK) · 스케줄=**`Reports`+cron** · 암호=**`Crypto`** · 최적화=**`Mmm::frontier`/`PriceOpt`**
+4. **D-4** ★**Registry 부재 7연속(058~064)이나 064는 공통 Registry 승격 대상에서 제외** — 사업 범위 밖이라 자산이 영원히 안 생기므로 포함 시 **과설계**
+5. **D-5** §17 AI 조항은 **현행이 구조적으로 충족** — 단 **"대상이 없어서"**(과대주장 금지)
+6. **D-6** §18 SLA는 **"측정 대상 부재"**. 단 **API 응답·Availability 범용 지표는 `SystemMetrics`(057) 관측 대상** → 스코프 분리·둘 다 참
+
+★§19는 미충족이나 **"미완성 부채"로 계상하지 않는다**(과잉 부채 계상 금지).
+
+### ★오흡수 금지 (광의 히트 전량 오탐·실측)
+
+**`nodes` 101 = `JourneyBuilder` 워크플로 노드(40) + `GraphScore` 마케팅 기여도 그래프(055)** ≠ HPC_NODE · **`queue` 39 = 업무 대기열**(입고 `GuideArrival` 15·결재 `Approvals` 5·`PM/Gantt` 5·피드백 4·접근검토 3·이메일 2) ≠ COMPUTE_QUEUE · **`throughput` 16 = `DashSystem.jsx` i18n 라벨 15개국** ≠ 연산 처리량 · **`latency` 11 = `SystemMetrics` 프로브(057)** ≠ HPC 계측 · **`simulation` 16 = `PriceOpt` 가격 시뮬(059)** ≠ Quantum Simulation · **`gpu` 6 = CSS `translateZ(0)` 렌더 레이어** ≠ GPU Computing · **`cpu` 5 = CCTV 트랜스코딩 절약 주석** ≠ HPC · **`capacity` 6 = WMS bin 물리 용량** ≠ Capacity Planning · **`worker` 7 = PHP-FPM 워커·cron 러너·e2e 풀** ≠ HPC worker · **`Reports` 스케줄러 ≠ Quantum Workload Scheduler** · **`gate`(권한) ≠ Quantum Gate** · **`Pnl` 사업비용 ≠ 연산비용**(063 D-2 동형) · **AI quota 초과 ≠ CapacityExceeded**
+
+### ★★신규 grep 트랩 (중요)
+
+**`RSA` 무경계·대소문자무시 검색 금지** — **`conve`rsa`tions`** · **`phrase`** · **`selectWarehouseForSale`** 등 **부분문자열 오탐 대량 발생**.
+→ **비대칭 암호 조사는 API 심볼로**: `openssl_sign` · `openssl_verify` · `OPENSSL_ALGO` · `openssl_pkey_get_(private|public)`
+★이 규율 덕분에 **"비대칭 1곳"이라 성급히 단정할 뻔한 것을 5개소로 정정**했다.
+
+표준 제외 유지: `--glob '!*.json' --glob '!**/i18n/**' --glob '!**/locales_backup/**' --glob '!**/_archived/**'`
+
+### 산출 7문서
+
+`docs/spec/MEA_PART064_QUANTUM_ADVANCED_COMPUTING_ARCHITECTURE_SPEC.md` · `docs/architecture/ADR_MEA_PART064_QUANTUM_ADVANCED_COMPUTING.md` · `docs/data/MEA_PART064_{EXISTING_IMPLEMENTATION,DUPLICATE_AUDIT,CANONICAL_ENTITIES,GOVERNANCE_MECHANISMS,INDEX}.md`
+
+---
+
+## ★★다음 차수 최우선
+
+### [1순위] MEA Part 065 — Enterprise Unified Intelligence Platform & Future Enterprise Reference Architecture
+064 SPEC 지정 다음 Part. 동일 7문서 파이프라인.
+
+- ★★**헌법 V4 정면 대상**: "Unified Intelligence Platform"은 **`docs/UNIFIED_INTELLIGENCE_LAYER_CONSTITUTION.md`(Volume 4)와 직접 충돌·중복 가능성이 최고**다. **반드시 헌법 원문을 먼저 읽고**, 신설이 아니라 **기존 Intelligence Layer 확장**으로 판정할 것(**중복 엔진 절대 금지**).
+- ★**성격 예고**: 065는 **시리즈 종합·참조 아키텍처**로 보인다. 051~064 판정을 집대성하는 성격이라면 **기판정 substrate 재판정 금지**가 그 어느 때보다 중요하다.
+- 조사 후보(가설·**인용 금지**): `Decisioning`·`AutoRecommend`·`Insights`·`AttributionEngine`·`CustomerAI`·`Mmm`·`DataPlatform`.
+- ★★**가설 인용 금지 재확인** — 세션 중 **4회 반증**됐다: ①053 "부재 예상" 오류 ②`ReportBuilder`=존재하지 않는 핸들러(실재 `Reports.php`) ③063 "ESG 부재" 예상과 달리 Pro 유료게이트까지 실재 ④064 "비대칭 1곳" 성급한 단정 → 실제 5개소.
+
+### [2순위] 실 구현 후보 (★전부 사용자 승인 후 별도 세션)
+1. **053 Gateway 일원화** — 053 D-2 + 056 D-4 동시 해결(057 D-1 AI 프로브는 289차 후속에 **구현·배포 완료**)
+2. **055 Knowledge/RAG** — 선행조건 4종(특히 테넌트 격리+Knowledge ACL)
+3. **`hash_hmac('sha1'/'md5')` 3개소** 용도 확인 후 SHA-256 상향 검토(★외부 스펙 강제 여부 선행 확인)
+
+### 상시 규율 (변경 없음)
+- **배포 사전승인 필수** · **push = `feat/n236-admin-growth-automation` 전용 · ★`master` 금지**
+- **인계서 작성/커밋/push는 명시 승인 후** · **credentials 평문노출 회피** · **테넌트 격리 절대**
+
+---
+
 # ★★세션 종결 요약 (289차 후속 MEA 053·055~063 연속 · 2026-07-22)
 
 **이 세션 성과**: **MEA Part 053 · 055 · 056 · 057 · 058 · 059 · 060 · 061 · 062 · 063 — 10개 Part × 7문서 = 70문서 거버넌스 파이프라인 연속 완결** (+ Part 054 소급 정합 5문서).
