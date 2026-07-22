@@ -148,7 +148,30 @@ const GROUP_LABELS = {
   web_analytics: '웹 분석 · 측정', esp: '이메일 · SMS (ESP)', support: '고객지원 (CS · 헬프데스크)', review: '리뷰 · 평판',
   own_etc: '분석 · 기타',
 };
-const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'payment', 'logistics', 'global_express', 'global_ad', 'web_analytics', 'esp', 'support', 'review', 'own_etc'];
+/* [289차 후속] ★연동허브에서 '결제 게이트웨이 (PG)' 그룹 비노출 — 사용자 결정.
+ *
+ * 판단 근거(실측):
+ *   · Paddle 은 **GeniegoROI 자체 구독 결제** 전용(paddle_subscriptions·app_user.plan)이라
+ *     고객사 화면에 노출될 이유가 없다. 정본은 admin(/admin/plan-pricing).
+ *   · 나머지 14종은 목적이 다르다 — 고객사 자사몰 결제의 **수수료·순액을 읽어오는 리포팅
+ *     연동**이다(PgSettlement 는 balance_transactions·settlements·reporting 등 조회 API 만
+ *     호출하며 결제 처리 코드는 0건). 그러나:
+ *       - 쿠팡·네이버·Shopify 는 **채널 커넥터가 이미 정산을 제공**(shopify_payments/payouts
+ *         → platform_fee·net_payout)하므로 해당 고객에겐 실제로 중복이다.
+ *       - 15종 중 실동작은 5종(Stripe·토스·PayPal·Klarna·Checkout)이고 나머지는
+ *         PgSettlement 스스로 "정직 pending"으로 표기한 미구현이다.
+ *       - ★현재 PG 자격증명 등록 0건 · pg_settlement 운영 0행 → **잃는 사용자가 없다**.
+ *
+ * ★되돌리기 쉽게 설계: 채널 정의(group:'payment')·GROUP_LABELS·백엔드 PgSettlement·
+ *   /v427/pg/* 라우트·PnLDashboard 소비부는 **전부 그대로 둔다**. 이 배열에 'payment' 를
+ *   다시 넣으면 즉시 복원된다(삭제가 아니라 비노출).
+ *   ※향후 Cafe24·고도몰·WooCommerce·Magento·라이브커머스 고객이 자사몰 결제 수수료를
+ *     요구하면 이 줄만 되돌리면 된다(그 채널들은 커넥터가 정산을 주지 못한다). */
+const GROUP_ORDER = ['sns_live', 'domestic', 'global_commerce', 'd2c', 'logistics', 'global_express', 'global_ad', 'web_analytics', 'esp', 'support', 'review', 'own_etc'];
+/** [289차 후속] 연동허브 비노출 그룹 — ★삭제가 아니라 숨김. 여기서 빼면 즉시 복원된다.
+ *  카테고리 셀렉트(:2472)·그룹 목록(:1957)·admin 레지스트리 유입분(:904) 전부에 일괄 적용해
+ *  "한 곳만 고쳐 다른 경로로 되살아나는" 사고를 막는다. */
+const HIDDEN_GROUPS = new Set(['payment']);
 // 저장 직후 즉시 동기화 대상 그룹(커머스) — 자격증명 등록하면 바로 상품/주문 동기화
 const COMMERCE_SYNC_GROUPS = ['domestic', 'global_commerce', 'd2c'];
 
@@ -1935,8 +1958,14 @@ function OverviewTab({ channels, summary, creds, regFields = {}, applies = [], l
   // 208차: 자격증명 0건이어도 채널 등록 그리드를 항상 노출(운영에서 등록 화면이 안 보이던 버그 수정).
   const totalKeys = creds.length;
   // 그룹 정렬 — GROUP_ORDER 순, 미정의 그룹은 뒤로
-  const grouped = GROUP_ORDER.map(g => ({ g, items: channels.filter(c => c.group === g) }))
-    .concat([{ g: '_other', items: channels.filter(c => !GROUP_ORDER.includes(c.group)) }])
+  /* [289차 후속] ★PG 비노출은 GROUP_ORDER 제거만으론 안 된다 —
+   *   아래 `_other` 폴백이 "GROUP_ORDER 에 없는 그룹"을 전부 주워담기 때문에
+   *   payment 15종이 '기타' 섹션으로 그대로 되살아난다(실측 확인).
+   *   → 소스 단계에서 명시 제외한다. 채널 정의·백엔드는 보존하므로
+   *     HIDDEN_GROUPS 에서 'payment' 만 빼면 즉시 복원된다. */
+  const visibleChannels = channels.filter(c => !HIDDEN_GROUPS.has(c.group));
+  const grouped = GROUP_ORDER.map(g => ({ g, items: visibleChannels.filter(c => c.group === g) }))
+    .concat([{ g: '_other', items: visibleChannels.filter(c => !GROUP_ORDER.includes(c.group)) }])
     .filter(x => x.items.length > 0);
 
   // [현 차수] 요청: 채널별로 "실제 등록된 자격증명 키명" 집합 — 일부만 등록(예: API키만, 계정ID 미등록) 판정용.
@@ -2343,7 +2372,10 @@ function SettingsTab({ t }) {
 /* ═══════════════════════════════════════════════════════════════════
    Modal: Add Credential
    ═══════════════════════════════════════════════════════════════════ */
-function AddCredModal({ channels, onClose, onSubmit, t }) {
+function AddCredModal({ channels: allCh, onClose, onSubmit, t }) {
+  /* [289차 후속] 수동 등록 드롭다운도 비노출 그룹을 제외한다 —
+   *   그룹 섹션만 숨기고 여기를 빼먹으면 "목록엔 없는데 수동으로는 등록되는" 구멍이 남는다. */
+  const channels = (allCh || []).filter(c => !HIDDEN_GROUPS.has(c.group));
   const [form, setForm] = useState({
     channel: channels[0]?.key || '', cred_type: 'api_key',
     label: '', key_name: '', key_value: '', note: ''
