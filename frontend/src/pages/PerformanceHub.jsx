@@ -1028,10 +1028,19 @@ const CohortTab = memo(function CohortTab() {
     );
 });
 
-/* ═══ ESG Reporting Tab — Zero Mock ═══════════════════ */
+/* ═══ ESG Reporting Tab — 준비 중(미구현) ═══════════════════
+ * [289차 후속 / MEA Part 063 · FIND-063-1]
+ *   이 탭에는 백엔드가 없다. ESG 핸들러·테이블·라우트가 저장소에 존재하지 않으므로
+ *   채널을 연동하거나 시간이 지나도 값이 채워지지 않는다(부재증명 = MEA_PART063 GT①).
+ *   종전엔 각 셀이 t('performance.noData')="데이터가 없습니다" 를 렌더해
+ *   **"내가 연동을 안 해서 비었다"(사용자 귀책)** 로 오독됐다 — 실제로는 **기능 미제공**이다.
+ *   → 제품 상태를 명시하는 esgNotReady 로 교체(정직 표기).
+ *   ★구현 착수 시에도 추정치·업계평균·목표치를 실측값처럼 표시하지 말 것.
+ *     산출 불가는 0 이 아니라 null + 사유(057/058/059 정직 미산출 모범 승계).
+ */
 const ESGTab = memo(function ESGTab() {
     const { t } = useI18n();
-    // Real data comes from API — no mock data
+    // 백엔드 미구현 — 값을 가져올 API 자체가 없다(MEA Part 063 판정).
     return (
         <div style={{ display: 'grid', gap: 16 }}>
             <div>
@@ -1047,7 +1056,7 @@ const ESGTab = memo(function ESGTab() {
                 ].map(r => (
                     <div key={r.area} style={{ padding: 16, borderRadius: 12, background: `${r.color}08`, border: `1px solid ${r.color}22` }}>
                         <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 10 }}>{r.area}</div>
-                        <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>{t('performance.noData')}</div>
+                        <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>{t('performance.esgNotReady')}</div>
                     </div>
                 ))}
             </div>
@@ -1061,7 +1070,7 @@ const ESGTab = memo(function ESGTab() {
                 ].map(d => (
                     <div key={d.label} style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)' }}>
                         <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>{d.label}</div>
-                        <div style={{ fontSize: 14, color: '#64748b', marginTop: 6 }}>{t('performance.noData')}</div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>{t('performance.esgNotReady')}</div>
                     </div>
                 ))}
             </div>

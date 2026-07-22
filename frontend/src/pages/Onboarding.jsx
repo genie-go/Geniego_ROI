@@ -28,7 +28,8 @@ export default function Onboarding() {
   const roles = [
     { emoji: '📈', name: o('roleMarketer', '마케터'), desc: o('guideSecMarketer', '광고 채널 연동, 어트리뷰션, AI 마케팅, CRM, A/B 테스트를 학습합니다.') },
     { emoji: '🛒', name: o('roleCommerce', '커머스'), desc: o('guideSecCommerce', '멀티채널, 주문 허브, WMS, 정산, 재고 경고를 학습합니다.') },
-    { emoji: '💰', name: o('roleFinance', '재무'), desc: o('guideSecFinance', 'P&L, 채널별 수익성, 정산 대사, ESG, 자동 보고서를 학습합니다.') },
+    // [289차 후속 / MEA Part 063 · FIND-063-1] ESG 제거 — 백엔드 미구현이라 학습 대상이 될 수 없다.
+    { emoji: '💰', name: o('roleFinance', '재무'), desc: o('guideSecFinance', 'P&L, 채널별 수익성, 정산 대사, 자동 보고서를 학습합니다.') },
     { emoji: '🚚', name: o('roleOps', '운영'), desc: o('guideSecOps', '3PL, 공급망, 반품 포탈, 아시아 물류, 운영 알림을 학습합니다.') },
     { emoji: '🛠️', name: o('roleDev', '개발'), desc: o('guideSecDev', 'API 키, 커넥터, 데이터 스키마, 모니터링, AI 정책을 학습합니다.') },
   ];

@@ -1336,7 +1336,8 @@
     "/budget-tracker",
     "/email-marketing",
     "/account-performance",
-    "/system-monitor"
+    "/system-monitor",
+    "/admin/access-review"
    ],
    "actions": [
     "취소",
@@ -5326,6 +5327,74 @@
     "pxl"
    ]
   },
+  "userManagement.stats": {
+   "ns": "userManagement.stats",
+   "title": "회원 관리",
+   "subtitle": "",
+   "paths": [
+    "/user-management"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management"
+   ],
+   "match": [
+    "회원 관리",
+    "Members",
+    "会員管理",
+    "会员管理",
+    "會員管理",
+    "Mitglieder",
+    "สมาชิก",
+    "Thành viên",
+    "Anggota",
+    "الأعضاء",
+    "Miembros",
+    "Membres",
+    "सदस्य",
+    "Membros",
+    "Участники",
+    "User Management",
+    "stats"
+   ]
+  },
+  "userManagement.header": {
+   "ns": "userManagement.header",
+   "title": "⚙️ 통합 관리자 패널",
+   "subtitle": "회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인:",
+   "paths": [
+    "/user-management"
+   ],
+   "actions": [],
+   "fields": [],
+   "notes": [],
+   "states": [],
+   "names": [
+    "⚙️ 통합 관리자 패널"
+   ],
+   "match": [
+    "RBAC",
+    "header"
+   ]
+  },
   "contentCal": {
    "ns": "contentCal",
    "title": "콘텐츠 캘린더",
@@ -5376,50 +5445,6 @@
     "Calendário de conteúdo",
     "Контент-календарь",
     "contentCal"
-   ]
-  },
-  "performance": {
-   "ns": "performance",
-   "title": "성과 허브",
-   "subtitle": "",
-   "paths": [
-    "/performance"
-   ],
-   "actions": [
-    "예상 총 지급액",
-    "취소",
-    "실시간 동기화"
-   ],
-   "fields": [
-    "업그레이드",
-    "신규",
-    "위협 감지됨"
-   ],
-   "notes": [
-    "비정상 접근이 감지되었습니다",
-    "주문·정산 채널을 연동하면 채널별 실제 정산 내역이 테넌트 단위로 안전하게 집계되어 여기에 표시됩니다.",
-    "이용 가이드",
-    "사용 가이드"
-   ],
-   "states": [
-    "활성"
-   ],
-   "names": [
-    "성과 허브",
-    "パフォーマンス ハブ",
-    "Trung tâm hiệu suất",
-    "Performance Hub"
-   ],
-   "match": [
-    "성과 허브",
-    "パフォーマンス ハブ",
-    "Trung tâm hiệu suất",
-    "Performance Hub",
-    "ESG",
-    "예상 총 지급액",
-    "업그레이드",
-    "위협 감지됨",
-    "performance"
    ]
   },
   "rulesEditorPage": {
@@ -5899,72 +5924,31 @@
     "systemMonitor"
    ]
   },
-  "userManagement.stats": {
-   "ns": "userManagement.stats",
-   "title": "회원 관리",
+  "accessReview": {
+   "ns": "accessReview",
+   "title": "🔐 접근 검토",
    "subtitle": "",
    "paths": [
-    "/user-management"
+    "/admin/access-review"
    ],
-   "actions": [],
+   "actions": [
+    "취소",
+    "확인"
+   ],
    "fields": [],
    "notes": [],
-   "states": [],
+   "states": [
+    "만료됨",
+    "미사용",
+    "휴면",
+    "만료 임박",
+    "정상"
+   ],
    "names": [
-    "회원 관리",
-    "Members",
-    "会員管理",
-    "会员管理",
-    "會員管理",
-    "Mitglieder",
-    "สมาชิก",
-    "Thành viên",
-    "Anggota",
-    "الأعضاء",
-    "Miembros",
-    "Membres",
-    "सदस्य",
-    "Membros",
-    "Участники",
-    "User Management"
+    "🔐 접근 검토"
    ],
    "match": [
-    "회원 관리",
-    "Members",
-    "会員管理",
-    "会员管理",
-    "會員管理",
-    "Mitglieder",
-    "สมาชิก",
-    "Thành viên",
-    "Anggota",
-    "الأعضاء",
-    "Miembros",
-    "Membres",
-    "सदस्य",
-    "Membros",
-    "Участники",
-    "User Management",
-    "stats"
-   ]
-  },
-  "userManagement.header": {
-   "ns": "userManagement.header",
-   "title": "⚙️ 통합 관리자 패널",
-   "subtitle": "회원 · 역할(RBAC) · 결제 · 감사 통합 관리 | 로그인:",
-   "paths": [
-    "/user-management"
-   ],
-   "actions": [],
-   "fields": [],
-   "notes": [],
-   "states": [],
-   "names": [
-    "⚙️ 통합 관리자 패널"
-   ],
-   "match": [
-    "RBAC",
-    "header"
+    "accessReview"
    ]
   },
   "digitalShelf": {
@@ -6250,6 +6234,50 @@
     "adminGrowthCenter"
    ]
   },
+  "performance": {
+   "ns": "performance",
+   "title": "성과 허브",
+   "subtitle": "",
+   "paths": [
+    "/performance"
+   ],
+   "actions": [
+    "예상 총 지급액",
+    "취소",
+    "실시간 동기화"
+   ],
+   "fields": [
+    "업그레이드",
+    "신규",
+    "위협 감지됨"
+   ],
+   "notes": [
+    "비정상 접근이 감지되었습니다",
+    "주문·정산 채널을 연동하면 채널별 실제 정산 내역이 테넌트 단위로 안전하게 집계되어 여기에 표시됩니다.",
+    "이용 가이드",
+    "사용 가이드"
+   ],
+   "states": [
+    "활성"
+   ],
+   "names": [
+    "성과 허브",
+    "パフォーマンス ハブ",
+    "Trung tâm hiệu suất",
+    "Performance Hub"
+   ],
+   "match": [
+    "성과 허브",
+    "パフォーマンス ハブ",
+    "Trung tâm hiệu suất",
+    "Performance Hub",
+    "ESG",
+    "예상 총 지급액",
+    "업그레이드",
+    "위협 감지됨",
+    "performance"
+   ]
+  },
   "payment": {
    "ns": "payment",
    "title": "payment",
@@ -6489,8 +6517,8 @@
     "/budget-tracker",
     "/sms-marketing",
     "/email-marketing",
-    "/performance",
     "/reconciliation",
+    "/performance",
     "/dashboard"
    ],
    "actions": [],
@@ -6688,21 +6716,6 @@
     "Email marketing",
     "ईमेल मार्केटिंग",
     "Email-маркетинг",
-    "퍼포먼스 인사이트",
-    "Performance Hub",
-    "パフォーマンス",
-    "绩效中心",
-    "績效中心",
-    "Performance-Hub",
-    "ศูนย์ประสิทธิภาพ",
-    "Trung tâm hiệu suất",
-    "Pusat Performa",
-    "مركز الأداء",
-    "Hub rendimiento",
-    "Hub performance",
-    "प्रदर्शन हब",
-    "Hub desempenho",
-    "Хаб показателей",
     "정산 대조",
     "Reconciliation",
     "精算照合",
@@ -6718,6 +6731,21 @@
     "समाधान",
     "Conciliação",
     "Сверка",
+    "퍼포먼스 인사이트",
+    "Performance Hub",
+    "パフォーマンス",
+    "绩效中心",
+    "績效中心",
+    "Performance-Hub",
+    "ศูนย์ประสิทธิภาพ",
+    "Trung tâm hiệu suất",
+    "Pusat Performa",
+    "مركز الأداء",
+    "Hub rendimiento",
+    "Hub performance",
+    "प्रदर्शन हब",
+    "Hub desempenho",
+    "Хаб показателей",
     "종합 대시보드",
     "Dashboard",
     "ダッシュボード",
@@ -6947,8 +6975,8 @@
     "/budget-tracker",
     "/sms-marketing",
     "/email-marketing",
-    "/performance",
     "/reconciliation",
+    "/performance",
     "/dashboard"
    ],
    "actions": [],

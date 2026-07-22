@@ -12,7 +12,10 @@ export const TAB_MIN_PLAN = Object.freeze({
   'performance::creator': 'growth',
   'performance::sku_profit': 'pro',
   'performance::cohort': 'pro',
-  'performance::esg': 'pro',
+  // [289차 후속 / MEA Part 063 · FIND-063-1] 'performance::esg': 'pro' 제거.
+  //   ESG 탭은 백엔드가 없어 어떤 플랜에서도 값이 표시되지 않는다(영구 빈 화면).
+  //   상위 플랜 전용으로 게이팅하면 "결제하면 쓸 수 있는 기능"으로 오인된다 → 게이트 해제.
+  //   실 구현(배출계수·활동량 확보) 후 유료 정책은 재검토한다.
   // 손익(PnLDashboard) — 이상감지·예측은 상위 분석(개요/단위손익/실행계획/가이드는 전 플랜)
   'pnl::anomaly': 'growth',
   'pnl::forecast': 'pro',

@@ -7455,7 +7455,7 @@ export default {
 
     "guideSecCommerce": "멀티채널, 주문 허브, WMS, 정산, 재고 경고를 학습합니다.",
 
-    "guideSecFinance": "P&L, 채널별 수익성, 정산 대사, ESG, 자동 보고서를 학습합니다.",
+    "guideSecFinance": "P&L, 채널별 수익성, 정산 대사, 자동 보고서를 학습합니다.",
 
     "guideSecOps": "3PL, 공급망, 반품 포탈, 아시아 물류, 운영 알림을 학습합니다.",
 
@@ -23492,6 +23492,7 @@ export default {
     "esgEnergy": "에너지 사용",
     "esgPackaging": "친환경 포장",
     "esgRecycleRate": "재활용률",
+    "esgNotReady": "준비 중인 기능입니다 — ESG 지표 산출은 아직 제공되지 않습니다",
     "guideTabPerfDesc": "성과 허브의 종합 분석 기능을 안내합니다.",
     "guideTitle": "성과 허브 가이드",
     "guideSub": "매출·광고·인플루언서·정산·SKU 손익을 종합 분석합니다.",
