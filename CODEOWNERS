@@ -6,70 +6,82 @@
 # 형식: {패턴} {GitHub 유저명 또는 팀}
 # 패턴 순서: 마지막 매칭 규칙이 우선 적용됨
 #
-# NOTE: GitHub 유저명이 설정되지 않은 경우 아래 항목들을 실제 계정으로 교체하십시오.
-# 예: @genieroi/frontend-team, @genieroi/backend-team
+# ★ 소유자 실측(2026-07-22): origin = https://github.com/genie-go/Geniego_ROI.git
+#   `genie-go` 는 **Organization 이 아니라 User 계정**이다(api.github.com/users/genie-go → "type":"User").
+#   팀(@org/team-name)은 Organization 에만 존재하므로 @genie-go/frontend-team 류 슬러그는
+#   원리상 만들 수 없고, 그렇게 적으면 GitHub 이 소유자를 해석하지 못해 CODEOWNERS 규칙이
+#   조용히 무효가 된다(파일은 존재하는데 리뷰는 강제되지 않는 가짜 녹색).
+#   → 현재는 전 경로를 저장소 소유자 @genie-go 로 지정한다.
+#
+#   도메인별 분리 라우팅(frontend/backend/devops/security)이 필요해지면 순서대로:
+#     1) genie-go 를 Organization 으로 전환하거나 새 Org 를 만들고 저장소 이전
+#     2) 팀 생성 후 아래 각 행의 @genie-go 를 해당 팀 슬러그로 치환
+#   아래 경로별 행은 지금은 기본 소유자와 동일하지만, 그 분리를 위한 골격으로 남겨둔다.
+#
+#   ※ CODEOWNERS 는 그 자체로 리뷰를 강제하지 않는다. Branch protection 의
+#     "Require review from Code Owners" 를 켜야 실제로 작동한다(미설정 시 무효).
 
 # ─────────────────────────────────────────────────────────────
 # Default Owner (전체 Repository 기본 소유자)
 # ─────────────────────────────────────────────────────────────
-*                           @genieroi/core-team
+*                           @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Frontend Module
 # ─────────────────────────────────────────────────────────────
-frontend/                   @genieroi/frontend-team
-frontend/src/               @genieroi/frontend-team
-frontend/android/           @genieroi/mobile-team
-frontend/ios/               @genieroi/mobile-team
-frontend/scripts/           @genieroi/frontend-team
-frontend/package.json       @genieroi/frontend-team
-frontend/vite.config.js     @genieroi/frontend-team
-frontend/capacitor.config.json  @genieroi/mobile-team
+frontend/                   @genie-go
+frontend/src/               @genie-go
+frontend/android/           @genie-go
+frontend/ios/               @genie-go
+frontend/scripts/           @genie-go
+frontend/package.json       @genie-go
+frontend/vite.config.js     @genie-go
+frontend/capacitor.config.json  @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Backend Module
 # ─────────────────────────────────────────────────────────────
-backend/                    @genieroi/backend-team
-backend/src/                @genieroi/backend-team
-backend/migrations/         @genieroi/backend-team @genieroi/dba
-backend/composer.json       @genieroi/backend-team
+backend/                    @genie-go
+backend/src/                @genie-go
+backend/migrations/         @genie-go
+backend/composer.json       @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Infrastructure & Deployment
 # ─────────────────────────────────────────────────────────────
-infra/                      @genieroi/devops-team
-infra/aws/                  @genieroi/devops-team
-infra/azure/                @genieroi/devops-team
-docker-compose.yml          @genieroi/devops-team
-.github/                    @genieroi/devops-team
-.github/workflows/          @genieroi/devops-team
+infra/                      @genie-go
+infra/aws/                  @genie-go
+infra/azure/                @genie-go
+docker-compose.yml          @genie-go
+.github/                    @genie-go
+.github/workflows/          @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Security-sensitive files (반드시 Security Team Review 필요)
 # ─────────────────────────────────────────────────────────────
-.githooks/                  @genieroi/security-team
-.github/workflows/security-scan.yml  @genieroi/security-team
-backend/src/SecurityAudit.php        @genieroi/security-team
-backend/src/Crypto.php               @genieroi/security-team
-backend/src/Ssrf.php                 @genieroi/security-team
+.githooks/                  @genie-go
+.github/workflows/security-scan.yml  @genie-go
+backend/src/SecurityAudit.php        @genie-go
+backend/src/Crypto.php               @genie-go
+backend/src/Ssrf.php                 @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Configuration & Repository Governance
 # ─────────────────────────────────────────────────────────────
-.gitignore                  @genieroi/core-team
-.gitattributes              @genieroi/core-team
-.editorconfig               @genieroi/core-team
-CODEOWNERS                  @genieroi/core-team
-Makefile                    @genieroi/core-team
-scripts/validation/         @genieroi/core-team
+.gitignore                  @genie-go
+.gitattributes              @genie-go
+.editorconfig               @genie-go
+CODEOWNERS                  @genie-go
+Makefile                    @genie-go
+scripts/validation/         @genie-go
 
 # ─────────────────────────────────────────────────────────────
 # Documentation
 # ─────────────────────────────────────────────────────────────
-docs/                       @genieroi/architecture-team
-docs/ccis/                  @genieroi/architecture-team
-docs/architecture/          @genieroi/architecture-team
-docs/repository/            @genieroi/core-team
-docs/security/              @genieroi/security-team
-CONTRIBUTING.md             @genieroi/core-team
-CLAUDE.md                   @genieroi/core-team
+docs/                       @genie-go
+docs/ccis/                  @genie-go
+docs/architecture/          @genie-go
+docs/repository/            @genie-go
+docs/security/              @genie-go
+CONTRIBUTING.md             @genie-go
+CLAUDE.md                   @genie-go

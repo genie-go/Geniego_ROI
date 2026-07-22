@@ -95,7 +95,7 @@ GeniegoROI/
 | `services/` | `backend/` | **이동 금지** — 운영 중, Migration Plan 문서화 |
 | `infrastructure/` | `infra/` | **이동 금지** — 명칭 차이만, 매핑 문서화 |
 | `database/migrations/` | `backend/migrations/` | **이동 금지** — 서비스 소유 방식 채택 |
-| `CODEOWNERS` | `CODEOWNERS` | 생성 완료 (★GitHub 팀 슬러그 미실재 — 실계정 치환 필요) |
+| `CODEOWNERS` | `CODEOWNERS` | 생성 완료 · 실소유자 `@genie-go` 로 치환 완료 (★`genie-go` 는 User 계정이라 팀 슬러그 사용 불가 · Branch protection 미설정 시 규칙 자체가 무효) |
 | `.editorconfig` | `.editorconfig` | 생성 완료 |
 | `Makefile` | `Makefile` | 생성 완료 (`make` 미설치 환경에서는 실행 검증 미수행) |
 | `docs/repository/` | `docs/repository/` | 생성 완료 (6개 문서) |
