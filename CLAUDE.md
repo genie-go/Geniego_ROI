@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 GeniegoROI is a multi-tenant ROI analytics dashboard (CRM, KPI, Operations, P&L domains) deployed to https://www.genieroi.com. The repo is a **monorepo** with two independently-built apps that share a directory tree:
 
-- `frontend/` — React 18 + Vite 5.4 SPA, ~116 lazy-loaded pages, 15-language i18n
+- `frontend/` — React 18 + Vite 5.4 SPA, 109 lazy-loaded pages / 135 routes, 15-language i18n
 - `backend/` — PHP 8.1+ / Slim 4 REST API, PSR-4 namespace `Genie\`, MySQL primary + SQLite fallback
 
 `clean_src/` is a **read-only historical mirror** — do not edit anything inside it (it is in `.clineignore`).
@@ -67,7 +67,7 @@ All SSH/test/Slack steps are **gated on secrets being present** (`HAS_SSH_SECRET
 - Entry: `backend/public/index.php` — bootstraps Slim, applies CORS + API-key middleware, then loads `backend/src/routes.php` (1636 lines).
 - Routes are **heavily versioned** (`/v377` … `/v424+`). New endpoints generally go under the latest version prefix; old versions remain stubbed for backwards compatibility.
 - Two URL shapes coexist: `/v{NNN}/...` (versioned API) and `/api/...` (CRM, email, etc.). When deployed behind Apache with an `Alias /api`, `index.php` auto-detects the prefix and calls `$app->setBasePath('/api')`.
-- Handlers live in `backend/src/Handlers/` (~41 classes). Routes file maps `'METHOD /path' => 'Genie\Handlers\Class::method'` strings; not all handlers are autodiscovered — adding a new handler requires registering it in `routes.php`.
+- Handlers live in `backend/src/Handlers/` (103 classes). Routes file maps `'METHOD /path' => 'Genie\Handlers\Class::method'` strings; not all handlers are autodiscovered — adding a new handler requires registering it in `routes.php`.
 - DB: `backend/src/Db.php` is a PDO singleton. It parses `backend/.env` directly (does not rely on PHP-FPM env vars), connects to MySQL (`geniego_roi` by default), and **transparently falls back to SQLite** at `data/genie.sqlite` or `/tmp/genie_roi.sqlite` if MySQL is unreachable. Both backends share schema via the migration logic in `Db.php`.
 
 ### API authentication (v421)
