@@ -65,7 +65,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       # B4 — 자격증명 형태 차단. 규칙 SSOT = tools/scan_secrets.sh (pre-commit 과 **같은 스크립트**).
       #   정규식을 이 파일에 복사하면 규칙이 두 벌로 갈라져 따로 낡는다(289차 ② '351 5벌'과 같은 클래스).
@@ -98,7 +98,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       # npm audit 는 lockfile 만 있으면 install 없이 동작(설치 시간·공급망 노출 최소화).
       - name: "npm audit — repo root"

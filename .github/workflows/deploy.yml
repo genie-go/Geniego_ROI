@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: '.nvmrc'
 
       - name: "[GATE 1] 팬텀 정적자산 참조"
         run: node tools/check_static_refs.mjs
@@ -85,7 +85,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: '.nvmrc'
 
       # [280차] 정적 게이트(구 PHASE 1·2 가드)는 verify job 으로 이관됐다(needs: verify 로 선행 보장).
       #   여기서는 배포용 산출물만 만든다 — 중복 실행 제거.

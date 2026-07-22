@@ -37,7 +37,14 @@ done
 
 # 기준값 — 근거를 함께 적는다(임의 숫자 금지)
 MIN_PHP="8.1"          # backend/composer.json  "php": ">=8.1"
-CI_NODE_MAJOR="18"     # .github/workflows/deploy.yml  node-version: '18'
+
+# Node 정본은 .nvmrc 하나다. CI(setup-node 의 node-version-file)와 여기가 같은 파일을 읽으므로
+# 버전을 올릴 때 고칠 곳은 .nvmrc + frontend/Dockerfile 의 ARG 기본값 둘뿐이다.
+if [ -f .nvmrc ]; then
+  CANONICAL_NODE_MAJOR="$(tr -d ' \t\r\n' < .nvmrc | cut -d. -f1)"
+else
+  CANONICAL_NODE_MAJOR=""
+fi
 
 PASS=0; WARN=0; FAIL=0
 pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
@@ -65,11 +72,18 @@ if command -v node >/dev/null 2>&1; then
   NODE_V="$(node -v | sed 's/^v//')"
   NODE_MAJOR="${NODE_V%%.*}"
   pass "node $NODE_V"
-  if [ "$NODE_MAJOR" != "$CI_NODE_MAJOR" ]; then
-    warn "로컬 node major($NODE_MAJOR) ≠ CI node major($CI_NODE_MAJOR) — 빌드 산출물이 CI 와 달라질 수 있다"
+  if [ -z "$CANONICAL_NODE_MAJOR" ]; then
+    warn ".nvmrc 없음 — Node 버전 정본이 없다. CI·Dockerfile·로컬이 각자 다른 버전으로 갈린다"
+  elif [ "$NODE_MAJOR" -lt "$CANONICAL_NODE_MAJOR" ] 2>/dev/null; then
+    fail "로컬 node major($NODE_MAJOR) < 정본($CANONICAL_NODE_MAJOR, .nvmrc)" \
+         "nvm use 또는 Node ${CANONICAL_NODE_MAJOR} 이상 설치. package.json engines 도 '>=${CANONICAL_NODE_MAJOR}' 다."
+  elif [ "$NODE_MAJOR" != "$CANONICAL_NODE_MAJOR" ]; then
+    warn "로컬 node major($NODE_MAJOR) ≠ CI/정본($CANONICAL_NODE_MAJOR, .nvmrc) — engines(>=$CANONICAL_NODE_MAJOR) 는 충족하나 CI 와 동일 산출물을 보장하려면 nvm use 권장"
+  else
+    pass "node major 가 정본(.nvmrc = $CANONICAL_NODE_MAJOR)과 일치"
   fi
 else
-  fail "node 없음" "https://nodejs.org 에서 LTS 설치. CI 는 node ${CI_NODE_MAJOR} 를 쓴다."
+  fail "node 없음" "https://nodejs.org — 버전 정본은 .nvmrc(${CANONICAL_NODE_MAJOR:-미설정}) 다."
 fi
 if command -v npm >/dev/null 2>&1; then
   pass "npm $(npm -v)"

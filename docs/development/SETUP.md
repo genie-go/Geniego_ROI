@@ -23,7 +23,7 @@ bash scripts/bootstrap/bootstrap.sh          # Windows: powershell -File scripts
 
 | 구분 | 도구 | 비고 |
 |------|------|------|
-| **필수** | Node.js + npm | 프론트엔드 빌드. CI 는 node 18 을 쓴다 |
+| **필수** | Node.js + npm | 프론트엔드 빌드. **버전 정본은 `.nvmrc`(20)** — CI 4개소가 이 파일을 읽는다. `engines` 는 `>=20` |
 | **필수** | PHP >= 8.1 (CLI) | `backend/composer.json` 의 `require.php` |
 | **필수** | Git, Bash | Windows 는 **Git Bash** |
 | 권장 | Composer | 백엔드 의존성 추가/갱신 시. `backend/vendor` 가 이미 있으면 당장은 없어도 실행된다 |
