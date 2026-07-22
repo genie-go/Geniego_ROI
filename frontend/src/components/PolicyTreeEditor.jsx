@@ -205,7 +205,7 @@ export default function PolicyTreeEditor({ value, onChange }) {
     let data = null;
     try {
       data = JSON.parse(e.dataTransfer.getData("text/plain"));
-    } catch {}
+    } catch { /* 파싱 실패 시 기본값 유지 */ }
     if (!data) return clearDnD();
 
     const targetIdx = dropHint?.groupId === groupId && dropHint?.type === kind ? dropHint.index : null;

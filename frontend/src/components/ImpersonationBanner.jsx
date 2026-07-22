@@ -41,7 +41,7 @@ export default function ImpersonationBanner() {
       </span>
       <div style={{ flex: 1 }} />
       <button
-        onClick={() => { try { window.close(); } catch {} }}
+        onClick={() => { try { window.close(); } catch { /* 창 닫기 실패 무시(브라우저 정책) */ } }}
         title="이 회원세션 창을 닫습니다"
         style={{ padding: "5px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.12)", color: "#fff", fontWeight: 700, fontSize: 11.5, cursor: "pointer" }}>
         ✕ 회원세션 종료

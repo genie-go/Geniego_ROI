@@ -22,7 +22,7 @@ function useFavorites() {
     setFavs(prev => {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path); else next.add(path);
-      try { localStorage.setItem('g_sidebar_favs', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem('g_sidebar_favs', JSON.stringify([...next])); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       return next;
     });
   }, []);
@@ -47,7 +47,7 @@ function useRecentVisits(allItems, maxItems = 5) {
     if (!matched) return;
     setRecentPaths(prev => {
       const next = [location.pathname, ...prev.filter(p => p !== location.pathname)].slice(0, maxItems);
-      try { localStorage.setItem('g_sidebar_recents', JSON.stringify(next)); } catch {}
+      try { localStorage.setItem('g_sidebar_recents', JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       return next;
     });
   }, [location.pathname]);
@@ -479,11 +479,11 @@ export default function Sidebar() {
     if (!mobileOpen) return;
     const onKey = (e) => { if (e.key === 'Escape') mobileClose(); };
     window.addEventListener('keydown', onKey);
-    try { window.__geniegoCloseDrawer = mobileClose; } catch {}
+    try { window.__geniegoCloseDrawer = mobileClose; } catch { /* 실패 무시(best-effort) */ }
 
     return () => {
       window.removeEventListener('keydown', onKey);
-      try { if (window.__geniegoCloseDrawer === mobileClose) window.__geniegoCloseDrawer = null; } catch {}
+      try { if (window.__geniegoCloseDrawer === mobileClose) window.__geniegoCloseDrawer = null; } catch { /* 실패 무시(best-effort) */ }
     };
   }, [mobileOpen, mobileClose]);
 

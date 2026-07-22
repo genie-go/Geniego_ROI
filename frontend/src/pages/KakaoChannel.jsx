@@ -579,11 +579,11 @@ function KakaoChannelContent() {
         try {
             bcRef.current = new BroadcastChannel(tChannelName('geniego_kakao'));
             bcRef.current.onmessage = () => {};
-        } catch {}
-        return () => { try { bcRef.current?.close(); } catch {} };
+        } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+        return () => { try { bcRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
     }, []);
     const broadcastRefresh = useCallback(() => {
-        try { bcRef.current?.postMessage({ type: 'KAKAO_REFRESH', ts: Date.now() }); } catch {}
+        try { bcRef.current?.postMessage({ type: 'KAKAO_REFRESH', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
         if (typeof broadcastUpdate === 'function') broadcastUpdate('kakao', { refreshed: Date.now() });
     }, [broadcastUpdate]);
 

@@ -65,7 +65,7 @@ function _verifyIntegrity() {
     // eslint-disable-next-line no-console
     console.error("[SECURITY] plans.js integrity violation detected");
     if (typeof window !== "undefined" && window.__GENIE_AUDIT_HOOK) {
-      try { window.__GENIE_AUDIT_HOOK("plan_integrity_violation", { signature: h }); } catch {}
+      try { window.__GENIE_AUDIT_HOOK("plan_integrity_violation", { signature: h }); } catch { /* 알림/감사 훅 실패 무시(best-effort) */ }
     }
     return false;
   }
@@ -209,7 +209,7 @@ export function isKnownAdminRole(role) {
 
 function _logUnknown(fn, value, reason) {
   if (typeof window !== "undefined" && window.__GENIE_AUDIT_HOOK) {
-    try { window.__GENIE_AUDIT_HOOK("plan_unknown_input", { fn, value: String(value).slice(0, 100), reason }); } catch {}
+    try { window.__GENIE_AUDIT_HOOK("plan_unknown_input", { fn, value: String(value).slice(0, 100), reason }); } catch { /* 알림/감사 훅 실패 무시(best-effort) */ }
   }
   if (typeof window !== "undefined" && window.__GENIE_DEBUG_PLANS) {
     // eslint-disable-next-line no-console
@@ -219,7 +219,7 @@ function _logUnknown(fn, value, reason) {
 
 function _auditCompare(event, data) {
   if (typeof window !== "undefined" && window.__GENIE_AUDIT_HOOK) {
-    try { window.__GENIE_AUDIT_HOOK(event, data); } catch {}
+    try { window.__GENIE_AUDIT_HOOK(event, data); } catch { /* 알림/감사 훅 실패 무시(best-effort) */ }
   }
 }
 

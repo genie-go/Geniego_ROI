@@ -220,7 +220,7 @@ export default function Topbar() {
 
   const setTheme = useCallback((themeId) => {
     document.documentElement.setAttribute('data-theme', themeId);
-    try { localStorage.setItem('geniego_theme', themeId); } catch { }
+    try { localStorage.setItem('geniego_theme', themeId); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     setShowTheme(false);
   }, []);
 
@@ -229,7 +229,7 @@ export default function Topbar() {
     try {
       const saved = localStorage.getItem('geniego_theme');
       if (saved) document.documentElement.setAttribute('data-theme', saved);
-    } catch { }
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   }, []);
 
   const activeTheme = THEMES.find(th => th.id === currentTheme) || THEMES[0];
@@ -308,7 +308,7 @@ export default function Topbar() {
                   if (CONTENT_RE.test(k) || k.includes('::t=demo')) localStorage.removeItem(k);
                 });
                 localStorage.setItem('geniego_tour_completed', 'true');
-              } catch {}
+              } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
               window.location.reload();
             }}
             title={t('topbar.demoResetTitle', '🔄 체험 데이터 초기화 · 구독 시 작업 데이터 영구 저장')}
@@ -327,7 +327,7 @@ export default function Topbar() {
           <button
             onClick={() => {
               // 데모 세션 유저 — 데모전용 빌드는 demo_genie_user, 공유(운영)빌드로 데모호스트 서빙 시 genie_user 에 저장됨. 둘 다 대응.
-              let u = {}; try { u = JSON.parse(localStorage.getItem('demo_genie_user') || localStorage.getItem('genie_user') || '{}'); } catch {}
+              let u = {}; try { u = JSON.parse(localStorage.getItem('demo_genie_user') || localStorage.getItem('genie_user') || '{}'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
               const pr = u.profile || {};
               const q = new URLSearchParams({
                 convert: '1', plan: 'pro',
@@ -914,7 +914,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
       const r = await fetch('/api/auth/admin/smtp', { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok && d.smtp) { setSmtp(s => ({ ...s, ...d.smtp, pass: '' })); setSmtpConfigured(!!d.configured); }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     finally { setSmtpLoaded(true); }
   };
   const handleSaveSmtp = async () => {
@@ -948,7 +948,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
       const r = await fetch('/api/auth/admin/ai-key', { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) setAiKeySet(!!d.key_set || !!d.configured);
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
   const handleSaveAiKey = async () => {
     if (!aiKey.trim()) { showMsg(t('profile.aiKeyRequired', 'Anthropic API 키(sk-ant-...)를 입력하세요.'), 'err'); return; }
@@ -970,7 +970,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
       const r = await fetch('/api/v425/oauth/status', { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) setOauthStatus(d.providers || {});
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
   const saveOAuthConfig = async (provider) => {
     const f = oauthForm[provider] || {};
@@ -1608,7 +1608,7 @@ const ProfileEditModal = memo(function ProfileEditModal({ user, token, onClose, 
                     <div key={i} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border, rgba(99,140,255,0.15))', fontFamily: 'monospace', fontSize: 13, letterSpacing: 1, color: 'var(--text-1, #e2e8f0)', textAlign: 'center' }}>{c}</div>
                   ))}
                 </div>
-                <button onClick={() => { try { navigator.clipboard.writeText(mfaRecovery.join('\n')); showMsg(t('profile.copied', '복사되었습니다.'), 'ok'); } catch {} }}
+                <button onClick={() => { try { navigator.clipboard.writeText(mfaRecovery.join('\n')); showMsg(t('profile.copied', '복사되었습니다.'), 'ok'); } catch { /* 미지원 브라우저 API 무시 */ } }}
                   style={{ padding: '10px 0', borderRadius: 10, border: '1px solid var(--border, rgba(99,140,255,0.2))', background: 'transparent', color: 'var(--text-2, #cbd5e1)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                 >📋 {t('profile.mfaCopyCodes', '복구 코드 복사')}</button>
               </div>

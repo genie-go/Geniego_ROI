@@ -13,7 +13,7 @@ export function recordMetric(name, value) {
     const stored = JSON.parse(localStorage.getItem('g_perf_metrics') || '{}');
     stored[name] = _metrics[name];
     localStorage.setItem('g_perf_metrics', JSON.stringify(stored));
-  } catch {}
+  } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 export function getMetrics() {
@@ -63,7 +63,7 @@ export function initPerformanceMonitor() {
         }
       });
       longTaskObserver.observe({ type: 'longtask', buffered: true });
-    } catch {}
+    } catch { /* 실패 무시(best-effort) */ }
 
     // Largest Contentful Paint
     try {
@@ -75,7 +75,7 @@ export function initPerformanceMonitor() {
         }
       });
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-    } catch {}
+    } catch { /* 실패 무시(best-effort) */ }
 
     // First Input Delay
     try {
@@ -86,7 +86,7 @@ export function initPerformanceMonitor() {
         }
       });
       fidObserver.observe({ type: 'first-input', buffered: true });
-    } catch {}
+    } catch { /* 실패 무시(best-effort) */ }
 
     // Cumulative Layout Shift
     try {
@@ -100,7 +100,7 @@ export function initPerformanceMonitor() {
         recordMetric('CLS', Math.round(clsValue * 1000) / 1000);
       });
       clsObserver.observe({ type: 'layout-shift', buffered: true });
-    } catch {}
+    } catch { /* 실패 무시(best-effort) */ }
   }
 
   // Memory usage (Chrome only)

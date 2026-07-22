@@ -61,8 +61,8 @@ export default function SessionExpiryWarning() {
       if (left <= 0) {
         // Session expired — 유휴 초과. AuthContext 와 동일 키 정리(genie_/demo_ 양쪽).
         setShow(false);
-        ['genie_token', 'demo_genie_token', 'genie_last_activity', 'demo_genie_last_activity'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
-        try { sessionStorage.removeItem('genie_sess_active'); sessionStorage.removeItem('demo_genie_sess_active'); } catch (e) {}
+        ['genie_token', 'demo_genie_token', 'genie_last_activity', 'demo_genie_last_activity'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } });
+        try { sessionStorage.removeItem('genie_sess_active'); sessionStorage.removeItem('demo_genie_sess_active'); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         allowNavigation();
         window.location.href = '/login?reason=expired';
       } else if (left <= WARN_BEFORE) {

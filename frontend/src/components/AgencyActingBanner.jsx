@@ -21,7 +21,7 @@ export default function AgencyActingBanner() {
       localStorage.removeItem(APP_TOKEN_KEY);
       localStorage.removeItem(APP_USER_KEY);
       localStorage.removeItem("genie_agency_client");
-    } catch {}
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     window.location.href = "/agency";
   };
 

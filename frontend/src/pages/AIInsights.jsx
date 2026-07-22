@@ -52,9 +52,9 @@ const SURFACE2 = 'var(--surface-2, #f8fafc)'; const BORDER = 'var(--border, #e5e
 function useConnectedChannels() {
     return useMemo(() => {
         const ch = [];
-        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch { }
+        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         ['meta', 'google', 'tiktok', 'kakao_moment', 'naver', 'coupang', 'amazon', 'shopify', 'gmarket', '11st', 'line', 'whatsapp'].forEach(c => {
-            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch { }
+            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         });
         return [...new Set(ch)];
     }, []);

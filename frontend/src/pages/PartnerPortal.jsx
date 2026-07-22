@@ -18,7 +18,7 @@ const api = async (path, opts = {}) => {
     ...opts,
     headers: { 'Content-Type': 'application/json', ...(tok ? { Authorization: `Bearer ${tok}` } : {}), ...(opts.headers || {}) },
   });
-  let data = {}; try { data = await res.json(); } catch {}
+  let data = {}; try { data = await res.json(); } catch { /* 응답 본문 파싱 실패 무시 */ }
   return { status: res.status, data };
 };
 

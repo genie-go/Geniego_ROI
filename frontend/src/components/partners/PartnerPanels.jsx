@@ -33,9 +33,9 @@ export function useVendorCategories() {
     try { const r = localStorage.getItem(tScopedKey(VCAT_KEY)); const a = r ? JSON.parse(r) : null; return Array.isArray(a) && a.length ? a : DEFAULT_VCATS; }
     catch { return DEFAULT_VCATS; }
   });
-  const persist = useCallback((next) => { setCats(next); try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch {} }, []);
-  const add = useCallback((label) => { const v = String(label || '').trim(); if (!v) return false; setCats(prev => { if (prev.includes(v)) return prev; const next = [...prev, v]; try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch {} return next; }); return true; }, []);
-  const remove = useCallback((label) => setCats(prev => { const next = prev.filter(c => c !== label); try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch {} return next; }), []);
+  const persist = useCallback((next) => { setCats(next); try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }, []);
+  const add = useCallback((label) => { const v = String(label || '').trim(); if (!v) return false; setCats(prev => { if (prev.includes(v)) return prev; const next = [...prev, v]; try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return next; }); return true; }, []);
+  const remove = useCallback((label) => setCats(prev => { const next = prev.filter(c => c !== label); try { localStorage.setItem(tScopedKey(VCAT_KEY), JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return next; }), []);
   return { cats, add, remove, persist };
 }
 
@@ -57,8 +57,8 @@ export function SupplierPanel() {
   const [form, setForm] = useState(blank);
 
   const toPayload = (f) => ({ name: f.name, code: f.code, contact: f.contact, phone: f.phone, email: f.email, active: f.active ? 1 : 0, memo: JSON.stringify({ type: f.category, country: f.country, payTerms: f.payTerms, leadDays: Number(f.leadDays) || 0, rating: Number(f.rating) || 5 }) });
-  const mapRow = (r) => { let ex = {}; try { ex = JSON.parse(r.memo || '{}'); } catch {} return { id: r.id, name: r.name || '', code: r.code || '', contact: r.contact || '', phone: r.phone || '', email: r.email || '', active: r.active === false ? false : !!(r.active ?? 1), category: ex.type || ex.category || '', country: ex.country || 'KR', payTerms: ex.payTerms || '30D', leadDays: ex.leadDays ?? 14, rating: ex.rating ?? 5 }; };
-  const reload = useCallback(async () => { try { const r = await wmsApi.listSuppliers(); if (Array.isArray(r?.suppliers)) setSuppliers(r.suppliers.map(mapRow)); } catch {} }, []);
+  const mapRow = (r) => { let ex = {}; try { ex = JSON.parse(r.memo || '{}'); } catch { /* 파싱 실패 시 기본값 유지 */ } return { id: r.id, name: r.name || '', code: r.code || '', contact: r.contact || '', phone: r.phone || '', email: r.email || '', active: r.active === false ? false : !!(r.active ?? 1), category: ex.type || ex.category || '', country: ex.country || 'KR', payTerms: ex.payTerms || '30D', leadDays: ex.leadDays ?? 14, rating: ex.rating ?? 5 }; };
+  const reload = useCallback(async () => { try { const r = await wmsApi.listSuppliers(); if (Array.isArray(r?.suppliers)) setSuppliers(r.suppliers.map(mapRow)); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, []);
   useEffect(() => { reload(); }, [reload]);
 
   const filtered = suppliers.filter(s => !search || s.name.includes(search) || s.code.includes(search) || (s.category || '').includes(search) || (s.contact || '').includes(search));

@@ -31,10 +31,10 @@ function useSettleSync() {
   const chRef = useRef(null);
   useEffect(() => {
     try { chRef.current = new BroadcastChannel(tChannelName(SETTLE_SYNC_CH)); } catch { return; }
-    return () => { try { chRef.current?.close(); } catch {} };
+    return () => { try { chRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
   const broadcast = useCallback((type, data) => {
-    try { chRef.current?.postMessage({ type, data, ts: Date.now() }); } catch {}
+    try { chRef.current?.postMessage({ type, data, ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
   }, []);
   const onMessage = useCallback((handler) => {
     if (!chRef.current) return () => {};

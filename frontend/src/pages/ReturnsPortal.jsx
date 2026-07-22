@@ -371,7 +371,7 @@ const handleAddReturn=async()=>{
   const id='RT-'+Date.now();
   const claim={id,orderId:af.orderNo,buyer:af.buyer,channel:af.channel,type:'return',reason:af.reason,status:'pending',amount:Number(af.amount)||0,sku:af.sku,qty:Number(af.qty)||0,name:af.product};
   if(typeof registerClaimReturn==='function')registerClaimReturn(claim);
-  if(!isDemo){try{await apiClient.postJson('/api/v424/orderhub/claims',{items:[{id,order_id:af.orderNo,buyer:af.buyer,channel:af.channel,type:'return',reason:af.reason,status:'pending',amount:Number(af.amount)||0}]});}catch{}}
+  if(!isDemo){try{await apiClient.postJson('/api/v424/orderhub/claims',{items:[{id,order_id:af.orderNo,buyer:af.buyer,channel:af.channel,type:'return',reason:af.reason,status:'pending',amount:Number(af.amount)||0}]});}catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }}
   setShowAdd(false);setAf({orderNo:'',product:'',buyer:'',channel:'',reason:'',amount:'',sku:'',qty:''});
 };
 // 204차 동기화: 데모 반품을 단일소스(orders=L'Oréal 상품)에서 파생 — 과거 독립 하드코딩 DEMO_RETURNS(전자제품,

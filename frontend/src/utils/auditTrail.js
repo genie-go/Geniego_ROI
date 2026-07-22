@@ -26,7 +26,7 @@ export function auditLog(action, detail = {}) {
       userAgent: navigator.userAgent.slice(0, 80),
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
-  } catch {}
+  } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 export function getAuditTrail(limit = 50) {

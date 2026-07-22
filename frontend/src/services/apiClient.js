@@ -17,7 +17,7 @@ export async function getJson(path) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -29,7 +29,7 @@ export async function getJson(path) {
  *  기존 전 앱(대시보드/캠페인/어트리뷰션 등)이 그대로 '클라이언트 스코프'로 동작(서버가 링크에서 tenant 도출·
  *  매요청 승인 재검증). 대행사 로그아웃 시 genie_agency_token 제거 → 일반 세션 복귀. 데모는 미적용(격리). */
 export function agencyToken() {
-  try { const at = localStorage.getItem("genie_agency_token"); if (!IS_DEMO && at && at.indexOf("agt_") === 0) return at; } catch (e) {}
+  try { const at = localStorage.getItem("genie_agency_token"); if (!IS_DEMO && at && at.indexOf("agt_") === 0) return at; } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   return "";
 }
 function defaultHeaders() {
@@ -43,13 +43,13 @@ function defaultHeaders() {
   if (token) h["Authorization"] = `Bearer ${token}`;
   // [251차] admin 'platform_growth' 컨텍스트 전환 — 켜져 있으면 기존 모든 메뉴(크리에이티브/자동화/어트리뷰션 등)가
   //   플랫폼 자체 성장 데이터로 조회·운영(서버는 admin 계정에만 허용). 기본 OFF. 데모는 미적용(격리).
-  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") h["X-Act-As-Tenant"] = "platform_growth"; } catch (e) {}
+  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") h["X-Act-As-Tenant"] = "platform_growth"; } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   return h;
 }
 
 /** [251차] 외부(raw fetch 페이지)에서도 동일 컨텍스트 헤더를 붙일 수 있게 공개. AutoMarketing 등 raw fetch 재사용. */
 export function actAsHeader() {
-  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") return { "X-Act-As-Tenant": "platform_growth" }; } catch (e) {}
+  try { if (!IS_DEMO && localStorage.getItem("gg_act_as_tenant") === "platform_growth") return { "X-Act-As-Tenant": "platform_growth" }; } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   return {};
 }
 
@@ -69,10 +69,10 @@ export async function postJson(path, body) {
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
       // [251차] 상품/광고디자인 등록 한도 초과(402) → 전역 초과 모달 트리거(추가팩 구매/거부). 호출부는 기존대로 throw 처리.
       if (res.status === 402 && j && (j.error === 'product_limit_reached' || j.error === 'ad_design_limit_reached')) {
-        try { window.dispatchEvent(new CustomEvent('gg-product-overage', { detail: j })); } catch (e) { }
+        try { window.dispatchEvent(new CustomEvent('gg-product-overage', { detail: j })); } catch (e) { /* 이벤트 디스패치 실패 무시 */ }
       }
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -87,7 +87,7 @@ export async function getJsonAuth(path) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -108,7 +108,7 @@ export async function putText(path, rawBody) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -128,7 +128,7 @@ export async function putJson(path, body) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -148,7 +148,7 @@ export async function patchJson(path, body) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -161,7 +161,7 @@ export async function delJson(path) {
   if (!res.ok) {
     let detail = "";
     try { const j = await res.json(); detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j); }
-    catch (e) { try { detail = await res.text(); } catch { } }
+    catch (e) { try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ } }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
   return await res.json();
@@ -185,7 +185,7 @@ export async function requestJsonAuth(path, method, body, extraHeaders = {}) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -203,7 +203,7 @@ export async function getJsonAuthAbortable(path, signal) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }
@@ -224,7 +224,7 @@ export async function requestJsonAuthAbortable(path, method, body, signal) {
       const j = await res.json();
       detail = j?.detail ? JSON.stringify(j.detail) : JSON.stringify(j);
     } catch (e) {
-      try { detail = await res.text(); } catch { }
+      try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     }
     throw new Error(`HTTP ${res.status} ${detail}`);
   }

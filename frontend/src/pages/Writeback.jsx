@@ -13,9 +13,9 @@ import PeriodFilterBar, { inPeriodAny } from '../components/common/PeriodFilterB
 function useConnectedChannels() {
     return useMemo(() => {
         const ch = [];
-        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch {}
+        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         ['meta','google','tiktok','kakao_moment','naver','coupang','amazon','shopify','gmarket','11st','line','whatsapp','qoo10','rakuten','shopee'].forEach(c => {
-            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch {}
+            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         });
         return [...new Set(ch)];
     }, []);
@@ -48,13 +48,13 @@ function useSecurityGuard(addAlert) {
       inputLog.current = inputLog.current.filter(t => now - t < 3000);
       if (inputLog.current.length > 20) {
         setLocked('BRUTE_FORCE: Excessive input rate');
-        try { addAlert?.({ type: 'error', msg: '[Writeback] Brute-force blocked' }); } catch (_) {}
+        try { addAlert?.({ type: 'error', msg: '[Writeback] Brute-force blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
         e.target.value = ''; e.preventDefault(); return;
       }
       for (const p of THREAT_PATTERNS) {
         if (p.re.test(val)) {
           setLocked(p.type + ': ' + val.slice(0, 60));
-          try { addAlert?.({ type: 'error', msg: '[Writeback] ' + p.type + ' blocked' }); } catch (_) {}
+          try { addAlert?.({ type: 'error', msg: '[Writeback] ' + p.type + ' blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
           e.target.value = ''; e.preventDefault(); return;
         }
       }
@@ -335,7 +335,7 @@ function CategoryMapPanel({ t }) {
     setBusy(false);
   };
   const del = async (id) => {
-    try { await requestJsonAuth(`/api/catalog/category-map/${id}`, 'DELETE'); await load(channel); } catch {}
+    try { await requestJsonAuth(`/api/catalog/category-map/${id}`, 'DELETE'); await load(channel); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
 
   const inp = { padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(99,140,255,0.15)', background: 'var(--surface-2)', color: 'var(--text-1)', fontSize: 12, outline: 'none' };
@@ -531,14 +531,14 @@ function JobsTab({ t, isDemo }) {
 function SettingsTab({ t }) {
   const { addAlert } = useGlobalData();
   const [cfg, setCfg] = useState(() => {
-    try { const s = tGet('genie_writeback_cfg'); if (s) return JSON.parse(s); } catch (_) {}
+    try { const s = tGet('genie_writeback_cfg'); if (s) return JSON.parse(s); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     return { auto_retry: true, dry_run: false, approval_gate: true, webhook_notify: true, rate_limit: true, audit_log: true };
   });
 
   const toggle = (id) => {
     setCfg(prev => {
       const updated = { ...prev, [id]: !prev[id] };
-      try { tSet('genie_writeback_cfg', JSON.stringify(updated)); } catch (_) {}
+      try { tSet('genie_writeback_cfg', JSON.stringify(updated)); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       addAlert?.({ type: 'info', msg: t('writebackPage.cfgChanged', 'Setting changed') + ': ' + id });
       return updated;
     });
@@ -676,7 +676,7 @@ export default function Writeback() {
     return () => { ch1.close(); ch2.close(); ch3.close(); bcRef.current = null; };
   }, []);
   useEffect(() => {
-    const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: 'WB_UPDATE', ts: Date.now() }); } catch {} }, 30000);
+    const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: 'WB_UPDATE', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ } }, 30000);
     return () => clearInterval(id);
   }, []);
 

@@ -150,7 +150,7 @@ export default function ReportBuilder() {
   }, [mdForm, userMetrics, qForm.source, loadUserMetrics, t]);
   const deleteUserMetric = useCallback(async (name) => {
     const next = userMetrics.filter(m => m.name !== name).map(m => ({ name: m.name, label: m.label, formula: m.formula }));
-    try { await requestJsonAuth("/api/reports/metrics", "PUT", { source: qForm.source, metrics: next }); setQForm(f => ({ ...f, metrics: f.metrics.filter(x => x !== name) })); loadUserMetrics(qForm.source); } catch (e) {}
+    try { await requestJsonAuth("/api/reports/metrics", "PUT", { source: qForm.source, metrics: next }); setQForm(f => ({ ...f, metrics: f.metrics.filter(x => x !== name) })); loadUserMetrics(qForm.source); } catch (e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, [userMetrics, qForm.source, loadUserMetrics]);
   const toggleMetric = (m) => setQForm(f => ({ ...f, metrics: f.metrics.includes(m) ? f.metrics.filter(x => x !== m) : [...f.metrics, m] }));
   const runQuery = useCallback(async () => {
@@ -213,7 +213,7 @@ export default function ReportBuilder() {
     catch (e) { setQResult({ rows: [], columns: [], note: String(e.message).slice(0, 80) }); }
     finally { setQLoading(false); }
   }, []);
-  const deleteSaved = useCallback(async (id) => { try { await delJson(`/api/reports/saved/${id}`); loadSaved(); } catch {} }, [loadSaved]);
+  const deleteSaved = useCallback(async (id) => { try { await delJson(`/api/reports/saved/${id}`); loadSaved(); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [loadSaved]);
   const exportCsv = useCallback(() => {
     if (!qResult || !qResult.rows || !qResult.rows.length) return;
     const cols = qResult.columns || [];

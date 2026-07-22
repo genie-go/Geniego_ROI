@@ -58,7 +58,7 @@ export default function MyCoupons() {
   }, []);
   const refLink = refCode ? `${window.location.origin}/login?ref=${encodeURIComponent(refCode)}` : '';
   const copyRef = async () => {
-    try { await navigator.clipboard.writeText(refCode || ''); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch {}
+    try { await navigator.clipboard.writeText(refCode || ''); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch { /* 미지원 브라우저 API 무시 */ }
   };
 
   const usable = (c) => !Number(c.is_revoked) && (Number(c.use_count) || 0) < (Number(c.max_uses) || 1);
@@ -140,7 +140,7 @@ export default function MyCoupons() {
             <button onClick={copyRef} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: 'linear-gradient(135deg,#4f8ef7,#6366f1)', color: '#fff' }}>
               {refCopied ? t('myCoupons.refCopied', '복사됨 ✓') : t('myCoupons.refCopy', '코드 복사')}
             </button>
-            <button onClick={async () => { try { await navigator.clipboard.writeText(refLink); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch {} }}
+            <button onClick={async () => { try { await navigator.clipboard.writeText(refLink); setRefCopied(true); setTimeout(() => setRefCopied(false), 1800); } catch { /* 미지원 브라우저 API 무시 */ } }}
               style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', fontWeight: 700, fontSize: 13, background: 'transparent', color: '#fff' }}>
               {t('myCoupons.refCopyLink', '초대 링크 복사')}
             </button>

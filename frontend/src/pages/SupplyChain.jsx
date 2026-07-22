@@ -219,13 +219,13 @@ const submit=async()=>{
   setSaving(true);
   try{await requestJsonAuth('/v420/supply/lines','POST',{sku:form.sku,name:form.name||form.sku,supplier:form.supplier,leadTime:Number(form.leadTime)||0,risk:form.risk,stages:STAGES.map(s=>({stage:s,done:0}))});
     setShowAdd(false);setForm(_emptyLine());await reload();}
-  catch(e){}finally{setSaving(false);}
+  catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }finally{setSaving(false);}
 };
 // 단계 클릭 → 운영 백엔드 done 토글(updateStage), 데모는 무변경.
 const toggleStage=async(ln,si)=>{
   if(isDemoMode||!ln.lineDbId)return;
   const done=(ln.stages[si]>=100)?0:1;
-  try{await requestJsonAuth(`/v420/supply/lines/${ln.lineDbId}/stage`,'POST',{stage:STAGES[si],done});await reload();}catch(e){}
+  try{await requestJsonAuth(`/v420/supply/lines/${ln.lineDbId}/stage`,'POST',{stage:STAGES[si],done});await reload();}catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
 };
 const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
 const addBtn=!isDemoMode&&(<div style={{display:'flex',justifyContent:'flex-end'}}><button onClick={()=>setShowAdd(true)} style={{padding:'8px 16px',borderRadius:8,border:'none',background:'#4f8ef7',color:'#fff',fontWeight:700,fontSize:12,cursor:'pointer'}}>+ {tr('addLine')}</button></div>);
@@ -341,11 +341,11 @@ if(!form.name.trim()||saving)return;
 setSaving(true);
 try{await requestJsonAuth('/v420/supply/suppliers','POST',{...form,leadTime:Number(form.leadTime)||0,delayRate:Number(form.delayRate)||0,reliability:Number(form.reliability)||0,orderCount:Number(form.orderCount)||0});
 setShowAdd(false);setForm(_emptySup());await reload();}
-catch(e){}finally{setSaving(false);}
+catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }finally{setSaving(false);}
 };
 const remove=async(id)=>{
 if(isDemoMode||!window.confirm(tr('confirmDelete')))return;
-try{await requestJsonAuth(`/v420/supply/suppliers/${id}`,'DELETE');await reload();}catch(e){}
+try{await requestJsonAuth(`/v420/supply/suppliers/${id}`,'DELETE');await reload();}catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
 };
 const fld=(k,v)=>setForm(f=>({...f,[k]:v}));
 const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
@@ -642,7 +642,7 @@ return(
 {[
 {l:tr('contactSupplier'),c:'#4f8ef7',i:'📞',act:()=>window.open('mailto:?subject='+encodeURIComponent('[공급 리스크] '+ln.supplier+' - '+ln.product),'_blank')},
 {l:tr('altSupplierSearch'),c:'#a855f7',i:'🔍',act:()=>window.open('https://www.google.com/search?q='+encodeURIComponent(ln.product+' alternative supplier '+ln.country),'_blank','noopener')},
-{l:tr('slackNotify'),c:'#22c55e',i:'💬',act:()=>{try{navigator.clipboard&&navigator.clipboard.writeText('[공급 리스크] '+ln.supplier+' / '+ln.product+' · '+tr('leadTime')+' '+ln.leadTime+tr('days'));}catch(e){}alert(tr('riskMsgCopied'));}},
+{l:tr('slackNotify'),c:'#22c55e',i:'💬',act:()=>{try{navigator.clipboard&&navigator.clipboard.writeText('[공급 리스크] '+ln.supplier+' / '+ln.product+' · '+tr('leadTime')+' '+ln.leadTime+tr('days'));}catch(e) { /* 미지원 브라우저 API 무시 */ }alert(tr('riskMsgCopied'));}},
 ].map((a,i)=>(
 <button key={i} onClick={a.act} style={{fontSize:11,fontWeight:700,padding:'6px 12px',borderRadius:8,border:'1px solid '+a.c+'30',background:a.c+'08',color:a.c,cursor:'pointer',display:'flex',alignItems:'center',gap:4}}><span>{a.i}</span>{a.l}</button>
 ))}
@@ -683,13 +683,13 @@ const reload=useCallback(async()=>{
 useEffect(()=>{reload();},[reload]);
 const toggle=async(id)=>{
   if(isDemoMode)return;
-  try{await requestJsonAuth(`/v420/supply/risk-rules/${id}/toggle`,'POST',{});await reload();}catch(e){}
+  try{await requestJsonAuth(`/v420/supply/risk-rules/${id}/toggle`,'POST',{});await reload();}catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
 };
 const submit=async()=>{
   if(!form.rule.trim()||saving)return;
   setSaving(true);
   try{await requestJsonAuth('/v420/supply/risk-rules','POST',{rule:form.rule,action:form.action});setShowAdd(false);setForm({rule:'',action:''});await reload();}
-  catch(e){}finally{setSaving(false);}
+  catch(e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }finally{setSaving(false);}
 };
 const inputSt={width:'100%',padding:'8px 10px',borderRadius:8,border:'1px solid #cbd5e1',fontSize:13,color:'#1e293b',background:'#fff'};
 return(

@@ -161,7 +161,7 @@ export function ConnectorSyncProvider({ children }) {
         if (ty === 'CHANNEL_REGISTERED' || ty === 'CHANNEL_REMOVED') refresh();
       };
     } catch { /* 미지원 환경 무음 */ }
-    return () => { try { if (bc) bc.close(); } catch {} };
+    return () => { try { if (bc) bc.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, [token, refresh]);
 
   /* 단일 Channel 연결 Test */

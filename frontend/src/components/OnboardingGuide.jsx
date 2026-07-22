@@ -131,10 +131,10 @@ export default function OnboardingGuide() {
   const [welcomed, setWelcomed] = useState(() => { try { return localStorage.getItem(welcomedKey) === '1'; } catch { return true; } });
   // [현 차수] ★비즈니스 모델: 'commerce'(실물 커머스) | 'service'(서비스·구독·디지털). 미선택 시 null → 선택 유도.
   const [bizModel, setBizModel] = useState(() => { try { const v = localStorage.getItem(bizModelKey); return (v === 'commerce' || v === 'service' || v === 'both') ? v : null; } catch { return null; } });
-  const chooseModel = (m) => { try { localStorage.setItem(bizModelKey, m); } catch {} setBizModel(m); };
+  const chooseModel = (m) => { try { localStorage.setItem(bizModelKey, m); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setBizModel(m); };
   // [237차] 모델 다시 선택 — bizModel 초기화 → 3카드 선택 화면 재노출(상품형/서비스형/둘다 직접 재선택).
   //   서비스 사업자가 실수로 commerce/both 를 골라 '상품 등록'에 막힌 경우 service 로 전환해 단계를 재구성.
-  const resetModel = () => { try { localStorage.removeItem(bizModelKey); } catch {} setBizModel(null); };
+  const resetModel = () => { try { localStorage.removeItem(bizModelKey); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setBizModel(null); };
   // [현 차수] ★항상 기본 접힘(단일 1줄) — 안내 배너가 페이지 콘텐츠 높이를 잠식하지 않도록.
   //   펼침은 사용자가 명시적으로 [펼치기]를 눌렀을 때만(absolute 오버레이로 표시 → 페이지 안 밀림).
   //   (218차 '첫 방문 자동 펼침'이 전 페이지 컨테이너 높이를 압축하는 회귀를 유발해 제거.)
@@ -145,8 +145,8 @@ export default function OnboardingGuide() {
   //   콘텐츠에 양보하고, 버튼을 누르면 다시 나타난다(상단 chrome 잠식 해소). 상태는 테넌트별 영속.
   const hideKey = 'genie_onb_hidden_' + tenantKey();
   const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(hideKey) === '1'; } catch { return false; } });
-  const hide = () => { try { localStorage.setItem(hideKey, '1'); } catch {} setHidden(true); setExpanded(false); };
-  const unhide = () => { try { localStorage.setItem(hideKey, '0'); } catch {} setHidden(false); };
+  const hide = () => { try { localStorage.setItem(hideKey, '1'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setHidden(true); setExpanded(false); };
+  const unhide = () => { try { localStorage.setItem(hideKey, '0'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setHidden(false); };
 
   // [현 차수] ★모바일: 하단 내비 옆 아이콘 + 바텀시트(콘텐츠 비잠식). 데스크톱: 기존 상단 배너.
   const isMobile = useIsMobile();
@@ -173,7 +173,7 @@ export default function OnboardingGuide() {
     const pending = !allDone;
     const close = () => setMobileOpen(false);
     const goStep = (s) => { close(); navStep(s); };
-    const dismiss = () => { try { localStorage.setItem(welcomedKey, '1'); } catch {} setWelcomed(true); close(); };
+    const dismiss = () => { try { localStorage.setItem(welcomedKey, '1'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setWelcomed(true); close(); };
     const bizBtn = (m, icon, title, desc) => (
       <button key={m} onClick={() => chooseModel(m)} style={{ display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer', padding: '12px 14px', borderRadius: 12, marginBottom: 8, border: '1px solid rgba(124,58,237,0.4)', background: 'rgba(255,255,255,0.08)', color: '#fff' }}>
         <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 3 }}>{icon} {title}</div>
@@ -297,8 +297,8 @@ export default function OnboardingGuide() {
     );
   }
 
-  const toggle = () => { const v = !expanded; setExpanded(v); try { localStorage.setItem(expandKey, v ? '1' : '0'); } catch {} };
-  const markWelcomed = () => { try { localStorage.setItem(welcomedKey, '1'); } catch {} setWelcomed(true); };
+  const toggle = () => { const v = !expanded; setExpanded(v); try { localStorage.setItem(expandKey, v ? '1' : '0'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } };
+  const markWelcomed = () => { try { localStorage.setItem(welcomedKey, '1'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setWelcomed(true); };
   const pct = Math.round(doneCount / STEPS.length * 100);
   const hBtn = { padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 };
 

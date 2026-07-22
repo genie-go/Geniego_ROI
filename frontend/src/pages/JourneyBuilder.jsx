@@ -41,7 +41,7 @@ export default function JourneyBuilder() {
     const _jTabVisible = (id) => (_isDemo || _jIsAdmin) ? true : tabAllowedByPlan(_jPlan, 'journey', id);
     const [tab, setTab] = useState('builder');
     const [journeys, setJourneys] = useState(() => {
-        try { const saved = localStorage.getItem('jb_journeys'); if (saved) return JSON.parse(saved); } catch {}
+        try { const saved = localStorage.getItem('jb_journeys'); if (saved) return JSON.parse(saved); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         // 179차 데모: 가상 여정 시드 (실제처럼 체험 — 사용자 추가분은 jb_journeys에 누적 유지)
         if (_isDemo) return [
             { id: 'JRN-DEMO-1', name: t('journeyBuilder.demoSignupName', '회원가입 환영 여정'), trigger_type: 'signup', trigger_label: '회원가입', segment: '신규 가입 고객', channels: ['email', 'kakao'], delay: 'none', delay_label: '즉시', status: 'active', createdAt: '2026-05-20', executions: 12, entered: 1240, completed: 982 },
@@ -77,14 +77,14 @@ export default function JourneyBuilder() {
     const trigLabel = s => ({ signup: tr(K.triggerSignup), purchase: tr(K.triggerPurchase), abandon: tr(K.triggerAbandon), churn: tr(K.triggerChurn), segment: tr(K.triggerSegment), manual: tr(K.triggerManual) }[s] || s);
     const delayLabel = s => ({ none: tr(K.delayNone), '1h': tr(K.delay1h), '1d': tr(K.delay1d), '3d': tr(K.delay3d), '7d': tr(K.delay7d) }[s] || s);
 
-    const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch { } }, []);
+    const persist = useCallback(list => { try { localStorage.setItem('jb_journeys', JSON.stringify(list)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }, []);
 
     // 191차 3단계: 운영=백엔드(/api/journey/*) 실배선, 데모=로컬 유지.
     //   프론트 여정 모델(channels/delay/segment/executions)은 백엔드 trigger_config(JSON)에 라운드트립.
     //   진입/완료(entered/completed)는 백엔드 stats_*(실 enrollment) — 가짜 주입 없이 0부터 실집계.
     const mapFromBackend = (r) => {
         let cfg = {};
-        try { cfg = typeof r.trigger_config === 'string' ? JSON.parse(r.trigger_config || '{}') : (r.trigger_config || {}); } catch {}
+        try { cfg = typeof r.trigger_config === 'string' ? JSON.parse(r.trigger_config || '{}') : (r.trigger_config || {}); } catch { /* 파싱 실패 시 기본값 유지 */ }
         const tt = r.trigger_type || 'manual';
         const dl = cfg.delay || 'none';
         return {
@@ -145,7 +145,7 @@ export default function JourneyBuilder() {
         setCanvasSaving(true);
         try {
             if (_isDemo) {
-                setJourneys(prev => { const next = prev.map(j => j.id === canvasId ? { ...j, nodes: graph.nodes, edges: graph.edges } : j); try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch {} return next; });
+                setJourneys(prev => { const next = prev.map(j => j.id === canvasId ? { ...j, nodes: graph.nodes, edges: graph.edges } : j); try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return next; });
             } else {
                 await journeyApi.update(canvasId, { nodes: graph.nodes, edges: graph.edges });
                 setJourneys(prev => prev.map(j => j.id === canvasId ? { ...j, nodes: graph.nodes, edges: graph.edges } : j));
@@ -158,7 +158,7 @@ export default function JourneyBuilder() {
     // [현 차수] 추천 여정 갤러리 열기 + 템플릿 로드(전체 그래프).
     const openTemplates = useCallback(async () => {
         setShowTemplates(true);
-        try { const r = await journeyApi.templates(); if (r?.ok && Array.isArray(r.templates)) setTemplates(r.templates); } catch {}
+        try { const r = await journeyApi.templates(); if (r?.ok && Array.isArray(r.templates)) setTemplates(r.templates); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     // 템플릿 선택 → 전체 그래프로 여정 생성 → 캔버스 편집 진입.
     const createFromTemplate = useCallback(async (tpl) => {
@@ -166,7 +166,7 @@ export default function JourneyBuilder() {
         if (_isDemo) {
             const id = 'JRN-' + Date.now().toString(36);
             const j = { id, name, trigger_type: tpl.trigger_type, trigger_label: trigLabel(tpl.trigger_type), segment: '', channels: ['email'], delay: 'none', delay_label: '즉시', status: 'draft', createdAt: new Date().toISOString().slice(0, 10), executions: 0, entered: 0, completed: 0, converted: 0, nodes: tpl.nodes || [], edges: tpl.edges || [] };
-            setJourneys(prev => { const next = [j, ...prev]; try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch {} return next; });
+            setJourneys(prev => { const next = [j, ...prev]; try { localStorage.setItem('jb_journeys', JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return next; });
             setShowTemplates(false); setCanvasId(id); setTab('builder');
             addToast('추천 여정이 생성되었습니다. 캔버스에서 편집하세요.', 'success', 3000);
             return;

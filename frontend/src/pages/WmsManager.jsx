@@ -34,10 +34,10 @@ function useWmsCrossTabSync(onMessage) {
             bc.onmessage = (e) => cbRef.current?.(e.data);
             bcRef.current = bc;
             return () => bc.close();
-        } catch {}
+        } catch { /* BroadcastChannel 정리 실패 무시 */ }
     }, []);
     const broadcast = useCallback((type, payload) => {
-        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch {}
+        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
     }, []);
     return broadcast;
 }
@@ -180,7 +180,7 @@ const WarehouseTab = memo(function WarehouseTab({ showForm, setShowForm, showPer
     const [permissions, setPermissions] = useState([]);
     const [permForm, setPermForm] = useState({ user: '', role: 'viewer', warehouses: [] });
     const reloadPerms = useCallback(async () => {
-        try { const r = await wmsApi.listPermissions(); if (Array.isArray(r?.permissions)) setPermissions(r.permissions.map(p => ({ ...p, user: p.user_email }))); } catch {}
+        try { const r = await wmsApi.listPermissions(); if (Array.isArray(r?.permissions)) setPermissions(r.permissions.map(p => ({ ...p, user: p.user_email }))); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     useEffect(() => { reloadPerms(); }, [reloadPerms]);
     const ROLES = [
@@ -413,7 +413,7 @@ const InOutTab = memo(function InOutTab({ whs, prefill, onPrefillDone }) {
                 // [269차 수정] 렌더 테이블은 r.at 를 읽는데 백엔드행엔 at 미세팅→날짜 공란이었다. created_at 을 at 으로 포맷.
                 ts: m.created_at, at: (m.created_at || '').replace('T', ' ').slice(0, 16), by: '-',
             })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     useEffect(() => { reloadMoves(); }, [reloadMoves]);
     const [filter, setFilter] = useState('All');
@@ -988,7 +988,7 @@ const InventoryTab = memo(function InventoryTab({ whs }) {
         if (!IS_DEMO && wmsStock && wmsStock.length > 0) {
             const cur = (inventory.find(p => p.sku === adjForm.sku)?.stock?.[adjForm.whId]) || 0;
             const delta = newQty - cur;
-            // [286차] ★무음실패 정직화 — 종전엔 await/응답체크 없이 catch{} 로 삼켜, 403(창고권한)/422 여도 낙관값이
+            // [286차] ★무음실패 정직화 — 종전엔 await/응답체크 없이 catch { /* 실패 무시(best-effort) */ } 로 삼켜, 403(창고권한)/422 여도 낙관값이
             //   '저장됨'처럼 보이고 30초 폴링에 조용히 원복됐다. 응답을 검사해 실패를 사용자에게 표면화한다.
             if (delta !== 0) {
                 wmsApi.createMovement({ sku: adjForm.sku, name: adjForm.name || '', qty: delta, wh_id: adjForm.whId, type: 'StockAdj', reason: '재고 조정' })
@@ -1273,7 +1273,7 @@ const CarrierTab = memo(function CarrierTab() {
         try {
             const r = await wmsApi.listCarriers();
             if (Array.isArray(r?.carriers)) setCarriers(r.carriers.map(c => ({ ...c, trackUrl: c.trackUrl || c.track_url || '', apiKey: c.api_key || '' })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     useEffect(() => { reloadCarriers(); }, [reloadCarriers]);
 
@@ -1302,7 +1302,7 @@ const CarrierTab = memo(function CarrierTab() {
         if (!key || key.trim() === '') { alert(t('wms.carrApiKeyRequired')); return; }
         setTesting(p => ({ ...p, [id]: 'loading' }));
         setCarriers(p => p.map(c => c.id === id ? { ...c, apiKey: key } : c));
-        try { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); } catch {}
+        try { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
 
         try {
             const token = localStorage.getItem('genie_token');
@@ -1333,7 +1333,7 @@ const CarrierTab = memo(function CarrierTab() {
         const carrier = carriers.find(c => c.id === id);
         setCarriers(p => p.map(c => c.id === id ? { ...c, apiKey: key } : c));
         setApiInputs(p => { const n = { ...p }; delete n[id]; return n; });
-        try { if (carrier) { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); await reloadCarriers(); } } catch {}
+        try { if (carrier) { await wmsApi.updateCarrier(id, { ...carrier, apiKey: key }); await reloadCarriers(); } } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     };
 
     const TYPE_COLORS = { "Domestic": "#22c55e", "IntlExpress": "#4f8ef7", "IntlPost": "#a855f7", "Freight": "#eab308", "SameDay": "#ef4444" };
@@ -1623,7 +1623,7 @@ const ReceivingTab = memo(function ReceivingTab({ supplyOrders, updateSupplyOrde
                 // [287차] 백엔드 영속 원가 실반영(종전 하드코딩 0 → 발주단가/발주금액·총 발주금액 KPI 항상 ₩0 이던 결함)
                 unitCost: Number(o.unit_cost) || 0, total: Number(o.cost_total) || (Number(o.qty) * Number(o.unit_cost)) || 0,
             })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     React.useEffect(() => { reload(); }, [reload]);
     const rows = IS_DEMO ? supplyOrders : beOrders;
@@ -1689,7 +1689,7 @@ const PickingListTab = memo(function PickingListTab({ pickingLists }) {
                 qty: Number(p.qty) || 0, wh: p.wh_id, carrier: p.carrier,
                 status: p.status, createdAt: (p.created_at || '').slice(0, 16),
             })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     React.useEffect(() => { reload(); }, [reload]);
     const list = (IS_DEMO ? pickingLists : bePicks).map(p => {
@@ -1850,7 +1850,7 @@ const LotManagementTab = memo(function LotManagementTab({ lotManagement, registe
                 expiryDate: l.expiry_date, qty: Number(l.qty) || 0, wh: l.wh_id,
                 daysLeft: l.expiry_date ? Math.ceil((new Date(l.expiry_date) - new Date()) / (86400000)) : 9999,
             })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     React.useEffect(() => { reloadLots(); }, [reloadLots]);
     const allLots = [...beLots, ...lotManagement];
@@ -1940,7 +1940,7 @@ const ReplenishmentTab = memo(function ReplenishmentTab({ supplyOrders, addSuppl
                 // [287차] 백엔드 영속 원가 실반영(종전 하드코딩 0 → 발주단가/발주금액·총 발주금액 KPI 항상 ₩0 이던 결함)
                 unitCost: Number(o.unit_cost) || 0, total: Number(o.cost_total) || (Number(o.qty) * Number(o.unit_cost)) || 0,
             })));
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, []);
     React.useEffect(() => { reload(); }, [reload]);
     const rows = IS_DEMO ? supplyOrders : beOrders;
@@ -3101,7 +3101,7 @@ export default function WmsManager() {
         return () => {
             document.removeEventListener('input', handler);
             clearInterval(rateLimitTimer);
-            try { perfObs?.disconnect(); } catch (e) {}
+            try { perfObs?.disconnect(); } catch (e) { /* 정리(cleanup) 실패 무시 */ }
         };
     }, [secCheck]);
 

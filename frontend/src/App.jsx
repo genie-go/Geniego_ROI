@@ -209,7 +209,7 @@ class ErrorBoundary extends Component {
         read: false,
       });
       localStorage.setItem('g_sec_alerts', JSON.stringify(alerts.slice(0, 100)));
-    } catch { }
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   }
   render() {
     if (this.state.hasError) {
@@ -329,7 +329,7 @@ function LoginRoute() {
       const isDemoHost = typeof window !== 'undefined' && (/^roidemo\./.test(window.location.hostname) || window.location.hostname === 'demo.genieroi.com');
       localStorage.setItem(isDemoHost ? 'demo_genie_token' : 'genie_token', ssoTok);
       localStorage.setItem('genie_token', ssoTok);
-    } catch (e) {}
+    } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     window.location.replace('/dashboard');
     return null;
   }
@@ -681,13 +681,13 @@ function PlatformActAsBanner() {
   const t = useT();
   const [on, setOn] = React.useState(() => { try { return localStorage.getItem('gg_act_as_tenant') === 'platform_growth'; } catch (e) { return false; } });
   React.useEffect(() => {
-    const h = () => { try { setOn(localStorage.getItem('gg_act_as_tenant') === 'platform_growth'); } catch (e) {} };
+    const h = () => { try { setOn(localStorage.getItem('gg_act_as_tenant') === 'platform_growth'); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } };
     window.addEventListener('storage', h);
     window.addEventListener('gg-actas-change', h);
     return () => { window.removeEventListener('storage', h); window.removeEventListener('gg-actas-change', h); };
   }, []);
   if (!on) return null;
-  const off = () => { try { localStorage.removeItem('gg_act_as_tenant'); } catch (e) {} window.dispatchEvent(new Event('gg-actas-change')); setOn(false); };
+  const off = () => { try { localStorage.removeItem('gg_act_as_tenant'); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } window.dispatchEvent(new Event('gg-actas-change')); setOn(false); };
   return (
     // [259차] 가독성 수정 — 흰바탕/흰글자 → 밝은 배경 + 찐한 회색 글자(테마 무관 고대비)
     <div style={{ background: '#ede9fe', color: '#374151', borderBottom: '1px solid #c4b5fd', padding: '7px 16px', fontSize: 12.5, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>

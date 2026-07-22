@@ -398,7 +398,7 @@ function CampaignsTab() {
                         const enabled=e.target.checked;
                         const start=warmup?.start_date || new Date().toISOString().slice(0,10);
                         setWarmup(w=>({...(w||{}),enabled,start_date:start}));
-                        try{ const r=await _pjaEmail('/api/email/warmup',{enabled,start_date:start}); if(r?.ok) setWarmup(r); }catch(_){}
+                        try{ const r=await _pjaEmail('/api/email/warmup',{enabled,start_date:start}); if(r?.ok) setWarmup(r); }catch(_) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
                     }} />
                     <span>{t('email.warmupEnable','워밍업 활성화')} {warmup?.enabled && warmup?.start_date && <span style={{ color:'#6b7280', fontSize:11 }}>({t('email.warmupStart','시작')} {warmup.start_date})</span>}</span>
                 </label>
@@ -876,8 +876,8 @@ function EmailMarketingContent() {
     const [secLocked,setSecLocked]=useState(false);
     useSecurityGuard({addAlert:useCallback((a)=>{if(typeof addAlert==='function')addAlert(a);if(a?.severity==='critical')setSecLocked(true);},[addAlert]),enabled:true});
     const bcRef=useRef(null);
-    useEffect(()=>{try{bcRef.current=new BroadcastChannel(tChannelName('geniego_email'));bcRef.current.onmessage=()=>{};}catch{}return()=>{try{bcRef.current?.close();}catch{}};},[]);
-    const broadcastRefresh=useCallback(()=>{try{bcRef.current?.postMessage({type:'EMAIL_REFRESH',ts:Date.now()});}catch{}if(typeof broadcastUpdate==='function')broadcastUpdate('email',{refreshed:Date.now()});},[broadcastUpdate]);
+    useEffect(()=>{try{bcRef.current=new BroadcastChannel(tChannelName('geniego_email'));bcRef.current.onmessage=()=>{};}catch { /* BroadcastChannel 미지원 환경 무시 */ }return()=>{try{bcRef.current?.close();}catch { /* BroadcastChannel 정리 실패 무시 */ }};},[]);
+    const broadcastRefresh=useCallback(()=>{try{bcRef.current?.postMessage({type:'EMAIL_REFRESH',ts:Date.now()});}catch { /* 실패 무시(best-effort) */ }if(typeof broadcastUpdate==='function')broadcastUpdate('email',{refreshed:Date.now()});},[broadcastUpdate]);
     const {user:_eu,isAdmin:_eIsAdmin}=useAuth(); // [현 차수] 구독플랜별 탭 노출
     const _ePlan=(_eu&&(_eu.plans||_eu.plan))||'free';
     const _eTabVisible=(id)=>(_IS_DEMO_EM||_eIsAdmin)?true:tabAllowedByPlan(_ePlan,'email',id);
@@ -885,7 +885,7 @@ function EmailMarketingContent() {
     // [238차] 온보딩 가이드 큐가 '템플릿 작성' 단계를 가리키면 템플릿 탭으로 자동 전환(마커 노출).
     useEffect(() => {
         const apply = (cta) => { if (cta === "email-template") setTab("templates"); };
-        try { apply(sessionStorage.getItem("genie_onboard_cta")); } catch (e) {}
+        try { apply(sessionStorage.getItem("genie_onboard_cta")); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         const h = (e) => apply(e && e.detail && e.detail.cta);
         window.addEventListener("genie-onboard-cta", h);
         return () => window.removeEventListener("genie-onboard-cta", h);

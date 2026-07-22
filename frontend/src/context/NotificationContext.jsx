@@ -84,14 +84,14 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (_) {}
+  } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   return null;
 }
 
 function saveToStorage(items) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(items.slice(0, 100)));
-  } catch (_) {}
+  } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 /* ─── Provider ───────────────────────────────────────────────────────────────── */

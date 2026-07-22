@@ -105,7 +105,7 @@ function recoverFromStaleChunk(msg) {
     if (last && (Date.now() - last) < STALE_RELOAD_WINDOW_MS) return false; // 60초 내 재발 = 무한루프 억제
   } catch (e) { /* sessionStorage 불가 시 아래 진행 */ }
   if (!safeReload('main: stale chunk load failure')) return false;  // 미저장 입력 있으면 보류(플래그도 남기지 않음)
-  try { sessionStorage.setItem('stale_chunk_reloaded', String(Date.now())); } catch (e) {}
+  try { sessionStorage.setItem('stale_chunk_reloaded', String(Date.now())); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   return true;
 }
 
@@ -118,7 +118,7 @@ try {
     const cleaned = a.filter(x => !FALSE_ALERT_RE.test(String((x && x.message) || '')));
     if (cleaned.length !== a.length) localStorage.setItem('g_sec_alerts', JSON.stringify(cleaned));
   }
-} catch (e) {}
+} catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 
 /* Global error handlers — 최후의 블랙스크린 방지 */
 window.addEventListener('error', (e) => {

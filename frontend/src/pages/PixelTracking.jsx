@@ -412,7 +412,7 @@ function PixelConfigTab({ API }) {
         <div style={CARD}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>📋 {t("pxl.snippetTitle")} ({selectedPixelId})</div>
           <div style={{ background: "#0a0f1a", borderRadius: 10, padding: 16, fontFamily: "monospace", fontSize: 12, color: "#7dd3fc", whiteSpace: "pre-wrap", wordBreak: "break-all", overflow: "auto", maxHeight: 300 }}>{snippet}</div>
-          <button onClick={() => { try { navigator.clipboard.writeText(snippet); } catch {} }} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: C.surface, color: C.text, fontSize: 12 }}>📋 {t("pxl.copy")}</button>
+          <button onClick={() => { try { navigator.clipboard.writeText(snippet); } catch { /* 미지원 브라우저 API 무시 */ } }} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", background: C.surface, color: C.text, fontSize: 12 }}>📋 {t("pxl.copy")}</button>
           <div style={{ marginTop: 12, fontSize: 12, color: C.muted }}>
             ℹ️ {t("pxl.snippetGuide1")}<code style={{ background: "var(--surface)", padding: "2px 6px", borderRadius: 4 }}>&lt;head&gt;</code>{t("pxl.snippetGuide2")} {t("pxl.snippetGuide3")}
           </div>
@@ -438,7 +438,7 @@ function EventStreamTab() {
         body: JSON.stringify({ pixel_id: form.pixel_id, event_name: form.event_name, value: parseFloat(form.value) || 0, session_id: "test_" + Date.now(), utm_source: "test", utm_medium: "manual_test" }),
       }).then(x => x.json());
       if (r.ok) setEvents(prev => [{ ...form, event_id: r.event_id, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 49)]);
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     setLoading(false);
   };
 

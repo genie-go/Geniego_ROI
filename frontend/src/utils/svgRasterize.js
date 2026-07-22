@@ -64,7 +64,7 @@ export async function svgToPngDataUrl(svgMarkup, maxW = 1080, maxH = 1080) {
       });
       return (typeof dataUrl === 'string' && dataUrl.indexOf('data:image/') === 0) ? dataUrl : svgMarkup;
     } finally {
-      try { URL.revokeObjectURL(url); } catch {}
+      try { URL.revokeObjectURL(url); } catch { /* 실패 무시(best-effort) */ }
     }
   } catch {
     return svgMarkup; // 실패 시 원본(기존 동작 보존)

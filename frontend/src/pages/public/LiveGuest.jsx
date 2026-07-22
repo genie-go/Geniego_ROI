@@ -59,8 +59,8 @@ export default function LiveGuest() {
   }, [joined, t]);
 
   const stopCam = useCallback(() => {
-    try { pubRef.current?.stop?.(); } catch {} pubRef.current = null;
-    try { streamRef.current?.getTracks().forEach(tr => tr.stop()); } catch {} streamRef.current = null;
+    try { pubRef.current?.stop?.(); } catch { /* 미디어 정리 실패 무시 */ } pubRef.current = null;
+    try { streamRef.current?.getTracks().forEach(tr => tr.stop()); } catch { /* 미디어 정리 실패 무시 */ } streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setBcast({ state: 'idle' });
   }, []);

@@ -406,7 +406,7 @@ function ProductsTab({ token }) {
 
     // 저장 성공·초안 삭제 시 호출.
     const discardDraft = useCallback(() => {
-        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         clearDirty('priceopt:product-form');
         setDraftRestored(false);
         setDraftImagesDropped(0);
@@ -511,7 +511,7 @@ function ProductsTab({ token }) {
             const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
             bc.postMessage({ type: 'PRODUCT_UPDATE', source: 'priceOpt', ts: Date.now() });
             bc.close();
-        } catch {}
+        } catch { /* BroadcastChannel 정리 실패 무시 */ }
     };
 
     const load = () =>
@@ -1716,7 +1716,7 @@ function OptimizeTab({ token }) {
                 const keys = JSON.parse(raw);
                 Object.entries(keys).filter(([,v]) => v && v.key).forEach(([k]) => all.push(k));
             }
-        } catch {}
+        } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         if (all.length <= 1) all.push("coupang", "naver", "11st", "gmarket", "kakaogift", "lotteon");
         return all;
     }, [connectedChannels]);
@@ -1895,7 +1895,7 @@ function ScenarioTab({ token }) {
         try {
             const raw = localStorage.getItem('genie_api_keys');
             if (raw) { Object.entries(JSON.parse(raw)).filter(([,v]) => v?.key).forEach(([k]) => all.push(k)); }
-        } catch {}
+        } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         if (all.length <= 1) all.push("coupang", "naver", "11st", "gmarket");
         return all;
     }, [connectedChannels]);
@@ -2164,7 +2164,7 @@ function CompetitorPriceTab({ token, inventory, digitalShelfData }) {
             const d = await postJsonAuth(`/v420/price/competitor/harvest`, {});
             setHarvestRes(d);
             // 수집 후 경쟁가 테이블 갱신
-            try { const c = await getJsonAuth(`/v420/price/competitor`); if (c.items) setCompetitorData(c.items); } catch {}
+            try { const c = await getJsonAuth(`/v420/price/competitor`); if (c.items) setCompetitorData(c.items); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
         } catch (e) {
             setHarvestRes({ ok: false, error: e?.message || String(e) });
         } finally { setHarvesting(false); }

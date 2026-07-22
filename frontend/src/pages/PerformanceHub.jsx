@@ -1187,7 +1187,7 @@ export default function PerformanceHub() {
     useEffect(() => {
         pollingRef.current = setInterval(() => {
             setSyncTick(prev => prev + 1);
-            try { bcRef.current?.postMessage({ type: 'PERF_UPDATE', ts: Date.now() }); } catch (_) { }
+            try { bcRef.current?.postMessage({ type: 'PERF_UPDATE', ts: Date.now() }); } catch (_) { /* 실패 무시(best-effort) */ }
         }, 30000);
         return () => clearInterval(pollingRef.current);
     }, []);
@@ -1208,7 +1208,7 @@ export default function PerformanceHub() {
                     timestamp: new Date().toISOString(),
                     read: false,
                 });
-            } catch (_) { }
+            } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
             return '';
         }
         return value;

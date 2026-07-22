@@ -34,8 +34,8 @@ export const SITE_LANGS = [
 ];
 
 export function setSiteLang(lang) {
-    try { localStorage.setItem("genie_roi_lang", lang); } catch {}
-    try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang } })); } catch {}
+    try { localStorage.setItem("genie_roi_lang", lang); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
+    try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang } })); } catch { /* 이벤트 디스패치 실패 무시 */ }
 }
 export function st(key, lang) {
     return S[key]?.[lang] || S[key]?.en || key;

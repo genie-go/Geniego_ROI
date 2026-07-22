@@ -45,15 +45,15 @@ export default function SummernoteEditor({ value = "", onChange, height = 320, p
               // base64 인라인(외부 스토리지 없이 상세HTML에 직접 삽입)
               Array.from(files || []).forEach((file) => {
                 if (!file.type || !file.type.startsWith("image/")) return;
-                if (file.size > 3 * 1024 * 1024) { try { $el.summernote("createRange"); } catch (e) {} return; }
+                if (file.size > 3 * 1024 * 1024) { try { $el.summernote("createRange"); } catch (e) { /* 실패 무시(best-effort) */ } return; }
                 const reader = new FileReader();
-                reader.onload = (ev) => { try { $el.summernote("insertImage", ev.target.result); } catch (e) {} };
+                reader.onload = (ev) => { try { $el.summernote("insertImage", ev.target.result); } catch (e) { /* 실패 무시(best-effort) */ } };
                 reader.readAsDataURL(file);
               });
             },
           },
         });
-        if (value) { try { $el.summernote("code", value); } catch (e) {} }
+        if (value) { try { $el.summernote("code", value); } catch (e) { /* 실패 무시(best-effort) */ } }
         readyRef.current = true;
       } catch (e) {
         // 에디터 로드 실패 시 — 아래 fallback textarea 가 노출됨(readyRef=false 유지).
@@ -61,7 +61,7 @@ export default function SummernoteEditor({ value = "", onChange, height = 320, p
     })();
     return () => {
       destroyed = true;
-      try { if ($ref.current && elRef.current) $ref.current(elRef.current).summernote("destroy"); } catch (e) {}
+      try { if ($ref.current && elRef.current) $ref.current(elRef.current).summernote("destroy"); } catch (e) { /* 실패 무시(best-effort) */ }
       readyRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,7 +70,7 @@ export default function SummernoteEditor({ value = "", onChange, height = 320, p
   // 외부에서 value 가 바뀌면(초기 로드 등) 에디터 내용 동기화(사용자 입력과 충돌 방지 위해 다를 때만).
   useEffect(() => {
     if (readyRef.current && $ref.current && elRef.current && value !== lastHtmlRef.current) {
-      try { $ref.current(elRef.current).summernote("code", value || ""); lastHtmlRef.current = value; } catch (e) {}
+      try { $ref.current(elRef.current).summernote("code", value || ""); lastHtmlRef.current = value; } catch (e) { /* 실패 무시(best-effort) */ }
     }
   }, [value]);
 

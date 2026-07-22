@@ -167,9 +167,9 @@ function useLiveStream(session, active) {
         const es = new EventSource(liveApi.streamUrl(sid, sinceRef.current));
         esRef.current = es;
         es.addEventListener('ready', () => { if (!stopped) setConnected(true); });
-        es.addEventListener('stats', (e) => { try { setStats(JSON.parse(e.data)); } catch {} });
-        es.addEventListener('interactive', (e) => { try { setInteractive(JSON.parse(e.data)); } catch {} }); // [260차] 실시간 오버레이 상태공유
-        es.addEventListener('chat', (e) => { try { pushChat([JSON.parse(e.data)]); } catch {} });
+        es.addEventListener('stats', (e) => { try { setStats(JSON.parse(e.data)); } catch { /* 파싱 실패 시 기본값 유지 */ } });
+        es.addEventListener('interactive', (e) => { try { setInteractive(JSON.parse(e.data)); } catch { /* 파싱 실패 시 기본값 유지 */ } }); // [260차] 실시간 오버레이 상태공유
+        es.addEventListener('chat', (e) => { try { pushChat([JSON.parse(e.data)]); } catch { /* 파싱 실패 시 기본값 유지 */ } });
         es.addEventListener('bye', () => { es.close(); if (!stopped) startSSE(); });
         es.onerror = () => { es.close(); esRef.current = null; setConnected(false); if (!stopped) startPoll(); };
       } catch { startPoll(); }
@@ -183,7 +183,7 @@ function useLiveStream(session, active) {
           if (stopped) return;
           if (s?.stats) setStats(s.stats);
           pushChat(c?.chat || []);
-        } catch {}
+        } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       };
       tick();
       pollRef.current = setInterval(tick, 3000);
@@ -400,7 +400,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
 
   const loadProducts = useCallback(async () => {
     if (!sid) { setProducts([]); return; }
-    try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch {}
+    try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, [sid]);
   useEffect(() => { loadProducts(); }, [loadProducts, chat.length]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chat.length]);
@@ -408,7 +408,7 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   /* [현 차수] 미디어서버(WHIP)로 카메라 송출 — 설정 시 실시간 방송, 미설정 시 로컬 프리뷰로 degrade(정직). */
   const startBroadcast = useCallback(async (stream) => {
     if (!sid || !stream) return;
-    try { pubRef.current?.stop?.(); } catch {}
+    try { pubRef.current?.stop?.(); } catch { /* 미디어 정리 실패 무시 */ }
     pubRef.current = null;
     let info;
     try { info = await liveApi.getMedia(sid); } catch { setBcast({ state: 'local' }); return; }
@@ -441,10 +441,10 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
     }
   }, [deviceId, t, startBroadcast]);
   const stopCam = useCallback(() => {
-    try { pubRef.current?.stop?.(); } catch {}
+    try { pubRef.current?.stop?.(); } catch { /* 미디어 정리 실패 무시 */ }
     pubRef.current = null;
     setBcast({ state: 'idle' });
-    try { streamRef.current?.getTracks().forEach(tr => tr.stop()); } catch {}
+    try { streamRef.current?.getTracks().forEach(tr => tr.stop()); } catch { /* 미디어 정리 실패 무시 */ }
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setCamOn(false);
@@ -454,12 +454,12 @@ const StudioTab = memo(function StudioTab({ session, gd, money, t, onChanged }) 
   const doGoLive = async () => {
     if (!sid) return;
     setBusy(true);
-    try { if (!camOn) await startCam(); await liveApi.goLive(sid); try { await liveApi.multicast(sid, 'start'); } catch {} await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
+    try { if (!camOn) await startCam(); await liveApi.goLive(sid); try { await liveApi.multicast(sid, 'start'); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
   };
   const doEnd = async () => {
     if (!sid) return;
     setBusy(true);
-    try { try { await liveApi.multicast(sid, 'stop'); } catch {} await liveApi.endSession(sid); stopCam(); await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
+    try { try { await liveApi.multicast(sid, 'stop'); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } await liveApi.endSession(sid); stopCam(); await onChanged(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); }
   };
   const feature = async (pid) => { try { await liveApi.featureProduct(pid); await loadProducts(); } catch (e) { alert(String(e?.message || e)); } };
   const sendChat = async () => {
@@ -588,7 +588,7 @@ const MediaServerConfig = memo(function MediaServerConfig({ t }) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null); // [P2] {reachable, whip, whep, note}
   const load = useCallback(async () => {
-    try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); if (Array.isArray(r?.providers)) setProviders(r.providers); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch {}
+    try { const r = await liveApi.getMediaConfig(); if (r?.config) setCfg(c => ({ ...c, ...r.config })); if (Array.isArray(r?.providers)) setProviders(r.providers); setConfigured(!!r?.configured); setSource(r?.source || 'none'); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, []);
   useEffect(() => { load(); }, [load]);
   /* [P2 라이브미디어] 등록 미디어서버 연결 헬스체크(WHIP/WHEP 도달성) */
@@ -677,7 +677,7 @@ const MulticastManager = memo(function MulticastManager({ session, live, t }) {
   const [dests, setDests] = useState([]);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ channel: 'youtube', rtmp_url: '', stream_key: '' });
-  const load = useCallback(async () => { if (!sid) { setDests([]); return; } try { const r = await liveApi.listDestinations(sid); setDests(r?.destinations || []); } catch {} }, [sid]);
+  const load = useCallback(async () => { if (!sid) { setDests([]); return; } try { const r = await liveApi.listDestinations(sid); setDests(r?.destinations || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [sid]);
   useEffect(() => { load(); }, [load]);
 
   const presets = { youtube: 'rtmp://a.rtmp.youtube.com/live2', twitch: 'rtmp://live.twitch.tv/app', facebook: 'rtmps://live-api-s.facebook.com:443/rtmp', instagram: '', tiktok: '' };
@@ -801,7 +801,7 @@ const LineupTab = memo(function LineupTab({ session, gd, money, t }) {
   const [picking, setPicking] = useState(false);
   const inventory = gd?.inventory || [];
   const sid = session?.id;
-  const reload = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch {} }, [sid]);
+  const reload = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [sid]);
   useEffect(() => { reload(); }, [reload]);
 
   const addFromInventory = async (item) => {
@@ -1027,7 +1027,7 @@ const GuestsTab = memo(function GuestsTab({ session, t }) {
   const [role, setRole] = React.useState('cohost');
   const [busy, setBusy] = React.useState(false);
   const [invited, setInvited] = React.useState(null);
-  const load = React.useCallback(async () => { if (!sid) { setGuests([]); return; } try { const r = await liveApi.listGuests(sid); setGuests(r?.guests || []); } catch {} }, [sid]);
+  const load = React.useCallback(async () => { if (!sid) { setGuests([]); return; } try { const r = await liveApi.listGuests(sid); setGuests(r?.guests || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [sid]);
   React.useEffect(() => { load(); const iv = setInterval(load, 5000); return () => clearInterval(iv); }, [load]);
   const invite = async () => {
     if (!sid || !name.trim()) return; setBusy(true);
@@ -1056,7 +1056,7 @@ const GuestsTab = memo(function GuestsTab({ session, t }) {
             <div style={{ fontSize: 12, fontWeight: 700, color: C.accent, marginBottom: 6 }}>✅ {t('liveCommerce.guestInvited', '초대 링크 생성됨 — 게스트에게 공유하세요')}</div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input readOnly value={invited.join_url} onFocus={e => e.target.select()} style={{ flex: 1, padding: '7px 10px', borderRadius: 7, border: `1px solid ${C.border}`, fontSize: 11.5, fontFamily: 'monospace' }} />
-              <Btn small onClick={() => { try { navigator.clipboard.writeText(invited.join_url); } catch {} }}>📋</Btn>
+              <Btn small onClick={() => { try { navigator.clipboard.writeText(invited.join_url); } catch { /* 미지원 브라우저 API 무시 */ } }}>📋</Btn>
             </div>
             <div style={{ fontSize: 10.5, color: C.sub, marginTop: 5 }}>{t('liveCommerce.guestStreamKey', '송출키')}: <code>{invited.stream_key}</code></div>
           </div>
@@ -1129,8 +1129,8 @@ const AiHostTab = memo(function AiHostTab({ session, gd, t }) {
     r.onend = () => setListening(false);
     r.start(); recRef.current = r; setListening(true);
   };
-  const stopRec = () => { try { recRef.current?.stop(); } catch {} setListening(false); };
-  useEffect(() => () => { try { recRef.current?.stop(); } catch {} }, []);
+  const stopRec = () => { try { recRef.current?.stop(); } catch { /* 미디어 정리 실패 무시 */ } setListening(false); };
+  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* 미디어 정리 실패 무시 */ } }, []);
   const makeCaption = async () => {
     if (!transcript.trim()) return;
     try { const r = await aiAssist({ task: 'subtitle', text: transcript, lang: capLang }); setCaption(r?.ok ? r.text : ('⚠️ ' + (r?.error || ''))); } catch (e) { setCaption('⚠️ ' + String(e?.message || e)); }
@@ -1209,7 +1209,7 @@ const LiveInteractive = memo(function LiveInteractive({ sid, isHost, t }) {
   const [q, setQ] = useState('');
   const [opts, setOpts] = useState(['', '']);
   const [busy, setBusy] = useState(false);
-  const loadPolls = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listPolls(sid); setPolls(r?.polls || []); } catch {} }, [sid]);
+  const loadPolls = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listPolls(sid); setPolls(r?.polls || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [sid]);
   useEffect(() => {
     if (!sid) return;
     loadPolls();
@@ -1225,14 +1225,14 @@ const LiveInteractive = memo(function LiveInteractive({ sid, isHost, t }) {
             if (arr.length) setRecent(b => [...b, ...arr].slice(-18));
           }
         }
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     }, 4000);
     return () => { clearInterval(pi); clearInterval(ri); };
   }, [sid, loadPolls]);
-  const react = async (e) => { setRecent(b => [...b, e].slice(-18)); setReTotal(x => x + 1); try { await liveApi.postReaction(sid, { emoji: e, viewer_key: vk }); } catch {} };
-  const vote = async (pid, idx) => { setVoted(v => ({ ...v, [pid]: idx })); try { await liveApi.votePoll(pid, { viewer_key: vk, option_idx: idx }); loadPolls(); } catch {} };
+  const react = async (e) => { setRecent(b => [...b, e].slice(-18)); setReTotal(x => x + 1); try { await liveApi.postReaction(sid, { emoji: e, viewer_key: vk }); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } };
+  const vote = async (pid, idx) => { setVoted(v => ({ ...v, [pid]: idx })); try { await liveApi.votePoll(pid, { viewer_key: vk, option_idx: idx }); loadPolls(); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } };
   const create = async () => { const o = opts.map(s => s.trim()).filter(Boolean); if (!q.trim() || o.length < 2) return; setBusy(true); try { await liveApi.createPoll(sid, { question: q.trim(), options: o }); setQ(''); setOpts(['', '']); loadPolls(); } catch (e) { alert(String(e?.message || e)); } finally { setBusy(false); } };
-  const close = async (pid) => { try { await liveApi.closePoll(pid); loadPolls(); } catch {} };
+  const close = async (pid) => { try { await liveApi.closePoll(pid); loadPolls(); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } };
   if (!sid) return null;
   const active = polls.find(p => p.status === 'active') || (isHost ? null : polls[0]);
   return (
@@ -1298,7 +1298,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    const stop = () => { try { playRef.current?.stop?.(); } catch {} playRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; setPlaying(false); };
+    const stop = () => { try { playRef.current?.stop?.(); } catch { /* 미디어 정리 실패 무시 */ } playRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; setPlaying(false); };
     if (!sid || !isLive) { stop(); return () => { cancelled = true; }; }
     (async () => {
       let info; try { info = await liveApi.getMedia(sid); } catch { return; }
@@ -1309,11 +1309,11 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
         playRef.current = h;
         if (videoRef.current) { videoRef.current.srcObject = h.stream; videoRef.current.play().catch(() => {}); }
         setPlaying(true);
-      } catch {}
+      } catch { /* 미디어 정리 실패 무시 */ }
     })();
     return () => { cancelled = true; stop(); };
   }, [sid, isLive]);
-  const reload = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch {} }, [sid]);
+  const reload = useCallback(async () => { if (!sid) return; try { const r = await liveApi.listProducts(sid); setProducts(r?.products || []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, [sid]);
   useEffect(() => { reload(); }, [reload, chat.length]);
 
   const buy = async (p, qty = 1) => {
@@ -1324,7 +1324,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
       //   ★208차 검수(가상데이터 유입 차단): 운영에서는 client-only 가상주문 주입 금지 →
       //   백엔드가 channel_orders(OMS)로 영속화하고 reload()/SSE 가 라이브 화면을 갱신.
       if (IS_DEMO) {
-        try { gd?.placeOrder?.({ ch: 'live', sku: p.sku || p.name, name: p.name, buyer, qty, price: Number(p.special_price || p.price || 0), wh: 'W001', platformFeeRate: 0 }); } catch {}
+        try { gd?.placeOrder?.({ ch: 'live', sku: p.sku || p.name, name: p.name, buyer, qty, price: Number(p.special_price || p.price || 0), wh: 'W001', platformFeeRate: 0 }); } catch { /* 실패 무시(best-effort) */ }
       }
       setToast(`✅ ${p.name} ${qty}${t('liveCommerce.units', '개')} ${t('liveCommerce.purchased', '구매 완료')} — ${money(r?.total || 0)}`);
       setTimeout(() => setToast(''), 2600);
@@ -1333,7 +1333,7 @@ const BuyerTab = memo(function BuyerTab({ session, gd, money, t }) {
   };
   const commentOrder = async (p) => {
     if (!sid) return;
-    try { await liveApi.postChat(sid, { author: buyer, message: `${t('liveCommerce.commentBuy', '구매')} ${p.name}!`, kind: 'chat' }); await buy(p, 1); } catch {}
+    try { await liveApi.postChat(sid, { author: buyer, message: `${t('liveCommerce.commentBuy', '구매')} ${p.name}!`, kind: 'chat' }); await buy(p, 1); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
 
   if (!session) return <EmptySession t={t} />;

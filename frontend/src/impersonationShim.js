@@ -17,7 +17,7 @@
   if (typeof window === 'undefined') return;
 
   var IS_DEMO = false;
-  try { IS_DEMO = import.meta.env && import.meta.env.VITE_DEMO_MODE === 'true'; } catch (e) {}
+  try { IS_DEMO = import.meta.env && import.meta.env.VITE_DEMO_MODE === 'true'; } catch (e) { /* 실패 무시(best-effort) */ }
   var PREFIX = IS_DEMO ? 'demo_genie_' : 'genie_';
   var IMP_ACTIVE = PREFIX + 'imp_active';
 
@@ -42,11 +42,11 @@
           if (tenant) sessionStorage.setItem('tenantId', tenant);
           sessionStorage.setItem(PREFIX + 'sess_active', '1'); // AuthContext 세션 복원 센티넬
         }
-      } catch (e) {}
+      } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       // 주소창에서 토큰 해시 즉시 제거(노출/재부팅 방지)
-      try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
+      try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* 실패 무시(best-effort) */ }
     }
-  } catch (e) {}
+  } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 
   // 대행 탭이 아니면 아무 것도 하지 않는다.
   try { if (sessionStorage.getItem(IMP_ACTIVE) !== '1') return; } catch (e) { return; }
@@ -90,5 +90,5 @@
     ls.getItem = shimGet;
     ls.setItem = shimSet;
     ls.removeItem = shimRemove;
-  } catch (e) {}
+  } catch (e) { /* 실패 무시(best-effort) */ }
 })();

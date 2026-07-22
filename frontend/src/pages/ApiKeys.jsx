@@ -1046,7 +1046,7 @@ export default function ApiKeys() {
       show('success', t('ak.saved','Credential saved'));
       reload();
       refreshConnectorSync();
-      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [정밀감사 F] 대시보드 즉시 반영
+      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch { /* 이벤트 디스패치 실패 무시 */ } // [정밀감사 F] 대시보드 즉시 반영
       return true;
     } catch (e) {
       show('error', String(e?.message || e));
@@ -1108,7 +1108,7 @@ export default function ApiKeys() {
         }
         // 저장+동기화 후 전역 연결상태 즉시 재조회(타 페이지 stale 윈도우 제거).
         refreshConnectorSync();
-        try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [정밀감사 F] 대시보드/P&L 즉시 반영(30초 폴링 대기 제거)
+        try { window.dispatchEvent(new Event('genie:data-refresh')); } catch { /* 이벤트 디스패치 실패 무시 */ } // [정밀감사 F] 대시보드/P&L 즉시 반영(30초 폴링 대기 제거)
         publishConnectorSync('CHANNEL_REGISTERED', channelKey); // [현 차수 S-4] 다른 탭(같은 tenant) 즉시 반영
       }
       return saved > 0;
@@ -1136,7 +1136,7 @@ export default function ApiKeys() {
       show('success', t('ak.deleted','Credential deleted'));
       reload();
       refreshConnectorSync();
-      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch {} // [현 차수 P2] 삭제도 저장경로와 대칭 — 채널 해제 시 운영 P&L 서버통계 즉시 갱신
+      try { window.dispatchEvent(new Event('genie:data-refresh')); } catch { /* 이벤트 디스패치 실패 무시 */ } // [현 차수 P2] 삭제도 저장경로와 대칭 — 채널 해제 시 운영 P&L 서버통계 즉시 갱신
       publishConnectorSync('CHANNEL_REMOVED'); // [현 차수 S-4] 크로스탭 즉시 반영
     } catch (e) {
       show('error', String(e?.message || e));
@@ -1187,7 +1187,7 @@ export default function ApiKeys() {
       const r = await fetch(`/api/v425/oauth/${provider}/authorize?channel=${encodeURIComponent(channelKey || '')}`, { headers: { Authorization: `Bearer ${tok}` } });
       const d = await r.json().catch(() => ({}));
       // [227차] OAuth 복귀 후 잔여 계정정보 입력을 자동 안내하기 위해 클릭한 채널을 보관.
-      if (d.ok && d.authorize_url) { try { sessionStorage.setItem('gg_oauth_ch', channelKey || ''); } catch {} window.location.href = d.authorize_url; return; }
+      if (d.ok && d.authorize_url) { try { sessionStorage.setItem('gg_oauth_ch', channelKey || ''); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } window.location.href = d.authorize_url; return; }
       // configured=false → 관리자 OAuth 앱 미설정. 수동 등록을 안내(info).
       show(d.configured === false ? 'info' : 'error',
         d.error || t('ak.oauthNotConfigured', '이 채널의 OAuth 자동연결이 아직 설정되지 않았습니다. [등록]으로 키를 직접 입력하세요.'));
@@ -1206,7 +1206,7 @@ export default function ApiKeys() {
       // [227차] 발급(OAuth)→자격등록(잔여 계정정보)→즉시 진행: 토큰은 자동 저장됐고, 동기화에 필요한
       //   계정 ID(ad_account_id/customer_id/advertiser_id 등)만 남았으면 입력 모달을 자동으로 띄운다.
       let pendingCh = '';
-      try { pendingCh = sessionStorage.getItem('gg_oauth_ch') || ''; sessionStorage.removeItem('gg_oauth_ch'); } catch {}
+      try { pendingCh = sessionStorage.getItem('gg_oauth_ch') || ''; sessionStorage.removeItem('gg_oauth_ch'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       const chObj = CHANNELS.find(c => c.key === pendingCh);
       if (chObj) {
         const need = (CHANNEL_FIELDS[chObj.key] || []).some(f => !OAUTH_COVERED_KEYS.has(f.k));

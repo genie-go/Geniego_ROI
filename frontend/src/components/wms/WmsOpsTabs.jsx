@@ -408,14 +408,14 @@ export const WmsTollProcessingTab = memoGuard(function WmsTollProcessingTab() {
     if (wsEnabled) {
       loadWorkspace('wms_toll').then(v => { if (alive) { if (Array.isArray(v)) setOrders(v); _tollHydrated.current = true; } }).catch(() => {}); // [M3-P1] 실패 시 가드 미개방(서버값 보존)
     } else {
-      try { const raw = localStorage.getItem(tScopedKey(TOLL_KEY)); if (raw) { setOrders(JSON.parse(raw)); return; } } catch {}
+      try { const raw = localStorage.getItem(tScopedKey(TOLL_KEY)); if (raw) { setOrders(JSON.parse(raw)); return; } } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       if (IS_DEMO) setOrders(DEMO_TOLL);
     }
   }, []);
   const persist = useCallback((next) => {
     setOrders(next);
     if (wsEnabled) { if (_tollHydrated.current) saveWorkspace('wms_toll', next).catch(() => {}); }
-    else { try { localStorage.setItem(tScopedKey(TOLL_KEY), JSON.stringify(next)); } catch {} }
+    else { try { localStorage.setItem(tScopedKey(TOLL_KEY), JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }
   }, []);
 
   const stLabel = (id) => { const s = TOLL_STATUS.find(s => s.id === id) || TOLL_STATUS[0]; return { l: t('wms.tollSt_' + id, s.l), c: s.c }; };

@@ -26,8 +26,8 @@ function useSecurityGuard(addAlert) {
       const now = Date.now();
       inputLog.current.push(now);
       inputLog.current = inputLog.current.filter(t => now - t < 3000);
-      if (inputLog.current.length > 20) { setLocked('BRUTE_FORCE'); try { addAlert?.({ type: 'error', msg: '[DataSchema] Brute-force blocked' }); } catch (_) {} e.target.value = ''; return; }
-      for (const p of THREAT_PATTERNS) { if (p.re.test(val)) { setLocked(p.type + ': ' + val.slice(0, 60)); try { addAlert?.({ type: 'error', msg: '[DataSchema] ' + p.type + ' blocked' }); } catch (_) {} e.target.value = ''; return; } }
+      if (inputLog.current.length > 20) { setLocked('BRUTE_FORCE'); try { addAlert?.({ type: 'error', msg: '[DataSchema] Brute-force blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ } e.target.value = ''; return; }
+      for (const p of THREAT_PATTERNS) { if (p.re.test(val)) { setLocked(p.type + ': ' + val.slice(0, 60)); try { addAlert?.({ type: 'error', msg: '[DataSchema] ' + p.type + ' blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ } e.target.value = ''; return; } }
     };
     document.addEventListener('input', onInput, true);
     return () => document.removeEventListener('input', onInput, true);

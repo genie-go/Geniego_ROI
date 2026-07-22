@@ -30,7 +30,7 @@ export default function GuideArrival() {
       q = JSON.parse(sessionStorage.getItem(QUEUE) || "null");
     } catch (e) { return; }
     if (active && Array.isArray(q) && q.length) {
-      try { sessionStorage.removeItem(FLAG); } catch (e) {}
+      try { sessionStorage.removeItem(FLAG); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       setQueue(q); setIdx(0);
     }
   }, [loc.pathname]);
@@ -43,7 +43,7 @@ export default function GuideArrival() {
     try {
       sessionStorage.setItem("genie_onboard_cta", cta);
       window.dispatchEvent(new CustomEvent("genie-onboard-cta", { detail: { cta } }));
-    } catch (e) {}
+    } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   }, [queue, idx]);
 
   // 현재 단계의 동작 영역으로 스크롤·강조(페이지 도착/단계 변경 시).
@@ -62,23 +62,23 @@ export default function GuideArrival() {
         ? document.querySelector(`[data-onboard-cta="${want}"]`)
         : (want === undefined ? document.querySelector("[data-onboard-cta]") : null);
       if (el) {
-        try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+        try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) { /* 스크롤 이동 실패 무시 */ }
         el.classList.add("gw-arrival-pulse");
-        if (tries >= 3) { clearInterval(timer); done = true; setTimeout(() => { try { el.classList.remove("gw-arrival-pulse"); } catch (e) {} }, 8000); }
+        if (tries >= 3) { clearInterval(timer); done = true; setTimeout(() => { try { el.classList.remove("gw-arrival-pulse"); } catch (e) { /* 실패 무시(best-effort) */ } }, 8000); }
       } else if (tries > 30) { clearInterval(timer); done = true; }
     }, 250);
     return () => { if (!done) clearInterval(timer); };
   }, [queue, idx, loc.pathname]);
 
-  const finish = useCallback(() => { setQueue(null); try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) {} }, []);
+  const finish = useCallback(() => { setQueue(null); try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }, []);
   const goNext = useCallback(() => {
     setAsking(false);
     setQueue((q) => {
       if (!q) return q;
       const ni = idx + 1;
-      if (ni >= q.length) { try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) {} return null; }
+      if (ni >= q.length) { try { sessionStorage.removeItem(QUEUE); sessionStorage.removeItem("genie_onboard_cta"); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return null; }
       setIdx(ni);
-      try { const nx = q[ni]; if (nx && nx.route) navigate(nx.route); } catch (e) {}
+      try { const nx = q[ni]; if (nx && nx.route) navigate(nx.route); } catch (e) { /* 실패 무시(best-effort) */ }
       return q;
     });
   }, [idx, navigate]);

@@ -510,8 +510,8 @@ function MonitoringTab({ goals, kpiTargets }) {
                 const ty = ev.data?.type;
                 if (ty === 'CHANNEL_REGISTERED' || ty === 'CHANNEL_REMOVED') loadHistory();
             };
-        } catch (e) {}
-        return () => { try { _bcRef.current?.close(); } catch (e) {} };
+        } catch (e) { /* BroadcastChannel 미지원 환경 무시 */ }
+        return () => { try { _bcRef.current?.close(); } catch (e) { /* BroadcastChannel 정리 실패 무시 */ } };
     }, [loadHistory]);
 
     return (
@@ -875,7 +875,7 @@ export default function ChannelKPI() {
     const { budgetStats, channelBudgets, pnlStats, orderStats, sharedCampaigns, addAlert, isDemo } = useGlobalData();
     useSecurityGuard({ addAlert: useCallback((a) => { if (typeof addAlert === 'function') addAlert(a); }, [addAlert]), enabled: true, _src: 'ChannelKPI' });
     // ConnectorSync: auto-sync channels from Integration Hub
-    try { useConnectorSync(); } catch(e) {}
+    try { useConnectorSync(); } catch(e) { /* 실패 무시(best-effort) */ }
     // BroadcastChannel: cross-tab real-time sync
     // [현 차수] 기존엔 'geniego-channelkpi-sync' 를 구독만 하고 발신자가 전역 0건이었고, 수신 시 던지던
     //   'geniego-refresh' window 이벤트도 청취자가 0건이라 이중으로 죽은 코드였다(동기화 무동작).

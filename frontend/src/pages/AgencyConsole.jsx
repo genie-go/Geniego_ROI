@@ -18,7 +18,7 @@ async function agFetch(path, { method = "GET", body, token } = {}) {
   const t = token || (() => { try { return localStorage.getItem(AGT_KEY) || ""; } catch (e) { return ""; } })();
   if (t) h["Authorization"] = `Bearer ${t}`;
   const res = await fetch(`${base}${path}`, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
-  let data = null; try { data = await res.json(); } catch (e) {}
+  let data = null; try { data = await res.json(); } catch (e) { /* 응답 본문 파싱 실패 무시 */ }
   if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
   return data || {};
 }
@@ -43,7 +43,7 @@ export default function AgencyConsole() {
   const [active, setActive] = useState(null);     // { link, kpi }
   const [portfolio, setPortfolio] = useState(null);
 
-  const persist = (t) => { try { if (t) localStorage.setItem(AGT_KEY, t); else localStorage.removeItem(AGT_KEY); } catch (e) {} setToken(t); };
+  const persist = (t) => { try { if (t) localStorage.setItem(AGT_KEY, t); else localStorage.removeItem(AGT_KEY); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } setToken(t); };
 
   const loadMe = useCallback(async () => {
     try { const d = await agFetch("/api/agency/me"); setAgency(d.agency); }
@@ -66,9 +66,9 @@ export default function AgencyConsole() {
     finally { setLoading(false); }
   };
   const doLogout = async () => {
-    try { await agFetch("/api/agency/logout", { method: "POST" }); } catch (e) {}
+    try { await agFetch("/api/agency/logout", { method: "POST" }); } catch (e) { /* 실패 무시(best-effort) */ }
     // 대행사 세션 + 전기능 브릿지 앱 세션 모두 정리(잔존 방지).
-    try { localStorage.removeItem(APP_TOKEN_KEY); localStorage.removeItem(APP_USER_KEY); localStorage.removeItem("genie_agency_client"); } catch (e) {}
+    try { localStorage.removeItem(APP_TOKEN_KEY); localStorage.removeItem(APP_USER_KEY); localStorage.removeItem("genie_agency_client"); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     persist(""); setAgency(null); setClients([]); setActive(null); setPortfolio(null);
   };
   const doInvite = async (e) => {
@@ -126,7 +126,7 @@ export default function AgencyConsole() {
           revenue: pnl?.revenue ?? pnl?.components?.revenue ?? 0, net: pnl?.netProfit ?? pnl?.net ?? 0 });
       } catch (e) { rows.push({ name: c.client_name || c.client_email, error: true }); }
     }
-    try { await agFetch("/api/agency/clients/exit", { method: "POST" }); } catch (e) {}
+    try { await agFetch("/api/agency/clients/exit", { method: "POST" }); } catch (e) { /* 실패 무시(best-effort) */ }
     setPortfolio({ rows, total: rows.reduce((a, r) => a + (Number(r.revenue) || 0), 0) });
     setLoading(false);
   };

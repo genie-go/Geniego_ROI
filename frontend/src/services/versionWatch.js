@@ -30,7 +30,7 @@ export function startVersionWatch(intervalMs = 60000) {
     if (!initialBundle) { initialBundle = id; return; }
     if (id !== initialBundle) {
       newVersionAvailable = true;
-      listeners.forEach(fn => { try { fn(); } catch (e) {} });
+      listeners.forEach(fn => { try { fn(); } catch (e) { /* 실패 무시(best-effort) */ } });
     }
   };
   setInterval(tick, Math.max(30000, intervalMs));

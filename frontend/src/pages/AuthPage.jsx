@@ -467,7 +467,7 @@ function TermsModal({ open, onClose, category }) {
         if (items && items.length > 0 && items[0].content && items[0].content.length > 100) {
           return { title: items[0].title, body: items[0].content };
         }
-      } catch {}
+      } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       /* 2nd: 내장 핵심 약관 (엔터프라이즈급) */
       const BUILTIN = {
         terms: { title: 'Geniego-ROI 서비스 이용약관', body: `제1조 (목적)\n본 약관은 주식회사 OCIELL(이하 "회사")이 운영하는 Geniego-ROI AI 마케팅 ROI 분석 플랫폼(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.\n\n제2조 (정의)\n① "서비스"란 회사가 제공하는 AI 기반 마케팅 ROI 분석, 광고 성과 예측, 옴니채널 데이터 통합, CRM, 자동화 등 관련 제반 서비스를 의미합니다.\n② "회원"이란 본 약관에 동의하고 회원가입을 완료한 자를 말합니다.\n③ "구독"이란 회원이 서비스의 유료 기능을 이용하기 위해 정기적으로 요금을 지불하는 것을 의미합니다.\n\n제3조 (약관의 효력 및 변경)\n① 본 약관은 서비스 화면 또는 기타 방법으로 공지함으로써 효력이 발생합니다.\n② 회사는 관련 법령을 위배하지 않는 범위 내에서 약관을 변경할 수 있으며, 변경 시 최소 7일 전(회원에게 불리한 변경의 경우 30일 전) 서비스 내 공지합니다.\n\n제4조 (서비스의 제공)\n① 회사는 연중무휴 24시간 서비스를 제공하는 것을 원칙으로 합니다.\n② 시스템 점검, 교체, 고장, 통신 두절 등의 사유 발생 시 서비스 제공을 일시적으로 중단할 수 있습니다.\n③ 서비스 수준 목표(SLA): 연간 99.5% 이상 가용성을 보장합니다.\n\n제5조~제25조: 전체 약관 25개 조항이 포함되어 있습니다.\n\n자세한 전체 약관은 관리자 설정에서 확인하실 수 있습니다.\n\n부칙\n본 약관은 2026년 1월 1일부터 시행합니다.\n최종 개정일: 2026년 4월 12일` },
@@ -1042,7 +1042,7 @@ function LoginForm({ onSwitch, loginType = "production" }) {
       const pwEl = ins.find(i => i.type === 'password') || ins.find(i => i.type === 'text');
       if (emEl && emEl.value) liveEmail = emEl.value;
       if (pwEl && pwEl.value) livePw = pwEl.value;
-    } catch (_) {}
+    } catch (_) { /* 실패 무시(best-effort) */ }
     try {
       const user = await login(liveEmail.trim(), livePw, loginType, "", otp, remember);
       /* ── admin 계정은 일반 로그인 차단 ── */
@@ -2271,7 +2271,7 @@ function AdminLoginForm({ onBack }) {
         navigate("/admin", { replace: true });
         return true;
       }
-    } catch {}
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     return false;
   };
 
@@ -2288,13 +2288,13 @@ function AdminLoginForm({ onBack }) {
       const pwEl = ins.find(i => i.type === 'password') || ins.find(i => i.type === 'text') || ins[ins.length - 1];
       if (emEl && emEl.value) liveEmail = emEl.value;
       if (pwEl && pwEl.value) livePw = pwEl.value;
-    } catch (_) {}
+    } catch (_) { /* 실패 무시(best-effort) */ }
     try {
       // [현 차수] adminRemember=true → login 의 remember 인자(6번째)로 세션 영속 + 자동로그인 플래그 저장.
       //   전체 2FA 정책 시 mfa_required → OTP 단계. otp 값 동봉.
       const u = await login(liveEmail.trim(), livePw, "admin", adminKey.trim(), otp.trim(), adminRemember);
       if ((u.plans || u.plan) !== "admin") throw new Error(t('authPage.adminNotAdminAccount', '관리자 계정이 아닙니다. 관리자 전용 계정으로 로그인하세요.'));
-      try { if (adminRemember) localStorage.setItem('genie_admin_autologin', '1'); else localStorage.removeItem('genie_admin_autologin'); } catch {}
+      try { if (adminRemember) localStorage.setItem('genie_admin_autologin', '1'); else localStorage.removeItem('genie_admin_autologin'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       navigate("/admin", { replace: true });
     } catch (err) {
       if (err.mfaRequired) {

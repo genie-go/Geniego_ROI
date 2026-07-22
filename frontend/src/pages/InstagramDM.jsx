@@ -48,7 +48,7 @@ const TABS = [
 ];
 
 // [271차] 데모 표시데이터 15개국 현지화(대화/메시지/자동응답/탭)
-try { _dloc(_CONVERSATIONS); _dloc(_MESSAGES); _dloc(AUTO_REPLY_RULES); _dloc(TABS); } catch (_) {}
+try { _dloc(_CONVERSATIONS); _dloc(_MESSAGES); _dloc(AUTO_REPLY_RULES); _dloc(TABS); } catch (_) { /* 실패 무시(best-effort) */ }
 
 export default function InstagramDM() {
   const t = useT();

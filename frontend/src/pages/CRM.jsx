@@ -1216,7 +1216,7 @@ function OmnichannelTab({ t, segments, addAlert }) {
     } catch (e) { addAlert?.({ type: 'error', msg: t('crm.omniSendFail', '발송 실패') + ': ' + (e?.message || '') }); }
     finally { setBusy(false); }
   };
-  const del = async (id) => { try { await crmApi.omniDeleteCampaign(id); reload(); setStats(s => { const n = { ...s }; delete n[id]; return n; }); } catch (e) {} };
+  const del = async (id) => { try { await crmApi.omniDeleteCampaign(id); reload(); setStats(s => { const n = { ...s }; delete n[id]; return n; }); } catch (e) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } };
   const pollStats = (id) => { crmApi.omniCampaignStats(id).then(r => setStats(s => ({ ...s, [id]: r }))).catch(() => {}); };
 
   const card = { background: C.card, borderRadius: 14, padding: 18, border: `1px solid ${C.border}`, marginBottom: 16 };
@@ -1394,11 +1394,11 @@ function CRMContent() {
       bcRef.current = new BroadcastChannel(tChannelName('geniego_crm'));
       // [270차 수정] 과거 빈 본문 → 크로스탭 CRM_REFRESH 수신해도 no-op(타 탭 미갱신). 운영 리로드 배선.
       bcRef.current.onmessage = (ev) => { if (ev.data?.type === 'CRM_REFRESH' && !IS_DEMO) { reloadOpCustomers(); reloadOpSegments(); reloadOpRfm(); } };
-    } catch {}
-    return () => { try { bcRef.current?.close(); } catch {} };
+    } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+    return () => { try { bcRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
   const broadcastRefresh = useCallback(() => {
-    try { bcRef.current?.postMessage({ type: 'CRM_REFRESH', ts: Date.now() }); } catch {}
+    try { bcRef.current?.postMessage({ type: 'CRM_REFRESH', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
     if (typeof broadcastUpdate === 'function') broadcastUpdate('crm', { refreshed: Date.now() });
   }, [broadcastUpdate]);
 

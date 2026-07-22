@@ -10,9 +10,9 @@ import { useConnectorSync } from '../context/ConnectorSyncContext.jsx';
 function useConnectedChannels() {
     return useMemo(() => {
         const ch = [];
-        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch {}
+        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         ['meta','google','tiktok','kakao_moment','naver','coupang','amazon','shopify','gmarket','11st','line','whatsapp'].forEach(c => {
-            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch {}
+            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         });
         return [...new Set(ch)];
     }, []);
@@ -267,7 +267,7 @@ export default function DataProduct() {
         return () => { ch1.close(); ch2.close(); ch3.close(); bcRef.current = null; };
     }, []);
     useEffect(() => {
-        const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: "DP_UPDATE", ts: Date.now() }); } catch {} }, 30000);
+        const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: "DP_UPDATE", ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ } }, 30000);
         return () => clearInterval(id);
     }, []);
 
@@ -275,7 +275,7 @@ export default function DataProduct() {
         const threat = secCheck(value);
         if (threat) {
             setThreats(prev => [...prev, { type: threat, value, field: fieldName }]);
-            try { addAlert({ id: `sec_dp_${Date.now()}`, type: "security", severity: "critical", title: `🚨 [DataProduct] ${threat}`, body: `"${fieldName}": ${value.slice(0, 50)}`, timestamp: new Date().toISOString(), read: false }); } catch (_) {}
+            try { addAlert({ id: `sec_dp_${Date.now()}`, type: "security", severity: "critical", title: `🚨 [DataProduct] ${threat}`, body: `"${fieldName}": ${value.slice(0, 50)}`, timestamp: new Date().toISOString(), read: false }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
             return "";
         }
         return value;

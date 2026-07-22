@@ -21,8 +21,8 @@ export function ProductSelectionProvider({ children }) {
     try {
       chRef.current = new BroadcastChannel(tChannelName('genie_product_select'));
       chRef.current.onmessage = (e) => { if (e.data?.type === 'PRODUCT_SELECT') setSP(e.data.product || null); };
-    } catch {}
-    return () => { try { chRef.current?.close(); } catch {} };
+    } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+    return () => { try { chRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
 
   const setSelectedProduct = useCallback((p) => {
@@ -31,10 +31,10 @@ export function ProductSelectionProvider({ children }) {
     try {
       if (prod) localStorage.setItem(tScopedKey('genie_selected_product'), JSON.stringify(prod));
       else localStorage.removeItem(tScopedKey('genie_selected_product'));
-    } catch {}
-    try { chRef.current?.postMessage({ type: 'PRODUCT_SELECT', product: prod }); } catch {}
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
+    try { chRef.current?.postMessage({ type: 'PRODUCT_SELECT', product: prod }); } catch { /* 실패 무시(best-effort) */ }
     // 동일 탭 내 비-구독 컴포넌트도 깨우도록 커스텀 이벤트(기존 genie:data-refresh 패턴과 동형).
-    try { window.dispatchEvent(new CustomEvent('genie:product-select', { detail: prod })); } catch {}
+    try { window.dispatchEvent(new CustomEvent('genie:product-select', { detail: prod })); } catch { /* 이벤트 디스패치 실패 무시 */ }
   }, []);
 
   const clearProduct = useCallback(() => setSelectedProduct(null), [setSelectedProduct]);

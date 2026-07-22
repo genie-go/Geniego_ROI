@@ -75,10 +75,10 @@ function useCrossTabSync(onMessage) {
             bc.onmessage = (e) => cbRef.current?.(e.data);
             bcRef.current = bc;
             return () => bc.close();
-        } catch { }
+        } catch { /* BroadcastChannel 정리 실패 무시 */ }
     }, []);
     const broadcast = useCallback((type, payload) => {
-        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch { }
+        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
     }, []);
     return broadcast;
 }
@@ -870,7 +870,7 @@ function AutoRoutingTab() {
     React.useEffect(() => {
         if (!_rrHydrated.current) return;
         if (wsEnabled) saveWorkspace('orderhub_routing_rules', rules).catch(() => {});
-        else { try { localStorage.setItem(_RR_KEY, JSON.stringify(rules)); } catch {} }
+        else { try { localStorage.setItem(_RR_KEY, JSON.stringify(rules)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }
     }, [rules, _RR_KEY]);
     const [showForm, setShowForm] = React.useState(false);
     const [form, setForm] = React.useState({ name: '', condition: '', targetWh: '', priority: 5 });

@@ -213,7 +213,7 @@ export default function Dashboard() {
 
   const handleSelect = useCallback((id) => {
     setActiveDash(id);
-    try { localStorage.setItem('dashboard_view', id); } catch { }
+    try { localStorage.setItem('dashboard_view', id); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   }, []);
 
   const currentDash = DASHBOARDS.find(d => d.id === activeDash);

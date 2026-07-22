@@ -33,7 +33,7 @@ function installFetchBase(base) {
       if (typeof input === 'string' && input.charCodeAt(0) === 47 /* '/' */ && API_RE.test(input)) {
         return origFetch(base + input, init);
       }
-    } catch {}
+    } catch { /* 실패 무시(best-effort) */ }
     return origFetch(input, init);
   };
   window.__geniegoFetchBased = true;
@@ -44,12 +44,12 @@ export async function initNative() {
   const platform = Capacitor.getPlatform();
 
   // ★최우선: 네이티브 API base 보정(로그인 포함 전 페이지 네트워크 호출 정상화)
-  try { installFetchBase(import.meta.env.VITE_API_BASE || ''); } catch {}
+  try { installFetchBase(import.meta.env.VITE_API_BASE || ''); } catch { /* 실패 무시(best-effort) */ }
 
   // 네이티브 표식(safe-area·탭바 CSS 분기용)
   try {
     document.documentElement.classList.add('cap-native', 'cap-' + platform);
-  } catch {}
+  } catch { /* 실패 무시(best-effort) */ }
 
   // 상태바
   try {
@@ -57,7 +57,7 @@ export async function initNative() {
     await StatusBar.setStyle({ style: Style.Dark });
     if (platform === 'android') await StatusBar.setBackgroundColor({ color: '#070f1a' });
     await StatusBar.setOverlaysWebView({ overlay: false });
-  } catch {}
+  } catch { /* 네이티브 플러그인 미탑재 환경 무시 */ }
 
   // 키보드(입력 시 레이아웃 리사이즈)
   try {
@@ -65,7 +65,7 @@ export async function initNative() {
     await Keyboard.setResizeMode({ mode: KeyboardResize.Native });
     Keyboard.addListener('keyboardWillShow', () => document.documentElement.classList.add('cap-kb-open'));
     Keyboard.addListener('keyboardWillHide', () => document.documentElement.classList.remove('cap-kb-open'));
-  } catch {}
+  } catch { /* 네이티브 플러그인 미탑재 환경 무시 */ }
 
   // 하드웨어 백버튼(안드로이드): 라우터 뒤로, 루트에서 종료
   try {
@@ -82,7 +82,7 @@ export async function initNative() {
         App.exitApp();
       }
     });
-  } catch {}
+  } catch { /* 네이티브 플러그인 미탑재 환경 무시 */ }
 
   // 웹앱 준비 완료 후 네이티브 스플래시 숨김(흰 화면 깜빡임 방지)
   try {
@@ -90,5 +90,5 @@ export async function initNative() {
     const hide = () => SplashScreen.hide().catch(() => {});
     if (document.readyState === 'complete') setTimeout(hide, 400);
     else window.addEventListener('load', () => setTimeout(hide, 400), { once: true });
-  } catch {}
+  } catch { /* 네이티브 플러그인 미탑재 환경 무시 */ }
 }

@@ -89,7 +89,7 @@ export default function AdminMenuManager() {
       // optimistic local update
       setTree(prev => prev.map(r => r.id === menuId ? { ...r, visibility } : r));
       // 172차 — Sidebar 즉시 반영용 broadcast
-      try { new BroadcastChannel(tChannelName('geniego_menu_visibility_sync')).postMessage({ type: 'menu_visibility_updated', menuId, visibility, ts: Date.now() }); } catch {}
+      try { new BroadcastChannel(tChannelName('geniego_menu_visibility_sync')).postMessage({ type: 'menu_visibility_updated', menuId, visibility, ts: Date.now() }); } catch { /* BroadcastChannel 미지원 환경 무시 */ }
     } catch (e) {
       alert(`업데이트 실패: ${e.message}`);
     } finally { setSavingId(null); }
@@ -111,7 +111,7 @@ export default function AdminMenuManager() {
       const failed = results.filter(r => r.status === 'rejected' || (r.value && !r.value.ok)).length;
       if (failed > 0) alert(`${menuIds.length}개 중 ${failed}개 실패`);
       await fetchTree();
-      try { new BroadcastChannel(tChannelName('geniego_menu_visibility_sync')).postMessage({ type: 'menu_visibility_updated', bulk: true, count: menuIds.length, ts: Date.now() }); } catch {}
+      try { new BroadcastChannel(tChannelName('geniego_menu_visibility_sync')).postMessage({ type: 'menu_visibility_updated', bulk: true, count: menuIds.length, ts: Date.now() }); } catch { /* BroadcastChannel 미지원 환경 무시 */ }
     } finally { setBulkSaving(false); }
   }, [token, base, fetchTree]);
 

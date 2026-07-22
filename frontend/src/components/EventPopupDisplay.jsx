@@ -24,7 +24,7 @@ function dismissPopup(popupId, daysCount) {
     try {
         const expiry = Date.now() + daysCount * 24 * 60 * 60 * 1000;
         localStorage.setItem(`${DISMISS_PREFIX}${popupId}`, expiry.toString());
-    } catch { }
+    } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 /* ── 단일 팝업 렌더러 ─────────────────────────────────────────────────── */

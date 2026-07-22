@@ -185,7 +185,7 @@ function MembersTab() {
         try {
             const d = await adminPost(token, `v423/admin/users/${u.id}/impersonate`, {});
             if (!d.ok || !d.token) {
-                if (w) { try { w.close(); } catch {} }
+                if (w) { try { w.close(); } catch { /* 실패 무시(best-effort) */ } }
                 setMsg(`❌ ${d.error || "회원세션 생성 실패"}`);
                 setTimeout(() => setMsg(""), 4000);
                 return;
@@ -193,11 +193,11 @@ function MembersTab() {
             const userB64 = btoa(unescape(encodeURIComponent(JSON.stringify(d.user || {}))));
             const tenant = (d.user && (d.user.tenant_id || d.user.tenantId)) || "";
             const url = `/dashboard#imp=${encodeURIComponent(`${d.token}|${userB64}|${tenant}`)}`;
-            if (w) { try { w.opener = null; } catch {} w.location.href = url; }
+            if (w) { try { w.opener = null; } catch { /* 실패 무시(best-effort) */ } w.location.href = url; }
             else window.open(url, "_blank"); // 핸들 없으면(팝업차단) 재시도
             setMsg(`✅ ${u.name || u.email} 회원세션 새 창 열림 (2시간 후 자동 만료)`);
         } catch (e) {
-            if (w) { try { w.close(); } catch {} }
+            if (w) { try { w.close(); } catch { /* 실패 무시(best-effort) */ } }
             setMsg(`❌ ${e.message || "회원세션 생성 실패"}`);
         }
         setTimeout(() => setMsg(""), 4000);

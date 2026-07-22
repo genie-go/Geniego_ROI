@@ -783,9 +783,9 @@ export default function Marketing() {
 
   /* BroadcastChannel Cross-Tab Sync */
   useEffect(() => {
-      const handler = (msg) => { const { type } = msg?.data || msg; if (type === 'MKT_TAB_CHANGE') {} };
+      const handler = (msg) => { const { type } = msg?.data || msg; if (type === 'MKT_TAB_CHANGE') { /* 의도적 no-op — 탭 전환은 context 로 자동 반영 */ } };
       if (_mktChannel) _mktChannel.onmessage = handler;
-      const storageHandler = (e) => { if (e.key === '__mkt_sync__' && e.newValue) { try { handler(JSON.parse(e.newValue)); } catch {} } };
+      const storageHandler = (e) => { if (e.key === '__mkt_sync__' && e.newValue) { try { handler(JSON.parse(e.newValue)); } catch { /* 파싱 실패 시 기본값 유지 */ } } };
       window.addEventListener('storage', storageHandler);
       return () => { if (_mktChannel) _mktChannel.onmessage = null; window.removeEventListener('storage', storageHandler); };
   }, []);

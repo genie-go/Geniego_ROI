@@ -76,7 +76,7 @@ export default function GenieAssistant() {
   const scrollRef = useRef(null);
   const taRef = useRef(null);
 
-  useEffect(() => { try { localStorage.setItem(tScopedKey(STORE), JSON.stringify(msgs.slice(-40))); } catch {} }, [msgs]);
+  useEffect(() => { try { localStorage.setItem(tScopedKey(STORE), JSON.stringify(msgs.slice(-40))); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }, [msgs]);
   useEffect(() => { if (open && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [msgs, open, busy]);
 
   const send = useCallback(async (text) => {
@@ -99,13 +99,13 @@ export default function GenieAssistant() {
       setMsgs(m => [...m, { role: 'assistant', content: answer, _kb: !(r && r.answer), sources }]);
     } catch {
       let answer = null;
-      try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch {}
+      try { const g = await import('./genieGlossary.js'); answer = g.glossaryAnswer(q, lang); } catch { /* 동적 import 실패 시 폴백 */ }
       setMsgs(m => [...m, { role: 'assistant', content: answer || kbAnswer(q, lang), _kb: true }]);
     } finally { setBusy(false); setTimeout(() => taRef.current?.focus(), 50); }
   }, [input, busy, msgs, lang]);
 
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
-  const reset = () => { setMsgs([]); try { localStorage.removeItem(tScopedKey(STORE)); } catch {} };
+  const reset = () => { setMsgs([]); try { localStorage.removeItem(tScopedKey(STORE)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } };
 
   const title = t('assistant.title', '무엇이든 물어보세요');
   const sub = t('assistant.sub', 'GeniegoROI 사용법·메뉴 상담');

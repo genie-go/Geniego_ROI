@@ -207,7 +207,7 @@ function buildCompactFormatter(currDef) {
 // [271차] KRW 압축표기 언어별 현지화 — 한글 억/만 하드코딩 제거. CJK(ko/ja/zh/zh-TW)는 각 언어의
 //   만/억 문자, 그 외 언어는 서양식 K/M/B. 리로드 없이 현재 언어(localStorage) 기준 산출.
 function _krwCompact(val, sym) {
-  let lang = 'ko'; try { lang = localStorage.getItem('genie_roi_lang') || 'ko'; } catch (_) {}
+  let lang = 'ko'; try { lang = localStorage.getItem('genie_roi_lang') || 'ko'; } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
   const U = { ko: ['억', '만'], ja: ['億', '万'], zh: ['亿', '万'], 'zh-TW': ['億', '萬'] }[lang];
   if (U) {
     if (Math.abs(val) >= 1e8) return `${sym}${(val / 1e8).toFixed(1)}${U[0]}`;

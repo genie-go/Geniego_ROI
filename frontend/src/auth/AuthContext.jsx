@@ -50,35 +50,35 @@ function restorableToken() {
                 if (last > 0 && (Date.now() - last) >= alm * 60 * 1000) {
                     localStorage.removeItem(TOKEN_KEY);
                     localStorage.removeItem(USER_KEY);
-                    try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+                    try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
                     return null;
                 }
             }
-        } catch {}
+        } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         // 이미 활성 브라우징 세션(현재 탭) → 항상 복원
         if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "1") return tok;
         // 명시적 영속(자동 로그인 체크) → 복원
         if (localStorage.getItem(REMEMBER_KEY) === "1") {
-            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
             return tok;
         }
         // admin 계정은 보안상 비영속: 새 브라우저 세션/새 탭에서 재인증(접속키) 요구.
         let cachedPlan = "";
-        try { const u = JSON.parse(localStorage.getItem(USER_KEY) || "null"); cachedPlan = u?.plan || u?.plans || ""; } catch {}
+        try { const u = JSON.parse(localStorage.getItem(USER_KEY) || "null"); cachedPlan = u?.plan || u?.plans || ""; } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         if (cachedPlan === "admin") {
             // 260차: admin 이 "유휴 자동 로그아웃"을 명시 설정했으면(보안 경계 존재) 세션을 영속한다.
             //   → "설정한 시간(예: 120분) 동안 유지, 그 후 유휴 로그아웃" 요구 충족(새 탭/재시작에도 유지).
             //   미설정 시에는 기존대로 비영속(새 세션 접속키 재인증) 유지 = 안전한 기본값.
             const alm = parseInt(localStorage.getItem(AUTO_LOGOUT_KEY) || "0", 10) || 0;
             if (alm <= 0) return null;
-            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+            try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
             return tok;
         }
         // 192차 로그아웃 버그 수정: 일반 사용자는 영속 세션이 기본(엔터프라이즈 SaaS).
         //   새 탭/창·브라우저 재시작·홈("/") 이동에도 로그인 유지. 189차 비영속 기본값이
         //   "로그아웃 안 했는데 로그아웃" 호소의 근본 원인이었음. 보안 제어는 명시적 로그아웃 +
         //   idle 자동 로그아웃(autoLogoutMin)으로 수행한다.
-        try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch {}
+        try { sessionStorage.setItem(SESSION_ACTIVE_KEY, "1"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         return tok;
     } catch { return null; }
 }
@@ -129,7 +129,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         if (!token || autoLogoutMin <= 0) return;
         // 세션 시작(로그인/로드) 시 활동시각 baseline 을 현재로 기록.
-        try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
+        try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         lastPersistRef.current = Date.now();
         const onActivity = () => {
             const now = Date.now();
@@ -137,7 +137,7 @@ export function AuthProvider({ children }) {
             // 매 이벤트마다 쓰지 않고 5초 throttle(디스크/성능).
             if (now - lastPersistRef.current > 5000) {
                 lastPersistRef.current = now;
-                try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch {}
+                try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
             }
         };
         const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click"];
@@ -169,14 +169,14 @@ export function AuthProvider({ children }) {
             setToken(null); setUser(null);
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
-            try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+            try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
             allowNavigation(); // 유휴 자동 로그아웃 — 미저장 경고 없이 통과(토큰은 이미 폐기됨)
-            try { window.location.href = "/login?reason=idle"; } catch {}
+            try { window.location.href = "/login?reason=idle"; } catch { /* 실패 무시(best-effort) */ }
         };
         // 영속 활동시각과 메모리 ref 중 최신(=가장 최근 활동)을 기준으로 경과 계산.
         const checkIdle = () => {
             let last = lastActivityRef.current;
-            try { const p = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || "0", 10) || 0; if (p > last) last = p; } catch {}
+            try { const p = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || "0", 10) || 0; if (p > last) last = p; } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
             if (Date.now() - last >= timeoutMs) doLogout();
         };
         idleTimerRef.current = setInterval(checkIdle, 15000);
@@ -255,7 +255,7 @@ export function AuthProvider({ children }) {
         const sameTabHandler = () => reload();
         window.addEventListener("menu-access-saved", sameTabHandler);
         return () => {
-            try { bc?.close(); } catch {}
+            try { bc?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ }
             window.removeEventListener("menu-access-saved", sameTabHandler);
         };
     }, [loadMenuAccess]);
@@ -328,7 +328,7 @@ export function AuthProvider({ children }) {
                         if (d.ok && d.user) {
                             // 로컬 캐시에서 현재 user 정보 가져오기
                             let cached = null;
-                            try { cached = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch {}
+                            try { cached = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 
                             // 188차 P1 보안: 인증된 /auth/me 응답의 서버 plan 을 신뢰한다(다운그레이드/만료 즉시 반영).
                             // 과거엔 planRank(server) >= planRank(cached) 조건일 때만 서버 plan 을 채택해, 관리자가
@@ -358,7 +358,7 @@ export function AuthProvider({ children }) {
                     }
                     // ── 운영 모드: 로컬 캐시에 유효 사용자가 있으면 세션 유지 ──
                     let cachedUser = null;
-                    try { cachedUser = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch {}
+                    try { cachedUser = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
                     if (cachedUser && cachedUser.id && cachedUser.email) {
                         console.info('[Auth] Server returned', r.status, '— keeping valid cached session for', cachedUser.email);
                         return;
@@ -542,7 +542,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(REMEMBER_KEY);            // 189차 자동 로그인 플래그 정리
         localStorage.removeItem(LAST_ACTIVITY_KEY);       // 262차: 유휴 활동시각 영속본 정리
-        try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch {}
+        try { sessionStorage.removeItem(SESSION_ACTIVE_KEY); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         // [현 차수] ★상품등록 초안 prefix 스윕 — tenantId 를 이미 지웠으므로 정확한 키가 아니라 prefix 로 제거해야 한다.
         //   테넌트 스코프 키(genie_product_draft_v1::t=<tenant>)가 남아 다음 로그인 회원에게 원가 등 영업기밀이 새는 것을 차단.
         try {
@@ -665,7 +665,7 @@ export function AuthProvider({ children }) {
                     return d;
                 }
             }
-        } catch { }
+        } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         return null;
     }, [token, user]);
 

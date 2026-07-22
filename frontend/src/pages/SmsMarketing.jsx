@@ -421,11 +421,11 @@ function SmsMarketingInner(){
     const[secLocked,setSecLocked]=useState(false);
     const navigate=useNavigate();
     let addAlertFn=null;
-    try{const gd=useGlobalData();addAlertFn=gd?.addAlert;}catch(e){}
+    try{const gd=useGlobalData();addAlertFn=gd?.addAlert;}catch(e) { /* 알림/감사 훅 실패 무시(best-effort) */ }
     const secCb=useCallback((a)=>{if(typeof addAlertFn==='function')addAlertFn(a);if(a?.severity==='critical')setSecLocked(true);},[addAlertFn]);
     const{checkInput,checkRate}=useSmsSecurity(secCb);
     let ihubChannels=[];
-    try{const cs=useConnectorSync();ihubChannels=(cs?.connectors||[]).filter(c=>['nhn_cloud','nhn','aligo','coolsms','twilio'].includes(c.channel?.toLowerCase()));}catch(e){}
+    try{const cs=useConnectorSync();ihubChannels=(cs?.connectors||[]).filter(c=>['nhn_cloud','nhn','aligo','coolsms','twilio'].includes(c.channel?.toLowerCase()));}catch(e) { /* 실패 무시(best-effort) */ }
 
     // 212차 #6(P2): setState-after-unmount 방어 — await 도중/30초 폴링 직전 언마운트 시 setState 가드.
     const aliveRef=useRef(true);

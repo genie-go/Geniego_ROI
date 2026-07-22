@@ -13,9 +13,9 @@ import { loadWorkspace, saveWorkspace, wsEnabled } from '../services/workspaceSt
 function useConnectedChannels() {
     return useMemo(() => {
         const ch = [];
-        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch {}
+        try { const k = JSON.parse(localStorage.getItem('geniego_api_keys') || '[]'); if (Array.isArray(k)) k.forEach(x => { if (x.service) ch.push(x.service.toLowerCase()); }); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         ['meta','google','tiktok','kakao_moment','naver','coupang','amazon','shopify','gmarket','11st','line','whatsapp'].forEach(c => {
-            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch {}
+            try { if (localStorage.getItem(`geniego_channel_${c}`)) ch.push(c); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         });
         return [...new Set(ch)];
     }, []);
@@ -49,13 +49,13 @@ function useSecurityGuard(addAlert) {
       inputLog.current = inputLog.current.filter(t => now - t < 3000);
       if (inputLog.current.length > 20) {
         setLocked('BRUTE_FORCE: Excessive input rate');
-        try { addAlert?.({ type: 'error', msg: '[Approvals] Brute-force blocked' }); } catch (_) {}
+        try { addAlert?.({ type: 'error', msg: '[Approvals] Brute-force blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
         e.target.value = ''; e.preventDefault(); return;
       }
       for (const p of THREAT_PATTERNS) {
         if (p.re.test(val)) {
           setLocked(p.type + ': ' + val.slice(0, 60));
-          try { addAlert?.({ type: 'error', msg: '[Approvals] ' + p.type + ' blocked' }); } catch (_) {}
+          try { addAlert?.({ type: 'error', msg: '[Approvals] ' + p.type + ' blocked' }); } catch (_) { /* 알림/감사 훅 실패 무시(best-effort) */ }
           e.target.value = ''; e.preventDefault(); return;
         }
       }
@@ -415,14 +415,14 @@ function AuditTab({ t }) {
 function SettingsTab({ t }) {
   const { addAlert } = useGlobalData();
   const [cfg, setCfg] = useState(() => {
-    try { const s = tGet('genie_approval_cfg'); if (s) return JSON.parse(s); } catch (_) {}
+    try { const s = tGet('genie_approval_cfg'); if (s) return JSON.parse(s); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     return { auto_approve_low: true, require_2fa: false, slack_notify: true, email_notify: true, execution_delay: false, audit_log: true };
   });
 
   const toggle = (id) => {
     setCfg(prev => {
       const updated = { ...prev, [id]: !prev[id] };
-      try { tSet('genie_approval_cfg', JSON.stringify(updated)); } catch (_) {}
+      try { tSet('genie_approval_cfg', JSON.stringify(updated)); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       addAlert?.({ type: 'info', msg: t('approvalsPage.cfgChanged', 'Setting changed') + ': ' + id });
       return updated;
     });
@@ -599,7 +599,7 @@ export default function Approvals() {
     return () => { ch1.close(); ch2.close(); ch3.close(); bcRef.current = null; };
   }, []);
   useEffect(() => {
-    const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: 'APPROVAL_UPDATE', ts: Date.now() }); } catch {} }, 30000);
+    const id = setInterval(() => { setSyncTick(p => p + 1); try { bcRef.current?.postMessage({ type: 'APPROVAL_UPDATE', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ } }, 30000);
     return () => clearInterval(id);
   }, []);
 
@@ -619,7 +619,7 @@ export default function Approvals() {
         addAlert?.({ type: 'success', msg: `[Approvals] #${id} ${statusLabel}` });
         setMsg(`✓ #${id} ${statusLabel}`); loadRequests();
       } else setMsg(r?.detail || r?.error || t('approvalsPage.actionFail', '처리에 실패했습니다.'));
-      try { bcRef.current?.postMessage({ type: 'decision_made', id, decision }); } catch (_) {}
+      try { bcRef.current?.postMessage({ type: 'decision_made', id, decision }); } catch (_) { /* 실패 무시(best-effort) */ }
     } catch { setMsg(t('approvalsPage.actionFail', '처리에 실패했습니다.')); }
     finally { setBusy(false); }
   };

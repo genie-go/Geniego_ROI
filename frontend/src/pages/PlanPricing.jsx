@@ -24,8 +24,8 @@ function gNavLabel(labelKey) {
 const SYNC_CHANNEL = "geniego_menu_access_sync";
 function publishMenuAccessSync(payload) {
   // [259차] 수신자(426·1562·AuthContext)는 tChannelName(테넌트 suffix) 채널을 구독 → 발신도 동일 채널로 통일(과거 raw SYNC_CHANNEL 발신이라 6개 발신처 전부 크로스탭 미수신이었음)
-  try { new BroadcastChannel(tChannelName(SYNC_CHANNEL)).postMessage({ type: "menu_access_updated", ts: Date.now(), ...payload }); } catch {}
-  try { window.dispatchEvent(new CustomEvent("menu-access-saved", { detail: payload })); } catch {}
+  try { new BroadcastChannel(tChannelName(SYNC_CHANNEL)).postMessage({ type: "menu_access_updated", ts: Date.now(), ...payload }); } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+  try { window.dispatchEvent(new CustomEvent("menu-access-saved", { detail: payload })); } catch { /* 이벤트 디스패치 실패 무시 */ }
 }
 
 /**
@@ -210,7 +210,7 @@ function PlanPricing() {
       //   재로그인(authLost) 으로 안내한다. (admin 이 만료 토큰으로 plan-pricing 에 영구 갇히던 버그 수정.)
       const sessionDead = /SESSION_EXPIRED|AUTH_REQUIRED|세션이 만료|인증이 필요/.test(msg);
       if (is401) {
-        let tok = null; try { tok = localStorage.getItem('genie_token'); } catch {}
+        let tok = null; try { tok = localStorage.getItem('genie_token'); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         if (sessionDead) {
           // 진짜 일시적(네트워크 순단)일 수도 있으니 1회만 재시도 후, 지속되면 재로그인 안내.
           if (authRetryRef.current < 1) { authRetryRef.current++; setTimeout(() => fetchPlans(), 700); return; }
@@ -269,7 +269,7 @@ function PlanPricing() {
 
   // [231차 #17] 하위관리자 '열람' 권한이면 읽기전용(쓰기 핸들러 early-return + 버튼 disable + 배너)
   const readOnly = useAdminReadOnly();
-  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch {} return true; } return false; };
+  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch { /* 알림 표시 실패 무시 */ } return true; } return false; };
 
   /** 권장가 1m 적용 → 모든 기간 자동 산출 + plan_config sync (백엔드 transaction) */
   const applyRecommendedPrice = async (planId, roundTo = 'nearest-9') => {
@@ -461,8 +461,8 @@ function PlanPricing() {
       bc.onmessage = (ev) => {
         if (ev?.data?.type === 'menu_access_updated') fetchMenuPricingSync();
       };
-    } catch {}
-    return () => { try { bc?.close(); } catch {} };
+    } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+    return () => { try { bc?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, [fetchMenuPricingSync]);
 
   // 명시적 추가/제거 (선택 추가 / 선택 삭제 버튼 전용 — 토글이 아니라 의도된 값 설정)
@@ -854,7 +854,7 @@ function PlanPricing() {
     const relogin = () => {
       try {
         ['genie_token', 'demo_genie_token', 'genie_user', 'demo_genie_user'].forEach(k => localStorage.removeItem(k));
-      } catch {}
+      } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
       window.location.href = '/login';
     };
     return (
@@ -1672,7 +1672,7 @@ function MenuPricingSyncPanel({ sync, onApply, applying }) {
       setEditedScores({});
       setEditMode(false);
       // sync data refetch
-      try { new BroadcastChannel(tChannelName('geniego_menu_access_sync')).postMessage({ type: 'menu_access_updated', source: 'weight_edit', ts: Date.now() }); } catch {}
+      try { new BroadcastChannel(tChannelName('geniego_menu_access_sync')).postMessage({ type: 'menu_access_updated', source: 'weight_edit', ts: Date.now() }); } catch { /* BroadcastChannel 미지원 환경 무시 */ }
       alert(`${dirty.length}개 가중치 저장 완료. 권장가 자동 재계산.`);
     } catch (e) { alert(`저장 실패: ${e?.message || e}`); }
     finally { setSavingScores(false); }
@@ -1982,7 +1982,7 @@ function CouponAdminPanel({ plans }) {
   // [266차 회귀수정] grantFreePlan 이 이 컴포넌트 소속인데 blockRO 는 PlanPricing 스코프라 ReferenceError(클릭 크래시)였다.
   //   CouponAdminPanel 자체 열람전용 게이트 정의(하위관리자 쓰기차단·231차 패턴 정합).
   const readOnly = useAdminReadOnly();
-  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch {} return true; } return false; };
+  const blockRO = () => { if (readOnly) { try { alert('열람 전용 권한입니다. 수정 권한은 최고관리자에게 요청하세요.'); } catch { /* 알림 표시 실패 무시 */ } return true; } return false; };
   const [data, setData] = useState(null); // { ok, rules, stats, recent }
   const [loading, setLoading] = useState(false);
   const [issueForm, setIssueForm] = useState({
@@ -2066,7 +2066,7 @@ function CouponAdminPanel({ plans }) {
       const d = await getJsonAuth(`/v424/admin/coupons/list?${q}`);
       setListRows(d?.coupons || []);
       setListSummary(d?.summary || null);
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, [listFilter]);
 
   useEffect(() => { fetchOverview(); }, [fetchOverview]);

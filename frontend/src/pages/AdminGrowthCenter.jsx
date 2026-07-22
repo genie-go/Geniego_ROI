@@ -67,7 +67,7 @@ function PlatformContextToggle() {
   const { t } = useI18n();
   const [on, setOn] = useState(() => { try { return localStorage.getItem("gg_act_as_tenant") === "platform_growth"; } catch (e) { return false; } });
   useEffect(() => {
-    const h = () => { try { setOn(localStorage.getItem("gg_act_as_tenant") === "platform_growth"); } catch (e) {} };
+    const h = () => { try { setOn(localStorage.getItem("gg_act_as_tenant") === "platform_growth"); } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } };
     window.addEventListener("gg-actas-change", h);
     window.addEventListener("storage", h);
     return () => { window.removeEventListener("gg-actas-change", h); window.removeEventListener("storage", h); };
@@ -76,7 +76,7 @@ function PlatformContextToggle() {
     try {
       if (on) localStorage.removeItem("gg_act_as_tenant");
       else localStorage.setItem("gg_act_as_tenant", "platform_growth");
-    } catch (e) {}
+    } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     window.dispatchEvent(new Event("gg-actas-change"));
     setOn(!on);
   };

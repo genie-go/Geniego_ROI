@@ -394,7 +394,7 @@ function ChannelKeyForm({ ch, values, onChange, saved, token, onSaved, onCleared
                     await requestJsonAuth(`/api/v423/creds/${cred.id}`, "DELETE");
                 }
             }
-        } catch (_) {}
+        } catch (_) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
         ch.keyFields.forEach(f => onChange(ch.id, f.key, ""));
         setStatus("idle");
         setTestMsg(null);

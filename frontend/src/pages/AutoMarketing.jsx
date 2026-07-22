@@ -232,7 +232,7 @@ export default function AutoMarketing() {
                 };
             }
         } catch { /* BroadcastChannel not supported */ }
-        return () => { try { bcRef.current?.close(); } catch {} };
+        return () => { try { bcRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
     }, []);
 
     /* ── Scroll isolation: suppress App.jsx parent scroll ──────────────── */
@@ -482,7 +482,7 @@ export default function AutoMarketing() {
                 setSelCats(['platform']);
                 setAiRecommended(true);
             }
-        } catch (e) {}
+        } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

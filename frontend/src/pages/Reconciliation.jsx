@@ -27,10 +27,10 @@ function useReconSync() {
   const chRef = useRef(null);
   useEffect(() => {
     try { chRef.current = new BroadcastChannel(RECON_SYNC_CH); } catch { return; }
-    return () => { try { chRef.current?.close(); } catch {} };
+    return () => { try { chRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
   const broadcast = useCallback((type, data) => {
-    try { chRef.current?.postMessage({ type, data, ts: Date.now() }); } catch {}
+    try { chRef.current?.postMessage({ type, data, ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
   }, []);
   const onMessage = useCallback((handler) => {
     if (!chRef.current) return () => {};
@@ -217,7 +217,7 @@ function ReportsTab({ t, channels, refresh }) {
     try {
       const data = await getJsonAuth(API('/v419/kr/recon/reports'));
       setReports(data.reports ?? []);
-    } catch { }
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     finally { setLoading(false); }
   }, []);
 
@@ -228,7 +228,7 @@ function ReportsTab({ t, channels, refresh }) {
     try {
       const data = await getJsonAuth(API(`/v419/kr/recon/reports/${id}`));
       setDetail(data.report ?? null);
-    } catch { }
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
 
   if (loading) return <div style={{ padding: 24, color: 'var(--text-secondary)' }}>⏳ {t('recon.loading')}</div>;
@@ -320,10 +320,10 @@ function TicketsTab({ t }) {
           try {
             const dd = await getJsonAuth(API(`/v419/kr/recon/reports/${r.id}`));
             (dd.report?.tickets ?? []).forEach(tk => all.push({ ...tk, report_id: r.id }));
-          } catch { }
+          } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
         }
         setTickets(all);
-      } catch { }
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       finally { setLoading(false); }
     };
     loadAll();
@@ -334,7 +334,7 @@ function TicketsTab({ t }) {
     try {
       await patchJson(API(`/v419/kr/recon/tickets/${id}`), { status });
       setTickets(prev => prev.map(tk => tk.id === id ? { ...tk, status } : tk));
-    } catch { }
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     finally { setUpdating(null); }
   };
 

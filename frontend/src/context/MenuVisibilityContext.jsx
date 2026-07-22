@@ -42,7 +42,7 @@ function loadUserPrefs() {
 function saveUserPrefs(prefs) {
   try {
     localStorage.setItem(USER_PREFS_KEY, JSON.stringify(prefs));
-  } catch {}
+  } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 function loadAdminTreeCache() {
@@ -60,7 +60,7 @@ function loadAdminTreeCache() {
 function saveAdminTreeCache(data) {
   try {
     localStorage.setItem(ADMIN_TREE_CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
-  } catch {}
+  } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
 }
 
 export function MenuVisibilityProvider({ children }) {
@@ -133,8 +133,8 @@ export function MenuVisibilityProvider({ children }) {
       bc.onmessage = (ev) => {
         if (ev?.data?.type === 'menu_visibility_updated') fetchGlobal();
       };
-    } catch {}
-    return () => { try { bc?.close(); } catch {} };
+    } catch { /* BroadcastChannel 미지원 환경 무시 */ }
+    return () => { try { bc?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, [fetchGlobal]);
 
   /**

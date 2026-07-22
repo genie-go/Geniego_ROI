@@ -989,7 +989,7 @@ export default function PnLDashboard() {
     useEffect(() => {
         const id = setInterval(() => {
             setSyncTick(p => p + 1);
-            try { bcRef.current?.postMessage({ type: 'PNL_UPDATE', ts: Date.now() }); } catch {}
+            try { bcRef.current?.postMessage({ type: 'PNL_UPDATE', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
         }, 30000);
         return () => clearInterval(id);
     }, []);
@@ -999,7 +999,7 @@ export default function PnLDashboard() {
         const threat = secCheck(value);
         if (threat) {
             setThreats(prev => [...prev, { type: threat, value, field: fieldName, time: new Date().toLocaleTimeString() }]);
-            try { addAlert({ id: `sec_pnl_${Date.now()}`, type: 'security', severity: 'critical', title: `🚨 [P&L] ${threat}`, body: `"${fieldName}": ${value.slice(0, 50)}`, timestamp: new Date().toISOString(), read: false }); } catch {}
+            try { addAlert({ id: `sec_pnl_${Date.now()}`, type: 'security', severity: 'critical', title: `🚨 [P&L] ${threat}`, body: `"${fieldName}": ${value.slice(0, 50)}`, timestamp: new Date().toISOString(), read: false }); } catch { /* 알림/감사 훅 실패 무시(best-effort) */ }
             return '';
         }
         return value;

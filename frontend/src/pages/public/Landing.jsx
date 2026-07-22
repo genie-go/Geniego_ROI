@@ -12,14 +12,14 @@ function GrowthCapturePopup() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   useEffect(() => {
-    try { if (localStorage.getItem("gg_cap_dismissed") === "1") return; } catch (_) {}
+    try { if (localStorage.getItem("gg_cap_dismissed") === "1") return; } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     const t = setTimeout(() => setShow(true), 9000);
     return () => clearTimeout(t);
   }, []);
   if (!show) return null;
   // [254차 감사] 방문자 언어 — 저장 우선, 없으면 navigator 감지(Landing 본체 패턴 정합). t()=11국 DICT 현지화.
   let lang; try { lang = localStorage.getItem("genie_roi_lang") || localStorage.getItem("landing_lang") || detectLang(); } catch (_) { lang = detectLang(); }
-  const close = () => { setShow(false); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) {} };
+  const close = () => { setShow(false); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } };
   const submit = async () => {
     const e = (email || "").trim();
     if (!/.+@.+\..+/.test(e)) return;
@@ -28,8 +28,8 @@ function GrowthCapturePopup() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: e, event: "email_capture", source: "landing_popup", channel: "organic", page: "landing" }),
       });
-    } catch (_) {}
-    setDone(true); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) {}
+    } catch (_) { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
+    setDone(true); try { localStorage.setItem("gg_cap_dismissed", "1"); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     setTimeout(() => setShow(false), 2200);
   };
   return (
@@ -2456,7 +2456,7 @@ function PremiumHeader({ lang, setLang }) {
             </button>
             {langOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 6, minWidth: 168, maxHeight: 360, overflowY: "auto", boxShadow: "0 16px 48px rgba(15,23,42,0.16)" }}>
               {LANGS.map(l => (
-                <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); localStorage.setItem("landing_lang", l.code); localStorage.setItem("genie_roi_lang", l.code); try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang: l.code } })); } catch {} }}
+                <button key={l.code} onClick={() => { setLang(l.code); setLangOpen(false); localStorage.setItem("landing_lang", l.code); localStorage.setItem("genie_roi_lang", l.code); try { window.dispatchEvent(new CustomEvent("genie-lang-change", { detail: { lang: l.code } })); } catch { /* 이벤트 디스패치 실패 무시 */ } }}
                   style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, background: lang === l.code ? "#eef2ff" : "transparent", color: lang === l.code ? "#4f46e5" : "#334155" }}>
                   <span style={{ fontSize: 14 }}>{l.flag}</span><span>{l.label}</span>
                 </button>

@@ -104,7 +104,7 @@ function useCrossTabSync(onMessage) {
     }, []);
 
     const broadcast = useCallback((type, payload) => {
-        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch {}
+        try { bcRef.current?.postMessage({ type, payload, ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
     }, []);
     return broadcast;
 }

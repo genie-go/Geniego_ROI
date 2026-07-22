@@ -86,7 +86,7 @@ function ApiKeysPanel() {
           <div style={{ fontSize: 12, fontWeight: 700, color: "#b45309", marginBottom: 8 }}>⚠️ {newKey.warning || t('devHub.keyOnce', '이 키는 다시 표시되지 않습니다.')}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input readOnly value={newKey.api_key} onFocus={e => e.target.select()} style={{ ...inp, flex: 1, fontFamily: "monospace", fontSize: 12 }} />
-            <button onClick={() => { try { navigator.clipboard.writeText(newKey.api_key); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch {} }}
+            <button onClick={() => { try { navigator.clipboard.writeText(newKey.api_key); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch { /* 미지원 브라우저 API 무시 */ } }}
               style={{ padding: "9px 14px", borderRadius: 9, border: "none", background: "#4f8ef7", color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>📋</button>
             <button onClick={() => setNewKey(null)} style={{ padding: "9px 12px", borderRadius: 9, border: "1px solid rgba(0,0,0,0.1)", background: "#fff", color: "#64748b", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>✕</button>
           </div>
@@ -274,7 +274,7 @@ function WebhooksPanel() {
           <div style={{ fontSize: 12, fontWeight: 700, color: '#b45309', marginBottom: 8 }}>⚠️ {newSecret.warning || t('devHub.whSecretOnce', '이 서명 시크릿은 다시 표시되지 않습니다.')}</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input readOnly value={newSecret.secret} onFocus={e => e.target.select()} style={{ ...inp, flex: 1, fontFamily: 'monospace', fontSize: 12 }} />
-            <button onClick={() => { try { navigator.clipboard.writeText(newSecret.secret); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch {} }}
+            <button onClick={() => { try { navigator.clipboard.writeText(newSecret.secret); showMsg(t('devHub.copied', '복사되었습니다.'), 'ok'); } catch { /* 미지원 브라우저 API 무시 */ } }}
               style={{ padding: '9px 14px', borderRadius: 9, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>📋</button>
             <button onClick={() => setNewSecret(null)} style={{ padding: '9px 12px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>✕</button>
           </div>
@@ -587,7 +587,7 @@ export default function DeveloperHub() {
     { emoji: '🔑', label: t('devHub.kpiMyKeys', '내 API 키'), val: keyCount === null ? '…' : keyCount },
   ];
 
-  const copy = (id, text) => { try { navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(''), 1500); } catch {} };
+  const copy = (id, text) => { try { navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(''), 1500); } catch { /* 미지원 브라우저 API 무시 */ } };
   const codeBox = { fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#0f172a', color: '#e2e8f0', borderRadius: 10, padding: '14px 16px', lineHeight: 1.6 };
   const methodColor = { GET: '#22c55e', POST: '#4f8ef7', PUT: '#eab308', PATCH: '#a855f7', DELETE: '#ef4444' };
 

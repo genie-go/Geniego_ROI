@@ -64,14 +64,14 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
         setDesigns(d.designs);
         setSelDesigns(d.designs.map(x => x.id)); // 기본 전체 선택
       }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, []);
   const loadCampaigns = useCallback(async () => {
     try {
       const r = await fetch(`${API}/v423/auto-campaign/list`, { headers: auth() });
       const d = await r.json();
       if (d.ok && Array.isArray(d.campaigns)) setCampaigns(d.campaigns);
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, []);
   // 크리에이티브 A/B 테스트 상태(variant별 성과·승자) 로드.
   const loadAbStatus = useCallback(async () => {
@@ -83,7 +83,7 @@ export default function AutoCampaignLaunch({ draft, category, campaignName, peri
         d.tests.forEach(tt => { (by[tt.campaign_id] = by[tt.campaign_id] || []).push(tt); });
         setAbTests(by);
       }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   }, []);
   useEffect(() => { loadDesigns(); loadCampaigns(); loadAbStatus(); }, [loadDesigns, loadCampaigns, loadAbStatus]);
 

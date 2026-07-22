@@ -271,12 +271,12 @@ function TabAiEngine() {
         const r = await fetch("/api/auth/admin/ai-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) setAiKeySet(!!d.key_set || !!d.configured);
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       try {
         const r = await fetch("/api/auth/admin/smtp", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setSmtpSet(!!d.configured); if (d.smtp) setSmtp(s => ({ ...s, ...d.smtp, port: String(d.smtp.port ?? s.port), pass: "" })); }
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       try {
         const r = await fetch("/api/auth/admin/twilio", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
@@ -286,17 +286,17 @@ function TabAiEngine() {
           // Auth Token 은 서버가 반환하지 않는다(암호화 저장) → 입력칸은 항상 빈 값으로 시작.
           setTwilio(s => ({ ...s, sid: d.sid || "", from: d.from || "", msg_sid: d.msg_sid || "", token: "" }));
         }
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       try {
         const r = await fetch("/api/auth/admin/img-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setImgKeySet(!!d.key_set || !!d.configured); if (d.provider) setImgProvider(d.provider); }
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
       try {
         const r = await fetch("/api/auth/admin/video-key", { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { setVidKeySet(!!d.key_set || !!d.configured); if (d.model) setVidModel(d.model); }
-      } catch {}
+      } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     })();
   }, []);
 
@@ -566,7 +566,7 @@ function TabChannelOauth() {
       const r = await fetch('/api/auth/admin/oauth-apps', { headers: { Authorization: `Bearer ${ADMIN_TOKEN()}` } });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) { setCfg(d.providers || {}); setNotifyEmail(d.apply_notify_email || ''); }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
   };
   useEffect(() => { load(); }, []);
 
@@ -597,10 +597,10 @@ function TabChannelOauth() {
   const clearP = async (p) => {
     if (!window.confirm(`${p} OAuth 앱 설정을 해제할까요? 해당 채널 원클릭 연결이 비활성화됩니다.`)) return;
     setBusy(p);
-    try { await fetch('/api/auth/admin/oauth-apps', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ provider: p, clear: true }) }); setMsg({ t: 'ok', m: `${p} 설정을 해제했습니다.` }); load(); } catch {}
+    try { await fetch('/api/auth/admin/oauth-apps', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_TOKEN()}` }, body: JSON.stringify({ provider: p, clear: true }) }); setMsg({ t: 'ok', m: `${p} 설정을 해제했습니다.` }); load(); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     setBusy('');
   };
-  const copy = (v) => { try { navigator.clipboard?.writeText(v); setMsg({ t: 'ok', m: 'Redirect URI를 복사했습니다.' }); } catch {} };
+  const copy = (v) => { try { navigator.clipboard?.writeText(v); setMsg({ t: 'ok', m: 'Redirect URI를 복사했습니다.' }); } catch { /* 미지원 브라우저 API 무시 */ } };
 
   const inp = { width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-1)', fontSize: 12.5, outline: 'none' };
   const lbl = { fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', display: 'block', marginBottom: 5, marginTop: 10 };

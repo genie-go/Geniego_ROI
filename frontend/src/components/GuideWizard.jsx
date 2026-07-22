@@ -175,7 +175,7 @@ export default function GuideWizard({ guideKey, checks }) {
                         if (d.doneRoute && (!q.length || q[q.length - 1].route !== d.doneRoute)) q.push({ route: d.doneRoute, hint: d.all || nav.execute, execLabel: nav.execute });
                         sessionStorage.setItem("genie_onboard_queue", JSON.stringify(q));
                         sessionStorage.setItem("genie_onboard_focus", "1");
-                      } catch (e) {}
+                      } catch (e) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
                       navigate(links[i]);
                     }} style={{ fontSize: 13, fontWeight: 900, color: "#fff", border: "none", cursor: "pointer", background: grad, padding: "8px 18px", borderRadius: 9, boxShadow: `0 3px 10px ${accent[0]}55`, verticalAlign: "middle" }}>👉 {nav.go}</button>}
                   </div>}

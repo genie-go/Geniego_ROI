@@ -154,7 +154,7 @@ export default function AccountPerformance() {
                 if (type === 'CHANNEL_REGISTERED' || type === 'CHANNEL_REMOVED') setLastRefresh(Date.now());
             };
         } catch { /* BroadcastChannel 미지원 환경 무음 */ }
-        return () => { try { ch?.close(); } catch {} };
+        return () => { try { ch?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
     }, []);
 
     /* ─ API Fetch ─ */

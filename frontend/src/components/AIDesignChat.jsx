@@ -188,7 +188,7 @@ export default function AIDesignChat({ onApplied }) {
       const r = await fetch(`${API}/v422/ai/campaign-ad-image`, { method: 'POST', headers: auth(), body: JSON.stringify({ prompt: dd.image_prompt, ratio: dd.ratio }) });
       const j = await r.json();
       if (j.ok && j.image) { setImage(j.image); setSvg(null); setImgGenerating(false); return true; }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     setImgGenerating(false); return false;
   };
 
@@ -200,7 +200,7 @@ export default function AIDesignChat({ onApplied }) {
       const r = await fetch(`${API}/v422/ai/campaign-ad-render`, { method: 'POST', headers: auth(), body: JSON.stringify({ product_description: dd.body || dd.headline || '', design: dd, render_type: renderType || 'svg' }) });
       const d = await r.json();
       if (d.ok && d.svg) { setSvg(d.svg); setImage(null); }
-    } catch {}
+    } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     setRendering(false);
   };
 

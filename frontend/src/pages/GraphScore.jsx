@@ -514,11 +514,11 @@ export default function GraphScore() {
         if (ev.data?.type === 'GRAPH_REFRESH') loadNodes();
       };
     } catch { /* BroadcastChannel unsupported */ }
-    return () => { try { bcRef.current?.close(); } catch {} };
+    return () => { try { bcRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
 
   const broadcastRefresh = useCallback(() => {
-    try { bcRef.current?.postMessage({ type: 'GRAPH_REFRESH', ts: Date.now() }); } catch {}
+    try { bcRef.current?.postMessage({ type: 'GRAPH_REFRESH', ts: Date.now() }); } catch { /* 실패 무시(best-effort) */ }
     if (typeof broadcastUpdate === 'function') broadcastUpdate('graphScore', { refreshed: Date.now() });
   }, [broadcastUpdate]);
 
@@ -548,7 +548,7 @@ export default function GraphScore() {
 
   const handleWeightApply = useCallback((w) => {
     setWeights(w);
-    try { localStorage.setItem('g_graph_weights', JSON.stringify(w)); } catch {}
+    try { localStorage.setItem('g_graph_weights', JSON.stringify(w)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     broadcastRefresh();
   }, [broadcastRefresh]);
 

@@ -38,7 +38,7 @@ const _localeListeners = new Set();
 function loadLocale(code) {
     if (!LOCALE_LOADERS[code] || _localeCache[code]) return Promise.resolve();
     return LOCALE_LOADERS[code]()
-        .then((m) => { _localeCache[code] = (m && m.default) ? m.default : m; _localeListeners.forEach((fn) => { try { fn(code); } catch (_) {} }); })
+        .then((m) => { _localeCache[code] = (m && m.default) ? m.default : m; _localeListeners.forEach((fn) => { try { fn(code); } catch (_) { /* 실패 무시(best-effort) */ } }); })
         .catch(() => { /* 개별 로케일 로드 실패 = en/폴백으로 계속 동작(치명 아님) */ });
 }
 // [270차] 자동 번역 오버레이 — tools/i18n_autofill.mjs 가 ko(SSOT)에만 있는 키를 Claude로 13~14개국
@@ -52,7 +52,7 @@ let AUTOFILL = { en: {} };
 let _autofillLoaded = false;
 const _autofillListeners = new Set();
 import("./autofill.json")
-    .then((m) => { AUTOFILL = (m && m.default) ? m.default : (m || { en: {} }); _autofillLoaded = true; _autofillListeners.forEach((fn) => { try { fn(); } catch (_) {} }); })
+    .then((m) => { AUTOFILL = (m && m.default) ? m.default : (m || { en: {} }); _autofillLoaded = true; _autofillListeners.forEach((fn) => { try { fn(); } catch (_) { /* 실패 무시(best-effort) */ } }); })
     .catch(() => { /* 폴백 오버레이 미로드 = base/en 폴백으로 계속 동작(치명 아님) */ });
 
 // ── Locale registry ────────────────────────────────────────
@@ -165,7 +165,7 @@ async function detectGeoLang() {
                 localStorage.setItem(LS_GEO_KEY, "1");
                 // [272차 P2] 감지 언어 영속 — LS_KEY 미저장 시, navigator 가 미지원 언어인 사용자는
                 //   재방문마다 detectLang() 이 ko 로 폴백(LS_GEO_KEY 로 geo 재감지도 스킵)돼 영구 한국어 회귀.
-                try { localStorage.setItem(LS_KEY, byCountry); } catch (_) {}
+                try { localStorage.setItem(LS_KEY, byCountry); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
                 return byCountry;
             }
             if (data && data.accept_lang && LOCALE_LOADERS[data.accept_lang]) acceptFallback = data.accept_lang;
@@ -183,7 +183,7 @@ async function detectGeoLang() {
             const lang = COUNTRY_LANG_MAP[data.country_code];
             if (lang && LOCALE_LOADERS[lang]) {
                 localStorage.setItem(LS_GEO_KEY, "1"); // 재감지 방지
-                try { localStorage.setItem(LS_KEY, lang); } catch (_) {} // [272차 P2] 감지 언어 영속(재방문 ko 회귀 방지)
+                try { localStorage.setItem(LS_KEY, lang); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } // [272차 P2] 감지 언어 영속(재방문 ko 회귀 방지)
                 return lang;
             }
         }
@@ -194,7 +194,7 @@ async function detectGeoLang() {
     // ③ 서버가 파싱한 Accept-Language (최후 약한 폴백)
     if (acceptFallback) {
         localStorage.setItem(LS_GEO_KEY, "1");
-        try { localStorage.setItem(LS_KEY, acceptFallback); } catch (_) {} // [272차 P2] 감지 언어 영속
+        try { localStorage.setItem(LS_KEY, acceptFallback); } catch (_) { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } // [272차 P2] 감지 언어 영속
         return acceptFallback;
     }
     return null;
@@ -268,7 +268,7 @@ export function I18nProvider({ children }) {
         const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
         const cancel = window.cancelIdleCallback || clearTimeout;
         const h = idle(() => { Object.keys(LOCALE_LOADERS).forEach((c) => loadLocale(c)); });
-        return () => { try { cancel(h); } catch (_) {} };
+        return () => { try { cancel(h); } catch (_) { /* 실패 무시(best-effort) */ } };
     }, [localesReady]);
 
     // 사용자가 직접 언어를 선택할 때 (상단 언어 선택바)
@@ -277,7 +277,7 @@ export function I18nProvider({ children }) {
         localStorage.setItem(LS_KEY, code);   // 영구 저장 → 다음 방문에도 유지
         localStorage.removeItem(LS_GEO_KEY);  // 다음 방문에도 사용자 선택 우선
         // 언어 변경 시 수동 화폐 선택 플래그 해제 → 화폐 자동 전환 허용
-        try { localStorage.removeItem("genie_currency_manual"); } catch {}
+        try { localStorage.removeItem("genie_currency_manual"); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         // [271차] 언어 선택 즉시 실시간 전면 현지화(새로고침 없음):
         //   ① t() 콘텐츠는 아래 setLangState 로 즉시 재렌더.
         //   ② module-level 로드시점 현지화 데이터(메뉴 라벨/서브탭·연동허브 채널·데모 템플릿)는

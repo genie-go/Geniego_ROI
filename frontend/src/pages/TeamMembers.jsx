@@ -662,7 +662,7 @@ function SSOPanel({ t, flash }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 11.5 }}>
       <span style={{ minWidth: 130, color: '#64748b', fontWeight: 600 }}>{label}</span>
       <code style={{ flex: 1, background: '#f1f5f9', padding: '4px 8px', borderRadius: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1e293b' }}>{val || '—'}</code>
-      <button onClick={() => { try { navigator.clipboard.writeText(val || ''); flash(t('teamMembers.copied', '복사됨')); } catch (e) {} }} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 11, cursor: 'pointer' }}>{t('teamMembers.copy', '복사')}</button>
+      <button onClick={() => { try { navigator.clipboard.writeText(val || ''); flash(t('teamMembers.copied', '복사됨')); } catch (e) { /* 미지원 브라우저 API 무시 */ } }} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 11, cursor: 'pointer' }}>{t('teamMembers.copy', '복사')}</button>
     </div>
   );
 
@@ -888,7 +888,7 @@ function PartnerSection({ t, flash, input }) {
   const [form, setForm] = useState({ partner_type: 'supplier', partner_name: '', login_id: '', password: '', photo: '' });
   const [busy, setBusy] = useState(false);
   const [pq, setPq] = useState('');
-  const load = useCallback(async () => { try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); } try { const s = await wmsApi.listSuppliers(); setSups(Array.isArray(s?.suppliers) ? s.suppliers : []); } catch {} }, []);
+  const load = useCallback(async () => { try { const r = await wmsApi.listPartners(); setList(Array.isArray(r?.partners) ? r.partners : []); } catch { setList([]); } try { const s = await wmsApi.listSuppliers(); setSups(Array.isArray(s?.suppliers) ? s.suppliers : []); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }, []);
   useEffect(() => { load(); }, [load]);
   const filtered = list.filter(p => { const q = pq.trim().toLowerCase(); return !q || [p.partner_name, p.login_id, p.partner_type].some(v => String(v || '').toLowerCase().includes(q)); });
   const setPhoto = async (p, url) => { try { await wmsApi.updatePartner(p.id, { photo: url }); load(); } catch (e) { flash(String(e?.message || e)); } };

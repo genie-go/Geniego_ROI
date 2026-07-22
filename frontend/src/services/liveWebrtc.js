@@ -38,7 +38,7 @@ async function negotiate(pc, url, { offerToReceive } = {}) {
     body: pc.localDescription.sdp,
   });
   if (!res.ok) {
-    let detail = ''; try { detail = await res.text(); } catch {}
+    let detail = ''; try { detail = await res.text(); } catch { /* 응답 본문 파싱 실패 무시 */ }
     throw new Error(`WHIP/WHEP ${res.status} ${res.statusText}${detail ? ' — ' + detail.slice(0, 200) : ''}`);
   }
   const answer = await res.text();
@@ -53,7 +53,7 @@ export async function publishWhip(mediaStream, whipUrl, iceServers = []) {
     mediaStream.getTracks().forEach((tr) => pc.addTrack(tr, mediaStream));
     const resource = await negotiate(pc, whipUrl, { offerToReceive: false });
     return { pc, resource, stop: () => teardown(pc, resource) };
-  } catch (e) { try { pc.close(); } catch {} throw e; }
+  } catch (e) { try { pc.close(); } catch { /* 실패 무시(best-effort) */ } throw e; }
 }
 
 /** 재생(Play) — 미디어서버에서 WHEP 수신, 원격 MediaStream 반환(video.srcObject 연결용). */
@@ -67,11 +67,11 @@ export async function playWhep(whepUrl, iceServers = []) {
   try {
     const resource = await negotiate(pc, whepUrl, { offerToReceive: true });
     return { pc, stream: remote, resource, stop: () => teardown(pc, resource) };
-  } catch (e) { try { pc.close(); } catch {} throw e; }
+  } catch (e) { try { pc.close(); } catch { /* 실패 무시(best-effort) */ } throw e; }
 }
 
 /** 세션 종료 — 미디어서버 리소스 DELETE(best-effort) + PeerConnection 닫기. */
 export function teardown(pc, resource) {
-  if (resource) { try { fetch(resource, { method: 'DELETE' }).catch(() => {}); } catch {} }
-  try { pc && pc.close(); } catch {}
+  if (resource) { try { fetch(resource, { method: 'DELETE' }).catch(() => {}); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } }
+  try { pc && pc.close(); } catch { /* 실패 무시(best-effort) */ }
 }

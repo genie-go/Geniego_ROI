@@ -365,7 +365,7 @@ function ManageTab({ t }) {
             </div>
             <div style={{ padding:"10px 14px", display:"flex", gap:6 }}>
               <button onClick={()=>{setForm(s);setTpl(s.tpl);setLayout(s.layout);}} style={{ flex:1, padding:"6px", borderRadius:6, border:"1px solid #d1d5db", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#374151" }}>{t("webPopup.editPopup","Edit")}</button>
-              <button onClick={async()=>{ if(!_IS_DEMO){ try{ await requestJsonAuth(`/api/v424/web-popups/${s.id}`, 'DELETE'); }catch{} } setSaved(p=>p.filter(x=>x.id!==s.id)); }} style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #fecaca", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#ef4444" }}>🗑</button>
+              <button onClick={async()=>{ if(!_IS_DEMO){ try{ await requestJsonAuth(`/api/v424/web-popups/${s.id}`, 'DELETE'); }catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ } } setSaved(p=>p.filter(x=>x.id!==s.id)); }} style={{ padding:"6px 10px", borderRadius:6, border:"1px solid #fecaca", background:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", color:"#ef4444" }}>🗑</button>
             </div>
           </div>))}
         </div>
@@ -440,7 +440,7 @@ function _evaluateTest(variants, minSample = 100) {
 }
 const _AB_DEMO_KEY = pid => `wp_ab_${pid}`;
 function _loadDemoVariants(pid) { try { return JSON.parse(localStorage.getItem(_AB_DEMO_KEY(pid)) || "[]"); } catch { return []; } }
-function _saveDemoVariants(pid, arr) { try { localStorage.setItem(_AB_DEMO_KEY(pid), JSON.stringify(arr)); } catch {} }
+function _saveDemoVariants(pid, arr) { try { localStorage.setItem(_AB_DEMO_KEY(pid), JSON.stringify(arr)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }
 
 const _EMPTY_VARIANT = { label: "", title: "", subtitle: "", body: "", cta: "", linkUrl: "", discount: 0, weight: 1 };
 
@@ -502,21 +502,21 @@ function ABTab({ t }) {
 
   const delVariant = async (vid) => {
     if (_IS_DEMO) { const next = _loadDemoVariants(selId).filter(v => v.id !== vid); _saveDemoVariants(selId, next); setVariants(next); setTest(_evaluateTest(next)); return; }
-    try { await requestJsonAuth(`/api/v424/web-popups/variants/${vid}`, "DELETE"); } catch {}
+    try { await requestJsonAuth(`/api/v424/web-popups/variants/${vid}`, "DELETE"); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     reloadVariants(selId);
   };
 
   const toggleVariant = async (v) => {
     const next = (v.status || "active") === "active" ? "paused" : "active";
     if (_IS_DEMO) { const arr = _loadDemoVariants(selId).map(x => x.id === v.id ? { ...x, status: next } : x); _saveDemoVariants(selId, arr); setVariants(arr); setTest(_evaluateTest(arr)); return; }
-    try { await requestJsonAuth(`/api/v424/web-popups/variants/${v.id}`, "PUT", { ...v, status: next }); } catch {}
+    try { await requestJsonAuth(`/api/v424/web-popups/variants/${v.id}`, "PUT", { ...v, status: next }); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     reloadVariants(selId);
   };
 
   const promoteVariant = async (vid) => {
     if (!confirm(t("webPopup.abPromoteConfirm", "이 변형을 팝업 기본 콘텐츠로 승격하고 나머지 변형을 일시중지합니다. 계속할까요?"))) return;
     if (_IS_DEMO) { const arr = _loadDemoVariants(selId).map(x => ({ ...x, status: x.id === vid ? "active" : "paused" })); _saveDemoVariants(selId, arr); setVariants(arr); setTest(_evaluateTest(arr)); return; }
-    try { await postJsonAuth(`/api/v424/web-popups/variants/${vid}/promote`, {}); } catch {}
+    try { await postJsonAuth(`/api/v424/web-popups/variants/${vid}/promote`, {}); } catch { /* 로드/요청 실패 시 기존·기본 상태 유지 */ }
     reloadVariants(selId);
   };
 
@@ -645,14 +645,14 @@ function SettingsTab({ t }) {
 
   // [261차] 전역설정 영속 — 운영: 백엔드(테넌트 스코프), 데모: localStorage. 저장버튼 없던 미배선 토글 보강.
   useEffect(() => {
-    if (_IS_DEMO) { try { const s = JSON.parse(localStorage.getItem('wp_settings') || 'null'); if (s) setVals(v => ({ ...v, ...s })); } catch {} return; }
+    if (_IS_DEMO) { try { const s = JSON.parse(localStorage.getItem('wp_settings') || 'null'); if (s) setVals(v => ({ ...v, ...s })); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } return; }
     getJsonAuth('/api/v424/web-popup-settings')
       .then(r => { if (r?.ok && r.settings && Object.keys(r.settings).length) setVals(v => ({ ...v, ...r.settings })); })
       .catch(() => {});
   }, []);
   const toggle = (key) => setVals(prev => {
     const next = { ...prev, [key]: !prev[key] };
-    if (_IS_DEMO) { try { localStorage.setItem('wp_settings', JSON.stringify(next)); } catch {} }
+    if (_IS_DEMO) { try { localStorage.setItem('wp_settings', JSON.stringify(next)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ } }
     else { requestJsonAuth('/api/v424/web-popup-settings', 'PUT', { settings: next }).catch(() => {}); }
     return next;
   });

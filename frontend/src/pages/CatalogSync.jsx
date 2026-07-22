@@ -2524,18 +2524,18 @@ const SchedulePanel = memo(function SchedulePanel({ t, addAlert }) {
         const newSch = { id: `SCH-${Date.now()}`, freq, time, enabled, createdAt: new Date().toLocaleString(LANG_LOCALE_MAP[lang] || 'ko-KR', { hour12: false }) };
         const updated = [...schedules, newSch];
         setSchedules(updated);
-        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
         addAlert({ type: 'success', msg: t('catalogSync.alertScheduleSaved', { freq: FREQ_OPTIONS.find(f => f.id === freq)?.label, time }) });
     };
     const deleteSchedule = (id) => {
         const updated = schedules.filter(s => s.id !== id);
         setSchedules(updated);
-        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     };
     const toggleSchedule = (id) => {
         const updated = schedules.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s);
         setSchedules(updated);
-        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { }
+        try { tSet('geniego_sync_schedules', JSON.stringify(updated)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
     };
 
     return (
@@ -3585,7 +3585,7 @@ export default function CatalogSync() {
     useEffect(() => {
         const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
         bc.onmessage = (e) => {
-            if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'catalogSync') { }
+            if (e.data?.type === 'PRODUCT_UPDATE' && e.data.source !== 'catalogSync') { /* 의도적 no-op — 타 소스 갱신은 이 탭에서 별도 처리 없음 */ }
         };
         return () => bc.close();
     }, []);
@@ -3595,7 +3595,7 @@ export default function CatalogSync() {
             const bc = new BroadcastChannel(tChannelName('genie_product_sync'));
             bc.postMessage({ type: 'PRODUCT_UPDATE', source: 'catalogSync', ts: Date.now() });
             bc.close();
-        } catch { }
+        } catch { /* BroadcastChannel 정리 실패 무시 */ }
     }, []);
 
     const TABS = useMemo(() => [
