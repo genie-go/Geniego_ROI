@@ -1,6 +1,6 @@
 {
   "_comment": "CCIS Part004 ESLint 베이스라인. 기존 위반을 고정하고 증가분만 차단한다. 위반을 줄인 뒤 --update-baseline 으로 갱신할 것(늘리는 방향으로 갱신 금지).",
-  "errors": 619,
-  "warnings": 133,
+  "errors": 618,
+  "warnings": 131,
   "scope": "frontend/src (.js,.jsx) — .eslintignore 제외분 반영"
 }
