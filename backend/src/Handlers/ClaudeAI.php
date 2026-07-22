@@ -647,29 +647,60 @@ KB;
     }
 
     /* ── Claude API 호출 ─────────────────────────────────────── */
-    private static function callClaude(string $systemPrompt, string $userMsg, int $timeout = 8, string $tenant = ''): array {
-        // [225차 P1-4] 공용 Claude 키 비용남용 방지: provider 호출 前 테넌트 일일 quota 강제.
-        $qErr = self::quotaGate($tenant, 'text');
-        if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
-        $apiKey = self::apiKey();
-        // [현 차수] 프롬프트 캐싱(GA): 대형 정적 시스템 프롬프트(메뉴맵·용어집·발급가이드)를 ephemeral 캐시 →
-        //   동일 시스템 반복 호출 시 입력토큰 비용 대폭 절감(5분 TTL). 배열 형식은 전 호출자 후방호환.
-        $payload = json_encode([
-            'model'      => self::MODEL,
-            'max_tokens' => self::MAX_TOKENS,
-            'system'     => [['type' => 'text', 'text' => $systemPrompt, 'cache_control' => ['type' => 'ephemeral']]],
-            'messages'   => [
-                ['role' => 'user', 'content' => $userMsg]
-            ],
-        ], JSON_UNESCAPED_UNICODE);
+    /* ══════════════════════════════════════════════════════════════════════════════
+     * [289차 후속 / MEA 053 D-2 + 056 D-4] ★★Anthropic Messages API 단일 통과점(Gateway)
+     *
+     * 종전엔 Claude 전송 지점이 **4곳에 흩어져** 각자 quota 게이트·키 해석·cURL·누적을
+     * 중복 구현했고(callClaude / callClaudeTools / callClaudeLong / marketingIntelligence
+     * 인라인), `AiGenerate` 는 아예 별도 cURL 이었다. 그 결과:
+     *   ① 감사: AI 호출을 한곳에서 볼 수 없다(056 "감사 구멍")
+     *   ② 계측: 프로브를 붙이려면 N곳을 고쳐야 한다(057)
+     *   ③ 규율: 새 경로가 생길 때마다 quota 우회 가능(실제로 marketingIntelligence 가
+     *      quotaGate 없이 전역 키를 쓰고 있었다 — 미배선이라 도달 불가였으나 잠재 결함)
+     * → **전송을 이 함수 하나로 모으면 감사·계측이 자동으로 확보된다**(053 판정의 핵심).
+     *
+     * ★승계 4조건(053 D-2 명시)
+     *   1) **quota 게이트** — 전역 공용 키 사용 시에만 강제
+     *   2) **BYO 우선**    — 테넌트 자기 키(`ai_settings`)는 본인 비용이므로 **플랫폼 quota 비대상**
+     *                        (기존 `AiGenerate` 동작이 설계상 정상이었음 — 무회귀로 보존)
+     *   3) **Crypto 복호** — 전역 키는 `apiKey()` 가 `Crypto::decrypt` 수행 / BYO 는 호출측이 복호해 전달
+     *   4) **감사 스키마** — 성공·실패 모두 `ai_call_log` 1행(★메타데이터만·프롬프트/응답 본문 미저장)
+     *
+     * ★페이로드는 호출측이 완성해 넘긴다 — max_tokens·system 형식(배열+cache_control vs 평문)·
+     *   tools 유무가 경로마다 다르므로, 게이트웨이가 임의로 통일하면 동작이 바뀐다(무회귀 원칙).
+     * ★에러 처리도 호출측 책임 — 각 경로의 기존 예외 메시지를 그대로 보존한다.
+     * ★이미지/영상 provider(OpenAI·Stability·Replicate)는 **별도 축**이라 본 게이트웨이 범위 밖
+     *   (quota kind='image' 로 이미 분리돼 있다).
+     *
+     * @param array $payload Anthropic Messages API 요청 본문(완성본)
+     * @param array $opt     tenant, op(감사 라벨), timeout, connect_timeout, api_key(BYO·있으면 우선)
+     * @return array{status:int,err:string,raw:string,json:array,tokens_input:int,tokens_output:int,ms:float}
+     * ══════════════════════════════════════════════════════════════════════════════ */
+    public static function gateway(array $payload, array $opt = []): array
+    {
+        $tenant  = (string)($opt['tenant'] ?? '');
+        $op      = (string)($opt['op'] ?? 'unknown');
+        $timeout = (int)($opt['timeout'] ?? 8);
+        $connect = (int)($opt['connect_timeout'] ?? 4);
+        $byoKey  = isset($opt['api_key']) ? trim((string)$opt['api_key']) : '';
+        $isByo   = $byoKey !== '';
 
+        // ① + ② quota 게이트는 **전역 공용 키일 때만**(BYO 우선 — 본인 비용은 플랫폼이 막지 않는다)
+        if (!$isByo) {
+            $qErr = self::quotaGate($tenant, 'text');
+            if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
+        }
+        // ③ 전역 키는 apiKey() 내부에서 Crypto::decrypt 됨. BYO 는 호출측이 복호해 전달.
+        $apiKey = $isByo ? $byoKey : self::apiKey();
+
+        $t0 = microtime(true);
         $ch = curl_init(self::API_URL);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_TIMEOUT        => $timeout,   // 기본 8초 fast-fail(분석류 폴백). live-assist 는 길게 전달.
-            CURLOPT_CONNECTTIMEOUT => 4,          // 연결 4초 이내
+            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => $connect,
             CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
                 'x-api-key: ' . $apiKey,
@@ -677,42 +708,110 @@ KB;
             ],
         ]);
         $raw    = curl_exec($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err    = curl_error($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err    = (string)curl_error($ch);
         curl_close($ch);
+        $ms = round((microtime(true) - $t0) * 1000, 1);
 
-        if ($err) throw new \RuntimeException('curl error: ' . $err);
-        $resp = json_decode($raw, true);
-        if ($status !== 200 || !isset($resp['content'][0]['text'])) {
-            $msg = $resp['error']['message'] ?? $raw;
-            throw new \RuntimeException("Claude API error ({$status}): {$msg}");
-        }
+        $resp = is_string($raw) ? (json_decode($raw, true) ?: []) : [];
         $tIn  = (int)($resp['usage']['input_tokens']  ?? 0);
         $tOut = (int)($resp['usage']['output_tokens'] ?? 0);
-        self::quotaConsume($tenant, 'text', $tIn + $tOut);  // [225차 P1-4] 성공 호출 누적
+
+        // 성공 + 전역 키일 때만 누적(기존 3경로와 동일 조건 — 무회귀)
+        if ($err === '' && $status === 200 && !$isByo) {
+            self::quotaConsume($tenant, 'text', $tIn + $tOut);
+        }
+        // ④ 감사 — 성공/실패 모두 기록. best-effort(감사 실패가 원 호출을 막지 않는다·SecurityAudit 철학 동형)
+        self::auditCall($tenant, $op, (string)($payload['model'] ?? ''), $isByo, $status, $tIn, $tOut, $ms, $err);
+
+        return ['status'=>$status, 'err'=>$err, 'raw'=>(string)$raw, 'json'=>$resp,
+                'tokens_input'=>$tIn, 'tokens_output'=>$tOut, 'ms'=>$ms];
+    }
+
+    /**
+     * [289차 후속] AI 호출 감사 1행 — **메타데이터만** 기록한다.
+     * ★프롬프트/응답 본문은 저장하지 않는다: PII 유입 위험 + 용량 폭증 + 테넌트 기밀.
+     *   내용 기반 분석이 필요하면 기존 `ai_analyses`(분석 결과 저장)를 쓴다 — 역할 분리.
+     * ★best-effort — 감사 실패가 AI 호출 자체를 막지 않는다.
+     */
+    private static function auditCall(string $tenant, string $op, string $model, bool $isByo,
+                                      int $status, int $tIn, int $tOut, float $ms, string $err): void
+    {
+        try {
+            $pdo = Db::pdo();
+            self::ensureAiCallLog($pdo);
+            $pdo->prepare("INSERT INTO ai_call_log(tenant_id,op,model,byo,status,tokens_input,tokens_output,duration_ms,error,created_at)
+                           VALUES(?,?,?,?,?,?,?,?,?,?)")
+                ->execute([
+                    trim($tenant) !== '' ? trim($tenant) : 'unknown',
+                    substr($op, 0, 60), substr($model, 0, 60), $isByo ? 1 : 0,
+                    $status, $tIn, $tOut, $ms,
+                    $err !== '' ? substr($err, 0, 190) : null,
+                    gmdate('Y-m-d H:i:s'),
+                ]);
+        } catch (\Throwable $e) { /* 감사 실패는 삼킨다(가용성 우선) */ }
+    }
+
+    /** `ai_call_log` 자가치유(멱등). 마이그레이션은 172차에서 멈췄고 이후 스키마는 핸들러 자가치유가 정본. */
+    private static function ensureAiCallLog(\PDO $pdo): void
+    {
+        static $done = [];
+        $k = spl_object_id($pdo);
+        if (isset($done[$k])) return;
+        $done[$k] = true;
+        try {
+            if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_call_log (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY, tenant_id VARCHAR(100) NOT NULL, op VARCHAR(60),
+                    model VARCHAR(60), byo TINYINT(1) DEFAULT 0, status INT, tokens_input INT DEFAULT 0,
+                    tokens_output INT DEFAULT 0, duration_ms DOUBLE DEFAULT 0, error VARCHAR(190),
+                    created_at VARCHAR(32), KEY idx_acl (tenant_id, created_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS ai_call_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id TEXT NOT NULL, op TEXT, model TEXT,
+                    byo INTEGER DEFAULT 0, status INTEGER, tokens_input INTEGER DEFAULT 0,
+                    tokens_output INTEGER DEFAULT 0, duration_ms REAL DEFAULT 0, error TEXT, created_at TEXT)");
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    private static function callClaude(string $systemPrompt, string $userMsg, int $timeout = 8, string $tenant = ''): array {
+        // [현 차수] 프롬프트 캐싱(GA): 대형 정적 시스템 프롬프트(메뉴맵·용어집·발급가이드)를 ephemeral 캐시 →
+        //   동일 시스템 반복 호출 시 입력토큰 비용 대폭 절감(5분 TTL). 배열 형식은 전 호출자 후방호환.
+        // [289차 후속] 전송·quota·감사는 gateway() 로 일원화. 페이로드/에러 메시지는 기존 그대로 보존.
+        $r = self::gateway([
+            'model'      => self::MODEL,
+            'max_tokens' => self::MAX_TOKENS,
+            'system'     => [['type' => 'text', 'text' => $systemPrompt, 'cache_control' => ['type' => 'ephemeral']]],
+            'messages'   => [
+                ['role' => 'user', 'content' => $userMsg]
+            ],
+        ], ['tenant' => $tenant, 'op' => 'complete', 'timeout' => $timeout, 'connect_timeout' => 4]);
+
+        if ($r['err'] !== '') throw new \RuntimeException('curl error: ' . $r['err']);
+        $resp = $r['json'];
+        if ($r['status'] !== 200 || !isset($resp['content'][0]['text'])) {
+            $msg = $resp['error']['message'] ?? $r['raw'];
+            throw new \RuntimeException("Claude API error ({$r['status']}): {$msg}");
+        }
         return [
             'text'         => $resp['content'][0]['text'],
-            'tokens_input' => $tIn,
-            'tokens_output'=> $tOut,
+            'tokens_input' => $r['tokens_input'],
+            'tokens_output'=> $r['tokens_output'],
         ];
     }
 
     /** [255차 심화] tool-use 지원 Claude 호출(에이전틱 코파일럿). tools 정의 + messages 멀티턴 → 전체 응답(content blocks+stop_reason). */
     private static function callClaudeTools(string $system, array $messages, array $tools, int $timeout, string $tenant): array {
-        $qErr = self::quotaGate($tenant, 'text'); if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
-        $apiKey = self::apiKey();
-        $payload = json_encode(['model' => self::MODEL, 'max_tokens' => self::MAX_TOKENS,
+        // [289차 후속] 전송·quota·감사 gateway() 일원화. tools 포함 페이로드·에러 메시지는 기존 보존.
+        $r = self::gateway(['model' => self::MODEL, 'max_tokens' => self::MAX_TOKENS,
             'system' => [['type' => 'text', 'text' => $system, 'cache_control' => ['type' => 'ephemeral']]],
-            'tools' => $tools, 'messages' => $messages], JSON_UNESCAPED_UNICODE);
-        $ch = curl_init(self::API_URL);
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 4,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-api-key: ' . $apiKey, 'anthropic-version: 2023-06-01']]);
-        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
-        if ($err) throw new \RuntimeException('curl error: ' . $err);
-        $resp = json_decode($raw, true);
-        if ($status !== 200 || !isset($resp['content'])) { $msg = $resp['error']['message'] ?? $raw; throw new \RuntimeException("Claude API error ({$status}): {$msg}"); }
-        self::quotaConsume($tenant, 'text', (int)($resp['usage']['input_tokens'] ?? 0) + (int)($resp['usage']['output_tokens'] ?? 0));
+            'tools' => $tools, 'messages' => $messages],
+            ['tenant' => $tenant, 'op' => 'tools', 'timeout' => $timeout, 'connect_timeout' => 4]);
+        if ($r['err'] !== '') throw new \RuntimeException('curl error: ' . $r['err']);
+        $resp = $r['json'];
+        if ($r['status'] !== 200 || !isset($resp['content'])) { $msg = $resp['error']['message'] ?? $r['raw']; throw new \RuntimeException("Claude API error ({$r['status']}): {$msg}"); }
         return $resp;
     }
 
@@ -1768,21 +1867,12 @@ PROMPT;
             'messages'   => [['role'=>'user','content'=>$prompt]],
         ];
 
-        $ch = curl_init(self::API_URL);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
-                'Content-Type: application/json',
-                'x-api-key: ' . self::apiKey(),
-                'anthropic-version: 2023-06-01',
-            ],
-            CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 90,
-        ]);
-        $raw  = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        // [289차 후속 / MEA 053 D-2] ★이 경로는 종전에 quotaGate 없이 전역 키로 직접 cURL 했다.
+        //   미배선(routes.php 미등록·non-static)이라 도달 불가였으나 **잠재 quota 우회**였으므로
+        //   gateway() 로 흡수한다 — 이후 배선되더라도 quota·감사가 자동 적용된다.
+        $g = self::gateway($payload, ['tenant'=>self::tenant($req), 'op'=>'marketing_intel', 'timeout'=>90, 'connect_timeout'=>4]);
+        $raw  = $g['raw'];
+        $code = $g['status'];
 
         if ($code !== 200) {
             return TemplateResponder::json($res, ['ok'=>false,'error'=>"Claude API $code"], 502);
@@ -2882,10 +2972,6 @@ PROMPT;
     /** SVG 생성은 토큰·시간이 더 필요 → max_tokens 상향 + 타임아웃 여유.
      *  $images: data URI(예: "data:image/png;base64,....") 배열 → Claude 비전 멀티모달 입력(참고 이미지). */
     private static function callClaudeLong(string $systemPrompt, string $userMsg, int $timeout = 22, array $images = [], string $tenant = ''): array {
-        // [225차 P1-4] 공용 Claude 키 비용남용 방지: provider 호출 前 테넌트 일일 quota 강제.
-        $qErr = self::quotaGate($tenant, 'text');
-        if ($qErr !== null) throw new \RuntimeException('AI_QUOTA: ' . $qErr);
-        $apiKey = self::apiKey();
         $content = $userMsg;
         if (!empty($images)) {
             $blocks = [];
@@ -2897,15 +2983,14 @@ PROMPT;
             }
             if (!empty($blocks)) { $blocks[] = ['type'=>'text','text'=>$userMsg]; $content = $blocks; }
         }
-        $payload = json_encode(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$content]]], JSON_UNESCAPED_UNICODE);
-        $ch = curl_init(self::API_URL);
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_TIMEOUT=>$timeout,CURLOPT_CONNECTTIMEOUT=>6,
-            CURLOPT_HTTPHEADER=>['Content-Type: application/json','x-api-key: '.$apiKey,'anthropic-version: 2023-06-01']]);
-        $raw = curl_exec($ch); $status = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
-        if ($err) throw new \RuntimeException('curl error: '.$err);
-        $resp = json_decode($raw, true);
-        if ($status !== 200 || !isset($resp['content'][0]['text'])) throw new \RuntimeException('Claude error '.$status);
-        self::quotaConsume($tenant, 'text', (int)($resp['usage']['input_tokens'] ?? 0) + (int)($resp['usage']['output_tokens'] ?? 0)); // [225차 P1-4]
+        // [289차 후속] 전송·quota·감사 gateway() 일원화.
+        //   ★이 경로만 max_tokens=8192 · system=평문 문자열 · connect_timeout=6 이다(비전 멀티모달·장문).
+        //     게이트웨이가 임의 통일하지 않도록 페이로드를 그대로 넘긴다(무회귀).
+        $r = self::gateway(['model'=>self::MODEL,'max_tokens'=>8192,'system'=>$systemPrompt,'messages'=>[['role'=>'user','content'=>$content]]],
+            ['tenant'=>$tenant, 'op'=>'long', 'timeout'=>$timeout, 'connect_timeout'=>6]);
+        if ($r['err'] !== '') throw new \RuntimeException('curl error: '.$r['err']);
+        $resp = $r['json'];
+        if ($r['status'] !== 200 || !isset($resp['content'][0]['text'])) throw new \RuntimeException('Claude error '.$r['status']);
         return ['text'=>$resp['content'][0]['text']];
     }
 

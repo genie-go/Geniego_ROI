@@ -21,7 +21,9 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 final class AiGenerate
 {
-    private const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+    // [289차 후속 / MEA 053 D-2] 자체 cURL 은 ClaudeAI::gateway() 로 이관됨 — 엔드포인트 상수 제거.
+    //   ★여기에 API_URL 을 남겨두면 "여기서도 직접 호출해도 된다"는 잘못된 신호가 된다.
+    //     Anthropic 엔드포인트 정본은 ClaudeAI::API_URL 하나다(단일 통과점 규율).
     // [현 차수] claude-3-5-haiku-20241022 는 2026-02-19 은퇴(API 404) → 현행 저가 모델로 교체.
     //   종전엔 정상 키를 등록하고 model 미지정 시 죽은 ID로 404 → "연결 실패" 오진 + 이메일/광고문구 생성 무동작.
     private const DEFAULT_MODEL = 'claude-haiku-4-5'; // 빠르고 저렴한 모델(Haiku 4.5)
@@ -116,7 +118,7 @@ final class AiGenerate
         if (!$apiKey) return TemplateResponder::respond($res->withStatus(422), ['error' => 'api_key required']);
 
         // 연결 테스트
-        $testResult = self::testClaude($apiKey, $model);
+        $testResult = self::testClaude($apiKey, $model, $tenant);
         $now = gmdate('c');
 
         // 204차 P1: 테넌트 AI(Claude) API 키 AES-256-GCM 암호화 저장(평문 갭 해소, 사용 시 복호화).
@@ -172,7 +174,7 @@ final class AiGenerate
         }
 
         $prompt = self::buildEmailPrompt($product, $audience, $goal, $tone, $discount, $lang);
-        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt, $tenant);
 
         if ($result['ok']) {
             $pdo->prepare("INSERT INTO ai_generate_log(tenant_id,type,prompt,result,tokens_used,created_at) VALUES(?,?,?,?,?,?)")
@@ -212,7 +214,7 @@ final class AiGenerate
 
         $prompt = "당신은 마케팅 데이터 분석가입니다. 다음 기준으로 고객 세그먼트를 정의하고 마케팅 전략을 제안하세요.\n기준: {$criteria}\n컨텍스트: {$context}\n\n다음 형식으로 JSON으로만 응답하세요:\n{\"name\":\"...\",\"description\":\"...\",\"size_estimate\":\"...\",\"ltv_estimate\":\"...\",\"recommended_channel\":\"...\",\"message_strategy\":\"...\",\"expected_cvr\":\"...\"}";
 
-        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt, $tenant);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
         // 파싱 실패 시 가짜 샘플 대신 정직 실패(운영 가짜 지표 미노출).
@@ -244,51 +246,47 @@ final class AiGenerate
         if (!$cfg) return TemplateResponder::respond($res, ['ok' => false, 'plan' => 'unconfigured', 'error' => 'ai_not_configured', 'message' => 'AI 자격증명을 등록하면 광고 카피를 자동 생성합니다.', 'result' => null]);
 
         $prompt = "당신은 광고 카피라이터입니다. {$platform} 플랫폼용 {$product} 광고 카피를 3가지 버전으로 작성하세요. 목표: {$goal}. JSON 배열로만 응답: [{\"headline\":\"...\",\"body\":\"...\",\"cta\":\"...\"}]";
-        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt);
+        $result = self::callClaude(\Genie\Crypto::decrypt((string)$cfg['api_key']), $cfg['model'] ?? self::DEFAULT_MODEL, $prompt, $tenant);
         $parsed = $result['ok'] ? json_decode((string)$result['content'], true) : null;
 
         return TemplateResponder::respond($res, ['ok' => ($result['ok'] && $parsed !== null), 'result' => $parsed ?: null, 'error' => $parsed !== null ? null : 'ai_generation_failed']);
     }
 
     // ── Claude API 호출 ─────────────────────────────────────────────────────
-    private static function callClaude(string $apiKey, string $model, string $prompt): array
+    /**
+     * [289차 후속 / MEA 053 D-2] ★Claude 전송을 `ClaudeAI::gateway()` 단일 통과점으로 이관.
+     *
+     * 종전엔 이 핸들러가 자체 cURL 을 갖고 있어 **감사·계측에서 완전히 누락**됐다(056 "감사 구멍").
+     * ★**BYO 시맨틱은 그대로 보존한다**: 여기 $apiKey 는 테넌트가 등록한 자기 키(`ai_settings`,
+     *   호출측이 `Crypto::decrypt` 로 복호)다. 본인 비용이므로 **플랫폼 quota 비대상**이 설계상 정상이며,
+     *   게이트웨이는 `api_key` 가 주어지면 quota 게이트를 건너뛴다(무회귀).
+     *   → 달라지는 것은 **감사 1행이 남는다는 것뿐**이고, 호출 동작·반환 형태는 동일하다.
+     */
+    private static function callClaude(string $apiKey, string $model, string $prompt, string $tenant = ''): array
     {
-        $payload = json_encode([
-            'model'      => $model,
-            'max_tokens' => 1024,
-            'messages'   => [['role' => 'user', 'content' => $prompt]],
-        ]);
-
-        $ch = curl_init(self::CLAUDE_API);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTPHEADER     => [
-                "x-api-key: {$apiKey}",
-                'anthropic-version: 2023-06-01',
-                'Content-Type: application/json',
-            ],
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
-        $raw  = curl_exec($ch);
-        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err  = curl_error($ch);
-        curl_close($ch);
-
-        if ($err) return ['ok' => false, 'error' => $err];
-
-        $data = json_decode((string)$raw, true) ?? [];
-        if ($code === 200 && isset($data['content'][0]['text'])) {
-            return ['ok' => true, 'content' => $data['content'][0]['text'], 'tokens' => $data['usage']['input_tokens'] + $data['usage']['output_tokens']];
+        try {
+            $r = \Genie\Handlers\ClaudeAI::gateway([
+                'model'      => $model,
+                'max_tokens' => 1024,
+                'messages'   => [['role' => 'user', 'content' => $prompt]],
+            ], ['tenant' => $tenant, 'op' => 'generate', 'timeout' => 30, 'connect_timeout' => 4, 'api_key' => $apiKey]);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
         }
-        return ['ok' => false, 'error' => $data['error']['message'] ?? "HTTP {$code}"];
+
+        if ($r['err'] !== '') return ['ok' => false, 'error' => $r['err']];
+
+        $data = $r['json'];
+        if ($r['status'] === 200 && isset($data['content'][0]['text'])) {
+            return ['ok' => true, 'content' => $data['content'][0]['text'], 'tokens' => $r['tokens_input'] + $r['tokens_output']];
+        }
+        return ['ok' => false, 'error' => $data['error']['message'] ?? "HTTP {$r['status']}"];
     }
 
-    private static function testClaude(string $apiKey, string $model): array
+    private static function testClaude(string $apiKey, string $model, string $tenant = ''): array
     {
-        $result = self::callClaude($apiKey, $model, '응답 테스트: "연결 성공"이라고만 답하세요.');
+        // [289차 후속] 연결 테스트도 gateway 를 거친다(op='generate_test' 로 감사에 구분 기록).
+        $result = self::callClaude($apiKey, $model, '응답 테스트: "연결 성공"이라고만 답하세요.', $tenant);
         return ['ok' => $result['ok'], 'message' => $result['ok'] ? 'Claude API 연결 성공' : ($result['error'] ?? '연결 실패')];
     }
 
