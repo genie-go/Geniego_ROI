@@ -8,6 +8,8 @@ import { IS_DEMO } from '../../utils/demoEnv.js';
 import { buildPeriodScope, deriveOrderKpis, usePeriodOrderStats } from './dashPeriod.js';
 import { useProductSelection } from '../../contexts/ProductSelectionContext.jsx';
 import ProductScopeNotice from './ProductScopeNotice.jsx';
+// [289차 후속 / MEA 065 GAP-1] 기업 건강 합성 — 순수 함수(임의 가중치 없음·미산출 정직)
+import { computeBusinessHealth } from '../../utils/businessHealth.js';
 
 // ══════════════════════════════════════════════════════════════════════
 //  🛒 DashCommerce — 커머스·정산 Platform Intelligence
@@ -27,6 +29,9 @@ const CARD = {
 // ── Enterprise Zero-Miss i18n Dictionary ─────────────────────────────
 const LOC = {
   ko: {
+    bizHealth:'기업 건강', bizHealthOk:'지표 정상', bizHealthWorst:'최고 심각도', bizHealthNA:'판정할 지표가 아직 없습니다 — 데이터가 쌓이면 표시됩니다', bizHealthPartial:'미산출',
+    bizHealth_ok:'양호', bizHealth_warn:'주의', bizHealth_critical:'위험',
+    bizHealth_operatingProfit:'영업이익 적자', bizHealth_grossProfit:'매출총이익 적자', bizHealth_roas:'ROAS 1 미만', bizHealth_cogsUncosted:'원가 미입력', bizHealth_returnsPending:'미처리 반품', bizHealth_alerts:'심각 알림',
     totalOrders:'총 주문수', grossRevenue:'총 매출', returnRate:'반품율',
     reconRate:'정산 매칭율', liveSync:'실시간 동기화', settled:'정산 집계',
     targetB3:'목표 3% 이하', autoMatch:'자동 매칭 완료', today:'오늘', total:'합계',
@@ -67,6 +72,9 @@ const LOC = {
     revenue:'売上',
   },
   en: {
+    bizHealth:'Business Health', bizHealthOk:'metrics OK', bizHealthWorst:'worst', bizHealthNA:'No measurable metric yet — appears once data accumulates', bizHealthPartial:'not measurable',
+    bizHealth_ok:'Good', bizHealth_warn:'Warning', bizHealth_critical:'Critical',
+    bizHealth_operatingProfit:'Operating loss', bizHealth_grossProfit:'Gross loss', bizHealth_roas:'ROAS below 1', bizHealth_cogsUncosted:'Missing COGS', bizHealth_returnsPending:'Pending returns', bizHealth_alerts:'Severe alerts',
     totalOrders:'Total Orders', grossRevenue:'Gross Revenue', returnRate:'Return Rate',
     reconRate:'Recon Rate', liveSync:'Live Sync', settled:'Settled',
     targetB3:'Target < 3%', autoMatch:'Auto Matched', today:'Today', total:'Total',
@@ -429,7 +437,7 @@ export default function DashCommerce({ period }) {
   const [selOrd, setSelOrd] = useState(null);
 
   // ✅ GlobalDataContext — Single Source of Truth (실시간 동기화)
-  const { orders, orderStats, settlementStats, pnlStats, addAlert } = useGlobalData();
+  const { orders, orderStats, settlementStats, pnlStats, addAlert, claimStatsServer, alerts } = useGlobalData();
   const { selectedProduct } = useProductSelection(); // [현 차수] 전역 상품선택 — 선택 시 그 상품으로 전 KPI 전환
 
   // ✅ SecurityGuard — Enterprise real-time threat monitoring
@@ -543,6 +551,58 @@ export default function DashCommerce({ period }) {
   // ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ display:'grid', gap:GAP }}>
+
+      {/* ── [289차 후속 / MEA 065 GAP-1] Business Health — 기업 건강 합성 뷰 ──
+          ★0~100 점수를 만들지 않는다: 그런 점수는 근거 없는 가중치를 요구하고,
+            사용자는 그것을 측정된 사실로 오독한다(임의 숫자 금지).
+            대신 **수학적으로 자명한 임계값**으로만 신호등 판정하고
+            "판정 가능 N개 중 정상 M개"로 요약한다.
+          ★데이터가 없으면 양호도 위험도 아니다 — 미산출을 명시한다. */}
+      {(() => {
+        const h = computeBusinessHealth({ pnl: pnlStats, claims: claimStatsServer, alerts });
+        const tone = !h.measurable ? { c:'#94a3b8', bg:'rgba(148,163,184,0.10)', b:'rgba(148,163,184,0.28)' }
+          : h.worst === 'critical' ? { c:'#ef4444', bg:'rgba(239,68,68,0.08)',  b:'rgba(239,68,68,0.28)' }
+          : h.worst === 'warn'     ? { c:'#f59e0b', bg:'rgba(245,158,11,0.08)', b:'rgba(245,158,11,0.28)' }
+                                   : { c:'#22c55e', bg:'rgba(34,197,94,0.08)',  b:'rgba(34,197,94,0.28)' };
+        return (
+          <div style={{ ...CARD, background: tone.bg, border: `1px solid ${tone.b}` }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+              <span style={{ fontSize:12, fontWeight:800, color: tone.c }}>🩺 {txt('bizHealth')}</span>
+              {h.measurable ? (
+                <>
+                  <span style={{ fontSize:12, fontWeight:800, color: tone.c }}>
+                    {h.okCount}/{h.measuredCount} {txt('bizHealthOk')}
+                  </span>
+                  <span style={{ fontSize:10, color:'var(--text-3)' }}>
+                    · {txt('bizHealthWorst')}: {txt('bizHealth_' + h.worst)}
+                  </span>
+                </>
+              ) : (
+                // ★미산출 정직 표기 — 0점/100점으로 채우지 않는다
+                <span style={{ fontSize:11, color:'#64748b' }}>{txt('bizHealthNA')}</span>
+              )}
+            </div>
+            {h.measurable && (
+              <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginTop:7 }}>
+                {h.checks.filter(c => c.level !== 'unmeasurable' && c.level !== 'ok').map(c => (
+                  <span key={c.id} style={{ fontSize:10, padding:'2px 7px', borderRadius:10, fontWeight:700,
+                    color: c.level === 'critical' ? '#ef4444' : '#f59e0b',
+                    background: c.level === 'critical' ? 'rgba(239,68,68,0.10)' : 'rgba(245,158,11,0.10)',
+                    border: `1px solid ${c.level === 'critical' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'}` }}>
+                    {txt('bizHealth_' + c.id)}{c.detail !== null ? ` ${c.detail}` : ''}
+                  </span>
+                ))}
+                {h.checks.some(c => c.level === 'unmeasurable') && (
+                  <span style={{ fontSize:10, padding:'2px 7px', borderRadius:10, color:'#94a3b8',
+                    background:'rgba(148,163,184,0.10)', border:'1px solid rgba(148,163,184,0.28)' }}>
+                    {txt('bizHealthPartial')} {h.checks.filter(c => c.level === 'unmeasurable').length}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Real-time Sync Badges ────────────────────────────────── */}
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', padding:'6px 0' }}>
