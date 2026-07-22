@@ -1,5 +1,130 @@
 # NEXT_SESSION 인계서
 
+## ★★[289차 후속] **MEA 종결 후 첫 실구현 차수** — 보안 P0 2건 · Gateway 일원화 · 반품 도메인 · 타이포 · PG 비노출 (2026-07-22)
+
+**상태: 커밋 18건 · 운영+데모 배포 완료 · 라이브 실검증 완료 · 일부 항목 미검증 명시**
+
+> ★**성격 전환점**: MEA Part 001~065 는 **문서 체계의 완성**이었을 뿐이다(그 인계서 §A 참조).
+> 본 차수는 그 문서가 지목한 부채를 **실제 코드로 갚은 첫 차수**다. 이후 차수는 신규 Part 가 아니라 계속 실구현이다.
+
+### A. 보안 P0 2건 (최우선 · 배포됨)
+
+| # | 결함 | 근본원인 | 수정 | 커밋 |
+|---|---|---|---|---|
+| P0-1 | **세션 게이트가 `user_session.token` 을 raw 로 조회** | 세션은 **해시 저장**인데 비교는 raw → ①정상 세션 전면 401 ②**저장 해시를 그대로 보내면 인증 성공(replay)** | `index.php` → `UserAuth::hashToken($bearer)` | `9cecfb04b8a` |
+| P0-2 | **챗봇 AI 호출의 tenant 귀속 누락** | `complete()` 에 tenant 미전달 → 전 테넌트가 **공용 `unknown` quota 버킷** 공유(격리 위반) | `self::complete($sys,$userMsg,60,self::tenant($req))` | `f6d12a2fe50` |
+
+> ★**raw/sha256 둘 다 64-hex 라 형식만 보고는 판별 불가** → 반드시 실측할 것. (memory `reference_session_token_hash_gate` 정합)
+>
+> ★**자기 오진 정정 기록**: 당초 콘솔 401 을 *"내 만료 토큰 탓, 회귀 아님"* 이라 단정했으나 **틀렸고 그것이 P0-1 본체였다.** 조기 단정 금지.
+
+### B. MEA 053 D-2 + 056 D-4 — **Claude 전송 단일 통과점(Gateway) 일원화** `04357f1745c`
+
+MEA 053·056·057 이 **같은 뿌리(단일 통과점 부재)** 라고 3연속 지목한 최대 부채를 해소.
+
+- **전송 5개소 → `ClaudeAI::gateway()` 1곳**. `callClaude`/`callClaudeTools`/`callClaudeLong`/`marketingIntelligence`/`AiGenerate::callClaude` 전부 위임.
+- **페이로드 차이는 그대로 보존**(max_tokens 4096 vs 8192 · system array+cache_control vs plain string · connect_timeout 4 vs 6 · 에러 문구 동일) → **무후퇴**.
+- **BYO 우선 보존**: 테넌트 자기 키(`ai_settings`)는 자기 비용 → **quota 게이트 비대상**(설계상 정상, 회귀 아님).
+- **`ai_call_log` 감사 신설**(메타데이터만·best-effort·driver-aware DDL) → 감사·계측이 **자동으로** 확보됨.
+- 부수: `ClaudeAI::quotaSnapshot()` 단일 접근자 + `SystemMetrics::probeAi()` 9번째 프로브(`5dc083624d2`) — **정직 미산출(null+사유)** 승계.
+
+> ★**진단 오류 자기정정**: `marketingIntelligence` 를 *"살아있는 quota 우회"* 라 보고했으나, 검증 결과 **라우팅되지 않는 사문(死文) 코드**였다. 심각도 부풀리지 않고 정정함.
+
+### C. MEA 055 — Knowledge/RAG `c789482e3d5` · `d937e49b0d2`
+
+- **Citation 승격**: `geniegoFeatureDetails` 가 `$sources`(ns/title/paths/score)를 구조화 반환 → AI 답변에 **근거 표시**(헌법 V4 Explainable AI).
+- **검색 품질**: 최소 점수 게이트(`>=5`) + 최고점 40% 상대 컷 → 허위 근거 2건 제거.
+- **커버리지 공백의 진짜 원인 = 186차 ns purge** 가 반품 포털을 색인에서 누락시킨 것. `gen_chatbot_knowledge.mjs` 에 폴백 패스 추가 → 미커버 **42→32**, `/returns-portal` 15개국어 색인.
+  - ★폴백 항목의 `actions/fields/notes` 는 **의도적으로 비움**(날조 금지).
+
+### D. 반품 도메인 6건 (FIND-063-2 발단 → 실사용 경로 개통)
+
+| 커밋 | 내용 | 핵심 |
+|---|---|---|
+| `c3f29b6e1f1` | `disposed`(폐기) 고아 상태값 | 전이 허용 + **집계 4지점 일체 반영**. ★`:216` 재입고 분기는 **의도적 제외**(폐기≠재입고) |
+| `e9644ed8b8e` | 상태 변경 UI 실배선 | **백엔드는 있었는데 호출부가 없어** 상태 전이 자체가 불가였음 |
+| `73ec2edcef5` | 검수·환불·재입고 탭 확대 + **표시 위장 2건 정정** | |
+| `9595e5126fc` | 필터 완화 | 운영에 없는 필드 기준이라 **영구 0행**이던 문제 |
+| `1cdf7922251` | `insp_grade`/`refund_method` 신설 | 화이트리스트(A/B/C/F · card/bank/original) · `WHERE id=? AND tenant_id=?` · 미기록은 **null**(0 아님) |
+| `2bdefe7c3c0` | `ingestClaims` 확장 | ★`COALESCE(?,기존값)` — **재수집이 수기 입력을 덮어쓰지 않는다** |
+
+> ★**저장소 이원성 주의(재확인)**: 프론트는 `orderhub_claims`(메인 DB), `ReturnsPortal.php` 는 별도 SQLite `returns.sqlite3` — **ID 체계가 다르다.**
+
+### E. MEA 065 GAP-1 — Business Health `6d079d860f1`
+
+`frontend/src/utils/businessHealth.js` — **★0~100 점수를 만들지 않았다.** 임의 가중치는 곧 임의 숫자이기 때문.
+자명 임계값만 사용: `operatingProfit<0` · `grossProfit<0` · `roas<1`(adSpend=0 이면 **판정 자체를 건너뜀**) · `cogsUncostedUnits>0` · `returnsPending>0` · severe alerts>0.
+산출 불가 시 `{measurable:false, reason}` 반환 — **정직 미산출 5연속** 승계.
+
+> ★**GAP-2 Cross Domain Correlation 은 거부(근거 있음)**: 양 환경 모두 `channel_orders` 0행 · `performance_metrics` 0일 →
+> 구현해도 **항상 "미산출"만 반환하고 검증 자체가 불가능**. 표본이 생긴 뒤 착수할 것. (Vector DB 는 사용자 판단으로 보류)
+
+### F. 타이포그래피 통일 `02ca7eb3f69` · `3f328da8a5a`
+
+기준 = `/auto-marketing` 캠페인 설정 · `/dashboard` 채널 KPI 서브탭.
+
+- **★근본원인: 한글 폰트 스택이 통째로 없었다** — `Inter` 에는 한글 글리프가 없어 한글이 OS 기본 폰트로 폴백 중이었음. `Pretendard`/`Apple SD Gothic Neo`/`Noto Sans KR`/`맑은 고딕` 보강.
+- `tabular-nums`(숫자 자폭 고정) · `antialiased` · `optimizeLegibility`.
+- **본문 크기 과굵기 597건 → 700 정규화** · **비표준 크기 721건 → 스케일 스냅**(10·11·12·13·14·16·18·20·22·24).
+- **컨테이너 이탈 방지 전역 안전망**: `min-width:0`(flex 자식 축소 불가 문제) · `word-break:keep-all`+`overflow-wrap:anywhere`(한국어 어절 보존) · `table-layout:auto` · `.text-ellipsis`/`.text-clamp-2` 유틸.
+- 검증: 기준 2페이지 **overflow 요소 0 · 문서 가로 스크롤 0** · 기준 위계 보존.
+
+### G. 연동허브 결제 게이트웨이(PG) 15종 **비노출** `32550653046`
+
+**삭제가 아니라 숨김.** 판단 근거(실측):
+
+- PG 자격증명 등록 **0건** · 운영 `pg_settlement` **0행** → 제거해도 잃는 사용자 없음
+- 15종 중 **실동작 5종**(Stripe·토스·PayPal·Klarna·Checkout), 나머지는 코드가 스스로 `pending` 반환
+- 쿠팡·네이버·Shopify 는 **커넥터가 정산(수수료)을 제공** → PG 불필요
+- ★**라이브커머스는 PG 사유가 되지 못한다(자기 추론 정정)**: `buy()` → `live_orders` INSERT 뿐. **결제 단계도 결제상태 컬럼도 없다 — 주문 접수만 한다.** 당초 *"자체 결제 코드가 0건이니 외부 PG 를 쓸 것"* 이라 한 것은 **추론이었고 틀렸다.**
+- Paddle(플랫폼 구독 결제)은 `admin/plan-pricing` 에 **이미 별도 존재** → 연동허브 불필요
+
+★★**실측으로 잡은 함정 — `GROUP_ORDER` 에서 빼는 것만으론 안 된다**:
+`ApiKeys.jsx:1958` 의 `_other` 폴백이 *"GROUP_ORDER 에 없는 그룹"* 을 전부 주워담아 **PG 15종이 "기타" 섹션으로 그대로 되살아난다.**
+→ **진입로 3개 일괄 차단**: ①`GROUP_ORDER` 제거(그룹 섹션·카테고리 셀렉트) ②`visibleChannels` 필터 신설(`_other` 폴백 차단) ③`AddCredModal` 드롭다운 필터(*목록엔 없는데 수동으론 등록되는 구멍*).
+`ActiveKeysTab` 은 **의도적 미필터** — 기존 PG 자격증명이 "알 수 없음"이 아니라 제 이름으로 보여야 하므로.
+
+**복원 = `HIDDEN_GROUPS` 에서 `'payment'` 한 단어 제거.** 채널 정의·`GROUP_LABELS`·백엔드 `PgSettlement`·`/v427/pg/*` 라우트·`PnLDashboard` 소비부 **전부 보존**.
+
+> **PG 가 필요해지는 유일한 케이스** = **Cafe24·고도몰·WooCommerce·Magento 자사몰 고객**. 이 4채널만 `settlements` 미지원이라 **수수료 데이터원이 PG 뿐**이다. 해당 요구가 들어오면 위 1줄로 복원.
+
+### H. 배포·검증 실측 (2026-07-22)
+
+| 환경 | 진입점 | ApiKeys 청크 | 데모플래그 |
+|---|---|---|---|
+| 운영 `roi.geniego.com` | `index-C7MVhPDq.js` | `ApiKeys-H9P0F86-.js` | 0 (정상) |
+| 데모 `roidemo.geniego.com` | `index-CCJ6SNCK.js` | `ApiKeys-C6yfRDc3.js` | 1 (정상) |
+
+- 스와프 스크립트에 **오염 사전검사 3종**(데모=플래그 필수 / 운영=플래그 금지 / `HIDDEN_GROUPS` 존재) → 실패 시 `ABORT`. 3종 통과 후 `rsync -a --delete`.
+- 브라우저 실검증: `/integration-hub` 렌더 **8,638자** · **PG 12종 전부 부재** · 대조군(Shopify·Cafe24·Google Ads·Meta) 정상 노출.
+
+### I. ★미검증 / 잔여 (정직 기록)
+
+1. **수동등록 드롭다운의 UI 실물 확인 미실시** — 데모에서 `➕ 키 추가` 가 `disabled`(데모 정책)라 모달 도달 불가. **번들 정합(운영·데모 양쪽 `filterSites=2`)으로 갈음**했으나 UI 클릭 검증은 아니다.
+2. **GAP-2 Cross Domain Correlation** — 표본 0 으로 보류(§E).
+3. **Vector DB** — 사용자 판단 보류.
+4. `tools/resolver_consumer_manifest_v2.json` 미커밋 수정 잔존 — 사용자가 **"그대로 두기"** 결정.
+
+### J. 이번 차수에서 새로 확인된 트랩
+
+| 트랩 | 실측 |
+|---|---|
+| **`_other` 폴백 되살아남** | 목록에서 빼도 폴백이 주워담아 다른 섹션으로 부활 — **진입로 전수 차단 필수** |
+| **한글 폰트 스택 부재** | `Inter` 에 한글 글리프 없음 → 한글만 OS 폴백. "폰트가 제각각"의 진짜 원인 |
+| **헤드리스 MFA OTP** | 비운영은 응답에 `otp_dev` 노출되나 **쓰로틀 걸리면 null** → `app_user.mfa_otp_hash/expires` NULL 초기화 후 재발급 |
+| **`ls index-*.js \| head -1` 착시** | 알파벳순 1번이 실제 진입점이 아님 → **`index.html` 의 참조를 읽어야** 한다 |
+| **데모 `disabled` 버튼** | 데모 정책상 비활성 → 데모에서 검증 불가한 UI 가 존재. 번들 검증으로 갈음하되 **"미검증"이라 명시할 것** |
+| **i18n shadow ns** | `t('performance.*')` 는 최상위 ns 로 해석됨(`ko.js:23330`), 다른 곳에 중첩된 동명 키(`:6905`=`sidebar` 내부)가 아님 (`6604ebbbe47`) |
+
+### K. 다음 차수 권장 (우선순위)
+
+1. **`ai_call_log` 실데이터 확인** — Gateway 일원화 후 감사 로그가 실제로 쌓이는지 라이브 확인(현재 구조만 확보, 축적 미확인).
+2. **MEA 056 AI Governance 실구현** — Gateway 가 생겼으므로 이제 감사 구멍을 실제로 막을 수 있다(053→056→057 순서의 다음 단계).
+3. **타이포 3단계 잔여** — 기준 2페이지 외 나머지 페이지 육안 회귀 점검.
+4. GAP-2 는 **표본 생긴 뒤**.
+
+
+
 ## ★★[289차 후속] MEA Part 065 완결 — **MEA Part 001~065 시리즈 종결** (2026-07-22)
 
 **상태: 설계 명세 7문서 · 코드 변경 0 · 테이블 0 · 배포 없음 · NOT_CERTIFIED**
