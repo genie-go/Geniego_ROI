@@ -101,6 +101,14 @@ final class AutoRecommend
         return $res->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 
+    /** [현 차수] Trust-First readiness 조회(DataPlatform SSOT 재사용·신규엔진 금지). 실패/데이터없음=UNKNOWN(차단 안 함).
+     *  추천은 advisory 라 이 값을 응답에 주석으로만 부착(하드차단 X·과도차단 방지) — UI/자동집행이 BLOCKED/WARNING 판단. */
+    private static function trustReadiness(string $tenant): array
+    {
+        try { return \Genie\Handlers\DataPlatform::readiness(\Genie\Db::pdo(), $tenant); }
+        catch (\Throwable $e) { return ['status' => 'UNKNOWN', 'score' => null, 'reasons' => ['trust_unavailable'], 'rules' => []]; }
+    }
+
     private static function body(Request $req): array
     {
         $b = (array)($req->getParsedBody() ?? []);
@@ -529,6 +537,7 @@ final class AutoRecommend
 
         $tenant = self::tenant($req);
         $measured = self::measured($tenant, max(30, $days));      // 실측 성과(테넌트 스코프)
+        $trust = self::trustReadiness($tenant); // [현 차수] Trust-First 주석(advisory·과도차단 방지) — 응답에 상태만 부착
         // [현 차수] 다중 카테고리 지원 — 선택한 판매상품 카테고리 전체의 적합도를 블렌딩(평균).
         //   (이전엔 selCats[0] 단일값만 반영해 다중선택이 무력했음.)
         $categories = array_values(array_filter(array_map('strval', (array)($b['categories'] ?? []))));
@@ -581,7 +590,7 @@ final class AutoRecommend
         }
         if (empty($cand)) {
             return self::json($res, ['ok' => true, 'budget' => $budget, 'category' => $category, 'period' => $period,
-                'objective' => $objective, 'channels' => [],
+                'objective' => $objective, 'channels' => [], 'trust' => $trust,
                 'note' => '조건(최소예산/ROAS 가드레일)을 충족하는 채널이 없습니다. 예산을 상향하거나 가드레일을 완화하세요.', 'source' => 'benchmark']);
         }
 
@@ -681,6 +690,7 @@ final class AutoRecommend
             'objective' => $objective,
             'guardrails' => ['max_share' => $maxShare, 'min_roas' => $minRoasGate, 'exploration' => $explore],
             'channels' => $out,
+            'trust' => $trust, // [현 차수] Trust-First(헌법 V3) — BLOCKED/WARNING 시 UI 경고·자동집행 보류 판단 근거(advisory)
             'total_est_revenue' => $totalRev,
             'total_est_conversions' => $totalConvOut,
             'blended_roas' => $budget > 0 ? round($totalRev / $budget, 2) : 0,
@@ -760,6 +770,7 @@ final class AutoRecommend
      */
     private static function marginalRecommend(Response $res, string $tenant, int $budget, string $category, string $period, int $days, string $objective, float $maxShare, float $minRoasGate, array $cand, array $measured, string $lang = 'ko'): Response
     {
+        $trust = self::trustReadiness($tenant); // [현 차수] Trust-First 주석(advisory·과도차단 방지) — 메인 경로와 일관
         $fits = self::fitChannelResponse($tenant, max(30, $days));
         $targetRoas = $minRoasGate > 0 ? $minRoasGate : 1.0;   // 목표(가드레일 없으면 손익분기 1.0x)
         $marginalOf = function (string $id, float $s) use ($cand, $fits): float {
@@ -831,7 +842,7 @@ final class AutoRecommend
             'budget' => $budget, 'recommended_spend' => $recSpent, 'savings' => $savings,
             'category' => $category, 'period' => $period, 'period_days' => $days, 'objective' => $objective,
             'guardrails' => ['max_share' => $maxShare, 'min_roas' => $minRoasGate, 'target_roas' => $targetRoas],
-            'channels' => $out,
+            'channels' => $out, 'trust' => $trust,
             'total_est_revenue' => $totalRev, 'total_est_conversions' => $totalConv,
             'blended_roas' => $recSpent > 0 ? round($totalRev / $recSpent, 2) : 0,
             'blended_cac' => $totalConv > 0 ? (int)round($recSpent / $totalConv) : 0,

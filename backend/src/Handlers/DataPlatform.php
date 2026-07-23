@@ -237,7 +237,13 @@ class DataPlatform
         $t = self::tenant($req);
         if ($t === null) return self::json($res, ['ok' => false, 'error' => '인증이 필요합니다.'], 401);
         $pdo = self::db();
+        return self::json($res, ['ok' => true] + self::computeQuality($pdo, $t));
+    }
 
+    /** [현 차수] Trust-First SSOT — dataQuality 의 순수 산출부(HTTP 분리). readiness() 및 소비측(AutoRecommend/
+     *  AutoCampaign) 이 HTTP 없이 재사용. 출력 필드는 dataQuality 응답과 동일(대시보드 무회귀). */
+    public static function computeQuality(\PDO $pdo, string $t): array
+    {
         // ── 주문(channel_orders) 레코드 품질 ──
         $ordTotal = self::cnt($pdo, "SELECT COUNT(*) FROM channel_orders WHERE tenant_id=?", [$t]);
         $issues = [];
@@ -304,12 +310,53 @@ class DataPlatform
             ['key' => 'audit',     'ok' => ($auditActive === null ? true : $auditActive), 'verified' => ($auditActive !== null)],
         ];
 
-        return self::json($res, ['ok' => true, 'tenant' => $t,
+        return ['tenant' => $t,
             'reliability_score' => $reliability, 'quality' => $issues, 'freshness' => $fresh,
             'summary' => ['orders_completeness' => $ordScore, 'ads_completeness' => $adScore,
                           'error_channels' => $errChannels, 'stale_channels' => $staleChannels],
             'rules' => $rules, 'compliance' => $compliance,
-            'note' => ($ordTotal || $adTotal) ? null : '아직 수집/등록된 데이터가 없습니다. 채널 자격증명을 등록하면 실데이터 기반 품질/신뢰도가 산출됩니다.']);
+            'note' => ($ordTotal || $adTotal) ? null : '아직 수집/등록된 데이터가 없습니다. 채널 자격증명을 등록하면 실데이터 기반 품질/신뢰도가 산출됩니다.'];
+    }
+
+    /**
+     * [현 차수] Trust-First Readiness 판정 SSOT(헌법 V3 "수집≠사용"). computeQuality 의 reliability_score/rules 를
+     *   READY/WARNING/BLOCKED/UNKNOWN 으로 매핑. ★과도차단 방지 원칙(사용자 요구):
+     *   - UNKNOWN(데이터 없음·산출불가) = 차단하지 않는다(데이터 부재는 불신이 아니다). 소비측은 READY 처럼 통과시키고 라벨만 표기.
+     *   - BLOCKED = '진짜 불량' 신호만(보수적): 음수매출/지출 존재(no_negative fail) OR 신뢰도<40 OR (완전성 fail AND 신뢰도<60).
+     *   - WARNING = 신뢰도<70 또는 신선도/동기화 경고. 허용하되 경고 라벨(자동집행 안전장치에서만 강하게 취급).
+     *   반환: ['status','score','reasons'[],'rules'{}] — 소비측 공용(추천 주석·자동집행 게이트).
+     */
+    public static function readiness(\PDO $pdo, string $t): array
+    {
+        try { $q = self::computeQuality($pdo, $t); }
+        catch (\Throwable $e) { return ['status' => 'UNKNOWN', 'score' => null, 'reasons' => ['quality_compute_error'], 'rules' => []]; }
+        $score = $q['reliability_score'] ?? null;   // null=데이터 없음
+        $rules = is_array($q['rules'] ?? null) ? $q['rules'] : [];
+        $byKey = [];
+        foreach ($rules as $r) { if (isset($r['key'])) $byKey[$r['key']] = $r['pass'] ?? null; }
+        // 데이터 자체가 없으면 UNKNOWN(차단 안 함): reliability null + 모든 rule 미평가(null).
+        $anyAssessed = $score !== null || count(array_filter($rules, fn($r) => ($r['pass'] ?? null) !== null)) > 0;
+        if (!$anyAssessed) return ['status' => 'UNKNOWN', 'score' => null, 'reasons' => ['no_data'], 'rules' => $byKey];
+        $noNegative   = $byKey['no_negative'] ?? null;   // false=음수 존재
+        $completeness = $byKey['completeness'] ?? null;   // false=완전성<90
+        $freshness    = $byKey['freshness'] ?? null;
+        $sync         = $byKey['sync_health'] ?? null;
+        // BLOCKED(진짜 불량만·보수적)
+        $reasons = [];
+        if ($noNegative === false) $reasons[] = 'negative_values_present';
+        if ($score !== null && $score < 40) $reasons[] = 'reliability_below_40';
+        $blocked = ($noNegative === false)
+                || ($score !== null && $score < 40)
+                || ($completeness === false && $score !== null && $score < 60);
+        if ($blocked) return ['status' => 'BLOCKED', 'score' => $score, 'reasons' => $reasons ?: ['low_quality'], 'rules' => $byKey];
+        // WARNING
+        if ($score !== null && $score < 70) $reasons[] = 'reliability_below_70';
+        if ($freshness === false) $reasons[] = 'stale_data';
+        if ($sync === false)      $reasons[] = 'sync_errors';
+        if ($completeness === false) $reasons[] = 'completeness_below_90';
+        $warn = ($score !== null && $score < 70) || $freshness === false || $sync === false || $completeness === false;
+        if ($warn) return ['status' => 'WARNING', 'score' => $score, 'reasons' => $reasons ?: ['degraded'], 'rules' => $byKey];
+        return ['status' => 'READY', 'score' => $score, 'reasons' => [], 'rules' => $byKey];
     }
 
     /**

@@ -538,6 +538,18 @@ class AutoCampaign
                 return ['http' => 402, 'body' => ['ok' => false, 'error' => 'billing_required',
                     'message' => \Genie\I18n::t('autocamp.msg.billingRequired', [], $lang)]];
             }
+            // [현 차수] Trust-First 안전장치(헌법 V3 "수집≠사용") — 데이터 신뢰도 BLOCKED('진짜 불량': 음수매출/지출·
+            //   신뢰도<40 등)면 자동 광고집행(실 예산집행)을 보류한다. ★과도차단 방지: BLOCKED 만 차단하고 WARNING/
+            //   UNKNOWN/데이터없음은 통과. force=true 로 우회하되 SecurityAudit 감사로그 기록(오염 데이터 override 추적).
+            //   DataPlatform SSOT 재사용(신규엔진 금지·헌법 V4). 딜리버리 게이트와 별개(데이터 축 vs 광고설정 축).
+            $trust = \Genie\Handlers\DataPlatform::readiness($pdo, $tenant);
+            if (($trust['status'] ?? '') === 'BLOCKED') {
+                if (!$force) {
+                    return ['http' => 409, 'body' => ['ok' => false, 'error' => 'data_trust_blocked', 'trust' => $trust,
+                        'message' => '데이터 신뢰도 미달(BLOCKED)로 자동 광고집행을 보류했습니다: ' . implode(', ', (array)($trust['reasons'] ?? [])) . '. 데이터 품질 개선 후 재시도하거나 force=true 로 우회하세요.']];
+                }
+                try { \Genie\SecurityAudit::log($pdo, $tenant, 'system', 'autocamp_trust_override', ['campaign_id' => $id, 'reasons' => $trust['reasons'] ?? [], 'score' => $trust['score'] ?? null]); } catch (\Throwable $e) {}
+            }
             // [현 차수 초고도화] 활성화 사전검증(readiness) — 딜리버리 미완성(캠페인 external_id 는 있으나 광고(ad_ext_id)·
             //   A/B variant 둘 다 없음 = 광고 미생성) 채널이 있으면 차단. 활성화해도 노출0(매체 effective_status=레벨 AND)
             //   인 미스컨피그 실집행을 사전 차단(은행급). page_id/픽셀/소재 보강 후 재시도하거나 force=true 로 우회.
