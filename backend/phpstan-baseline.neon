@@ -241,12 +241,6 @@ parameters:
 			path: src/Handlers/AdminPlans.php
 
 		-
-			message: '#^Variable \$rl might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: src/Handlers/AgencyPortal.php
-
-		-
 			message: '#^Static method Genie\\TemplateResponder\:\:respond\(\) invoked with 3 parameters, 2 required\.$#'
 			identifier: arguments.count
 			count: 1
@@ -1048,12 +1042,6 @@ parameters:
 			message: '#^Static method Genie\\Handlers\\Rollup\:\:isDemo\(\) is unused\.$#'
 			identifier: method.unused
 			count: 1
-			path: src/Handlers/Rollup.php
-
-		-
-			message: '#^Variable \$pdo might not be defined\.$#'
-			identifier: variable.undefined
-			count: 6
 			path: src/Handlers/Rollup.php
 
 		-

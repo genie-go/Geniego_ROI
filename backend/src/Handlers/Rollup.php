@@ -188,8 +188,11 @@ final class Rollup {
         $dates = self::dates($period, $n);
         $start = self::rangeStart($dates);
         $products = []; $channelsSeen = []; $countriesSeen = [];
+        // [P4후속 실결함] 이전엔 $pdo 를 아래 첫 try 안에서 할당해, Db::pdo() 가 던지면(첫 catch 가 삼킴)
+        //   이후 별개 try 블록들(인구통계·상품광고성과·원가·수수료)에서 $pdo 가 미정의로 남아 전부 무음 실패했다.
+        //   → 첫 try 밖으로 호이스팅해 전 블록에 보장(Db::pdo() 는 SQLite 폴백이라 정상경로에서 던지지 않는다).
+        $pdo = Db::pdo();
         try {
-            $pdo = Db::pdo();
             $stmt = $pdo->prepare(
                 "SELECT sku, product_name AS name, channel, qty, total_price, status, event_type
                    FROM channel_orders

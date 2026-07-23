@@ -175,6 +175,7 @@ class AgencyPortal
         $ip = trim(explode(',', $ip)[0]);
         $ident = 'agy|' . $ip . '|' . $loginId;
         $nowTs = time();
+        $rl = null; // [P4후속 실결함] 아래 try 안(fetch)에서만 할당돼, CREATE/prepare 예외 시 $rl 미정의 → 실패카운트 분기(192)가 undefined 변수 접근. 초기화로 보장(false/array 의미 동일).
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS agency_login_attempt (ident VARCHAR(190) PRIMARY KEY, fail_count INT DEFAULT 0, first_at INT, locked_until INT)");
             $qr = $pdo->prepare("SELECT fail_count, first_at, locked_until FROM agency_login_attempt WHERE ident=?");
