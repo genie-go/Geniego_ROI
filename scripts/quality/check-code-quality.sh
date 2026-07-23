@@ -188,6 +188,26 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
+section "7. 의존성 보안 — composer audit (CCIS Part012 §33)"
+# ─────────────────────────────────────────────────────────────
+# backend 의 PHP 의존성에 알려진 취약점(CVE/advisory)이 있으면 FAIL. 신규 의존성 추가 시 상시 차단.
+#   composer 미설치 환경(로컬)에서는 WARN 으로 건너뛴다 — CI/원격(composer install)에서 작동.
+if ! command -v composer >/dev/null 2>&1; then
+  warn "composer 미설치 — 의존성 보안감사(composer audit) 건너뜀 (CI/원격에서 작동)"
+elif [ ! -f backend/composer.lock ]; then
+  warn "backend/composer.lock 없음 — composer audit 건너뜀"
+else
+  AUDIT_OUT="$( (cd backend && composer audit --no-interaction --format=plain) 2>&1 )"
+  AUDIT_RC=$?
+  if [ "$AUDIT_RC" -eq 0 ]; then
+    pass "composer audit — 의존성 취약점 advisory 0"
+  else
+    fail "composer audit — 의존성 취약점 발견" \
+         "$(printf '%s\n' "$AUDIT_OUT" | grep -iE 'CVE|advisory|package|found|vulnerab' | head -10)"
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  결과 요약"
