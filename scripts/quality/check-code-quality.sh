@@ -208,6 +208,24 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
+section "8. AI Gateway 단일통과점 (CCIS Part021 §5 · MEA 053)"
+# ─────────────────────────────────────────────────────────────
+# Claude LLM 전송(api.anthropic.com 직접호출)은 게이트웨이 ClaudeAI.php 에만 허용한다.
+#   다른 핸들러가 직접 호출하면 ai_call_log 감사·quota 게이트·BYO 키 우선(테넌트 과금 격리)을 우회한다.
+#   → 053 단일 통과점 불변식 보호. 신규 우회 경로 추가 시 FAIL.
+if [ -d backend/src ]; then
+  GW_BYPASS="$(grep -rlE 'api\.anthropic\.com' backend/src 2>/dev/null | grep -vE 'Handlers/ClaudeAI\.php$' || true)"
+  if [ -z "$GW_BYPASS" ]; then
+    pass "AI Gateway — api.anthropic.com 직접호출은 ClaudeAI.php(게이트웨이)에만 존재"
+  else
+    fail "AI Gateway 우회 — ClaudeAI.php 외 핸들러가 api.anthropic.com 직접호출(감사/quota/BYO 우회)" \
+         "$(printf '%s\n' "$GW_BYPASS")"
+  fi
+else
+  warn "backend/src 없음 — AI Gateway 게이트 건너뜀"
+fi
+
+# ─────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  결과 요약"

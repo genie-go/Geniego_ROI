@@ -101,7 +101,7 @@ lint-backend: ## Backend PHP 구문 검사 (전 파일)
 	echo "[lint-backend] $$tot files checked, $$fail error(s)."; \
 	[ $$fail -eq 0 ]
 
-quality: ## 통합 품질 게이트 (ESLint · PHP구문 · Shell · JSON · Git · PHPStan · composer audit 의존성보안)
+quality: ## 통합 품질 게이트 (ESLint · PHP구문 · Shell · JSON · Git · PHPStan · composer audit · AI Gateway 단일통과점)
 	@bash scripts/quality/check-code-quality.sh
 
 quality-baseline: ## 위반을 줄인 뒤 ESLint 베이스라인 갱신 (상향 금지)
