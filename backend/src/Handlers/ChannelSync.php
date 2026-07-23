@@ -432,6 +432,12 @@ final class ChannelSync
             ];
         }, $oBody['orders'] ?? []);
 
+        // [현 차수] 주문 응답 독립 게이트 — Shopify read_orders 는 read_products 와 별도 OAuth 스코프라, 상품스코프만
+        //   승인된 앱은 orders.json 에서 403 을 받는데 products 는 200 이라 종전엔 ok=>true·주문 0건으로 "성공 위장"
+        //   → revenue 조용히 0 오염(가장 흔한 실패). 주문 fetch 실패는 명시 error·status='error' 고지. 이미 수집한
+        //   products 는 보존(saveProducts 무회귀), orders=[] 이라 saveOrders no-op → 기존 주문 유지(가짜 신선0 방지).
+        if ($oCode >= 400) return ['ok'=>false, 'products'=>$products, 'orders'=>[], 'error'=>"Shopify 주문 조회 실패(HTTP {$oCode}) — 앱 read_orders(주문) 스코프 승인 필요"];
+
         return ['ok'=>true, 'products'=>$products, 'orders'=>$orders];
     }
 
@@ -778,6 +784,12 @@ final class ChannelSync
                     'https://api.commerce.naver.com/external/v1/pay-order/seller/orders?page=1&size=20',
                     ['Authorization' => "Bearer {$token}"]
                 );
+                // [현 차수] 주문 응답 독립 게이트 — 종전 $oCode 미검사로 pay-order 조회권한 미부여/오류 시에도 상품과 함께
+                //   ok=>true·주문 0건으로 "성공 위장"→revenue 조용히 0 오염(국내 최상위 매출채널이라 영향 큼). 실 테넌트는
+                //   주문 실패를 명시 error(status='error' 고지)·상품 페이지네이션도 스킵. 데모 미리보기는 제외(회귀 방지).
+                if ($tenant !== 'demo' && $oCode >= 400) {
+                    return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"네이버 주문 조회 실패(HTTP {$oCode}) — 커머스API pay-order(주문/정산) 조회권한 확인"];
+                }
                 $orders = [];
                 foreach (($oBody['data'] ?? []) as $o) {
                     // [현 차수 감사 P1] 취소/반품 상태 반영 — claimStatus/productOrderStatus 무시하고 '발주확인' 상수면
@@ -1633,7 +1645,10 @@ final class ChannelSync
         $auth = '&consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
         [$pCode, $pBody] = self::httpGet("{$site}/wp-json/wc/v3/products?per_page=50{$auth}");
         [$oCode, $oBody] = self::httpGet("{$site}/wp-json/wc/v3/orders?per_page=50{$auth}");
-        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"WooCommerce 연결 실패(code={$pCode}/{$oCode}) — site_url·키/권한 확인"];
+        // [현 차수] 주문/상품 응답 독립 게이트 — 종전 && 는 둘 다 실패해야 error 라, 주문만 4xx/5xx(상품 200)면
+        //   ok=>true·주문 0건 "성공 위장"→revenue 조용히 0 오염. 어느 쪽이든 실패하면 error(status='error' 고지).
+        //   자격증명 미입력은 위(1631)에서 이미 pending 처리 → 이 게이트는 실 fetch 실패에만 적용.
+        if ($pCode >= 400 || $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"WooCommerce 동기화 실패(상품 HTTP {$pCode}·주문 HTTP {$oCode}) — site_url·consumer 키 read 권한 확인"];
         $products = [];
         foreach ((array)$pBody as $p) {
             if (!is_array($p) || !isset($p['id'])) continue;
@@ -1670,7 +1685,9 @@ final class ChannelSync
         $h = ['Authorization'=>'Bearer ' . $tok, 'Accept'=>'application/json'];
         [$pCode, $pBody] = self::httpGet("{$base}/rest/V1/products?searchCriteria%5BpageSize%5D=50", $h);
         [$oCode, $oBody] = self::httpGet("{$base}/rest/V1/orders?searchCriteria%5BpageSize%5D=50", $h);
-        if ($pCode >= 400 && $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Magento 연결 실패(code={$pCode}/{$oCode}) — base_url·토큰/권한 확인"];
+        // [현 차수] 주문/상품 응답 독립 게이트 — && → || (주문만 실패해도 ok=>false). 종전엔 주문만 4xx(상품 200) 시
+        //   ok=>true·주문 0건 "성공 위장"→revenue 조용히 0 오염. 자격증명 미입력은 위(1668)에서 pending 선처리.
+        if ($pCode >= 400 || $oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Magento 동기화 실패(상품 HTTP {$pCode}·주문 HTTP {$oCode}) — base_url·Integration 토큰 권한 확인"];
         $products = [];
         foreach ((array)($pBody['items'] ?? []) as $p) {
             $qty = 0; foreach (($p['extension_attributes']['stock_item'] ?? []) as $sk=>$sv) { if ($sk==='qty') $qty=(int)$sv; }
@@ -1711,6 +1728,9 @@ final class ChannelSync
         $h = ['WM_SEC.ACCESS_TOKEN'=>$tok, 'Authorization'=>'Basic ' . $basic, 'WM_QOS.CORRELATION_ID'=>$cid2, 'WM_SVC.NAME'=>'Walmart Marketplace', 'Accept'=>'application/json'];
         $createdAfter = gmdate('Y-m-d\TH:i:s\Z', time() - 30 * 86400);
         [$oCode, $oBody] = self::httpGet('https://marketplace.walmartapis.com/v3/orders?limit=50&createdStartDate=' . rawurlencode($createdAfter), $h);
+        // [현 차수] 주문 응답 독립 게이트 — 종전 $oCode 미검사로 주문 API 401/500 시에도 상품 수집분으로 ok=>true·주문
+        //   0건 "성공 위장"→revenue 조용히 0 오염. 주문 실패는 명시 error(비싼 상품 N+1 재고 루프도 스킵).
+        if ($oCode >= 400) return ['ok'=>false, 'products'=>[], 'orders'=>[], 'error'=>"Walmart 주문 조회 실패(HTTP {$oCode}) — 주문 API 권한 확인"];
         $orders = [];
         foreach ((array)($oBody['list']['elements']['order'] ?? []) as $o) {
             $line = $o['orderLines']['orderLine'][0] ?? [];
