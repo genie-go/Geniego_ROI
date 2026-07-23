@@ -5,6 +5,14 @@ vendor/
 .env.local
 backend/.env.local
 frontend/.env.local
+# [CCIS Part006 §8] 환경별 secret .env 사전 차단 — 현재 미존재이나 실수 커밋(운영/스테이징 비밀) 방지.
+#   ★블랭킷 `.env.*` 금지: frontend/.env.demo·.env.capacitor 는 빌드모드 설정(비secret·vite --mode 가 읽음)이라 추적 유지해야 한다.
+.env.production
+.env.staging
+.env.development
+backend/.env.production
+backend/.env.staging
+backend/.env.development
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
