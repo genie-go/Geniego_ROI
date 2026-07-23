@@ -61,7 +61,8 @@ const CHANNELS_MASTER = [
     { id: 'rakuten', name: 'Rakuten', icon: '\uD83C\uDDEF\uD83C\uDDF5', color: '#bf0000', type: 'Japan',
       fields: [{ key: 'service_secret', label: 'Service Secret', ph: '...', secret: true }, { key: 'license_key', label: 'License Key', ph: '...' }] },
     { id: 'yahoo_jp', name: 'Yahoo! Japan Shopping', icon: '\uD83D\uDFE5', color: '#ff0033', type: 'Japan',
-      fields: [{ key: 'seller_id', label: 'Seller ID', ph: '...' }, { key: 'api_key', label: 'API Key', ph: '...', secret: true }] },
+      // [\uD604 \uCC28\uC218 \uAC10\uC0AC] \uBC31\uC5D4\uB4DC yahooJpFetch/Write \uB294 access_token(OAuth)+seller_id \uB97C \uC77D\uB294\uB370 \uD3FC\uC774 api_key \uB97C \uBC1B\uC544(\uBC31\uC5D4\uB4DC \uBBF8\uC0AC\uC6A9) \uD56D\uC0C1 \uC2E4\uD328\uD588\uB2E4. \uC2E4\uD0A4\uB85C \uC815\uC815.
+      fields: [{ key: 'access_token', label: 'Access Token (OAuth)', ph: '...', secret: true }, { key: 'seller_id', label: 'Seller ID (\uC2A4\uD1A0\uC5B4 \uACC4\uC815)', ph: '...' }] },
     { id: 'line', name: 'LINE Shopping', icon: '\uD83D\uDC9A', color: '#00b900', type: 'Japan',
       fields: [{ key: 'channel_access_token', label: 'Channel Access Token', ph: '...', secret: true }] },
     { id: 'coupang', name: 'Coupang Wing', icon: '\uD83C\uDD52', color: '#00bae5', type: 'Domestic',
@@ -73,7 +74,8 @@ const CHANNELS_MASTER = [
     { id: 'gmarket', name: 'Gmarket / Auction', icon: 'G', color: '#eab308', type: 'Domestic',
       fields: [{ key: 'esm_id', label: 'ESM+ ID', ph: '...' }, { key: 'api_key', label: 'API Key', ph: '...', secret: true }] },
     { id: 'cafe24', name: 'Cafe24', icon: '\u2615', color: '#6366f1', type: 'Domestic',
-      fields: [{ key: 'mall_id', label: 'Mall ID', ph: '...' }, { key: 'client_id', label: 'Client ID', ph: '...' }, { key: 'client_secret', label: 'Client Secret', ph: '...', secret: true }] },
+      // [\ud604 \ucc28\uc218 \uac10\uc0ac] \ubc31\uc5d4\ub4dc cafe24Fetch/Reviews \ub294 refresh_token(OAuth)\ub85c\ub9cc access_token \uc744 \ubc1c\uae09\ubc1b\ub294\ub370 \ud3fc\uc5d0 refresh_token \ud544\ub4dc\uac00 \uc5c6\uc5b4 \uc778\uc99d \ubd88\uac00\uc600\ub2e4. \ucd94\uac00.
+      fields: [{ key: 'mall_id', label: 'Mall ID', ph: '...' }, { key: 'client_id', label: 'Client ID', ph: '...' }, { key: 'client_secret', label: 'Client Secret', ph: '...', secret: true }, { key: 'refresh_token', label: 'Refresh Token (OAuth \uc778\uc99d \ud6c4)', ph: '...', secret: true }] },
     { id: 'lotteon', name: 'Lotte ON', icon: 'L', color: '#ef4444', type: 'Domestic',
       fields: [{ key: 'api_key', label: 'API Key', ph: '...', secret: true }] },
 ];

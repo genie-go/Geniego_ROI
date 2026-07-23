@@ -135,14 +135,22 @@ class ChannelRegistry
             ['st11','11번가','sales','1️⃣','#ff0038','commerce',[$ftext('api_key','API 키')]],
             ['gmarket','Gmarket','sales','🟡','#00a862','commerce',[$ftext('esm_id','ESM PLUS ID',false),$ftext('api_key','API 키')]],
             ['auction','Auction','sales','🅰','#ff5e00','commerce',[$ftext('esm_id','ESM PLUS ID',false),$ftext('api_key','API 키')]],
-            ['cafe24','Cafe24','sales','🛒','#0078ff','commerce',[$ftext('mall_id','몰 ID',false),$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret')]],
+            // [현 차수 감사] cafe24Fetch/cafe24Reviews 는 refresh_token(OAuth) 로만 access_token 을 발급받는데 레지스트리에 refresh_token 필드가 없어
+            //   사용자가 입력할 방법이 없었다 → 등록은 되나 동기화 인증 영원히 실패(무음). 필수 refresh_token 추가.
+            ['cafe24','Cafe24','sales','🛒','#0078ff','commerce',[$ftext('mall_id','몰 ID',false),$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret'),$ftext('refresh_token','Refresh Token(OAuth 인증 후)')]],
             ['lotteon','Lotte ON','sales','🛍','#da0f2b','commerce',[$ftext('api_key','API 키')]],
             ['tiktok_shop','TikTok Shop','sales','🎵','#000000','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
             ['rakuten','Rakuten','sales','🔴','#bf0000','commerce',[$ftext('service_secret','Service Secret'),$ftext('license_key','License Key')]],
-            ['yahoo_jp','Yahoo! Japan','sales','🟣','#ff0033','commerce',[$ftext('app_id','App ID',false),$ftext('access_token','액세스 토큰')]],
+            // [현 차수 감사] yahooJpFetch/yahooJpWrite 는 access_token+seller_id(SellerId) 를 요구하는데 레지스트리는 미사용 app_id 를 노출하고
+            //   필수 seller_id 는 누락 → 사용자가 seller_id 를 입력할 방법이 없어 fetch/write 전부 실패. app_id(미사용) 제거·seller_id 추가.
+            ['yahoo_jp','Yahoo! Japan','sales','🟣','#ff0033','commerce',[$ftext('access_token','액세스 토큰(OAuth)'),$ftext('seller_id','스토어 계정 ID(SellerId)',false)]],
             ['woocommerce','WooCommerce','sales','🟪','#96588a','commerce',[$ftext('site_url','상점 URL',false),$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret')]],
-            ['shopee','Shopee','sales','🟠','#ee4d2d','commerce',[$ftext('partner_id','Partner ID',false),$ftext('partner_key','Partner Key'),$ftext('shop_id','Shop ID',false)]],
-            ['lazada','Lazada','sales','🔵','#0f146d','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
+            // [현 차수 감사] shopeeFetch/shopeeWrite 는 partner_id·partner_key·shop_id·access_token 4개 모두 필수인데 레지스트리에 access_token 누락
+            //   → OAuth 후 발급받은 access_token 을 입력할 폼이 없어 항상 'access_token 입력 필요' 로 무음 실패. 필수 access_token 추가.
+            ['shopee','Shopee','sales','🟠','#ee4d2d','commerce',[$ftext('partner_id','Partner ID',false),$ftext('partner_key','Partner Key'),$ftext('shop_id','Shop ID',false),$ftext('access_token','액세스 토큰(OAuth 인증 후)')]],
+            // [현 차수 감사] lazadaFetch 는 region(sg/my/th/id/ph/vn)에 따라 호스트가 갈리는데 레지스트리에 region 누락 → 항상 sg 로 폴백해
+            //   비-싱가포르 셀러는 전부 잘못된 게이트웨이로 접속·실패. 지역 선택 필드 추가.
+            ['lazada','Lazada','sales','🔵','#0f146d','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰(OAuth 인증 후)'),$ftext('region','지역(sg·my·th·id·ph·vn)',false)]],
             ['qoo10','Qoo10','sales','🐧','#ff5e00','commerce',[$ftext('api_key','API 키'),$ftext('seller_id','Seller ID',false)]],
             // [270차 ENHANCE] 실 fetch/write 어댑터 보유(COMMERCE_CHANNELS)인데 레지스트리 시드 누락→admin 채널관리 UI 미노출이던 4종 top-up.
             ['magento','Magento','sales','🧱','#ee672f','commerce',[$ftext('base_url','상점 URL',false),$ftext('access_token','Admin API 토큰')]],
@@ -177,6 +185,18 @@ class ChannelRegistry
             foreach ($cat as $c) {
                 if ($c[5] !== 'analytics') continue;
                 $up->execute([json_encode($c[6], JSON_UNESCAPED_UNICODE), $now, $c[0]]);
+            }
+        } catch (\Throwable $e) {}
+        // [현 차수 감사] 필수 자격증명 필드 누락 수정분(shopee/lazada/cafe24/yahoo_jp)을 기존 registry 행에도 반영.
+        //   ensureSeed 는 누락 채널만 INSERT 하므로 이미 시드된 행은 폼 필드가 갱신되지 않아, 실행코드가 요구하는
+        //   access_token/region/refresh_token/seller_id 를 사용자가 입력할 수 없던 갭이 남는다. 해당 4채널 fields_json 만 정정 갱신.
+        //   ★fields_json 만 갱신(sync_kind/name/icon 등 admin 커스터마이징 보존). 멱등(같은 값 재기록).
+        try {
+            $fixKeys = ['shopee' => true, 'lazada' => true, 'cafe24' => true, 'yahoo_jp' => true];
+            $fx = $pdo->prepare("UPDATE channel_registry SET fields_json=?, updated_at=? WHERE channel_key=?");
+            foreach ($cat as $c) {
+                if (!isset($fixKeys[$c[0]])) continue;
+                $fx->execute([json_encode($c[6], JSON_UNESCAPED_UNICODE), $now, $c[0]]);
             }
         } catch (\Throwable $e) {}
     }
