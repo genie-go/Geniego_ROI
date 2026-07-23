@@ -508,8 +508,15 @@ final class Pnl
         // [270차 수정] 월별표 매입/납부세액 프로라타 분배 — 과거 monthly 는 output_vat 만 반환해
         //   프론트 월별표가 매입=0·납부=매출세액(과대납부 오인)이었다. 집계 input_vat 를 월별 매출세액 비중으로 안분.
         $totOutForShare = array_sum(array_column($monthly, 'output_vat'));
+        $nMonths = count($monthly);
         foreach ($monthly as &$_m) {
-            $share = $totOutForShare > 0 ? ((float)$_m['output_vat'] / $totOutForShare) : 0;
+            // [현 차수] 정합 보강: 매출세액이 전 월 0(정산라인 VAT 미캡처·면세)인데 매입세액이 있으면
+            //   output 비중 안분이 불가(share=0)해 월별 net 이 전부 0 → 집계 net(환급 -inputVat)과 불일치,
+            //   월별표가 환급액을 통째로 누락했다. 이 경우 월 균등분배로 폴백해 월별 합계=집계 net 정합.
+            //   normal 경로(totOutForShare>0)는 종전과 byte-identical(무회귀).
+            $share = $totOutForShare > 0
+                ? ((float)$_m['output_vat'] / $totOutForShare)
+                : ($nMonths > 0 ? 1.0 / $nMonths : 0);
             $mIn = round($inputVat * $share);
             $_m['input_vat'] = $mIn;
             $_m['net_vat_payable'] = round((float)$_m['output_vat']) - $mIn;
