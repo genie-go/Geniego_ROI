@@ -951,12 +951,15 @@ KB;
             $summary = $s->fetch(\PDO::FETCH_ASSOC) ?: [];
             $rows = [];
             if ($mode === 'deadstock') {
-                // 악성재고 후보 = 재고 보유 중 + 최근 {period}일 판매 이력 0건.
+                // 악성재고 후보 = 재고 보유 중 + 최근 {period}일 '유효' 판매 이력 0건.
+                // [현 차수] 취소/반품만 있는 SKU 가 '판매됨'으로 간주돼 후보에서 누락(과소보고)되던 결함 — DemandForecast::deadStock
+                //   (:494 cancelExclusion 적용)과 정합화. OrderHub SSOT 2축(event_type+status) 제외로 취소주문은 판매로 안 침.
+                [$cxSql, $cxTok] = \Genie\Handlers\OrderHub::cancelExclusion();
                 $st = $pdo->prepare("SELECT sku, MAX(name) name, ROUND(SUM(on_hand)) on_hand FROM wms_stock
                     WHERE tenant_id=? AND on_hand>0 AND sku IS NOT NULL AND sku<>''
-                      AND sku NOT IN (SELECT sku FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND sku IS NOT NULL AND sku<>'')
+                      AND sku NOT IN (SELECT sku FROM channel_orders WHERE tenant_id=? AND ordered_at>=? AND sku IS NOT NULL AND sku<>'' AND NOT $cxSql)
                     GROUP BY sku ORDER BY on_hand DESC LIMIT 30");
-                $st->execute([$tenant, $tenant, $since]);
+                $st->execute(array_merge([$tenant, $tenant, $since], $cxTok));
                 $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             } elseif ($mode === 'top') {
                 $st = $pdo->prepare("SELECT sku, MAX(name) name, ROUND(SUM(on_hand)) on_hand FROM wms_stock

@@ -345,8 +345,14 @@ class DemandForecast
         foreach ($all as $sku => $info) { $fc = self::forecast($info['series'], $horizon); $fcMap[$sku] = $fc; $weight[$sku] = array_sum($fc['forecast']); }
         $abc = self::abcClassify($weight);
         $created = []; $now = gmdate('Y-m-d H:i:s');
+        // [현 차수] 자동발주 원가 SSOT — 287차가 수동발주(Wms::saveSupplyOrder)만 unit_cost/cost_total 을 산출했고,
+        //   1차 생성경로인 자동발주(cron+HTTP)는 원가 미기입 → 스키마 기본 0 영속 → '총 발주금액' KPI 상시 ₩0
+        //   (프론트 WmsManager 가 cost_total/unit_cost 소비). deadStock(:512)과 동일 PriceOpt::costMap(WAC 원가 SSOT)
+        //   재사용. 매입발주라 판매가 폴백은 부적절(판매가≠매입가) → 원가 미등록 SKU 는 0 유지(정직·날조 없음).
+        $costMap = [];
+        try { $costMap = \Genie\Handlers\PriceOpt::costMap($tenant); } catch (\Throwable $e) { $costMap = []; }
         $chk = $pdo->prepare("SELECT 1 FROM wms_supply_orders WHERE tenant_id=? AND sku=? AND status IN ('suggested','pending','ordered') LIMIT 1");
-        $ins = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,'suggested',?,?,?)");
+        $ins = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,unit_cost,cost_total,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,'suggested',?,?,?)");
         foreach ($all as $sku => $info) {
             $fc = $fcMap[$sku];
             $avgDaily = $horizon ? array_sum($fc['forecast']) / $horizon : 0;
@@ -362,8 +368,11 @@ class DemandForecast
             if ($chk->fetchColumn()) continue;                 // open 발주 존재 → 멱등 skip
             $orderQty = max(1, (int)ceil($reorder * 2 - $stock)); // 리오더포인트 2배까지 보충
             $eta = gmdate('Y-m-d', time() + $lead * 86400);
-            $ins->execute([$tenant, (string)$sku, (string)$info['name'], $orderQty, '', '', $eta, $now, $now]);
-            $created[] = ['sku' => $sku, 'name' => $info['name'], 'qty' => $orderQty, 'reorder_point' => $reorder, 'stock' => $stock, 'eta' => $eta];
+            // [현 차수] WAC 원가(costMap) × 발주수량 = 발주금액. 원가 미등록 SKU 는 0(정직) — 매입발주라 retail 폴백 안 함.
+            $unitCost  = isset($costMap[(string)$sku]) && (float)$costMap[(string)$sku] > 0 ? (float)$costMap[(string)$sku] : 0.0;
+            $costTotal = round($orderQty * $unitCost, 2);
+            $ins->execute([$tenant, (string)$sku, (string)$info['name'], $orderQty, '', '', $unitCost, $costTotal, $eta, $now, $now]);
+            $created[] = ['sku' => $sku, 'name' => $info['name'], 'qty' => $orderQty, 'unit_cost' => round($unitCost), 'cost_total' => round($costTotal), 'reorder_point' => $reorder, 'stock' => $stock, 'eta' => $eta];
         }
         return $created;
     }
