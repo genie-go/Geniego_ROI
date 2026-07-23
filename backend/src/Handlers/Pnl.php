@@ -21,8 +21,11 @@ use Genie\Db;
  *
  * 산식(클라 GlobalDataContext.jsx pnlStats 와 동일):
  *   grossProfit     = revenue - cogs
- *   operatingProfit = grossProfit - adSpend - platformFee - couponDiscount - returnFee - shippingCost - influencerCost
- *   netProfit       = netPayout>0 ? netPayout - cogs - adSpend - couponDiscount - influencerCost : operatingProfit
+ *   operatingProfit = grossProfit - adSpend - platformFee - returnFee - shippingCost - influencerCost
+ *   netProfit       = netPayout>0 ? netPayout - cogs - adSpend - shipInNet - influencerCost : operatingProfit
+ *   ※ couponDiscount 는 산식에서 재차감하지 않는다 — revenue(=gross_sales=SUM(total_price))가 이미
+ *     채널 결제금액(post-coupon)이라 쿠폰이 반영돼 있다(279차 C-P1 쿠폰 이중차감 근본수정, 본문 212~217행).
+ *     couponDiscount 는 응답에 정보용 컬럼으로만 유지. shipInNet=shippingCost×estShare(추정 정산 비중, 224행).
  *
  * 부가세(VAT) 엔진: 기존 pass-through 캡처(kr_settlement_line.vat, 마진 제외 유지)를 확장 —
  *   매출세액(output) vs 매입세액(input) 상계·과세기간 버킷팅·Paddle MoR 납부뷰. 마진엔 미반영(이중계상 방지).
