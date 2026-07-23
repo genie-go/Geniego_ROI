@@ -966,16 +966,17 @@ final class Connectors
                 $out['channels'][] = [
                     'channel' => $ch, 'spend' => round($sp, 2),
                     'platformRevenue' => round($pr, 2), 'realRevenue' => round($rr, 2),
-                    'platformRoas' => $sp > 0 ? round($pr / $sp, 2) : 0,
-                    'realRoas' => $sp > 0 ? round($rr / $sp, 2) : 0,
+                    // [현 차수] 산출불가(spend=0)는 임의 0 아닌 null(정직 미산출) — 동일 객체 truthRatio(972)와 정합.
+                    'platformRoas' => $sp > 0 ? round($pr / $sp, 2) : null,
+                    'realRoas' => $sp > 0 ? round($rr / $sp, 2) : null,
                     'platformConv' => $plat[$ch]['conv'] ?? 0, 'realConv' => $real[$ch]['conv'] ?? 0,
                     'truthRatio' => $pr > 0 ? round($rr / $pr, 3) : null,
                 ];
                 $out['totals']['spend'] += $sp; $out['totals']['platformRevenue'] += $pr; $out['totals']['realRevenue'] += $rr;
             }
             $T = $out['totals'];
-            $out['totals']['platformRoas'] = $T['spend'] > 0 ? round($T['platformRevenue'] / $T['spend'], 2) : 0;
-            $out['totals']['realRoas'] = $T['spend'] > 0 ? round($T['realRevenue'] / $T['spend'], 2) : 0;
+            $out['totals']['platformRoas'] = $T['spend'] > 0 ? round($T['platformRevenue'] / $T['spend'], 2) : null;
+            $out['totals']['realRoas'] = $T['spend'] > 0 ? round($T['realRevenue'] / $T['spend'], 2) : null;
             $out['note'] = '실주문 귀속 ROAS = 광고 클릭ID/픽셀 매칭된 실 주문 매출 기준. 매체보고는 뷰스루·중복 포함으로 과대. truthRatio<1 = 매체보고 부풀림 정도.';
         } catch (\Throwable $e) { /* graceful */ }
         return TemplateResponder::respond($res, $out);

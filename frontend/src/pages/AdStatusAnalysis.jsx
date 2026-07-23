@@ -74,8 +74,8 @@ function RoasTruthCard({ isDemo, t }) {
             ) : (
                 <>
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
-                        <_RoasKpi label={t('marketing.platformRoas', '매체보고 ROAS')} val={(T.platformRoas || 0).toFixed(2)} color="#f59e0b" />
-                        <_RoasKpi label={t('marketing.realRoas', '실주문 귀속 ROAS')} val={(T.realRoas || 0).toFixed(2)} color="#22c55e" />
+                        <_RoasKpi label={t('marketing.platformRoas', '매체보고 ROAS')} val={T.platformRoas != null ? T.platformRoas.toFixed(2) : '—'} color="#f59e0b" />
+                        <_RoasKpi label={t('marketing.realRoas', '실주문 귀속 ROAS')} val={T.realRoas != null ? T.realRoas.toFixed(2) : '—'} color="#22c55e" />
                         <_RoasKpi label={t('marketing.truthGap', '진실 비율(실/보고)')} val={T.platformRevenue > 0 ? Math.round(T.realRevenue / T.platformRevenue * 100) + '%' : '—'} color="#a855f7" />
                     </div>
                     <div style={{ overflowX: 'auto' }}>
@@ -88,8 +88,8 @@ function RoasTruthCard({ isDemo, t }) {
                                     <tr key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                                         <td style={{ padding: '6px 10px', fontWeight: 700, color: '#fff' }}>{c.channel}</td>
                                         <td style={{ padding: '6px 10px' }}>{Math.round(c.spend || 0).toLocaleString()}</td>
-                                        <td style={{ padding: '6px 10px', color: '#f59e0b', fontWeight: 700 }}>{(c.platformRoas || 0).toFixed(2)}</td>
-                                        <td style={{ padding: '6px 10px', color: '#22c55e', fontWeight: 800 }}>{(c.realRoas || 0).toFixed(2)}</td>
+                                        <td style={{ padding: '6px 10px', color: '#f59e0b', fontWeight: 700 }}>{c.platformRoas != null ? c.platformRoas.toFixed(2) : '—'}</td>
+                                        <td style={{ padding: '6px 10px', color: '#22c55e', fontWeight: 800 }}>{c.realRoas != null ? c.realRoas.toFixed(2) : '—'}</td>
                                         <td style={{ padding: '6px 10px', color: (c.truthRatio != null && c.truthRatio < 0.7) ? '#ef4444' : 'var(--text-2)' }}>{c.truthRatio != null ? Math.round(c.truthRatio * 100) + '%' : '—'}</td>
                                     </tr>
                                 ))}
