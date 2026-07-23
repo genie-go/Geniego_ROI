@@ -1,5 +1,67 @@
 # NEXT_SESSION 인계서
 
+## ★★[290차후속] **우선순위 7건 실구현·라이브배포 + CCIS Part005~026 적용** (2026-07-23)
+
+**상태: 커밋 28건 · push 완료 · 운영+데모 프론트/백엔드 배포·라이브 실검증(playwright) 완료 · 실 개선 6건 · 미배포/미검증 명시**
+
+> ★**성격**: 290차 인계 우선순위 7건을 실구현하고, 게이트가 드러낸 실결함을 라이브 배포까지 회수했다.
+> 이어 사용자가 CCIS Part005~026(22개) 명세를 순차 제공 → Part001~004 와 동일 원칙으로 처리:
+> **명세 그대로 안 따르고 실측 → 매핑 → 부재/모순 증명 → 실재 규약만 성문화 + 실 갭만 코드 수정.**
+> Reference Stack(PostgreSQL·Redis·Kafka·Docker/k8s·DDD·Microservice·Vault·OTel·GenieGoROI·JWT메인…)은
+> 이 저장소에 대부분 부재이고, 이식은 헌법 Golden Rule("Replace 아니라 Extend") 위반이라 미적용.
+
+### A. 우선순위 7건 (P1~P6 완료·P7 보류)
+
+| P | 항목 | 결과 |
+|---|---|---|
+| P1 | PHP openssl·curl 로컬 활성화 | php.ini 2줄 주석해제(레포 외부·커밋X). `make validate-env` PASS. composer/phpstan 로컬 동작 가능해짐 |
+| P2 | ESLint no-empty 339→0 | ★no-console=warn이라 로깅 아닌 **유형별 사유 주석**(무음삼킴→문서화된 의도). error 958→619. 배포됨 |
+| P3 | 로그인 401 노이즈 | ★**프레이밍 오진 정정**: clean 방문자는 0건·**만료토큰만 폭풍**. `authGate.js` 세션검증 게이트(로그아웃 정책 불변). 배포·라이브검증(~28→auth/me만) |
+| P4 | PHPStan 도입 | 레벨5+baseline(288). `make phpstan`·게이트 §6. ★게이트가 routes.php 중복키 5건 드러냄 |
+| P5 | perf.js 고아삭제 | 5단계 증명 후 삭제. 배포됨 |
+| P6 | 브랜치 정리 | `origin/yyocool` 삭제(origin/main과 동일 SHA). origin/main=기본브랜치라 보류(P7 선행 필요) |
+| P7 | 기본브랜치 전환+protection | 사용자 보류. gh 미인증 |
+
+### B. ★게이트/감사가 드러낸 실결함 (전부 수정·핵심스택은 배포)
+
+- **Rollup.php `$pdo`**(첫try 안 할당→Db::pdo() 예외 시 이후 5블록 미정의·인구통계/광고성과/원가/수수료 무음실패)→호이스팅 **[백엔드 배포됨]**
+- **AgencyPortal.php `$rl`** undefined→`=null` 초기화 **[백엔드 배포됨]**
+- **Logistics.php:330** `!empty(X)&&X===false` **영구거짓**(sweettracker 실패감지 죽음)→`($body['status']??null)===false` **[백엔드 배포됨]**
+- **routes.php 중복 배열키 5쌍**(동일핸들러 죽은중복)→제거 **[백엔드 배포됨]**
+- **AuthPage onBlur 중복**(회원가입 추천코드 검증 사망)=290차 수정분 라이브 유지
+- **테넌트 격리 2건**(Part024): Reconciliation raw채널→tChannelName·AutoMarketing 공유채널→메시지 tenant필터 **[프론트 미배포]**
+
+### C. ★배포 현황 (SHA 검증 배포·본 세션 실측)
+
+- **프론트 운영+데모 배포·라이브검증**(P2·P3·P5): 운영 D9VsX8Ki→**CVwFsEFy**·데모 CKg4PAPo→**CIJJyh7K**. 만료토큰 401 ~28→1(auth/me만)·clean 0·데모모드 정상.
+- **백엔드 운영 배포**(Rollup·AgencyPortal·Logistics·routes.php dedup): 서버 4파일 diff로 내 수정만 확증 후 SHA대조+백업+php8.1-fpm reload. 헬스 200·dedup 라우트 401(canonical 보존).
+- ★**사용자 swap 무음실패 교훈**: `PROD_OK` 떠도 구번들이었음(업로드본이 새빌드 아님). → **fresh 파일명+서버측 SHA256 대조+index 번들해시 확인** 후에만 swap(Part015 §5 런북).
+- ★**미배포**: **Part024 테넌트격리 2건(프론트)** — 다음 차수 프론트 dist swap 시 함께 반영 필요(승인 후).
+
+### D. ★신설 품질 게이트 (`make quality` 9종·이번 세션 3개 추가)
+
+기존(ESLint·PHP구문·Shell·JSON·Git) + **PHPStan L5 baseline(P4)** + **composer audit(Part012·의존성 CVE)** + **AI Gateway 단일통과점(Part021·api.anthropic.com 은 ClaudeAI.php 만·053 불변식 보호)**. pre-commit G2~G15 별개 상시.
+
+### E. CCIS Part005~026 — 명세 처리 결과 (전부 실측·문서화)
+
+- **문서 전용(부재 스택 성문화)**: 007 아키텍처(transaction-script)·008 DDD(계층부재)·009 DB(MySQL/SQLite·PostgreSQL 아님·root계정 §30 권고)·010 Persistence(PDO직접)·011 API(/v{NNN}·{ok}·세션토큰)·013 예외/로깅(error_log·★백엔드 빈catch 672 권고)·014 테스트(게이트+E2E+invariant)·015 CI/CD(수동 pscp)·016 Docker/k8s(서버직접·★허구 infra shadow 경고)·017 캐시(APCu+rollup)·018 큐(DB작업큐+cron·DLQ)·019 스케줄러(cron 33+JourneyBuilder/RuleEngine)·020 스토리지(로컬 MediaHost)·022 AI Agent(agent_mode+HITL)·023 관측(SystemMetrics 정직미산출)·025 게이트웨이(모놀리스)·026 데이터분석(rollup+V3 Trust·핵심역량).
+- **실 갭 코드수정**: 005(실결함3+dedup)·006(.gitignore §8 secret 사전차단)·012(composer audit 게이트)·021(AI Gateway 게이트)·024(테넌트격리 2).
+- **자체 정정**: 014 CI 서술(verify job이 GATE1~5 실행·"build만" 오류 정정).
+
+### F. ★다음 차수 — CCIS Part027부터 (사용자 지시)
+
+- **Part027 MLOps** 예정. ★사전판단: 자체 ML/MLOps(Feature Store/Registry/Drift) 부재·AI=ClaudeAI gateway(053)+통계모델(Mmm frontier·Attribution markov·DemandForecast)+ModelMonitor(정본)+V3 Trust. 동일 방식 처리.
+- 나머지 우선순위: **Part024 테넌트격리 프론트 배포**(승인 후) · master 병합 여부 · P7 · 백엔드 빈catch 672 감축(프론트 no-empty 339의 백엔드판·별도 대형차수) · PHPStan 279 추가감축 · 백업dir prune(프론트 12+·백엔드 다수·FS트랩).
+
+### G. ★미검증·주의 (정직 보고)
+
+- ★**자격증명 노출·보관**: 사용자가 SSH(root@1.201.177.46)·MySQL(root) 평문 제공, 승인 하에 SSH만 사용(백엔드 배포·진단). **삭제 지시 시 즉시 폐기**. SSH 비번 회전 시 운영·데모 `backend/.env` `GENIE_DB_PASS` 동시 갱신.
+- **미배포**: Part024 프론트 테넌트격리 2건.
+- **관찰·권고(미실행)**: DB app root계정 최소권한(Part009 §6·GRANT+양.env+fpm+회귀 필요) · 백엔드 빈catch 672(Part013 §6) · cron 락 최소(Part019 §6·idempotency 의존) · 허구 infra shadow(Part016 §5) · CI에 make quality baseline 게이트 미포함→별도 quality.yml 권고(Part014 §6).
+- **push**: feat/n236 (master 아님) → 운영 배포 미발동. CI verify job(GATE1~5)만 실행.
+
+---
+
 ## ★★[290차] **CCIS Part001~004 적용 차수** — 저장소 거버넌스·개발환경·코딩표준을 실행되는 게이트로 (2026-07-22)
 
 **상태: 커밋 7건 · push 완료 · 운영+데모 배포 완료 · 라이브 실검증 완료(브라우저) · 미검증 항목 명시**
