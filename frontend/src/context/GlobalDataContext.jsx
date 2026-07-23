@@ -2031,8 +2031,11 @@ export function GlobalDataProvider({ children }) {
             netPayout: Number(f.netPayout) || 0,
             margin: R > 0 ? (Number(f.operatingProfit) / R * 100).toFixed(1) : '0',
             netMargin: R > 0 ? (Number(f.netProfit) / R * 100).toFixed(1) : '0',
-            roas: AS > 0 ? budgetStats.blendedRoas : 0,
-            // [현 차수] 보고통화 환산 뷰(서버 제공, KRW base 불변). 소비측(선택 표기)용 — 미사용 시 무해.
+            // [현 차수] pnlStats.roas 제거 — 전 페이지·컴포넌트·utils 어디서도 미소비(dead)이면서 값도 창 불일치였다:
+            //   revenue/netProfit 은 /v424/pnl(선택기간) SSOT 인데 roas 만 budgetStats.blendedRoas(당월 n=1 고정,
+            //   src 565행)로 섞여 기간을 바꿔도 ROAS 는 당월 고정이었다. P&L 카드용 ROAS 가 필요하면 Pnl 응답에
+            //   기간정합 '광고기여매출'을 추가해 동일 창(from/to)으로 산출할 것(총매출/adSpend 는 유기매출 포함 과대).
+            // 보고통화 환산 뷰(서버 제공, KRW base 불변). 소비측(선택 표기)용 — 미사용 시 무해.
             reporting: srvPnl ? srvPnl.reporting : null,
             byCurrency: srvPnl ? srvPnl.by_currency : null,
         };
