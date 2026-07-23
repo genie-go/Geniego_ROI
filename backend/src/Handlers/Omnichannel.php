@@ -591,8 +591,12 @@ final class Omnichannel
     {
         try {
             // ★드라이버 호환: SQLite 는 UPDATE 대상에 테이블 별칭 미지원 → 상관 서브쿼리에서 전체 테이블명 사용.
+            // [현 차수] KPI 정직성: mock_sent(SMTP 미설정 시뮬레이션 email·데모 mock)를 실발송(sent) 카운트에서 제외 —
+            //   형제 EmailMarketing::campaignStats(mock_sent 분리표기)와 대칭. mock 행은 outbox status='sent'·error='mock_sent'로
+            //   보존되며(캠페인 마감 CASE 는 queued/processing 부재로 정상 'sent' 확정), sent KPI 만 실발송으로 정직화.
+            //   실발송은 error='sent'(또는 mock_sent 아님)라 그대로 집계 → 무회귀(실발송 언더카운트 없음).
             $pdo->prepare("UPDATE omni_campaigns SET
-                sent    = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='sent'),
+                sent    = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='sent' AND (o.error IS NULL OR o.error<>'mock_sent')),
                 failed  = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='failed'),
                 skipped = (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status='skipped'),
                 status  = CASE WHEN (SELECT COUNT(*) FROM omni_outbox o WHERE o.campaign_id=omni_campaigns.id AND o.tenant_id=omni_campaigns.tenant_id AND o.status IN ('queued','processing'))=0 THEN 'sent' ELSE 'sending' END
