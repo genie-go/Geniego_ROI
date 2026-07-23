@@ -107,7 +107,7 @@ export default function PartnerPortal() {
 
 function SupplierView({ rows, onAction }) {
   const { t } = useI18n();
-  const [f, setF] = useState({ sku: '', name: '', qty: '', eta: '' });
+  const [f, setF] = useState({ sku: '', name: '', qty: '', unit_cost: '', eta: '' });
   return (
     <>
       <div style={card}>
@@ -116,8 +116,9 @@ function SupplierView({ rows, onAction }) {
           <input style={inp} placeholder="SKU" value={f.sku} onChange={e => setF({ ...f, sku: e.target.value })} />
           <input style={inp} placeholder={t('partnerPortal.productNamePlaceholder', '상품명')} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} />
           <input style={inp} type="number" placeholder={t('partnerPortal.qtyPlaceholder', '수량')} value={f.qty} onChange={e => setF({ ...f, qty: e.target.value })} />
+          <input style={inp} type="number" min="0" placeholder={t('partnerPortal.unitCostPlaceholder', '매입단가(원)')} value={f.unit_cost} onChange={e => setF({ ...f, unit_cost: e.target.value })} />
           <input style={inp} type="date" value={f.eta} onChange={e => setF({ ...f, eta: e.target.value })} />
-          <button style={btn} onClick={async () => { if (await onAction('add_order', { ...f, qty: Number(f.qty) || 0 })) setF({ sku: '', name: '', qty: '', eta: '' }); }}>{t('partnerPortal.register', '등록')}</button>
+          <button style={btn} onClick={async () => { if (await onAction('add_order', { ...f, qty: Number(f.qty) || 0, unit_cost: Number(f.unit_cost) || 0 })) setF({ sku: '', name: '', qty: '', unit_cost: '', eta: '' }); }}>{t('partnerPortal.register', '등록')}</button>
         </div>
       </div>
       <div style={card}>

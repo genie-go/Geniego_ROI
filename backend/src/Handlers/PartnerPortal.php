@@ -290,9 +290,17 @@ class PartnerPortal
                 }
                 if ($op === 'add_order') {
                     // 매입처가 본인 명의 발주(입고예정) 등록
-                    $st = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
-                    $st->execute([$t, (string)($b['sku'] ?? ''), (string)($b['name'] ?? ''), (float)($b['qty'] ?? 0), $pname, (string)($b['wh_id'] ?? ''), 'pending', (string)($b['eta'] ?? ''), $now, $now]);
-                    return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+                    Db::ensureWmsSupplyOrders($pdo); // unit_cost/cost_total 컬럼 보장(INSERT 안전·무회귀)
+                    $qty = (float)($b['qty'] ?? 0);
+                    // [현 차수] 발주 원가 수집·영속 — 종전 INSERT 는 unit_cost/cost_total 미기입으로 매입처 등록 발주가
+                    //   상시 ₩0 으로 KPI 집계(자동발주 결함과 동일 클래스). 매입처는 자기 매입단가를 알므로 폼에서 받아
+                    //   저장. cost_total 은 서버에서 qty×unit_cost 로 SSOT 산출(Wms::saveSupplyOrder 패턴)·폼 total 폴백.
+                    //   원가 미입력이면 0 유지(정직·날조 없음).
+                    $unitCost  = (float)($b['unitCost'] ?? $b['unit_cost'] ?? 0);
+                    $costTotal = $unitCost > 0 ? $qty * $unitCost : (float)($b['total'] ?? $b['cost_total'] ?? 0);
+                    $st = $pdo->prepare("INSERT INTO wms_supply_orders (tenant_id,sku,name,qty,supplier,wh_id,unit_cost,cost_total,status,eta,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+                    $st->execute([$t, (string)($b['sku'] ?? ''), (string)($b['name'] ?? ''), $qty, $pname, (string)($b['wh_id'] ?? ''), $unitCost, $costTotal, 'pending', (string)($b['eta'] ?? ''), $now, $now]);
+                    return self::json($res, ['ok' => true, 'id' => (int)$pdo->lastInsertId(), 'unit_cost' => round($unitCost), 'cost_total' => round($costTotal)]);
                 }
             } elseif ($type === 'logistics') {
                 if ($op === 'update_status') {
