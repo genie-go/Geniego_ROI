@@ -5352,7 +5352,7 @@ export default {
   "gNav": {
     accessReviewLabel: "접근 검토",
     pmGroup: "프로젝트 관리",
-    pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","onsiteCroLabel":"온사이트 CRO","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스",
+    pmOverviewLabel: "프로젝트 목록","marketingMixLabel":"마케팅 믹스 모델","onsiteCroLabel":"온사이트 CRO","pmPortfolioLabel":"포트폴리오","pmResourcesLabel":"리소스","pmCollaborationLabel":"협업",
 
     "home": "홈",
 

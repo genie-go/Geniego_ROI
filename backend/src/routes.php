@@ -1442,6 +1442,12 @@ return function (App $app): void {
         // Events (SSE) + Audit
         'GET /v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
         'GET /v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+        // [CWIS Part001] 협업 플랫폼 기반 — Capability Registry/readiness (PM\Collaboration, /v425/pm/* 세션 bypass 재사용)
+        'GET /v425/pm/collaboration/capabilities'                => 'Genie\\Handlers\\PM\\Collaboration::listCapabilities',
+        'GET /v425/pm/collaboration/readiness'                   => 'Genie\\Handlers\\PM\\Collaboration::readiness',
+        'GET /v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
+        'POST /v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
+        'POST /v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
         // [231차 PM 초엔터프라이즈] 포트폴리오/EVM/RAID/타임시트/베이스라인/리소스 — PM\Enterprise
         'GET /v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
@@ -1487,6 +1493,11 @@ return function (App $app): void {
         'POST /api/v425/pm/attachments'              => 'Genie\\Handlers\\PM\\Attachments::create',
         'GET /api/v425/pm/events/stream'             => 'Genie\\Handlers\\PM\\Events::stream',
         'GET /api/v425/pm/audit'                     => 'Genie\\Handlers\\PM\\Audit::list',
+        'GET /api/v425/pm/collaboration/capabilities'                => 'Genie\\Handlers\\PM\\Collaboration::listCapabilities',
+        'GET /api/v425/pm/collaboration/readiness'                   => 'Genie\\Handlers\\PM\\Collaboration::readiness',
+        'GET /api/v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
+        'POST /api/v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
+        'POST /api/v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
         'GET /api/v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /api/v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
         'PATCH /api/v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
@@ -3690,6 +3701,12 @@ return function (App $app): void {
     $register('POST',   '/v425/pm/attachments');
     $register('GET',    '/v425/pm/events/stream');
     $register('GET',    '/v425/pm/audit');
+    // [CWIS Part001] 협업 플랫폼 기반
+    $register('GET',    '/v425/pm/collaboration/capabilities');
+    $register('GET',    '/v425/pm/collaboration/readiness');
+    $register('GET',    '/v425/pm/collaboration/capabilities/{key}');
+    $register('POST',   '/v425/pm/collaboration/capabilities/{key}/enable');
+    $register('POST',   '/v425/pm/collaboration/capabilities/{key}/disable');
     // [231차 PM 초엔터프라이즈] Enterprise
     $register('GET',    '/v425/pm/portfolios');
     $register('POST',   '/v425/pm/portfolios');
@@ -3734,6 +3751,11 @@ return function (App $app): void {
     $register('POST',   '/api/v425/pm/attachments');
     $register('GET',    '/api/v425/pm/events/stream');
     $register('GET',    '/api/v425/pm/audit');
+    $register('GET',    '/api/v425/pm/collaboration/capabilities');
+    $register('GET',    '/api/v425/pm/collaboration/readiness');
+    $register('GET',    '/api/v425/pm/collaboration/capabilities/{key}');
+    $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/enable');
+    $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/disable');
     $register('GET',    '/api/v425/pm/portfolios');
     $register('POST',   '/api/v425/pm/portfolios');
     $register('PATCH',  '/api/v425/pm/portfolios/{id}');

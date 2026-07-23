@@ -7830,7 +7830,7 @@ export default {
     },
     gNav: {
     pmGroup: "Project Management",
-    pmOverviewLabel: "Projects","pmPortfolioLabel":"Portfolio","pmResourcesLabel":"Resources",
+    pmOverviewLabel: "Projects","pmPortfolioLabel":"Portfolio","pmResourcesLabel":"Resources","pmCollaborationLabel":"Collaboration",
       home: "Home",
       aiMarketing: "AI Marketing Automation",
       adAnalytics: "Ad & Channel Analytics",

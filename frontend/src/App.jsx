@@ -86,6 +86,7 @@ const PMMilestones = lazy(() => import("./pages/PMMilestones.jsx"));
 const PMActivity = lazy(() => import("./pages/PMActivity.jsx"));
 const PMSettings = lazy(() => import("./pages/PMSettings.jsx"));
 const PMPortfolio = lazy(() => import("./pages/PMPortfolio.jsx")); // 231차 PM 초엔터프라이즈
+const CollaborationHome = lazy(() => import("./pages/CollaborationHome.jsx")); // CWIS Part001 협업 기반
 const PMResources = lazy(() => import("./pages/PMResources.jsx"));
 const PMRaid = lazy(() => import("./pages/PMRaid.jsx"));
 const PMEvm = lazy(() => import("./pages/PMEvm.jsx"));
@@ -488,6 +489,7 @@ function AppLayout() {
                       <Route path="/pm" element={<PMOverview />} />
                       <Route path="/pm/portfolio" element={<PMPortfolio />} />
                       <Route path="/pm/resources" element={<PMResources />} />
+                      <Route path="/pm/collaboration" element={<CollaborationHome />} />
                       <Route path="/pm/projects/:id" element={<PMProjectDetail />} />
                       <Route path="/pm/projects/:id/raid" element={<PMRaid />} />
                       <Route path="/pm/projects/:id/evm" element={<PMEvm />} />

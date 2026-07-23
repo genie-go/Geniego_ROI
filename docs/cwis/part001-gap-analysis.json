@@ -1,0 +1,61 @@
+{
+  "cwis_part": "001",
+  "generated_at": "2026-07-23",
+  "method": "non-destructive full grep + file:line evidence, cross-verified against actual stack",
+  "stack_reality": {
+    "framework": "Slim 4.12 (NOT Laravel/Symfony)",
+    "data_access": "PDO singleton Db.php (NOT Eloquent; illuminate/database present as lib only)",
+    "routes": "backend/src/routes.php string-mapping, bare + /api dual-register (NOT routes/api.php, no artisan route:list)",
+    "schema": "ensureTables self-healing (migration framework frozen at 20260527_172)",
+    "tests": "no PHPUnit/Pest runner; PHPStan L5 baseline only",
+    "spec_assumptions_inapplicable": ["php artisan *", "Eloquent migrations", "DDD 4-layer app/", "PHPStan L8", "Pest", "readonly DDD Context/Aggregate"]
+  },
+  "pm_domain": {
+    "status": "EXISTS_COMPLETE",
+    "recommendation": "REUSE",
+    "handlers": 13,
+    "pages": 13,
+    "tables": ["pm_projects","pm_tasks","pm_task_assignees","pm_task_comments","pm_task_dependencies","pm_milestones","pm_attachments","pm_audit_log"],
+    "realtime": "one-way SSE (PM/Events.php polling pm_audit_log)"
+  },
+  "capabilities": [
+    {"capability":"comment","status":"EXISTS_COMPLETE","scope":"pm_only","maturity":3,"backend":true,"frontend":true,"database":true,"api":true,"authorization":true,"audit":true,"realtime":true,"tests":false,"recommendation":"REUSE","evidence":"PM/Comments.php; pm_task_comments (168_006)"},
+    {"capability":"activity","status":"EXISTS_COMPLETE","maturity":3,"backend":true,"frontend":true,"database":true,"api":true,"authorization":true,"audit":true,"realtime":true,"tests":false,"recommendation":"REUSE","evidence":"PM/Audit.php; PMActivity.jsx:54; pm_audit_log"},
+    {"capability":"notification","status":"EXISTS_COMPLETE","maturity":3,"backend":true,"frontend":false,"database":true,"api":true,"authorization":true,"audit":false,"realtime":false,"tests":false,"recommendation":"REUSE","evidence":"UserAuth.php:4437-4527; user_notification; WebPush.php"},
+    {"capability":"team","status":"EXISTS_COMPLETE","maturity":3,"backend":true,"frontend":true,"database":true,"api":true,"authorization":true,"audit":true,"realtime":false,"tests":false,"recommendation":"REUSE","evidence":"routes 1592-1604; teamApi.js; TeamPermissions"},
+    {"capability":"member","status":"EXISTS_COMPLETE","maturity":3,"backend":true,"frontend":true,"database":true,"api":true,"authorization":true,"audit":true,"realtime":false,"tests":false,"recommendation":"REUSE","evidence":"UserAuth *TeamMember; TeamMembers.jsx:147,173"},
+    {"capability":"workspace","status":"EXISTS_PARTIAL","maturity":1,"backend":true,"frontend":false,"database":true,"api":true,"authorization":true,"audit":false,"realtime":false,"tests":false,"recommendation":"REFACTOR","evidence":"WorkspaceState (real tenant KV) routes 866-869; TeamWorkspace.jsx:42 members/activity=IS_DEMO?..:[] , tasks=localStorage (fake shell)"},
+    {"capability":"approval","status":"EXISTS_DUPLICATED","maturity":2,"backend":true,"frontend":true,"database":true,"api":true,"authorization":true,"audit":true,"realtime":false,"tests":false,"recommendation":"REFACTOR","evidence":"Alerting /v423/approvals + Catalog writeback approve + FeedTemplate draft — 3 scattered systems"},
+    {"capability":"mention","status":"EXISTS_PARTIAL","maturity":1,"backend":true,"frontend":false,"database":true,"api":false,"authorization":false,"audit":false,"realtime":false,"tests":false,"recommendation":"EXTEND","evidence":"Comments.php:28,32 mentions_csv column stub (store only, no resolve/notify)"},
+    {"capability":"message","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"no internal team messaging; channel=marketing sales channel"},
+    {"capability":"channel","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"grep: all channel refs are marketing/sales"},
+    {"capability":"thread","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"grep empty"},
+    {"capability":"document","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"only docs/*.md spec files"},
+    {"capability":"wiki","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"grep empty"},
+    {"capability":"meeting","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"grep empty"},
+    {"capability":"whiteboard","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"grep empty"},
+    {"capability":"presence","status":"MISSING","maturity":0,"recommendation":"NEW","evidence":"TeamWorkspace.jsx:15 online:true hardcoded; no backend"}
+  ],
+  "reusable_infrastructure": {
+    "tenant_isolation": {"real": true, "evidence": "tenant_id/auth_tenant 3294 hits/108 files; PM Shared.php:59-99 gate", "reuse": "REUSE"},
+    "rbac": {"real": true, "evidence": "TeamPermissions menu×action×scope matrix (canonical); PM role gate", "reuse": "REUSE"},
+    "audit_immutable": {"real": true, "evidence": "SecurityAudit.php:12-33 SHA256 hash-chain append-only", "reuse": "REUSE"},
+    "notifications": {"real": true, "evidence": "user_notification + UserAuth::notify; WebPush VAPID; Alerting; NotifyEngine", "reuse": "REUSE/EXTEND"},
+    "realtime_oneway_sse": {"real": true, "evidence": "PM/Events.php + pmEventStream.js (EventSource, 300s cap, DB 2s poll)", "reuse": "EXTEND"},
+    "event_bus_queue": {"real": false, "evidence": "no MQ/job-queue/event-bus", "reuse": "NEW if needed"}
+  },
+  "realtime_conclusion": {
+    "websocket_pusher_reverb": "ABSENT (backend grep 0, composer deps 0)",
+    "only_mechanism": "one-way SSE long-poll, PM-scoped, FPM-worker-bound",
+    "bidirectional_collab_infra": "MISSING (presence/typing/co-edit/whiteboard need WebSocket/CRDT NEW)"
+  },
+  "duplication_risks": [
+    "approval: 3 scattered systems (Alerting/Catalog/FeedTemplate)",
+    "audit logs: 4-5 kinds (security_audit_log hash-chain / pm_audit_log / auth_audit_log / menu_audit_log / growth audit_log)",
+    "workspace: WorkspaceState (real KV) vs TeamWorkspace.jsx (demo shell)"
+  ],
+  "readiness_score_estimate": 22,
+  "verdict": "COMPLETED_WITH_LIMITATIONS",
+  "verdict_reason": "gap-analysis deliverable complete; foundation code cannot proceed in spec's Laravel form due to stack mismatch; adapted Slim/PDO plan proposed, awaiting user confirmation",
+  "part002_ready": "conditional: team/member/TeamPermissions already EXISTS_COMPLETE -> EXTEND not NEW; spec's new org structure would duplicate"
+}
