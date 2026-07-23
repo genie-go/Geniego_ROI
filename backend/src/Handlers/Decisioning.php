@@ -485,12 +485,18 @@ final class Decisioning {
         usort($recs, fn($a,$b) => ($b['signals']['roas'] <=> $a['signals']['roas']));
         $recs = array_slice($recs, 0, 10);
 
+        // [현 차수] Trust-First 주석(헌법 V3 "수집≠사용") — Decisioning 은 advisory 추천(AdAdapters 자동집행 경로
+        //   없음)이라 하드차단 안 하고 신뢰도 상태만 부착(AutoRecommend 와 일관·과도차단 방지). UNKNOWN(데이터없음)=정상.
+        $trust = ['status' => 'UNKNOWN', 'score' => null, 'reasons' => [], 'rules' => []];
+        try { $trust = \Genie\Handlers\DataPlatform::readiness($pdo, $tenant); } catch (\Throwable $e) {}
+
         return TemplateResponder::respond($response, [
             'ok' => true,
             'tenant_id' => $tenant,
             'since' => $since,
             'until' => $until,
             'platform' => $platform !== '' ? $platform : null,
+            'trust' => $trust,
             'recommendations' => $recs
         ]);
     }

@@ -446,6 +446,7 @@ export default function AutoMarketing() {
     //   전 채널을 엔진에 넘겨 배분액 내림차순으로 누적 ~85% 커버(최소 3개)만 선택 = 성과 높은 채널 집중.
     //   act-as 컨텍스트 반영(플랫폼 성장 시 platform_growth 실측 기반). 사용자가 직접 토글하면(aiRecommended=false) 미실행.
     const [recSource, setRecSource] = useState('heuristic'); // heuristic | data
+    const [recTrust, setRecTrust] = useState(null); // [현 차수] Trust-First — 추천 응답의 데이터 신뢰도 상태(READY/WARNING/BLOCKED/UNKNOWN)
     const refineChannelsFromEngine = useCallback(async (cats, bgt) => {
         if (!cats || cats.length === 0 || bgt <= 0) return;
         try {
@@ -456,6 +457,7 @@ export default function AutoMarketing() {
                 body: JSON.stringify({ budget: bgt, category: cats[0] || 'DEFAULT', categories: cats, period, objective, channels: AD_CHANNELS.map(c => c.id) }),
             });
             const d = await r.json();
+            setRecTrust(d && d.trust ? d.trust : null); // [현 차수] Trust-First 상태 부착(채널 유무와 무관하게 표기)
             if (!d || !d.ok || !Array.isArray(d.channels) || !d.channels.length) return;
             const ranked = [...d.channels].sort((a, b) => (b.allocation || 0) - (a.allocation || 0));
             const total = ranked.reduce((s, c) => s + (c.allocation || 0), 0) || bgt;
@@ -1323,6 +1325,18 @@ export default function AutoMarketing() {
                             {aiRecommended && (
                                 <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 99, background: "linear-gradient(135deg,rgba(34,197,94,0.12),rgba(79,142,247,0.12))", border: "1px solid rgba(34,197,94,0.3)", fontSize: 10, fontWeight: 700, color: "#22c55e" }}>
                                     🤖 {t('marketing.aiRecommendBadge')}
+                                </div>
+                            )}
+                            {/* [현 차수] Trust-First 배지 — 추천 데이터 신뢰도 WARNING/BLOCKED 시만 표기(READY/UNKNOWN=무배지, 과도표기 방지). reasons=툴팁. */}
+                            {aiRecommended && recTrust && (recTrust.status === 'BLOCKED' || recTrust.status === 'WARNING') && (
+                                <div title={(recTrust.reasons || []).join(', ')} style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 99,
+                                    background: recTrust.status === 'BLOCKED' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)',
+                                    border: `1px solid ${recTrust.status === 'BLOCKED' ? 'rgba(239,68,68,0.35)' : 'rgba(245,158,11,0.35)'}`,
+                                    fontSize: 10, fontWeight: 700, color: recTrust.status === 'BLOCKED' ? '#ef4444' : '#f59e0b' }}>
+                                    {recTrust.status === 'BLOCKED'
+                                        ? `⛔ ${t('marketing.trustBlocked', '데이터 신뢰도 미달 · 자동집행 보류')}`
+                                        : `⚠ ${t('marketing.trustWarning', '데이터 신뢰도 경고')}`}
+                                    {recTrust.score != null ? ` (${recTrust.score})` : ''}
                                 </div>
                             )}
                         </div>
