@@ -58,6 +58,13 @@ final class Collaboration extends Shared
         ['collaboration.notification', '알림',             'ENABLED', '001', ['collaboration.foundation'],  'user_notification/WebPush 재사용'],
         ['collaboration.realtime',     '실시간(단방향)',   'PARTIAL', '001', ['collaboration.foundation'],  'PM SSE 단방향 존재 · 양방향(WS/CRDT) 부재'],
         ['collaboration.workspace',    '워크스페이스',     'PARTIAL', '002', ['collaboration.foundation'],  'WorkspaceState KV 실재 · 협업 UI 는 데모 shell(재작성 대상)'],
+        // [CWIS Part002] 조직/워크스페이스/팀/멤버 — 대부분 기존구조 재사용(교차검증: 명세 §4 복제금지·§1 Reuse).
+        ['collaboration.organization', '조직',             'ENABLED', '002', ['collaboration.foundation'],  'tenant=조직(tenant_business_profile: company_name/industry). 별도 org 계층 신설은 제품범위 검토 후'],
+        ['collaboration.external',     '외부 협업(게스트/파트너)', 'PARTIAL', '002', ['collaboration.organization'], 'AgencyPortal(agency_client_link)·PartnerPortal 부분 존재 · 통합 게스트/파트너 초대는 후속'],
+        ['collaboration.invitation',   '초대',             'PLANNED', '002', ['collaboration.member'],      '일반 초대(token_hash/만료/수락/철회) 부재 — agency/live 도메인특화만 존재. Part002 후속 착수 대상(1순위)'],
+        ['collaboration.department',   '부서',             'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위(소규모 팀 SaaS) 검토 필요 — 다단계 부서계층 수요 확인 후'],
+        ['collaboration.squad',        '스쿼드',           'PLANNED', '002', ['collaboration.team'],        '부재 · 제품범위 검토(스쿼드/애자일 조직 수요 확인 후)'],
+        ['collaboration.community',    '커뮤니티',         'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위 검토(관심사 기반 커뮤니티 수요 확인 후)'],
         ['collaboration.mention',      '멘션',             'PARTIAL', '003', ['collaboration.comment'],     'mentions_csv 컬럼 스텁 · 해석/알림 파이프라인 부재'],
         ['collaboration.approval',     '승인 워크플로',    'PARTIAL', '009', ['collaboration.foundation'],  '3계열 산재(Alerting/Catalog/FeedTemplate) · 통합 필요'],
         ['collaboration.presence',     '접속 상태',        'PLANNED', '004', ['collaboration.realtime'],    '양방향 실시간 전제(미착수)'],
