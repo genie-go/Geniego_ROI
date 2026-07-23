@@ -24,14 +24,21 @@
 
 ## 3. 본 차수 구현물
 
-- **Capability Registry 확장**(`PM\Collaboration::CATALOG`): Part002 도메인 6종 정직 등록 —
-  `collaboration.organization`=ENABLED(tenant), `external`=PARTIAL, `invitation`=PLANNED(후속 1순위),
-  `department`/`squad`/`community`=PLANNED(제품범위 검토). 협업 홈/readiness에 즉시 반영.
-- **매핑 문서**: `docs/cwis/part002-gap-analysis.md`(기존구조↔Part002 매핑·제품범위 교차검증).
+- **★초대(Invitation) 시스템 실구현(초엔터프라이즈급)** — 진짜 결여였던 핵심을 구현:
+  - 백엔드 `PM\Collaboration`: `collaboration_invitations` 테이블(ensureTables) + 6 엔드포인트(create/list/verify/accept/revoke).
+    보안: token **hash-only 저장**(UserAuth::hashToken=SHA256·세션토큰 hash-gate 교훈 승계)·raw 1회노출·**192bit 엔트로피**·
+    만료·**1회성**(조건부 UPDATE)·이메일 결속·테넌트격리·**pm_audit_log 감사**(→PM 활동피드/SSE 연동)·Mailer 발송.
+  - `UserAuth::provisionInvitedMember`(신규 공개·additive): createTeamMember의 보안로직(비번정책·중복·플랜한도·
+    app_user INSERT) **재사용**(중복 재구현 금지). ★admin/owner 초대부여 불가(member/manager)=권한상승 원천차단.
+  - 프론트 `CollaborationHome` 초대 관리(생성/목록/철회·admin) + `CollabAccept`(public 수락 페이지 `/collab/accept`).
+  - `collaboration.invitation` = PLANNED→**ENABLED**.
+- **Capability Registry 확장**: organization=ENABLED(tenant)·external=PARTIAL·department/squad/community=PLANNED(제품범위).
+- **매핑 문서**: `docs/cwis/part002-gap-analysis.md`.
 
 ## 4. 새로 만든 테이블·코드
 
-- **없음**(§4 users/tenants/team 복제금지 준수). 신규 테이블은 후속(초대)에서만.
+- **신규 테이블 1**: `collaboration_invitations`(초대 전용·기존 중복 없음). users/tenants/team 은 복제하지 않음(§4 준수).
+- **신규 코드**: `PM\Collaboration` 초대 엔진 6메서드 · `UserAuth::provisionInvitedMember`(additive) · `CollabAccept.jsx`.
 
 ## 5. 기존 프로젝트 Membership ↔ 협업 Membership 연결
 

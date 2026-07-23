@@ -67,6 +67,30 @@ export default function CollaborationHome() {
     finally { setBusyKey(''); }
   }, [authFetch, load]);
 
+  // [CWIS Part002] 초대 관리(admin) — 백엔드가 권한 강제. 생성 시 accept_url/token 1회 노출.
+  const [invites, setInvites] = useState([]);
+  const [invEmail, setInvEmail] = useState('');
+  const [invRole, setInvRole] = useState('member');
+  const [invResult, setInvResult] = useState(null);
+  const [invBusy, setInvBusy] = useState(false);
+  const loadInvites = useCallback(async () => {
+    try { const r = await authFetch('/api/v425/pm/collaboration/invitations'); if (r.ok) { const j = await r.json(); setInvites(Array.isArray(j?.invitations) ? j.invitations : []); } } catch (_) { /* 권한 없으면 무시 */ }
+  }, [authFetch]);
+  useEffect(() => { if (token) loadInvites(); }, [token, loadInvites]);
+  const createInvite = useCallback(async () => {
+    if (!invEmail) return; setInvBusy(true); setInvResult(null);
+    try {
+      const r = await authFetch('/api/v425/pm/collaboration/invitations', { method: 'POST', body: JSON.stringify({ email: invEmail, membership_type: invRole }) });
+      const j = await r.json();
+      if (!r.ok || !j?.ok) setInvResult({ err: j?.error || `실패(HTTP ${r.status})` });
+      else { setInvResult({ ok: true, url: j.accept_url, sent: j.email_sent }); setInvEmail(''); await loadInvites(); }
+    } catch (e) { setInvResult({ err: String(e?.message || e) }); }
+    finally { setInvBusy(false); }
+  }, [authFetch, invEmail, invRole, loadInvites]);
+  const revokeInvite = useCallback(async (pid) => {
+    try { const r = await authFetch(`/api/v425/pm/collaboration/invitations/${encodeURIComponent(pid)}/revoke`, { method: 'POST' }); if (r.ok) await loadInvites(); } catch (_) {}
+  }, [authFetch, loadInvites]);
+
   const grouped = useMemo(() => {
     const order = ['ENABLED', 'PARTIAL', 'ANALYZING', 'PLANNED', 'BLOCKED', 'DISABLED', 'DEPRECATED'];
     const g = {};
@@ -157,6 +181,39 @@ export default function CollaborationHome() {
           </div>
         </div>
       ))}
+
+      {/* [CWIS Part002] 팀원 초대 관리 */}
+      <div style={{ marginTop: 8, padding: 16, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>✉️ {t('collab.invite.title', '팀원 초대')}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>{t('collab.invite.desc', '이메일로 팀원을 초대합니다. 링크(토큰)는 만료·1회성이며 관리자만 발급/철회할 수 있습니다.')}</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+          <input type="email" placeholder={t('collab.invite.email', '초대할 이메일')} value={invEmail} onChange={e => setInvEmail(e.target.value)}
+            style={{ flex: '1 1 200px', minWidth: 180, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)' }} />
+          <select value={invRole} onChange={e => setInvRole(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)' }}>
+            <option value="member">{t('collab.role.member', '멤버')}</option>
+            <option value="manager">{t('collab.role.manager', '매니저')}</option>
+          </select>
+          <button onClick={createInvite} disabled={invBusy || !invEmail}
+            style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: invBusy || !invEmail ? 0.5 : 1 }}>
+            {invBusy ? '…' : t('collab.invite.send', '초대 보내기')}
+          </button>
+        </div>
+        {invResult?.err && <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{invResult.err}</div>}
+        {invResult?.ok && (
+          <div style={{ fontSize: 12, color: '#16a34a', marginBottom: 8, wordBreak: 'break-all' }}>
+            {t('collab.invite.created', '초대 생성됨')}{invResult.sent ? ' · ' + t('collab.invite.sent', '이메일 발송됨') : ' (' + t('collab.invite.manual', '이메일 미설정 — 아래 링크 수동 전달') + ')'}: <span style={{ color: '#334155' }}>{invResult.url}</span>
+          </div>
+        )}
+        <div style={{ display: 'grid', gap: 6 }}>
+          {invites.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('collab.invite.none', '초대 내역이 없습니다.')}</div>}
+          {invites.map(iv => (
+            <div key={iv.public_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 12 }}>
+              <span>{iv.email} · <b>{iv.membership_type}</b> · <span style={{ color: iv.status === 'ACCEPTED' ? '#16a34a' : iv.status === 'PENDING' ? '#d97706' : '#94a3b8' }}>{iv.status}</span>{iv.expires_at ? ' · ~' + String(iv.expires_at).slice(0, 10) : ''}</span>
+              {iv.status === 'PENDING' && <button onClick={() => revokeInvite(iv.public_id)} style={{ fontSize: 11, color: '#dc2626', border: '1px solid rgba(220,38,38,0.3)', borderRadius: 6, padding: '2px 10px', background: 'transparent', cursor: 'pointer' }}>{t('collab.invite.revoke', '철회')}</button>}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

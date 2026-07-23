@@ -61,7 +61,7 @@ final class Collaboration extends Shared
         // [CWIS Part002] 조직/워크스페이스/팀/멤버 — 대부분 기존구조 재사용(교차검증: 명세 §4 복제금지·§1 Reuse).
         ['collaboration.organization', '조직',             'ENABLED', '002', ['collaboration.foundation'],  'tenant=조직(tenant_business_profile: company_name/industry). 별도 org 계층 신설은 제품범위 검토 후'],
         ['collaboration.external',     '외부 협업(게스트/파트너)', 'PARTIAL', '002', ['collaboration.organization'], 'AgencyPortal(agency_client_link)·PartnerPortal 부분 존재 · 통합 게스트/파트너 초대는 후속'],
-        ['collaboration.invitation',   '초대',             'PLANNED', '002', ['collaboration.member'],      '일반 초대(token_hash/만료/수락/철회) 부재 — agency/live 도메인특화만 존재. Part002 후속 착수 대상(1순위)'],
+        ['collaboration.invitation',   '초대',             'ENABLED', '002', ['collaboration.member'],      '초대 엔진 구현 — token_hash(SHA256)/만료/1회성/이메일검증/rate/감사·수락 시 UserAuth 프로비저너 재사용(member/manager)'],
         ['collaboration.department',   '부서',             'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위(소규모 팀 SaaS) 검토 필요 — 다단계 부서계층 수요 확인 후'],
         ['collaboration.squad',        '스쿼드',           'PLANNED', '002', ['collaboration.team'],        '부재 · 제품범위 검토(스쿼드/애자일 조직 수요 확인 후)'],
         ['collaboration.community',    '커뮤니티',         'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위 검토(관심사 기반 커뮤니티 수요 확인 후)'],
@@ -324,5 +324,216 @@ final class Collaboration extends Shared
             'blocking_issues'      => $blocking,
             'note'                 => 'readiness 는 capability 실구현 상태 가중평균. PLANNED 코어(실시간/메시징/문서)는 후속 Part에서 상승.',
         ]]);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+     * [CWIS Part002] Invitation 엔진 (초엔터프라이즈급 · 진짜 결여였던 초대 구현)
+     *  ★보안: token 은 hash-only 저장(UserAuth::hashToken=SHA256·세션토큰 hash-gate 교훈 승계)·raw 는 생성 시 1회만
+     *    노출 · 192bit 엔트로피(brute-force 불가) · 만료 · 1회성(status 게이트) · 이메일 결속 · 테넌트격리 · 감사(pm_audit_log).
+     *  ★멤버 프로비저닝은 UserAuth::provisionInvitedMember 재사용(중복 재구현 금지)·admin/owner 부여 불가(member/manager).
+     * ════════════════════════════════════════════════════════════════════ */
+
+    private static array $invEnsured = [];
+    private const INV_STATUSES = ['PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'REVOKED'];
+
+    private static function ensureInvitationTable(\PDO $pdo, bool $isDemo): void
+    {
+        $memo = $isDemo ? 'demo' : 'ops';
+        if (isset(self::$invEnsured[$memo])) return;
+        self::$invEnsured[$memo] = true;
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS collaboration_invitations (
+                    id INT AUTO_INCREMENT PRIMARY KEY, public_id VARCHAR(64), tenant_id VARCHAR(100) NOT NULL,
+                    scope_type VARCHAR(30) DEFAULT 'ORGANIZATION', scope_id VARCHAR(100),
+                    email VARCHAR(190) NOT NULL, membership_type VARCHAR(30) DEFAULT 'member', team_name VARCHAR(100),
+                    token_hash VARCHAR(80) NOT NULL, status VARCHAR(20) DEFAULT 'PENDING', invited_by VARCHAR(100),
+                    fail_count INT DEFAULT 0, expires_at VARCHAR(32), accepted_at VARCHAR(32), declined_at VARCHAR(32),
+                    revoked_at VARCHAR(32), accepted_user_id VARCHAR(100), created_at VARCHAR(32), updated_at VARCHAR(32),
+                    UNIQUE KEY uq_inv_token (token_hash), KEY idx_inv_tenant (tenant_id, email, status), KEY idx_inv_exp (expires_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS collaboration_invitations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, public_id TEXT, tenant_id TEXT NOT NULL,
+                    scope_type TEXT DEFAULT 'ORGANIZATION', scope_id TEXT, email TEXT NOT NULL,
+                    membership_type TEXT DEFAULT 'member', team_name TEXT, token_hash TEXT NOT NULL UNIQUE,
+                    status TEXT DEFAULT 'PENDING', invited_by TEXT, fail_count INTEGER DEFAULT 0, expires_at TEXT,
+                    accepted_at TEXT, declined_at TEXT, revoked_at TEXT, accepted_user_id TEXT, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE INDEX IF NOT EXISTS idx_inv_tenant ON collaboration_invitations(tenant_id, email, status)");
+            }
+        } catch (\Throwable $e) { /* graceful */ }
+    }
+
+    private static function hostIsDemo(Request $req): bool
+    {
+        $h = strtolower((string)($req->getServerParams()['HTTP_HOST'] ?? ''));
+        return str_contains($h, 'demo') || str_contains($h, 'roidemo');
+    }
+
+    private static function tenantOwnerPlan(\PDO $pdo, string $tenant): string
+    {
+        try {
+            $st = $pdo->prepare("SELECT plan FROM app_user WHERE tenant_id=? AND (parent_user_id IS NULL OR team_role='owner') ORDER BY id LIMIT 1");
+            $st->execute([$tenant]);
+            $p = (string)($st->fetchColumn() ?: '');
+            return $p !== '' ? $p : 'pro';
+        } catch (\Throwable $e) { return 'pro'; }
+    }
+
+    /** POST /v425/pm/collaboration/invitations (admin) — 초대 발급. raw token 1회 반환. */
+    public static function createInvitation(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'admin');
+        if (isset($g['error'])) return $g['error'];
+        $pdo = $g['pdo']; $tenant = $g['tenant'];
+        self::ensureInvitationTable($pdo, $g['isDemo']);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $email = strtolower(trim((string)($b['email'] ?? '')));
+        $role  = in_array(($b['membership_type'] ?? $b['role'] ?? 'member'), ['member', 'manager'], true) ? (string)($b['membership_type'] ?? $b['role'] ?? 'member') : 'member';
+        $teamName = trim((string)($b['team_name'] ?? '')) ?: null;
+        $days = max(1, min(30, (int)($b['expires_days'] ?? 7)));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($resp, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
+
+        // 중복검사: 이미 가입된 이메일 / 대기중 초대
+        try {
+            $ex = $pdo->prepare("SELECT id FROM app_user WHERE LOWER(email)=? AND tenant_id=?");
+            $ex->execute([$email, $tenant]);
+            if ($ex->fetchColumn()) return self::json($resp, ['ok' => false, 'error' => '이미 팀에 속한 이메일입니다.'], 409);
+        } catch (\Throwable $e) {}
+        $pend = $pdo->prepare("SELECT id FROM collaboration_invitations WHERE tenant_id=? AND email=? AND status='PENDING'");
+        $pend->execute([$tenant, $email]);
+        if ($pend->fetchColumn()) return self::json($resp, ['ok' => false, 'error' => '이미 대기중인 초대가 있습니다. 재발송 또는 철회 후 다시 시도하세요.'], 409);
+        // Rate: 테넌트 PENDING 상한
+        $cnt = $pdo->prepare("SELECT COUNT(*) FROM collaboration_invitations WHERE tenant_id=? AND status='PENDING'");
+        $cnt->execute([$tenant]);
+        if ((int)$cnt->fetchColumn() >= 200) return self::json($resp, ['ok' => false, 'error' => '대기중 초대가 너무 많습니다(최대 200).'], 429);
+
+        $raw = bin2hex(random_bytes(24)); // 192bit
+        $hash = \Genie\Handlers\UserAuth::hashToken($raw);
+        $now = gmdate('c'); $exp = gmdate('c', time() + $days * 86400);
+        try {
+            $pdo->prepare("INSERT INTO collaboration_invitations (public_id,tenant_id,scope_type,scope_id,email,membership_type,team_name,token_hash,status,invited_by,expires_at,created_at,updated_at)
+                           VALUES (?,?,?,?,?,?,?,?,'PENDING',?,?,?,?)")
+                ->execute(['inv_' . substr($hash, 0, 16), $tenant, 'ORGANIZATION', $tenant, $email, $role, $teamName, $hash, (string)($g['user_id'] ?? $tenant), $exp, $now, $now]);
+        } catch (\Throwable $e) {
+            return self::json($resp, ['ok' => false, 'error' => 'persist_failed', 'message' => $e->getMessage()], 500);
+        }
+        $base = $g['isDemo'] ? 'https://demo.genieroi.com' : 'https://www.genieroi.com';
+        $acceptUrl = $base . '/collab/accept?token=' . $raw;
+
+        // 이메일 발송(best-effort · 미설정 시 skip). 원문 토큰은 링크에만.
+        $emailSent = false;
+        try {
+            if (\Genie\Mailer::isConfigured($pdo)) {
+                $bodyHtml = '<p>안녕하세요.</p><p>GeniegoROI 팀 협업에 <b>' . htmlspecialchars($role) . '</b> 권한으로 초대되었습니다.</p>'
+                    . '<p>아래 버튼을 눌러 계정을 만들고 초대를 수락하세요. (만료: ' . htmlspecialchars(substr($exp, 0, 10)) . ')</p>';
+                $html = \Genie\Mailer::wrapHtml('GeniegoROI 팀 초대', $bodyHtml, '초대 수락', $acceptUrl);
+                $r = \Genie\Mailer::send($email, 'GeniegoROI 팀 협업 초대', $html);
+                $emailSent = is_array($r) ? (bool)($r['ok'] ?? false) : (bool)$r;
+            }
+        } catch (\Throwable $e) { /* 발송 실패는 무음 — 링크 수동전달 폴백 */ }
+
+        try {
+            self::auditLog($pdo, ['tenant_id' => $tenant, 'actor_user_id' => (string)($g['user_id'] ?? $tenant), 'actor_api_key' => $g['api_key'] ?? null,
+                'entity_type' => 'collaboration_invitation', 'entity_id' => $email, 'action' => 'invitation_created',
+                'diff' => ['role' => $role, 'expires_at' => $exp, 'email_sent' => $emailSent], 'ip' => self::clientIp($req), 'ua' => self::userAgent($req)]);
+        } catch (\Throwable $e) {}
+
+        // ★raw token/accept_url 은 이 응답에서 1회만 노출.
+        return self::json($resp, ['ok' => true, 'invitation' => ['email' => $email, 'role' => $role, 'status' => 'PENDING', 'expires_at' => $exp],
+            'accept_url' => $acceptUrl, 'token' => $raw, 'email_sent' => $emailSent], 201);
+    }
+
+    /** GET /v425/pm/collaboration/invitations (analyst+) — 목록(token 미노출·만료 sweep). */
+    public static function listInvitations(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'analyst');
+        if (isset($g['error'])) return $g['error'];
+        $pdo = $g['pdo']; $tenant = $g['tenant'];
+        self::ensureInvitationTable($pdo, $g['isDemo']);
+        // 만료 sweep(멱등).
+        try { $pdo->prepare("UPDATE collaboration_invitations SET status='EXPIRED', updated_at=? WHERE tenant_id=? AND status='PENDING' AND expires_at < ?")->execute([gmdate('c'), $tenant, gmdate('c')]); } catch (\Throwable $e) {}
+        $rows = [];
+        try {
+            $st = $pdo->prepare("SELECT public_id,email,membership_type,team_name,status,invited_by,expires_at,accepted_at,revoked_at,created_at FROM collaboration_invitations WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+            $st->execute([$tenant]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+        return self::json($resp, ['ok' => true, 'tenant' => $tenant, 'invitations' => $rows, 'count' => count($rows)]);
+    }
+
+    /** POST /v425/pm/collaboration/invitations/{id}/revoke (admin). */
+    public static function revokeInvitation(Request $req, Response $resp, array $args): Response
+    {
+        $g = self::gate($req, $resp, 'admin');
+        if (isset($g['error'])) return $g['error'];
+        $pdo = $g['pdo']; $tenant = $g['tenant'];
+        self::ensureInvitationTable($pdo, $g['isDemo']);
+        $pid = (string)($args['id'] ?? '');
+        $st = $pdo->prepare("UPDATE collaboration_invitations SET status='REVOKED', revoked_at=?, updated_at=? WHERE tenant_id=? AND public_id=? AND status='PENDING'");
+        $st->execute([gmdate('c'), gmdate('c'), $tenant, $pid]);
+        if ($st->rowCount() === 0) return self::json($resp, ['ok' => false, 'error' => '철회할 대기중 초대가 없습니다.'], 404);
+        try { self::auditLog($pdo, ['tenant_id' => $tenant, 'actor_user_id' => (string)($g['user_id'] ?? $tenant), 'entity_type' => 'collaboration_invitation', 'entity_id' => $pid, 'action' => 'invitation_revoked', 'ip' => self::clientIp($req), 'ua' => self::userAgent($req)]); } catch (\Throwable $e) {}
+        return self::json($resp, ['ok' => true]);
+    }
+
+    /** GET /v425/pm/collaboration/invitations/verify?token= (public) — 수락 전 미리보기(email/role). */
+    public static function verifyInvitation(Request $req, Response $resp): Response
+    {
+        $isDemo = self::hostIsDemo($req);
+        $pdo = \Genie\Db::pdoFor($isDemo);
+        self::ensureInvitationTable($pdo, $isDemo);
+        $token = (string)($req->getQueryParams()['token'] ?? '');
+        if (strlen($token) < 32) return self::json($resp, ['ok' => false, 'error' => 'invalid_token'], 400);
+        $inv = self::lookupInvitation($pdo, $token);
+        if (!$inv) return self::json($resp, ['ok' => false, 'error' => 'not_found_or_used'], 404);
+        if (($inv['status'] ?? '') !== 'PENDING' || (string)($inv['expires_at'] ?? '') < gmdate('c')) {
+            return self::json($resp, ['ok' => false, 'error' => 'expired_or_used', 'status' => $inv['status'] ?? ''], 410);
+        }
+        return self::json($resp, ['ok' => true, 'invitation' => ['email' => $inv['email'], 'role' => $inv['membership_type'], 'expires_at' => $inv['expires_at']]]);
+    }
+
+    /** POST /v425/pm/collaboration/invitations/accept (public·pre-auth) — token+password+name → 멤버 프로비저닝. */
+    public static function acceptInvitation(Request $req, Response $resp): Response
+    {
+        $isDemo = self::hostIsDemo($req);
+        $pdo = \Genie\Db::pdoFor($isDemo);
+        self::ensureInvitationTable($pdo, $isDemo);
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $token = (string)($b['token'] ?? '');
+        $password = (string)($b['password'] ?? '');
+        $name = trim((string)($b['name'] ?? ''));
+        if (strlen($token) < 32) return self::json($resp, ['ok' => false, 'error' => 'invalid_token'], 400);
+        $inv = self::lookupInvitation($pdo, $token);
+        if (!$inv) return self::json($resp, ['ok' => false, 'error' => 'not_found_or_used'], 404);
+        if (($inv['status'] ?? '') !== 'PENDING') return self::json($resp, ['ok' => false, 'error' => 'already_' . strtolower((string)$inv['status'])], 410);
+        if ((string)($inv['expires_at'] ?? '') < gmdate('c')) {
+            try { $pdo->prepare("UPDATE collaboration_invitations SET status='EXPIRED', updated_at=? WHERE id=?")->execute([gmdate('c'), $inv['id']]); } catch (\Throwable $e) {}
+            return self::json($resp, ['ok' => false, 'error' => 'expired'], 410);
+        }
+        $tenant = (string)$inv['tenant_id'];
+        $ownerPlan = self::tenantOwnerPlan($pdo, $tenant);
+        $prov = \Genie\Handlers\UserAuth::provisionInvitedMember($pdo, $tenant, (int)($inv['invited_by'] ?? 0), $ownerPlan, (string)$inv['email'], $password, $name, (string)$inv['membership_type'], $inv['team_name'] ?? null);
+        if (empty($prov['ok'])) return self::json($resp, ['ok' => false, 'error' => $prov['error'] ?? 'provision_failed'], (int)($prov['code'] ?? 422));
+        // 1회성 소진(status→ACCEPTED). 조건부 UPDATE 로 경쟁 이중수락 차단.
+        $mk = $pdo->prepare("UPDATE collaboration_invitations SET status='ACCEPTED', accepted_at=?, accepted_user_id=?, updated_at=? WHERE id=? AND status='PENDING'");
+        $mk->execute([gmdate('c'), (string)$prov['user_id'], gmdate('c'), $inv['id']]);
+        try { self::auditLog($pdo, ['tenant_id' => $tenant, 'actor_user_id' => (string)$prov['user_id'], 'entity_type' => 'collaboration_invitation', 'entity_id' => (string)$inv['email'], 'action' => 'invitation_accepted', 'diff' => ['role' => $inv['membership_type']], 'ip' => self::clientIp($req), 'ua' => self::userAgent($req)]); } catch (\Throwable $e) {}
+        return self::json($resp, ['ok' => true, 'tenant' => $tenant, 'email' => $inv['email'], 'role' => $inv['membership_type'], 'message' => '초대가 수락되었습니다. 로그인하세요.']);
+    }
+
+    /** token(raw) → invitation row (hash-only 조회·SHA256). */
+    private static function lookupInvitation(\PDO $pdo, string $token): ?array
+    {
+        try {
+            $hash = \Genie\Handlers\UserAuth::hashToken($token);
+            $st = $pdo->prepare("SELECT * FROM collaboration_invitations WHERE token_hash=? LIMIT 1");
+            $st->execute([$hash]);
+            $r = $st->fetch(\PDO::FETCH_ASSOC);
+            return $r ?: null;
+        } catch (\Throwable $e) { return null; }
     }
 }

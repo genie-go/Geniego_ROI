@@ -1365,6 +1365,45 @@ final class UserAuth
         ], 201);
     }
 
+    /**
+     * [CWIS Part002] 초대 수락 시 팀원 프로비저닝(SSOT 재사용) — createTeamMember 의 보안 로직(비번정책·중복검사·
+     *   플랜한도·app_user INSERT + password_hashs 폴백)을 초대 수락 경로와 공유(중복 재구현 금지). ★admin/owner 는
+     *   초대로 부여 불가(member/manager 만) — 권한상승 원천차단. 순수 프로비저닝(Request/Response 무의존).
+     *   호출측(PM\Collaboration::acceptInvitation)이 token 검증(hash/만료/1회성/이메일일치) 후 호출.
+     * @return array ['ok'=>true,'user_id'=>int] | ['ok'=>false,'error'=>string,'code'=>int]
+     */
+    public static function provisionInvitedMember(\PDO $pdo, string $tenant, int $invitedBy, string $ownerPlan, string $email, string $password, string $name, string $role, ?string $teamName): array
+    {
+        self::ensureTenantColumns($pdo);
+        $email = strtolower(trim($email)); $name = trim($name);
+        $role = in_array($role, ['manager', 'member'], true) ? $role : 'member'; // admin/owner 초대부여 불가
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.', 'code' => 422];
+        if (($pwErr = self::passwordPolicyError($password)) !== null) return ['ok' => false, 'error' => $pwErr, 'code' => 422];
+        if (strlen($name) < 1) return ['ok' => false, 'error' => '이름을 입력해 주세요.', 'code' => 422];
+        $chk = $pdo->prepare('SELECT id FROM app_user WHERE LOWER(email) = ?');
+        $chk->execute([$email]);
+        if ($chk->fetchColumn()) return ['ok' => false, 'error' => '이미 가입된 이메일입니다.', 'code' => 409];
+        $plan = $ownerPlan !== '' ? $ownerPlan : 'pro';
+        try {
+            $uc = $pdo->prepare('SELECT COUNT(*) FROM app_user WHERE tenant_id=? AND is_active=1');
+            $uc->execute([$tenant]);
+            if ($lim = \Genie\PlanLimits::exceeded($pdo, $plan, 'users', (int)$uc->fetchColumn())) {
+                return ['ok' => false, 'error' => is_array($lim) ? ($lim['error'] ?? '사용자 한도를 초과했습니다.') : '사용자 한도를 초과했습니다.', 'code' => 402];
+            }
+        } catch (\Throwable $e) { /* 한도조회 실패는 가용성 우선 통과 */ }
+        $now = self::now(); $hashed = password_hash($password, PASSWORD_DEFAULT);
+        try {
+            $pdo->prepare('INSERT INTO app_user(email,password_hash,name,plan,plans,is_active,created_at,tenant_id,parent_user_id,team_role,team_name) VALUES(?,?,?,?,?,1,?,?,?,?,?)')
+                ->execute([$email, $hashed, $name, $plan, $plan, $now, $tenant, $invitedBy, $role, $teamName ?: null]);
+        } catch (\Throwable $e) {
+            try {
+                $pdo->prepare('INSERT INTO app_user(email,password_hashs,name,plan,plans,is_active,created_at,tenant_id,parent_user_id,team_role,team_name) VALUES(?,?,?,?,?,1,?,?,?,?,?)')
+                    ->execute([$email, $hashed, $name, $plan, $plan, $now, $tenant, $invitedBy, $role, $teamName ?: null]);
+            } catch (\Throwable $e2) { return ['ok' => false, 'error' => '멤버 프로비저닝 오류: ' . $e2->getMessage(), 'code' => 500]; }
+        }
+        return ['ok' => true, 'user_id' => (int)$pdo->lastInsertId()];
+    }
+
     // PATCH /auth/team/members/{id} — 팀원 수정(이름/역할/팀명/활성/비번재설정)
     public static function updateTeamMember(ServerRequestInterface $req, ResponseInterface $res, array $args = []): ResponseInterface
     {

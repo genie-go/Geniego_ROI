@@ -1448,6 +1448,12 @@ return function (App $app): void {
         'GET /v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
         'POST /v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
         'POST /v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
+        // [CWIS Part002] 초대 엔진(verify/accept 는 public·pre-auth·token 검증)
+        'POST /v425/pm/collaboration/invitations'                => 'Genie\\Handlers\\PM\\Collaboration::createInvitation',
+        'GET /v425/pm/collaboration/invitations'                 => 'Genie\\Handlers\\PM\\Collaboration::listInvitations',
+        'GET /v425/pm/collaboration/invitations/verify'          => 'Genie\\Handlers\\PM\\Collaboration::verifyInvitation',
+        'POST /v425/pm/collaboration/invitations/accept'         => 'Genie\\Handlers\\PM\\Collaboration::acceptInvitation',
+        'POST /v425/pm/collaboration/invitations/{id}/revoke'    => 'Genie\\Handlers\\PM\\Collaboration::revokeInvitation',
         // [231차 PM 초엔터프라이즈] 포트폴리오/EVM/RAID/타임시트/베이스라인/리소스 — PM\Enterprise
         'GET /v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
@@ -1498,6 +1504,11 @@ return function (App $app): void {
         'GET /api/v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
         'POST /api/v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
         'POST /api/v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
+        'POST /api/v425/pm/collaboration/invitations'                => 'Genie\\Handlers\\PM\\Collaboration::createInvitation',
+        'GET /api/v425/pm/collaboration/invitations'                 => 'Genie\\Handlers\\PM\\Collaboration::listInvitations',
+        'GET /api/v425/pm/collaboration/invitations/verify'          => 'Genie\\Handlers\\PM\\Collaboration::verifyInvitation',
+        'POST /api/v425/pm/collaboration/invitations/accept'         => 'Genie\\Handlers\\PM\\Collaboration::acceptInvitation',
+        'POST /api/v425/pm/collaboration/invitations/{id}/revoke'    => 'Genie\\Handlers\\PM\\Collaboration::revokeInvitation',
         'GET /api/v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /api/v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
         'PATCH /api/v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
@@ -3707,6 +3718,12 @@ return function (App $app): void {
     $register('GET',    '/v425/pm/collaboration/capabilities/{key}');
     $register('POST',   '/v425/pm/collaboration/capabilities/{key}/enable');
     $register('POST',   '/v425/pm/collaboration/capabilities/{key}/disable');
+    // [CWIS Part002] 초대 엔진
+    $register('POST',   '/v425/pm/collaboration/invitations');
+    $register('GET',    '/v425/pm/collaboration/invitations');
+    $register('GET',    '/v425/pm/collaboration/invitations/verify');
+    $register('POST',   '/v425/pm/collaboration/invitations/accept');
+    $register('POST',   '/v425/pm/collaboration/invitations/{id}/revoke');
     // [231차 PM 초엔터프라이즈] Enterprise
     $register('GET',    '/v425/pm/portfolios');
     $register('POST',   '/v425/pm/portfolios');
@@ -3756,6 +3773,11 @@ return function (App $app): void {
     $register('GET',    '/api/v425/pm/collaboration/capabilities/{key}');
     $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/enable');
     $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/disable');
+    $register('POST',   '/api/v425/pm/collaboration/invitations');
+    $register('GET',    '/api/v425/pm/collaboration/invitations');
+    $register('GET',    '/api/v425/pm/collaboration/invitations/verify');
+    $register('POST',   '/api/v425/pm/collaboration/invitations/accept');
+    $register('POST',   '/api/v425/pm/collaboration/invitations/{id}/revoke');
     $register('GET',    '/api/v425/pm/portfolios');
     $register('POST',   '/api/v425/pm/portfolios');
     $register('PATCH',  '/api/v425/pm/portfolios/{id}');

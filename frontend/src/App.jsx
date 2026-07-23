@@ -87,6 +87,7 @@ const PMActivity = lazy(() => import("./pages/PMActivity.jsx"));
 const PMSettings = lazy(() => import("./pages/PMSettings.jsx"));
 const PMPortfolio = lazy(() => import("./pages/PMPortfolio.jsx")); // 231차 PM 초엔터프라이즈
 const CollaborationHome = lazy(() => import("./pages/CollaborationHome.jsx")); // CWIS Part001 협업 기반
+const CollabAccept = lazy(() => import("./pages/CollabAccept.jsx")); // CWIS Part002 초대 수락(public·무세션)
 const PMResources = lazy(() => import("./pages/PMResources.jsx"));
 const PMRaid = lazy(() => import("./pages/PMRaid.jsx"));
 const PMEvm = lazy(() => import("./pages/PMEvm.jsx"));
@@ -773,6 +774,8 @@ export default function App() {
                 <Route path="/agency" element={<AgencyConsole />} />
                 {/* [현 차수] 라이브 게스트/코호스트 송출 참여(초대 토큰, 계정 불요) */}
                 <Route path="/live-guest" element={<LiveGuest />} />
+                {/* [CWIS Part002] 초대 수락 — 계정 불요(토큰 검증·public) */}
+                <Route path="/collab/accept" element={<CollabAccept />} />
                 <Route path="/*" element={
                   <RequireAuth>
                     <AppLayout />
