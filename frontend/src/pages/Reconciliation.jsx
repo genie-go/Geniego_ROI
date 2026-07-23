@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import '../styles.css';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { IS_DEMO } from '../utils/demoEnv'; // [현 차수] 데모 대사 폴백(v419 데모 백엔드 부재)
+import { tChannelName } from '../utils/tenantStorage.js'; // [P24 테넌트 격리] 크로스탭 채널 tenant 스코프
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { RECON_GUIDE } from './reconGuideI18n.js';
@@ -26,7 +27,8 @@ const RECON_SYNC_CH = 'geniego_recon_sync';
 function useReconSync() {
   const chRef = useRef(null);
   useEffect(() => {
-    try { chRef.current = new BroadcastChannel(RECON_SYNC_CH); } catch { return; }
+    // [P24 테넌트 격리] 자체 채널 → tChannelName 으로 tenant 스코프(같은 브라우저 타 테넌트 탭과 정산 sync 격리). OmniChannel/OrderHub 패턴 정합.
+    try { chRef.current = new BroadcastChannel(tChannelName(RECON_SYNC_CH)); } catch { return; }
     return () => { try { chRef.current?.close(); } catch { /* BroadcastChannel 정리 실패 무시 */ } };
   }, []);
   const broadcast = useCallback((type, data) => {

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import CreativeStudioTab from "./CreativeStudioTab.jsx";
 import MarketingAIPanel from '../components/MarketingAIPanel.jsx';
 import { useGlobalData } from '../context/GlobalDataContext.jsx';
+import { currentTenant } from '../utils/tenantStorage.js'; // [테넌트 격리] 공유 BroadcastChannel 메시지 tenant 필터
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
 import ApprovalModal from '../components/ApprovalModal.jsx';
@@ -225,6 +226,10 @@ export default function AutoMarketing() {
             if (typeof BroadcastChannel !== 'undefined') {
                 bcRef.current = new BroadcastChannel(SYNC_CHANNEL);
                 bcRef.current.onmessage = (e) => {
+                    // [P24 테넌트 격리] SYNC_CHANNEL='geniego-roi-global-sync' 는 GlobalDataContext 와 공유하는 raw 채널이라
+                    //   같은 브라우저의 타 테넌트 탭(대행사 클라이언트 전환·admin act-as) 메시지가 유입될 수 있다.
+                    //   메시지에 실린 tenant 로 필터(180차 handleSync 패턴 정합) — 타 테넌트의 CAMPAIGNS_UPDATE 로 draft 리셋 방지.
+                    if (e?.data?.tenant && e.data.tenant !== currentTenant()) return;
                     const { type } = e?.data || {};
                     // 캠페인 업데이트 → draft 초기화하여 최신 상태 반영
                     if (type === 'CAMPAIGNS_UPDATE') { setDraft(null); }
