@@ -36,7 +36,7 @@ Version 1.0 | 2026-07-23
 | pre-commit 게이트 | — | ★**실재(매 커밋)** — 자격증명 스캔·G2(i18n sacred SHA)·G9(routes $custom↔$register 등록)·G10(react-hooks/no-undef)·G11(php -l)·G14(정적자산 팬텀)·G15(헤더리스 getJson 인가) |
 | i18n triage | — | ★**자기검증 3종**(`tools/triage.mjs`·16 invariants·pre-commit 자동) |
 | 통합 게이트 | `make test` | ★**`make quality`**(ESLint·PHP구문·Shell·JSON·Git·PHPStan·composer audit) + `make validate`(저장소 구조) |
-| ★CI Quality Gate(§26) | PR 마다 정적분석·차단 | **부분 갭** — `deploy.yml` CI 는 **build+deploy 만**. `make quality`/e2e 미실행(로컬·pre-commit 전용) |
+| ★CI Quality Gate(§26) | PR 마다 정적분석·차단 | **부분 실재** — `deploy.yml` **verify job 이 전 push/PR 에서 GATE1~5(팬텀자산·라우트등록+php-l·rules-of-hooks·빌드·E2E smoke) 실행**(deploy 는 `needs: verify`). ★단 **`make quality` 의 baseline 게이트(ESLint count·PHPStan L5·composer audit)는 CI 미포함**(로컬/pre-commit 전용) |
 
 ---
 
@@ -61,7 +61,7 @@ Version 1.0 | 2026-07-23
 | §23 Test Data | **부분** | E2E 는 데모환경(otp_dev 자동통과)·운영데이터 미사용 준수 |
 | §24 Code Coverage | **미적용** | 측정 안 함 |
 | §25 Static Analysis(PR 자동) | **부분** | pre-commit + `make quality`(로컬). ★PR/CI 자동은 갭(§26) |
-| §26 CI/CD Quality Gate | **부분 갭** | 로컬/pre-commit 은 강함. deploy.yml CI 는 build+deploy 만 → §6 권고 |
+| §26 CI/CD Quality Gate | **부분 실재+갭** | CI verify job=GATE1~5(전 push/PR·deploy 는 needs:verify). ★갭=`make quality` baseline 게이트(PHPStan/ESLint count/composer audit) CI 미포함 → §6 권고 |
 | §27~§29 Test Dir/Naming/Isolation | **대상 없음** | tests/ 부재 |
 | §30 PHP 테스트 구현 | **미적용** | PHPUnit/Pest 부재 |
 | §31 Claude Code(테스트 없이 기능금지) | **상이(대체)** | 단위테스트 대신 **게이트 통과 + E2E + 라이브 브라우저 검증**(무후퇴 원칙·본 세션 배포검증) |
@@ -95,7 +95,7 @@ Version 1.0 | 2026-07-23
 
 ## 6. ★관찰 및 권고 (§25/§26 — CI Quality Gate 갭)
 
-- **현황**: 품질 게이트(`make quality`: ESLint/PHPStan/composer audit)와 pre-commit 게이트는 **로컬/커밋 시점** 강력히 작동한다. 그러나 **`deploy.yml` CI 는 build+deploy 만** 하고 `make quality`·`npm run e2e` 를 실행하지 않는다. → 커밋을 우회(`--no-verify`)하거나 pre-commit 미설치 환경의 푸시는 CI 에서 걸러지지 않는다.
+- **현황(정정)**: `deploy.yml` **verify job 은 전 push/PR 에서 GATE1~5**(팬텀 정적자산·라우트 등록+php-l·rules-of-hooks·프로덕션 빌드·E2E smoke[test secret 有 시])를 실행하고, deploy job 은 `needs: verify` 로 게이트 통과를 강제한다 — 즉 CI 가 **build+deploy 만** 은 아니다. ★**실제 갭**은 좁다: `make quality` 의 **baseline 게이트(ESLint error/warn count·PHPStan L5 baseline·composer audit)만 CI 미포함**(로컬/pre-commit 전용)이다. `--no-verify` 우회·pre-commit 미설치 푸시는 이 baseline 게이트를 CI 에서 못 거른다.
 - ★**본 차수 미실행 사유**: ① `deploy.yml` 은 master push 시 **운영 배포를 자동 발동** — 여기에 게이트 추가는 배포경로 변경(민감). ② 이 저장소 CI 는 과거 "팬텀 콜"(존재하지 않는 스크립트 호출)로 무음 실패 이력(CLAUDE.md). ③ 게이트 CI 는 runner 에 php8.1/composer/node20/make 셋업이 정확해야 하며, gh 미인증으로 실행 검증 불가 → **미검증 CI 파일 추가는 red-X 리스크**.
 - **권고(향후·승인)**: **deploy.yml 을 건드리지 말고 별도 `.github/workflows/quality.yml` 신설**(PR/비-master push 트리거) — setup-node(.nvmrc)+setup-php(8.1)+composer install+npm install → `make quality`(+선택 e2e:render). deploy 워크플로와 격리해 배포 파괴 위험 0. **최초 1회 실제 실행 검증(gh 인증) 후 확정**.
 
