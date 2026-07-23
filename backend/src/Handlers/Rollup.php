@@ -168,7 +168,9 @@ final class Rollup {
         // 204차: 데모는 프론트(rollupDemoDerive)가 단일 소스에서 파생 → 백엔드는 실집계 전용(테넌트격리).
         //   미인증/익명(=demo 미해결)도 실집계(빈 결과) — 운영 공개 합성데이터 노출 차단(감사 P2).
         $tenant = self::tenantOf($req);
+        self::resetDegraded();
         $rows = self::realSkuRows($tenant, $period, $dates);
+        if (self::$rollupDegraded) return TemplateResponder::json($res, ['ok'=>false, 'error'=>'rollup_query_error', 'message'=>'집계 쿼리 실패 — 데이터 없음이 아니라 산출 오류'])->withStatus(500);
         usort($rows, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
         return TemplateResponder::json($res, [
             'ok' => true, 'version' => 'v423', 'dimension' => 'sku',
@@ -448,6 +450,21 @@ final class Rollup {
         return TemplateResponder::json($res, ['ok'=>true,'period'=>$period,'n'=>$n,'count'=>count($list),'channels'=>array_keys($channelsSeen),'benchmark'=>$benchOut,'products'=>$list]);
     }
 
+    // [현 차수] Rollup fake-green 제거 — DB 오류를 ok:true+0(빈결과)로 위장하던 것을 형제 KPI 핸들러
+    //   (OrderHub/Pnl/AttributionMetrics 는 실패 시 500)와 대칭화. 단 "테이블 미존재(신규 테넌트=정상 빈결과)"와
+    //   "쿼리오류(스키마 드리프트·ONLY_FULL_GROUP_BY·연결단절 등 실패)"를 구분 — 전자만 무해한 [] 유지, 후자는
+    //   degraded 마킹 → 엔드포인트가 ok:false 500. PHP-FPM 워커 재사용 대비 엔드포인트 진입 시 resetDegraded().
+    private static bool $rollupDegraded = false;
+    private static function resetDegraded(): void { self::$rollupDegraded = false; }
+    private static function emptyOnQuery(\Throwable $e): array {
+        $m = $e->getMessage();
+        $missingTable = stripos($m, 'no such table') !== false                // SQLite
+                     || stripos($m, "doesn't exist") !== false                 // MySQL 1146
+                     || stripos($m, 'Base table or view not found') !== false; // ANSI 42S02
+        if (!$missingTable) self::$rollupDegraded = true;                       // 실 쿼리오류만 degraded
+        return [];
+    }
+
     private static function realSkuRows(string $tenant, string $period, array $dates): array {
         try {
             $pdo = Db::pdo();
@@ -489,7 +506,7 @@ final class Rollup {
                 $rows[] = self::skuRowFromSeries($sku, $info['name'], $info['channel'], 0, $series);
             }
             return $rows;
-        } catch (\Throwable $e) { return []; }
+        } catch (\Throwable $e) { return self::emptyOnQuery($e); }
     }
 
     private static function skuRowFromSeries(string $id, string $name, string $platform, $price, array $series): array {
@@ -518,7 +535,9 @@ final class Rollup {
         $scale = self::periodScale($period);
         $dates = self::dates($period, $n);
         $tenant = self::tenantOf($req);
+        self::resetDegraded();
         $rows = self::realCampaignRows($tenant, $period, $dates);
+        if (self::$rollupDegraded) return TemplateResponder::json($res, ['ok'=>false, 'error'=>'rollup_query_error', 'message'=>'집계 쿼리 실패 — 데이터 없음이 아니라 산출 오류'])->withStatus(500);
         usort($rows, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
         return TemplateResponder::json($res, [
             'ok' => true, 'version' => 'v423', 'dimension' => 'campaign',
@@ -560,7 +579,7 @@ final class Rollup {
                 $rows[] = self::campaignRowFromSeries($cid, $cid, $info['channel'], $series);
             }
             return $rows;
-        } catch (\Throwable $e) { return []; }
+        } catch (\Throwable $e) { return self::emptyOnQuery($e); }
     }
 
     private static function campaignSeriesPoint(string $d, $s, $i, $c, $v, $r): array {
@@ -597,7 +616,9 @@ final class Rollup {
         $scale = self::periodScale($period);
         $dates = self::dates($period, $n);
         $tenant = self::tenantOf($req);
+        self::resetDegraded();
         $rows = self::realPlatformRows($tenant, $period, $dates);
+        if (self::$rollupDegraded) return TemplateResponder::json($res, ['ok'=>false, 'error'=>'rollup_query_error', 'message'=>'집계 쿼리 실패 — 데이터 없음이 아니라 산출 오류'])->withStatus(500);
         usort($rows, fn($a, $b) => $b['total_revenue'] <=> $a['total_revenue']);
         return TemplateResponder::json($res, [
             'ok' => true, 'version' => 'v423', 'dimension' => 'platform',
@@ -656,7 +677,7 @@ final class Rollup {
             foreach ($rows as &$rw) { $rw['share'] = $shareTot > 0 ? round($rw['total_revenue'] / $shareTot * 100, 1) : 0; }
             unset($rw);
             return $rows;
-        } catch (\Throwable $e) { return []; }
+        } catch (\Throwable $e) { return self::emptyOnQuery($e); }
     }
 
     private static function platformSeriesPoint(string $d, $s, $r, $o, $i, $c, $ar = 0, $v = 0): array {
@@ -699,8 +720,10 @@ final class Rollup {
         $tenant = self::tenantOf($req);
 
         // 플랫폼/SKU 실집계를 재사용해 KPI/by_platform/top_skus 파생(데모는 프론트 파생).
+        self::resetDegraded();
         $platformRows = self::realPlatformRows($tenant, $period, $dates);
         $skuRows = self::realSkuRows($tenant, $period, $dates);
+        if (self::$rollupDegraded) return TemplateResponder::json($res, ['ok'=>false, 'error'=>'rollup_query_error', 'message'=>'집계 쿼리 실패 — 데이터 없음이 아니라 산출 오류'])->withStatus(500);
 
         $totalRev = array_sum(array_column($platformRows, 'total_revenue'));
         $totalSpend = array_sum(array_column($platformRows, 'total_spend'));
