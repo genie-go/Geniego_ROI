@@ -206,17 +206,29 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
     // 212차 #4: 하드코딩 CHANNELS_MASTER 베이스 + 레지스트리 커머스 신규채널 additive merge(admin 추가 채널 동적 노출).
     const [channelsMaster, setChannelsMaster] = React.useState(CHANNELS_MASTER);
     React.useEffect(() => {
+        // [현 차수 SSOT 일원화] 연동탭 커머스 필드를 하드코딩 대신 백엔드 레지스트리(ChannelSync 실행키와 정합)로 덮어써
+        //   프론트/백엔드 이중배선 드리프트(amazon refresh_token·gmarket seller_id·cafe24 refresh_token·yahoo_jp access_token 등)를 근절한다.
+        //   ★무회귀 폴백: 레지스트리 로드 실패/빈값이면 하드코딩 fields 유지. 'line'(LINE Shopping 커머스)은 레지스트리 'line'(메시징)과
+        //   다른 채널이라 override 제외. 별칭 정합: naver→naver_smartstore, 11st→st11.
         loadChannelRegistry().then((reg) => {
-            const have = new Set(CHANNELS_MASTER.map(c => c.id));
-            const extra = registryBySyncKind(reg, 'commerce')
+            const regList = registryBySyncKind(reg, 'commerce') || [];
+            const regByKey = {};
+            regList.forEach(c => { if (c && c.channel_key) regByKey[c.channel_key] = c; });
+            const REG_ALIAS = { naver: 'naver_smartstore', '11st': 'st11' };
+            const NO_OVERRIDE = new Set(['line']);
+            const toFields = (rc) => (rc.fields || []).map(f => ({ key: f.k, label: f.label, ph: '...', secret: f.secret !== false }));
+            const master = CHANNELS_MASTER.map(c => {
+                if (NO_OVERRIDE.has(c.id)) return c;
+                const rc = regByKey[REG_ALIAS[c.id] || c.id];
+                return (rc && Array.isArray(rc.fields) && rc.fields.length) ? { ...c, fields: toFields(rc) } : c;
+            });
+            const have = new Set([...CHANNELS_MASTER.map(x => x.id), 'naver_smartstore', 'st11']);
+            const extra = regList
                 .filter(c => !have.has(c.channel_key) && !REG_COMMERCE_ALIAS.has(c.channel_key))
-                .map(c => ({
-                    id: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1',
-                    type: 'Marketplace',
-                    fields: (c.fields || []).map(f => ({ key: f.k, label: f.label, ph: '...', secret: f.secret !== false })),
-                }));
-            if (extra.length) setChannelsMaster([...CHANNELS_MASTER, ...extra]);
-        });
+                .map(c => ({ id: c.channel_key, name: c.name, icon: c.icon || '🔗', color: c.color || '#6366f1',
+                    type: 'Marketplace', fields: toFields(c) }));
+            setChannelsMaster([...master, ...extra]);
+        }).catch(() => { /* 레지스트리 로드 실패 시 하드코딩 CHANNELS_MASTER 유지(무회귀) */ });
     }, []);
     const toggle = React.useCallback(id => setExpanded(e => ({ ...e, [id]: !e[id] })), []);
 

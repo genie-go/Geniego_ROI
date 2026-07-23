@@ -91,9 +91,14 @@ class ChannelRegistry
             ['pinterest_ads','Pinterest Ads','marketing','📌','#e60023','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             // [현 차수 감사] 실 fetch 어댑터(Connectors fetch*Rows·AD_SHORT) 보유 + REAL_ADAPTER 등재 → sync_kind 'none'→'ad'
             //   정합화(기존 stale 'none'·"연동 예정" 주석 정정). 자격증명 등록 시 즉시 자동 동기화(이미 AD_SHORT로 동작 중).
-            ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','ad',[$ftext('developer_token','개발자 토큰'),$ftext('access_token','액세스 토큰'),$ftext('account_id','계정 ID',false)]],
+            // [현 차수 감사] fetchMicrosoftAdsRows 는 refresh_token+client_id+client_secret(OAuth)+developer_token+customer_id+account_id 를
+            //   읽는데 레지스트리는 미사용 access_token 만 노출하고 refresh_token/client_id/client_secret/customer_id 를 누락 → 100% 인증불가였다.
+            //   Bing Ads OAuth(refresh) 실키로 전면 정정. access_token(미사용) 제거.
+            ['microsoft_ads','Microsoft Ads (Bing)','marketing','🪟','#00a4ef','ad',[$ftext('refresh_token','Refresh Token(OAuth)'),$ftext('client_id','앱(클라이언트) ID',false),$ftext('client_secret','클라이언트 시크릿'),$ftext('developer_token','개발자 토큰'),$ftext('customer_id','고객 ID(CustomerId)',false),$ftext('account_id','계정 ID(AccountId)',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['x_ads','X (Twitter) Ads','marketing','✖️','#000000','ad',[$ftext('consumer_key','Consumer Key'),$ftext('consumer_secret','Consumer Secret'),$ftext('access_token','Access Token'),$ftext('access_token_secret','Access Token Secret'),$ftext('account_id','광고계정 ID',false)]],
-            ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','ad',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false)]],
+            // [현 차수 감사] fetchAmazonAdsRows 는 region(na/eu/fe)로 API 엔드포인트가 갈리는데 레지스트리에 region 누락 → 항상 na 폴백으로
+            //   EU/FE 광고주는 잘못된 게이트웨이 접속·실패. region(+과금통화) 필드 추가.
+            ['amazon_ads','Amazon Ads (Sponsored)','marketing','📦','#ff9900','ad',[$ftext('client_id','LWA Client ID',false),$ftext('client_secret','LWA Secret'),$ftext('refresh_token','Refresh Token'),$ftext('profile_id','프로필 ID',false),$ftext('region','지역(na·eu·fe)',false),$ftext('currency','과금 통화(예: USD)',false)]],
             // [현 차수] 롱테일 광고 커넥터 5종 — 실 fetch 어댑터(Connectors::fetch*Rows) 신용게이트. 자격증명 등록 시 즉시 동작.
             ['reddit_ads','Reddit Ads','marketing','🟠','#ff4500','ad',[$ftext('access_token','액세스 토큰'),$ftext('ad_account_id','광고계정 ID',false),$ftext('currency','과금 통화(예: USD)',false)]],
             ['apple_search_ads','Apple Search Ads','marketing','','#000000','ad',[$ftext('access_token','액세스 토큰'),$ftext('org_id','조직 ID(orgId)',false),$ftext('currency','과금 통화(예: USD)',false)]],
@@ -133,12 +138,15 @@ class ChannelRegistry
             ['coupang','Coupang Wing','sales','🚀','#ef4444','commerce',[$ftext('access_key','액세스 키'),$ftext('secret_key','시크릿 키'),$ftext('vendor_id','벤더 ID',false)]],
             ['naver_smartstore','Naver 스마트스토어','sales','🟢','#03c75a','commerce',[$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret')]],
             ['st11','11번가','sales','1️⃣','#ff0038','commerce',[$ftext('api_key','API 키')]],
-            ['gmarket','Gmarket','sales','🟡','#00a862','commerce',[$ftext('esm_id','ESM PLUS ID',false),$ftext('api_key','API 키')]],
-            ['auction','Auction','sales','🅰','#ff5e00','commerce',[$ftext('esm_id','ESM PLUS ID',false),$ftext('api_key','API 키')]],
+            // [현 차수 감사] esmFetch(G마켓/옥션)는 api_key+seller_id 를 요구하는데 레지스트리는 미사용 esm_id 를 노출하고 필수 seller_id 를
+            //   누락 → ESM 주문조회 항상 실패. 연동허브(ApiKeys)와 동일하게 api_key+seller_id 로 정정.
+            ['gmarket','Gmarket','sales','🟡','#00a862','commerce',[$ftext('api_key','API 키'),$ftext('seller_id','셀러 ID',false)]],
+            ['auction','Auction','sales','🅰','#ff5e00','commerce',[$ftext('api_key','API 키'),$ftext('seller_id','셀러 ID',false)]],
             // [현 차수 감사] cafe24Fetch/cafe24Reviews 는 refresh_token(OAuth) 로만 access_token 을 발급받는데 레지스트리에 refresh_token 필드가 없어
             //   사용자가 입력할 방법이 없었다 → 등록은 되나 동기화 인증 영원히 실패(무음). 필수 refresh_token 추가.
             ['cafe24','Cafe24','sales','🛒','#0078ff','commerce',[$ftext('mall_id','몰 ID',false),$ftext('client_id','Client ID',false),$ftext('client_secret','Client Secret'),$ftext('refresh_token','Refresh Token(OAuth 인증 후)')]],
-            ['lotteon','Lotte ON','sales','🛍','#da0f2b','commerce',[$ftext('api_key','API 키')]],
+            // [현 차수 감사] lotteonFetch 는 api_key+seller_id 를 요구(둘 다 필수)하는데 레지스트리는 seller_id 누락 → 롯데온 주문조회 무음실패. seller_id 추가(연동허브 ApiKeys 와 정합).
+            ['lotteon','Lotte ON','sales','🛍','#da0f2b','commerce',[$ftext('api_key','OpenAPI 인증키'),$ftext('seller_id','판매자(셀러) ID',false)]],
             ['tiktok_shop','TikTok Shop','sales','🎵','#000000','commerce',[$ftext('app_key','App Key',false),$ftext('app_secret','App Secret'),$ftext('access_token','액세스 토큰')]],
             ['rakuten','Rakuten','sales','🔴','#bf0000','commerce',[$ftext('service_secret','Service Secret'),$ftext('license_key','License Key')]],
             // [현 차수 감사] yahooJpFetch/yahooJpWrite 는 access_token+seller_id(SellerId) 를 요구하는데 레지스트리는 미사용 app_id 를 노출하고
@@ -192,7 +200,8 @@ class ChannelRegistry
         //   access_token/region/refresh_token/seller_id 를 사용자가 입력할 수 없던 갭이 남는다. 해당 4채널 fields_json 만 정정 갱신.
         //   ★fields_json 만 갱신(sync_kind/name/icon 등 admin 커스터마이징 보존). 멱등(같은 값 재기록).
         try {
-            $fixKeys = ['shopee' => true, 'lazada' => true, 'cafe24' => true, 'yahoo_jp' => true];
+            $fixKeys = ['shopee' => true, 'lazada' => true, 'cafe24' => true, 'yahoo_jp' => true,
+                        'microsoft_ads' => true, 'amazon_ads' => true, 'gmarket' => true, 'auction' => true, 'lotteon' => true];
             $fx = $pdo->prepare("UPDATE channel_registry SET fields_json=?, updated_at=? WHERE channel_key=?");
             foreach ($cat as $c) {
                 if (!isset($fixKeys[$c[0]])) continue;
