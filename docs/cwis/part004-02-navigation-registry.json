@@ -1,0 +1,5448 @@
+{
+  "registry_version": "1.85f19c2374fe",
+  "content_hash": "85f19c2374fe",
+  "source_revision": "6ca0ec16964a",
+  "generated_at": "2026-07-23T23:41:18.832Z",
+  "generator": "tools/navigation_registry_build.mjs",
+  "activatable": true,
+  "validation": {
+    "counts": {
+      "CRITICAL": 0,
+      "ERROR": 0,
+      "WARNING": 1,
+      "INFO": 0
+    },
+    "issues": [
+      {
+        "severity": "WARNING",
+        "code": "ORPHAN_LEGACY_ROUTE",
+        "target": "/register",
+        "detail": "레거시 리다이렉트 /register → /login?tab=register 의 최종 대상이 메뉴에 없어 alias 를 만들 수 없다."
+      }
+    ]
+  },
+  "vocabulary": {
+    "item_type": [
+      "SECTION",
+      "GROUP",
+      "ITEM",
+      "DIVIDER",
+      "ACTION",
+      "EXTERNAL_LINK",
+      "CONTEXT_SWITCHER",
+      "DYNAMIC_COLLECTION"
+    ],
+    "item_status": [
+      "DRAFT",
+      "ACTIVE",
+      "DISABLED",
+      "HIDDEN",
+      "DEPRECATED",
+      "ARCHIVED",
+      "BROKEN"
+    ],
+    "context_scope": [
+      "GLOBAL",
+      "PERSONAL",
+      "TENANT",
+      "ORGANIZATION",
+      "WORKSPACE",
+      "DEPARTMENT",
+      "TEAM",
+      "PORTFOLIO",
+      "PROGRAM",
+      "PROJECT",
+      "CHANNEL",
+      "DOCUMENT",
+      "ADMINISTRATION"
+    ],
+    "target_platform": [
+      "WEB_DESKTOP",
+      "WEB_TABLET",
+      "WEB_MOBILE",
+      "PWA",
+      "NATIVE_IOS",
+      "NATIVE_ANDROID",
+      "DESKTOP_APP",
+      "COMMAND_PALETTE",
+      "GLOBAL_SEARCH",
+      "ADMIN_CONSOLE"
+    ],
+    "principal_type": [
+      "USER",
+      "GUEST",
+      "EXTERNAL_PARTNER",
+      "VENDOR",
+      "CUSTOMER",
+      "AUDITOR",
+      "AI_AGENT",
+      "SERVICE_ACCOUNT",
+      "PLATFORM_OPERATOR"
+    ],
+    "target_type": [
+      "INTERNAL_ROUTE",
+      "EXTERNAL_URL",
+      "CLIENT_ACTION",
+      "DYNAMIC_PROVIDER"
+    ],
+    "icon_keys": [
+      "home",
+      "grid",
+      "rocket",
+      "megaphone",
+      "users",
+      "cart",
+      "chart",
+      "robot",
+      "folder",
+      "plug",
+      "card",
+      "shield",
+      "settings",
+      "search",
+      "calendar",
+      "message-circle",
+      "sparkles",
+      "database",
+      "box",
+      "factory",
+      "refresh",
+      "flask",
+      "link",
+      "target",
+      "file"
+    ],
+    "client_actions": [
+      "OPEN_COMMAND_PALETTE",
+      "OPEN_CREATE_PROJECT",
+      "OPEN_INVITE_MEMBER",
+      "OPEN_NEW_MESSAGE"
+    ],
+    "allowed_external_domains": [
+      "genieroi.com",
+      "www.genieroi.com",
+      "geniego.com",
+      "docs.genieroi.com"
+    ],
+    "badge_providers": {
+      "badge.unread_notifications": {
+        "source": "user_notification (GET /auth/notifications)",
+        "implemented": true
+      },
+      "badge.pending_approvals": {
+        "source": "action_request",
+        "implemented": false,
+        "reason": "생산자 배선 미완(287차 감사 확정) — 숫자를 만들지 않는다"
+      },
+      "badge.my_open_tasks": {
+        "source": "pm_task_assignees",
+        "implemented": false,
+        "reason": "Part004-05 개인 작업함에서 구현"
+      }
+    }
+  },
+  "items": [
+    {
+      "menu_key": "home.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.home",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "home",
+      "emoji_glyph": "⬡",
+      "badge_provider_key": null,
+      "sort_order": 100,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "home",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "marketing.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.aiMarketing",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "rocket",
+      "emoji_glyph": "🚀",
+      "badge_provider_key": null,
+      "sort_order": 200,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "ai_marketing",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "adops.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.adAnalytics",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "megaphone",
+      "emoji_glyph": "📣",
+      "badge_provider_key": null,
+      "sort_order": 300,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "ad_analytics",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "crm.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.crmLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "users",
+      "emoji_glyph": "👤",
+      "badge_provider_key": null,
+      "sort_order": 400,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "crm",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "commerce.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.commerceLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "cart",
+      "emoji_glyph": "🛒",
+      "badge_provider_key": null,
+      "sort_order": 500,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "commerce",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "analytics.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.analytics",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "chart",
+      "emoji_glyph": "📊",
+      "badge_provider_key": null,
+      "sort_order": 600,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "analytics",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "automation.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.automation",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "robot",
+      "emoji_glyph": "🤖",
+      "badge_provider_key": null,
+      "sort_order": 700,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "automation",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "pm.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.pmGroup",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "folder",
+      "emoji_glyph": "🗂️",
+      "badge_provider_key": null,
+      "sort_order": 800,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "pm",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "data.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.data",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "plug",
+      "emoji_glyph": "🔌",
+      "badge_provider_key": null,
+      "sort_order": 900,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "data",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "finance.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.finance",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "card",
+      "emoji_glyph": "💳",
+      "badge_provider_key": null,
+      "sort_order": 1000,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "finance",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "workspace.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.memberTools",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "users",
+      "emoji_glyph": "👥",
+      "badge_provider_key": null,
+      "sort_order": 1100,
+      "context_scope": "TENANT",
+      "permission_rule": null,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "member_tools",
+        "audience": "MEMBER"
+      }
+    },
+    {
+      "menu_key": "administration.section",
+      "parent_menu_key": null,
+      "type": "SECTION",
+      "label_key": "gNav.adminSystem",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": null,
+      "icon_key": "settings",
+      "emoji_glyph": "🔧",
+      "badge_provider_key": null,
+      "sort_order": 1200,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "platform.admin"
+        ]
+      },
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "group_key": "system",
+        "audience": "ADMIN"
+      }
+    },
+    {
+      "menu_key": "home.dashboard",
+      "parent_menu_key": "home.section",
+      "type": "ITEM",
+      "label_key": "gNav.dashboardLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/dashboard",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "grid",
+      "emoji_glyph": "⬡",
+      "badge_provider_key": null,
+      "sort_order": 10,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:home||dashboard"
+        ]
+      },
+      "legacy_permission_key": "home||dashboard",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/dashboard",
+        "permission_key": "home||dashboard",
+        "group_key": "home",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "home.rollup",
+      "parent_menu_key": "home.section",
+      "type": "ITEM",
+      "label_key": "gNav.rollupLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/rollup",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "🗂️",
+      "badge_provider_key": null,
+      "sort_order": 20,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:home||rollup"
+        ]
+      },
+      "legacy_permission_key": "home||rollup",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/rollup",
+        "permission_key": "home||rollup",
+        "group_key": "home",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "marketing.auto_marketing",
+      "parent_menu_key": "marketing.section",
+      "type": "ITEM",
+      "label_key": "gNav.autoMarketingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/auto-marketing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "sparkles",
+      "emoji_glyph": "💎",
+      "badge_provider_key": null,
+      "sort_order": 30,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/auto-marketing",
+        "permission_key": "marketing_core",
+        "group_key": "ai_marketing",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "marketing.campaign_manager",
+      "parent_menu_key": "marketing.section",
+      "type": "ITEM",
+      "label_key": "gNav.campaignManagerLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/campaign-manager",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "target",
+      "emoji_glyph": "🎯",
+      "badge_provider_key": null,
+      "sort_order": 40,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/campaign-manager",
+        "permission_key": "marketing_core",
+        "group_key": "ai_marketing",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "marketing.journey_builder",
+      "parent_menu_key": "marketing.section",
+      "type": "ITEM",
+      "label_key": "gNav.journeyBuilderLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/journey-builder",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "calendar",
+      "emoji_glyph": "🗺️",
+      "badge_provider_key": null,
+      "sort_order": 50,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/journey-builder",
+        "permission_key": "marketing_advanced",
+        "group_key": "ai_marketing",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "marketing.onsite_cro",
+      "parent_menu_key": "marketing.section",
+      "type": "ITEM",
+      "label_key": "gNav.onsiteCroLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/onsite-cro",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "flask",
+      "emoji_glyph": "🧪",
+      "badge_provider_key": null,
+      "sort_order": 60,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/onsite-cro",
+        "permission_key": "marketing_advanced",
+        "group_key": "ai_marketing",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "marketing.web_popup",
+      "parent_menu_key": "marketing.section",
+      "type": "ITEM",
+      "label_key": "gNav.webPopupLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/web-popup",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "target",
+      "emoji_glyph": "🎯",
+      "badge_provider_key": null,
+      "sort_order": 70,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/web-popup",
+        "permission_key": "marketing_advanced",
+        "group_key": "ai_marketing",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "adops.marketing",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.adPerformanceLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/marketing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "megaphone",
+      "emoji_glyph": "📣",
+      "badge_provider_key": null,
+      "sort_order": 80,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/marketing",
+        "permission_key": "marketing_core",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "adops.budget_tracker",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.budgetTrackerLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/budget-tracker",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "card",
+      "emoji_glyph": "💰",
+      "badge_provider_key": null,
+      "sort_order": 90,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/budget-tracker",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "adops.account_performance",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.accountPerformanceLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/account-performance",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "settings",
+      "emoji_glyph": "🏢",
+      "badge_provider_key": null,
+      "sort_order": 100,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/account-performance",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "adops.attribution",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.attributionLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/attribution",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "link",
+      "emoji_glyph": "🔗",
+      "badge_provider_key": null,
+      "sort_order": 110,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/attribution",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "adops.marketing_mix",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.marketingMixLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/marketing-mix",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "📐",
+      "badge_provider_key": null,
+      "sort_order": 120,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/marketing-mix",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "adops.channel_kpi",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.channelKpiLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/channel-kpi",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "📊",
+      "badge_provider_key": null,
+      "sort_order": 130,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/channel-kpi",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "adops.graph_score",
+      "parent_menu_key": "adops.section",
+      "type": "ITEM",
+      "label_key": "gNav.graphScoreLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/graph-score",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "link",
+      "emoji_glyph": "🕸️",
+      "badge_provider_key": null,
+      "sort_order": 140,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/graph-score",
+        "permission_key": "marketing_advanced",
+        "group_key": "ad_analytics",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.crm",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.crmMainLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/crm",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "👥",
+      "badge_provider_key": null,
+      "sort_order": 150,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/crm",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.kakao_channel",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.kakaoChannelLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/kakao-channel",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "💬",
+      "badge_provider_key": null,
+      "sort_order": 160,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/kakao-channel",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.email_marketing",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.emailMarketingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/email-marketing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "✉️",
+      "badge_provider_key": null,
+      "sort_order": 170,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/email-marketing",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.sms_marketing",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.smsMarketingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/sms-marketing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "📱",
+      "badge_provider_key": null,
+      "sort_order": 180,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/sms-marketing",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.line_channel",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.lineChannelLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/line-channel",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "💚",
+      "badge_provider_key": null,
+      "sort_order": 190,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/line-channel",
+        "permission_key": "marketing_advanced",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.whatsapp",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.whatsappLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/whatsapp",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "🟢",
+      "badge_provider_key": null,
+      "sort_order": 200,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/whatsapp",
+        "permission_key": "marketing_advanced",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.instagram_dm",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.instagramDmLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/instagram-dm",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "📸",
+      "badge_provider_key": null,
+      "sort_order": 210,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/instagram-dm",
+        "permission_key": "marketing_advanced",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.influencer",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.influencerLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/influencer",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "🤝",
+      "badge_provider_key": null,
+      "sort_order": 220,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_advanced"
+        ]
+      },
+      "legacy_permission_key": "marketing_advanced",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/influencer",
+        "permission_key": "marketing_advanced",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.content_calendar",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.contentCalendarLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/content-calendar",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "calendar",
+      "emoji_glyph": "📅",
+      "badge_provider_key": null,
+      "sort_order": 230,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/content-calendar",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "crm.reviews_ugc",
+      "parent_menu_key": "crm.section",
+      "type": "ITEM",
+      "label_key": "gNav.reviewsUgcLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/reviews-ugc",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "sparkles",
+      "emoji_glyph": "⭐",
+      "badge_provider_key": null,
+      "sort_order": 240,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:marketing_core"
+        ]
+      },
+      "legacy_permission_key": "marketing_core",
+      "required_plan": "starter",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/reviews-ugc",
+        "permission_key": "marketing_core",
+        "group_key": "crm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.omni_channel",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.omniChannelLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/omni-channel",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "plug",
+      "emoji_glyph": "🌐",
+      "badge_provider_key": null,
+      "sort_order": 250,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:commerce_channel"
+        ]
+      },
+      "legacy_permission_key": "commerce_channel",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/omni-channel",
+        "permission_key": "commerce_channel",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.catalog_sync",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.catalogLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/catalog-sync",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "📂",
+      "badge_provider_key": null,
+      "sort_order": 260,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:commerce_channel"
+        ]
+      },
+      "legacy_permission_key": "commerce_channel",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/catalog-sync",
+        "permission_key": "commerce_channel",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.live_commerce",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.liveCommerceLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/live-commerce",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "box",
+      "emoji_glyph": "🎬",
+      "badge_provider_key": null,
+      "sort_order": 270,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:commerce_live"
+        ]
+      },
+      "legacy_permission_key": "commerce_live",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/live-commerce",
+        "permission_key": "commerce_live",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "commerce.order_hub",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.orderHubLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/order-hub",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "box",
+      "emoji_glyph": "📦",
+      "badge_provider_key": null,
+      "sort_order": 280,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:commerce_channel"
+        ]
+      },
+      "legacy_permission_key": "commerce_channel",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/order-hub",
+        "permission_key": "commerce_channel",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.wms_manager",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.wmsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/wms-manager",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "factory",
+      "emoji_glyph": "🏭",
+      "badge_provider_key": null,
+      "sort_order": 290,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/wms-manager",
+        "permission_key": "ops",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.price_opt",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.priceOptLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/price-opt",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "sparkles",
+      "emoji_glyph": "💡",
+      "badge_provider_key": null,
+      "sort_order": 300,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/price-opt",
+        "permission_key": "ops",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.supply_chain",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.supplyChainLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/supply-chain",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "search",
+      "emoji_glyph": "🔭",
+      "badge_provider_key": null,
+      "sort_order": 310,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/supply-chain",
+        "permission_key": "ops",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.demand_forecast",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.demandForecastLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/demand-forecast",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "📈",
+      "badge_provider_key": null,
+      "sort_order": 320,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/demand-forecast",
+        "permission_key": "ops",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.returns_portal",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.returnsPortalLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/returns-portal",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "refresh",
+      "emoji_glyph": "🔄",
+      "badge_provider_key": null,
+      "sort_order": 330,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/returns-portal",
+        "permission_key": "ops",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "commerce.operations",
+      "parent_menu_key": "commerce.section",
+      "type": "ITEM",
+      "label_key": "gNav.operationsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/operations",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "rocket",
+      "emoji_glyph": "⚡",
+      "badge_provider_key": null,
+      "sort_order": 340,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||operations"
+        ]
+      },
+      "legacy_permission_key": "system||operations",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/operations",
+        "permission_key": "system||operations",
+        "group_key": "commerce",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "analytics.performance",
+      "parent_menu_key": "analytics.section",
+      "type": "ITEM",
+      "label_key": "gNav.performanceHubLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/performance",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "📊",
+      "badge_provider_key": null,
+      "sort_order": 350,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:analytics||performance_hub"
+        ]
+      },
+      "legacy_permission_key": "analytics||performance_hub",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/performance",
+        "permission_key": "analytics||performance_hub",
+        "group_key": "analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "analytics.report_builder",
+      "parent_menu_key": "analytics.section",
+      "type": "ITEM",
+      "label_key": "gNav.reportBuilderLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/report-builder",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "📑",
+      "badge_provider_key": null,
+      "sort_order": 360,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:analytics||report_builder"
+        ]
+      },
+      "legacy_permission_key": "analytics||report_builder",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/report-builder",
+        "permission_key": "analytics||report_builder",
+        "group_key": "analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "analytics.pnl",
+      "parent_menu_key": "analytics.section",
+      "type": "ITEM",
+      "label_key": "gNav.pnlLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pnl",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "🌊",
+      "badge_provider_key": null,
+      "sort_order": 370,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:analytics||pnl_analytics"
+        ]
+      },
+      "legacy_permission_key": "analytics||pnl_analytics",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pnl",
+        "permission_key": "analytics||pnl_analytics",
+        "group_key": "analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "analytics.ai_insights",
+      "parent_menu_key": "analytics.section",
+      "type": "ITEM",
+      "label_key": "gNav.aiInsightsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/ai-insights",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "robot",
+      "emoji_glyph": "🤖",
+      "badge_provider_key": null,
+      "sort_order": 380,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:analytics||ai_insights"
+        ]
+      },
+      "legacy_permission_key": "analytics||ai_insights",
+      "required_plan": "growth",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/ai-insights",
+        "permission_key": "analytics||ai_insights",
+        "group_key": "analytics",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "automation.ai_rule_engine",
+      "parent_menu_key": "automation.section",
+      "type": "ITEM",
+      "label_key": "gNav.aiRuleEngineLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/ai-rule-engine",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "robot",
+      "emoji_glyph": "🧠",
+      "badge_provider_key": null,
+      "sort_order": 390,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:automation||ai_rule_engine"
+        ]
+      },
+      "legacy_permission_key": "automation||ai_rule_engine",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/ai-rule-engine",
+        "permission_key": "automation||ai_rule_engine",
+        "group_key": "automation",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "automation.approvals",
+      "parent_menu_key": "automation.section",
+      "type": "ITEM",
+      "label_key": "gNav.approvalsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/approvals",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "shield",
+      "emoji_glyph": "✅",
+      "badge_provider_key": null,
+      "sort_order": 400,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:automation||approvals"
+        ]
+      },
+      "legacy_permission_key": "automation||approvals",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/approvals",
+        "permission_key": "automation||approvals",
+        "group_key": "automation",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "automation.writeback",
+      "parent_menu_key": "automation.section",
+      "type": "ITEM",
+      "label_key": "gNav.writebackLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/writeback",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "refresh",
+      "emoji_glyph": "↩",
+      "badge_provider_key": null,
+      "sort_order": 410,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:automation||writeback"
+        ]
+      },
+      "legacy_permission_key": "automation||writeback",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/writeback",
+        "permission_key": "automation||writeback",
+        "group_key": "automation",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "automation.onboarding",
+      "parent_menu_key": "automation.section",
+      "type": "ITEM",
+      "label_key": "gNav.onboardingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/onboarding",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "calendar",
+      "emoji_glyph": "🗺️",
+      "badge_provider_key": null,
+      "sort_order": 420,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:automation||onboarding"
+        ]
+      },
+      "legacy_permission_key": "automation||onboarding",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/onboarding",
+        "permission_key": "automation||onboarding",
+        "group_key": "automation",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "pm.pm",
+      "parent_menu_key": "pm.section",
+      "type": "ITEM",
+      "label_key": "gNav.pmOverviewLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pm",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "🗂️",
+      "badge_provider_key": null,
+      "sort_order": 430,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pm",
+        "permission_key": "ops",
+        "group_key": "pm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "pm.portfolio",
+      "parent_menu_key": "pm.section",
+      "type": "ITEM",
+      "label_key": "gNav.pmPortfolioLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pm/portfolio",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "📁",
+      "badge_provider_key": null,
+      "sort_order": 440,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pm/portfolio",
+        "permission_key": "ops",
+        "group_key": "pm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "pm.resources",
+      "parent_menu_key": "pm.section",
+      "type": "ITEM",
+      "label_key": "gNav.pmResourcesLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pm/resources",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "👥",
+      "badge_provider_key": null,
+      "sort_order": 450,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pm/resources",
+        "permission_key": "ops",
+        "group_key": "pm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "pm.collaboration",
+      "parent_menu_key": "pm.section",
+      "type": "ITEM",
+      "label_key": "gNav.pmCollaborationLabel",
+      "fallback_label": "협업",
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pm/collaboration",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "🤝",
+      "badge_provider_key": null,
+      "sort_order": 460,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:ops"
+        ]
+      },
+      "legacy_permission_key": "ops",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": "collaboration.foundation",
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pm/collaboration",
+        "permission_key": "ops",
+        "group_key": "pm",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "data.integration_hub",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.integrationHubLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/integration-hub",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "link",
+      "emoji_glyph": "🔗",
+      "badge_provider_key": null,
+      "sort_order": 470,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:data||integration_hub"
+        ]
+      },
+      "legacy_permission_key": "data||integration_hub",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/integration-hub",
+        "permission_key": "data||integration_hub",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "data.schema",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.dataSchemaLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/data-schema",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "📋",
+      "badge_provider_key": null,
+      "sort_order": 480,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:data||data_schema"
+        ]
+      },
+      "legacy_permission_key": "data||data_schema",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/data-schema",
+        "permission_key": "data||data_schema",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "data.trust",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.dataTrustLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/data-trust",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "flask",
+      "emoji_glyph": "🔬",
+      "badge_provider_key": null,
+      "sort_order": 490,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:data||data_trust"
+        ]
+      },
+      "legacy_permission_key": "data||data_trust",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/data-trust",
+        "permission_key": "data||data_trust",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "data.assets",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.dataAssetsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/data-assets",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "database",
+      "emoji_glyph": "🗃️",
+      "badge_provider_key": null,
+      "sort_order": 500,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:data||data_schema"
+        ]
+      },
+      "legacy_permission_key": "data||data_schema",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/data-assets",
+        "permission_key": "data||data_schema",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "data.pixel_tracking",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.pixelTracking",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pixel-tracking",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "target",
+      "emoji_glyph": "🎯",
+      "badge_provider_key": null,
+      "sort_order": 510,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:data||data_trust"
+        ]
+      },
+      "legacy_permission_key": "data||data_trust",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pixel-tracking",
+        "permission_key": "data||data_trust",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "data.product",
+      "parent_menu_key": "data.section",
+      "type": "ITEM",
+      "label_key": "gNav.dataProductLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/data-product",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "🗂️",
+      "badge_provider_key": null,
+      "sort_order": 520,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:analytics||data_product"
+        ]
+      },
+      "legacy_permission_key": "analytics||data_product",
+      "required_plan": "pro",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/data-product",
+        "permission_key": "analytics||data_product",
+        "group_key": "data",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "finance.settlements",
+      "parent_menu_key": "finance.section",
+      "type": "ITEM",
+      "label_key": "gNav.settlementsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/settlements",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "📋",
+      "badge_provider_key": null,
+      "sort_order": 530,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:billing"
+        ]
+      },
+      "legacy_permission_key": "billing",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/settlements",
+        "permission_key": "billing",
+        "group_key": "finance",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "finance.reconciliation",
+      "parent_menu_key": "finance.section",
+      "type": "ITEM",
+      "label_key": "gNav.reconciliationLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/reconciliation",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "card",
+      "emoji_glyph": "💰",
+      "badge_provider_key": null,
+      "sort_order": 540,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:billing"
+        ]
+      },
+      "legacy_permission_key": "billing",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/reconciliation",
+        "permission_key": "billing",
+        "group_key": "finance",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "finance.payment_methods",
+      "parent_menu_key": "finance.section",
+      "type": "ITEM",
+      "label_key": "gNav.paymentMethodsLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/payment-methods",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "card",
+      "emoji_glyph": "💳",
+      "badge_provider_key": null,
+      "sort_order": 550,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:billing"
+        ]
+      },
+      "legacy_permission_key": "billing",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/payment-methods",
+        "permission_key": "billing",
+        "group_key": "finance",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "finance.app_pricing",
+      "parent_menu_key": "finance.section",
+      "type": "ITEM",
+      "label_key": "gNav.pricingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/app-pricing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "🧾",
+      "badge_provider_key": null,
+      "sort_order": 560,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:billing"
+        ]
+      },
+      "legacy_permission_key": "billing",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/app-pricing",
+        "permission_key": "billing",
+        "group_key": "finance",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "workspace.team_members",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.memberComposeLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/team-members",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "🧑‍🤝‍🧑",
+      "badge_provider_key": null,
+      "sort_order": 570,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||workspace"
+        ]
+      },
+      "legacy_permission_key": "system||workspace",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/team-members",
+        "permission_key": "system||workspace",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "workspace.workspace",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.workspaceLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/workspace",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "👥",
+      "badge_provider_key": null,
+      "sort_order": 580,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||workspace"
+        ]
+      },
+      "legacy_permission_key": "system||workspace",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/workspace",
+        "permission_key": "system||workspace",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "workspace.agency_access",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.agencyAccessLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/agency-access",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "🤝",
+      "badge_provider_key": null,
+      "sort_order": 590,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||workspace"
+        ]
+      },
+      "legacy_permission_key": "system||workspace",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/agency-access",
+        "permission_key": "system||workspace",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "workspace.case_study",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.caseStudyLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/case-study",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "sparkles",
+      "emoji_glyph": "🏆",
+      "badge_provider_key": null,
+      "sort_order": 600,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||case_study"
+        ]
+      },
+      "legacy_permission_key": "system||case_study",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/case-study",
+        "permission_key": "system||case_study",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "workspace.help",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.helpLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/help",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "📚",
+      "badge_provider_key": null,
+      "sort_order": 610,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||help_center"
+        ]
+      },
+      "legacy_permission_key": "system||help_center",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/help",
+        "permission_key": "system||help_center",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "workspace.feedback",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.feedbackLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/feedback",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "message-circle",
+      "emoji_glyph": "💬",
+      "badge_provider_key": null,
+      "sort_order": 620,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||feedback"
+        ]
+      },
+      "legacy_permission_key": "system||feedback",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE",
+        "COMMAND_PALETTE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/feedback",
+        "permission_key": "system||feedback",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": true,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "workspace.audit",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.auditLogLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/audit",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "🧾",
+      "badge_provider_key": null,
+      "sort_order": 630,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:billing"
+        ]
+      },
+      "legacy_permission_key": "billing",
+      "required_plan": "free",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/audit",
+        "permission_key": "billing",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "workspace.developer_hub",
+      "parent_menu_key": "workspace.section",
+      "type": "ITEM",
+      "label_key": "gNav.developerHubLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/developer-hub",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "settings",
+      "emoji_glyph": "⚙️",
+      "badge_provider_key": null,
+      "sort_order": 640,
+      "context_scope": "TENANT",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||developer_hub"
+        ]
+      },
+      "legacy_permission_key": "system||developer_hub",
+      "required_plan": "enterprise",
+      "admin_only": false,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "WEB_MOBILE"
+      ],
+      "target_principal_types": [
+        "USER"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/developer-hub",
+        "permission_key": "system||developer_hub",
+        "group_key": "member_tools",
+        "audience": "MEMBER",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "administration.admin",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.platformEnvLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "settings",
+      "emoji_glyph": "⚙",
+      "badge_provider_key": null,
+      "sort_order": 650,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||admin"
+        ]
+      },
+      "legacy_permission_key": "system||admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin",
+        "permission_key": "system||admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "administration.growth",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.growthCenterLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/growth",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "rocket",
+      "emoji_glyph": "🚀",
+      "badge_provider_key": null,
+      "sort_order": 660,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||growth"
+        ]
+      },
+      "legacy_permission_key": "system||growth",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/growth",
+        "permission_key": "system||growth",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.plan_pricing",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.planPricingLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/plan-pricing",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "card",
+      "emoji_glyph": "💳",
+      "badge_provider_key": null,
+      "sort_order": 670,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||plan_pricing"
+        ]
+      },
+      "legacy_permission_key": "system||plan_pricing",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/plan-pricing",
+        "permission_key": "system||plan_pricing",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.user_management",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.memberMgmtLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/user-management",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "👥",
+      "badge_provider_key": null,
+      "sort_order": 680,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||user_management"
+        ]
+      },
+      "legacy_permission_key": "system||user_management",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "COMMAND_PALETTE",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/user-management",
+        "permission_key": "system||user_management",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": true,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.access_review",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.accessReviewLabel",
+      "fallback_label": "접근 검토",
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/access-review",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "shield",
+      "emoji_glyph": "🔐",
+      "badge_provider_key": null,
+      "sort_order": 690,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||admin"
+        ]
+      },
+      "legacy_permission_key": "system||admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/access-review",
+        "permission_key": "system||admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.sub_admins",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.subAdminMgmtLabel",
+      "fallback_label": "하위 관리자 관리",
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/sub-admins",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "👤",
+      "badge_provider_key": null,
+      "sort_order": 700,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||sub_admin_mgmt"
+        ]
+      },
+      "legacy_permission_key": "system||sub_admin_mgmt",
+      "required_plan": "pro",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/sub-admins",
+        "permission_key": "system||sub_admin_mgmt",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.agencies",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.agencyMgmtLabel",
+      "fallback_label": "대행사 계정 관리",
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/agencies",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "users",
+      "emoji_glyph": "🤝",
+      "badge_provider_key": null,
+      "sort_order": 710,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||admin"
+        ]
+      },
+      "legacy_permission_key": "system||admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/agencies",
+        "permission_key": "system||admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.site_intro",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.siteIntroLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/site-intro",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "settings",
+      "emoji_glyph": "🏢",
+      "badge_provider_key": null,
+      "sort_order": 720,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||admin"
+        ]
+      },
+      "legacy_permission_key": "system||admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/site-intro",
+        "permission_key": "system||admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.legal_docs",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.legalDocsLabel",
+      "fallback_label": "법적 페이지",
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/legal-docs",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "file",
+      "emoji_glyph": "📜",
+      "badge_provider_key": null,
+      "sort_order": 730,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||admin"
+        ]
+      },
+      "legacy_permission_key": "system||admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/legal-docs",
+        "permission_key": "system||admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.menu_tree",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.menuTreeLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/admin/menu-tree",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "folder",
+      "emoji_glyph": "🗂",
+      "badge_provider_key": null,
+      "sort_order": 740,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||menu_tree"
+        ]
+      },
+      "legacy_permission_key": "system||menu_tree",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/admin/menu-tree",
+        "permission_key": "system||menu_tree",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": false
+      }
+    },
+    {
+      "menu_key": "administration.db_admin",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.dbSchemaLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/db-admin",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "database",
+      "emoji_glyph": "🗄️",
+      "badge_provider_key": null,
+      "sort_order": 750,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||db_admin"
+        ]
+      },
+      "legacy_permission_key": "system||db_admin",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/db-admin",
+        "permission_key": "system||db_admin",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "administration.pg_config",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.paymentPgLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/pg-config",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "card",
+      "emoji_glyph": "💳",
+      "badge_provider_key": null,
+      "sort_order": 760,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||pg_config"
+        ]
+      },
+      "legacy_permission_key": "system||pg_config",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/pg-config",
+        "permission_key": "system||pg_config",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    },
+    {
+      "menu_key": "administration.system_monitor",
+      "parent_menu_key": "administration.section",
+      "type": "ITEM",
+      "label_key": "gNav.systemMonitorLabel",
+      "fallback_label": null,
+      "description_key": null,
+      "fallback_description": null,
+      "target": {
+        "type": "INTERNAL_ROUTE",
+        "route_name": "/system-monitor",
+        "route_parameters": null,
+        "context_parameter_mapping": null
+      },
+      "icon_key": "chart",
+      "emoji_glyph": "📡",
+      "badge_provider_key": null,
+      "sort_order": 770,
+      "context_scope": "ADMINISTRATION",
+      "permission_rule": {
+        "mode": "ALL",
+        "permissions": [
+          "menu_access:system||system_monitor"
+        ]
+      },
+      "legacy_permission_key": "system||system_monitor",
+      "required_plan": "admin",
+      "admin_only": true,
+      "required_capability": null,
+      "required_feature_flag": null,
+      "visibility_policy": null,
+      "target_platforms": [
+        "WEB_DESKTOP",
+        "WEB_TABLET",
+        "ADMIN_CONSOLE"
+      ],
+      "target_principal_types": [
+        "USER",
+        "PLATFORM_OPERATOR"
+      ],
+      "status": "ACTIVE",
+      "is_system": true,
+      "is_custom": false,
+      "source": "SYSTEM_CODE",
+      "source_path": "frontend/src/layout/sidebarManifest.js",
+      "legacy": {
+        "path": "/system-monitor",
+        "permission_key": "system||system_monitor",
+        "group_key": "system",
+        "audience": "ADMIN",
+        "in_command_palette": false,
+        "in_mobile_nav": true
+      }
+    }
+  ],
+  "aliases": [
+    {
+      "alias_key": "/dashboard",
+      "target_menu_key": "home.dashboard",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/rollup",
+      "target_menu_key": "home.rollup",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/auto-marketing",
+      "target_menu_key": "marketing.auto_marketing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/campaign-manager",
+      "target_menu_key": "marketing.campaign_manager",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/journey-builder",
+      "target_menu_key": "marketing.journey_builder",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/onsite-cro",
+      "target_menu_key": "marketing.onsite_cro",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/web-popup",
+      "target_menu_key": "marketing.web_popup",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/marketing",
+      "target_menu_key": "adops.marketing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/budget-tracker",
+      "target_menu_key": "adops.budget_tracker",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/account-performance",
+      "target_menu_key": "adops.account_performance",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/attribution",
+      "target_menu_key": "adops.attribution",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/marketing-mix",
+      "target_menu_key": "adops.marketing_mix",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/channel-kpi",
+      "target_menu_key": "adops.channel_kpi",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/graph-score",
+      "target_menu_key": "adops.graph_score",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/crm",
+      "target_menu_key": "crm.crm",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/kakao-channel",
+      "target_menu_key": "crm.kakao_channel",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/email-marketing",
+      "target_menu_key": "crm.email_marketing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/sms-marketing",
+      "target_menu_key": "crm.sms_marketing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/line-channel",
+      "target_menu_key": "crm.line_channel",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/whatsapp",
+      "target_menu_key": "crm.whatsapp",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/instagram-dm",
+      "target_menu_key": "crm.instagram_dm",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/influencer",
+      "target_menu_key": "crm.influencer",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/content-calendar",
+      "target_menu_key": "crm.content_calendar",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/reviews-ugc",
+      "target_menu_key": "crm.reviews_ugc",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/omni-channel",
+      "target_menu_key": "commerce.omni_channel",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/catalog-sync",
+      "target_menu_key": "commerce.catalog_sync",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/live-commerce",
+      "target_menu_key": "commerce.live_commerce",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/order-hub",
+      "target_menu_key": "commerce.order_hub",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/wms-manager",
+      "target_menu_key": "commerce.wms_manager",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/price-opt",
+      "target_menu_key": "commerce.price_opt",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/supply-chain",
+      "target_menu_key": "commerce.supply_chain",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/demand-forecast",
+      "target_menu_key": "commerce.demand_forecast",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/returns-portal",
+      "target_menu_key": "commerce.returns_portal",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/operations",
+      "target_menu_key": "commerce.operations",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/performance",
+      "target_menu_key": "analytics.performance",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/report-builder",
+      "target_menu_key": "analytics.report_builder",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pnl",
+      "target_menu_key": "analytics.pnl",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-insights",
+      "target_menu_key": "analytics.ai_insights",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-rule-engine",
+      "target_menu_key": "automation.ai_rule_engine",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/approvals",
+      "target_menu_key": "automation.approvals",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/writeback",
+      "target_menu_key": "automation.writeback",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/onboarding",
+      "target_menu_key": "automation.onboarding",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pm",
+      "target_menu_key": "pm.pm",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pm/portfolio",
+      "target_menu_key": "pm.portfolio",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pm/resources",
+      "target_menu_key": "pm.resources",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pm/collaboration",
+      "target_menu_key": "pm.collaboration",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/integration-hub",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/data-schema",
+      "target_menu_key": "data.schema",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/data-trust",
+      "target_menu_key": "data.trust",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/data-assets",
+      "target_menu_key": "data.assets",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pixel-tracking",
+      "target_menu_key": "data.pixel_tracking",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/data-product",
+      "target_menu_key": "data.product",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/settlements",
+      "target_menu_key": "finance.settlements",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/reconciliation",
+      "target_menu_key": "finance.reconciliation",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/payment-methods",
+      "target_menu_key": "finance.payment_methods",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/app-pricing",
+      "target_menu_key": "finance.app_pricing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/team-members",
+      "target_menu_key": "workspace.team_members",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/workspace",
+      "target_menu_key": "workspace.workspace",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/agency-access",
+      "target_menu_key": "workspace.agency_access",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/case-study",
+      "target_menu_key": "workspace.case_study",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/help",
+      "target_menu_key": "workspace.help",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/feedback",
+      "target_menu_key": "workspace.feedback",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/audit",
+      "target_menu_key": "workspace.audit",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/developer-hub",
+      "target_menu_key": "workspace.developer_hub",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin",
+      "target_menu_key": "administration.admin",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/growth",
+      "target_menu_key": "administration.growth",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/plan-pricing",
+      "target_menu_key": "administration.plan_pricing",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/user-management",
+      "target_menu_key": "administration.user_management",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/access-review",
+      "target_menu_key": "administration.access_review",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/sub-admins",
+      "target_menu_key": "administration.sub_admins",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/agencies",
+      "target_menu_key": "administration.agencies",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/site-intro",
+      "target_menu_key": "administration.site_intro",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/legal-docs",
+      "target_menu_key": "administration.legal_docs",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/admin/menu-tree",
+      "target_menu_key": "administration.menu_tree",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/db-admin",
+      "target_menu_key": "administration.db_admin",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/pg-config",
+      "target_menu_key": "administration.pg_config",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/system-monitor",
+      "target_menu_key": "administration.system_monitor",
+      "alias_type": "LEGACY_PATH",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/",
+      "target_menu_key": "home.dashboard",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/commerce",
+      "target_menu_key": "commerce.omni_channel",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/reports",
+      "target_menu_key": "home.dashboard",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/connectors",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/api-keys",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-policy",
+      "target_menu_key": "automation.ai_rule_engine",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/action-presets",
+      "target_menu_key": "automation.ai_rule_engine",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/mapping-registry",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/alert-policies",
+      "target_menu_key": "automation.ai_rule_engine",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/influencer-ugc",
+      "target_menu_key": "crm.influencer",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ad-channels",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/alert-automation",
+      "target_menu_key": "automation.ai_rule_engine",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/event-norm",
+      "target_menu_key": "data.schema",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/marketing-intelligence",
+      "target_menu_key": "analytics.ai_insights",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-budget-allocator",
+      "target_menu_key": "marketing.auto_marketing",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/operations-guide",
+      "target_menu_key": "commerce.operations",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-prediction",
+      "target_menu_key": "analytics.ai_insights",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/commerce-search",
+      "target_menu_key": "commerce.omni_channel",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/ai-marketing-hub",
+      "target_menu_key": "marketing.auto_marketing",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/smart-connect",
+      "target_menu_key": "data.integration_hub",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/asia-logistics",
+      "target_menu_key": "commerce.supply_chain",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/supplier-portal",
+      "target_menu_key": "commerce.supply_chain",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "*",
+      "target_menu_key": "home.dashboard",
+      "alias_type": "LEGACY_ROUTE",
+      "status": "ACTIVE",
+      "valid_until": null
+    },
+    {
+      "alias_key": "/digital-shelf",
+      "target_menu_key": null,
+      "alias_type": "LEGACY_PATH",
+      "status": "DRAFT",
+      "valid_until": null,
+      "note": "사이드바 미등재 실기능(플랜키 marketing_advanced) — 정본 메뉴 승격 여부는 Part004-03 결정"
+    },
+    {
+      "alias_key": "/amazon-risk",
+      "target_menu_key": null,
+      "alias_type": "LEGACY_PATH",
+      "status": "DRAFT",
+      "valid_until": null,
+      "note": "사이드바 미등재 실기능(플랜키 marketing_advanced) — 정본 메뉴 승격 여부는 Part004-03 결정"
+    },
+    {
+      "alias_key": "/ai-recommend",
+      "target_menu_key": null,
+      "alias_type": "LEGACY_PATH",
+      "status": "DRAFT",
+      "valid_until": null,
+      "note": "사이드바 미등재 실기능(플랜키 marketing_advanced) — 정본 메뉴 승격 여부는 Part004-03 결정"
+    },
+    {
+      "alias_key": "/rules-editor-v2",
+      "target_menu_key": null,
+      "alias_type": "LEGACY_PATH",
+      "status": "DRAFT",
+      "valid_until": null,
+      "note": "사이드바 미등재 실기능(플랜키 data||data_schema) — 정본 메뉴 승격 여부는 Part004-03 결정"
+    },
+    {
+      "alias_key": "/kr-channel",
+      "target_menu_key": null,
+      "alias_type": "LEGACY_PATH",
+      "status": "DRAFT",
+      "valid_until": null,
+      "note": "사이드바 미등재 실기능(플랜키 commerce_channel) — 정본 메뉴 승격 여부는 Part004-03 결정"
+    }
+  ]
+}

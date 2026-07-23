@@ -4,6 +4,9 @@ import { useT } from "./i18n/index.js";
 import PlanGate from "./components/PlanGate.jsx"; // 181차 플랜별 메뉴접근 라우트 가드
 import { pathToMenuKey, requiredPlanForMenu } from "./auth/planMenuPolicy.js";
 import Sidebar from "./layout/Sidebar.jsx";
+import SidebarSwitch from "./components/sidebar/SidebarSwitch.jsx"; // [CWIS Part004-03] 전환 게이트(기본 OFF=레거시)
+import ContextBreadcrumb from "./components/breadcrumb/ContextBreadcrumb.jsx";
+import { CollaborationContextProvider } from "./context/CollaborationContextProvider.jsx";
 import MobileBottomNav from "./components/MobileBottomNav.jsx";
 import Topbar from "./layout/Topbar.jsx";
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
@@ -398,12 +401,14 @@ function AppLayout() {
   return (
     <CurrencyProvider>
       <MobileSidebarProvider>
+       <CollaborationContextProvider>
         <div className="container" style={{ height: '100vh', overflow: 'hidden' }}>
           <OnboardingTour />
           <KeyboardShortcuts />
           <SessionExpiryWarning />
           <CommandPalette />
-          <Sidebar />
+          {/* [CWIS Part004-03] enabled=true 일 때만 신규 사이드바. 그 외 전부 레거시 Sidebar(무후퇴). */}
+          <SidebarSwitch />
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -440,7 +445,8 @@ function AppLayout() {
               <GuideArrival />
               <GenieAssistant />{/* [현 차수] 전역 상담 챗봇(로고 런처) */}
 
-              <div className="app-content-area" style={{
+              <ContextBreadcrumb />{/* [CWIS Part004-03] 신규 사이드바 ON 일 때만 렌더 */}
+              <div id="main-content" className="app-content-area" style={{
                 flex: 1,
                 padding: 0,
                 minHeight: 0,
@@ -596,6 +602,7 @@ function AppLayout() {
           </div>
         </div>
         <MobileBottomNav />
+       </CollaborationContextProvider>
       </MobileSidebarProvider>
     </CurrencyProvider>
   );

@@ -66,6 +66,21 @@ final class Collaboration extends Shared
         ['collaboration.department',   '부서',             'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위(소규모 팀 SaaS) 검토 필요 — 다단계 부서계층 수요 확인 후'],
         ['collaboration.squad',        '스쿼드',           'PLANNED', '002', ['collaboration.team'],        '부재 · 제품범위 검토(스쿼드/애자일 조직 수요 확인 후)'],
         ['collaboration.community',    '커뮤니티',         'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위 검토(관심사 기반 커뮤니티 수요 확인 후)'],
+        // [CWIS Part004-01] 내비게이션/정보구조 — 진단만 실구현. 미구현을 ENABLED 로 위장하지 않는다(§26·§38).
+        ['collaboration.navigation.analysis',        '내비게이션 진단',       'ENABLED',   '004', ['collaboration.foundation'],                 'tools/navigation_analyze.mjs 스캐너·정합검사·리포트 + 본 API. 정적분석(소스 미실행)'],
+        // [Part004-02] 레지스트리 실구현 — 스냅샷 생성기 + Resolver + 사용자 조회 API 가 실제 동작해야만 ENABLED(§50).
+        ['collaboration.navigation.registry',        '통합 메뉴 레지스트리',  'ENABLED',   '004', ['collaboration.navigation.analysis'],        'navigation_registry.json(빌드 스냅샷·89항목/105 alias) + PM\\Navigation Resolver + GET /v425/pm/navigation 실배선. 정본은 정적 SSOT 유지(DB 이원화 안 함)'],
+        // [Part004-03] 실배선 완료 — API(GET /v425/pm/sidebar) + UI(UnifiedSidebar/SidebarSwitch) 연결됨.
+        //   ★status=ENABLED 는 "구현 완료"를 뜻하고, 테넌트별 실제 노출은 아래 오버레이 토글(기본 OFF)이 결정한다.
+        //   이 capability 를 켜는 것이 곧 신규 사이드바 전환 스위치다(신규 Feature Flag 저장소 신설 없음).
+        ['collaboration.navigation.sidebar',         '통합 사이드바',         'ENABLED',   '004', ['collaboration.navigation.registry'],        'Registry 트리 렌더 + Active/조상 활성 + 접기/미니/모바일 오버레이(Focus Trap) + Skip Link. ★본 capability 토글이 레거시↔신규 전환 스위치(기본 OFF=레거시 유지)'],
+        ['collaboration.navigation.context_switcher', '컨텍스트 전환기',      'ENABLED',   '004', ['collaboration.navigation.sidebar'],         '실재 축만: TENANT(자기+대행사 승인 위임+admin act-as)·PROJECT(pm_projects). 조직/워크스페이스/팀은 엔티티 부재로 unavailable_axes 정직 반환'],
+        ['collaboration.navigation.breadcrumb',      'Breadcrumb',            'ENABLED',   '004', ['collaboration.navigation.registry'],        '메뉴 계층+리소스(PM 프로젝트/하위탭) 결합·테넌트 격리·XSS 제거·축약+스크린리더 전체경로'],
+        ['collaboration.navigation.mobile_foundation', '모바일 내비 기반',    'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         'Drawer/Focus Trap/Escape/배경 스크롤 잠금 구현. 하단 탭(MobileBottomNav)은 아직 레거시 하드코딩 — Part004-07 에서 Registry 연결'],
+        ['collaboration.navigation.favorites',       '즐겨찾기·고정',         'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         'Sidebar QuickAccessPanel 실재(localStorage 디바이스 로컬) · 서버 영속/계정 이동 부재'],
+        ['collaboration.navigation.recents',         '최근 항목',             'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         '최근 방문 5건 실재(경로만 저장·언어 무관 재해석) · 서버 영속 부재'],
+        ['collaboration.navigation.personal_hub',    '개인 작업함',           'PLANNED',   '004', ['collaboration.task'],                       '내 작업/승인/멘션 통합 진입점 부재(도메인별 산재)'],
+        ['collaboration.navigation.command_palette', 'Command Palette',       'PARTIAL',   '004', ['collaboration.navigation.registry'],        'Ctrl+K 팔레트 실재(28개 하드코딩·플랜필터 적용) · manifest 미참조라 구조적 드리프트'],
         ['collaboration.mention',      '멘션',             'PARTIAL', '003', ['collaboration.comment'],     'mentions_csv 컬럼 스텁 · 해석/알림 파이프라인 부재'],
         ['collaboration.approval',     '승인 워크플로',    'PARTIAL', '009', ['collaboration.foundation'],  '3계열 산재(Alerting/Catalog/FeedTemplate) · 통합 필요'],
         ['collaboration.presence',     '접속 상태',        'PLANNED', '004', ['collaboration.realtime'],    '양방향 실시간 전제(미착수)'],
@@ -679,5 +694,65 @@ final class Collaboration extends Shared
         if ($st->rowCount() === 0) return self::json($resp, ['ok' => false, 'error' => '철회할 그랜트가 없습니다.'], 404);
         try { self::auditLog($g['pdo'], ['tenant_id' => $g['tenant'], 'actor_user_id' => (string)($g['user_id'] ?? $g['tenant']), 'entity_type' => 'collaboration_access_grant', 'entity_id' => $pid, 'action' => 'access_grant_revoked', 'ip' => self::clientIp($req), 'ua' => self::userAgent($req)]); } catch (\Throwable $e) {}
         return self::json($resp, ['ok' => true]);
+    }
+
+    /* ── [CWIS Part004-01] 내비게이션 진단 리포트 ──────────────────────────────────
+     *
+     * ★교차검증: 본 저장소의 내비게이션 정본은 **프론트엔드 정적 소스**(sidebarManifest.js·App.jsx·
+     *   CommandPalette·MobileBottomNav·planMenuPolicy)이고 백엔드는 menu_tree 가시성 오버레이만 갖는다.
+     *   따라서 분석 자체는 PHP 런타임이 아니라 빌드타임 스캐너(tools/navigation_analyze.mjs)가 수행하고,
+     *   본 엔드포인트는 그 **스냅샷을 관리자에게 노출**하는 읽기 전용 창구다.
+     *   (PHP 가 프론트 JSX 를 재파싱하는 두 번째 분석 엔진을 만드는 것은 중복 — 헌법 Reuse→Extend 위배.)
+     *
+     * 권한(명세 §27·§39~41): admin 게이트 + 테넌트 격리(gate). 일반 사용자/게스트/파트너는 Shared::gate 에서
+     *   차단된다. 스냅샷에는 테넌트 데이터가 전혀 없다(정적 소스 경로/라벨/권한키만).
+     *
+     * ★정직 미산출: 스냅샷이 없으면 0 이나 빈 배열로 '정상'인 척하지 않고 available=false + 생성방법을 반환한다.
+     */
+    private const NAV_SNAPSHOT = __DIR__ . '/../../../data/cwis_navigation_analysis.json';
+
+    /** GET /v425/pm/collaboration/navigation/analysis (admin) */
+    public static function navigationAnalysis(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'admin');
+        if (isset($g['error'])) return $g['error'];
+
+        $path = realpath(self::NAV_SNAPSHOT);
+        $baseDir = realpath(__DIR__ . '/../../../data');
+        // 출력/입력 경로 화이트리스트 — data 디렉터리 밖 파일은 절대 읽지 않는다(§44·§45).
+        if ($path === false || $baseDir === false || strpos($path, $baseDir . DIRECTORY_SEPARATOR) !== 0) {
+            return self::json($resp, [
+                'ok' => true,
+                'available' => false,
+                'reason' => 'snapshot_not_generated',
+                'message' => '내비게이션 진단 스냅샷이 아직 생성되지 않았습니다.',
+                'how_to_generate' => 'node tools/navigation_analyze.mjs --snapshot',
+            ]);
+        }
+
+        $raw = @file_get_contents($path);
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($data)) {
+            return self::json($resp, ['ok' => false, 'available' => false, 'reason' => 'snapshot_unreadable'], 500);
+        }
+
+        try {
+            self::auditLog($g['pdo'], [
+                'tenant_id' => $g['tenant'], 'actor_user_id' => (string)($g['user_id'] ?? $g['tenant']),
+                'entity_type' => 'collaboration_navigation', 'entity_id' => 'analysis',
+                'action' => 'navigation_analysis_viewed', 'ip' => self::clientIp($req), 'ua' => self::userAgent($req),
+            ]);
+        } catch (\Throwable $e) { /* 감사 실패가 조회를 막지 않는다 */ }
+
+        return self::json($resp, [
+            'ok' => true,
+            'available' => true,
+            'generated_at' => $data['generated_at'] ?? null,
+            'source_revision' => $data['source_revision'] ?? null,
+            'metrics' => $data['metrics'] ?? null,
+            'context' => $data['context'] ?? null,
+            'preference_stores' => $data['preference_stores'] ?? null,
+            'issues' => $data['issues'] ?? [],
+        ]);
     }
 }

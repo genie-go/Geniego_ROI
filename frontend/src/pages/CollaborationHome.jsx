@@ -75,6 +75,45 @@ export default function CollaborationHome() {
   const [invResult, setInvResult] = useState(null);
   const [invBusy, setInvBusy] = useState(false);
   const [grants, setGrants] = useState([]);
+
+  /* [CWIS Part004-01] 내비게이션 진단 — 신규 메뉴를 만들지 않고 협업 홈 안에 붙인다(중복 메뉴 금지). */
+  const [nav, setNav] = useState(null);
+  const [navOpen, setNavOpen] = useState(false);
+  const loadNav = useCallback(async () => {
+    if (!token || nav) return;
+    try {
+      const r = await authFetch('/api/v425/pm/collaboration/navigation/analysis');
+      if (!r.ok) { setNav({ available: false, reason: `http_${r.status}` }); return; }
+      setNav(await r.json());
+    } catch (e) { setNav({ available: false, reason: String(e?.message || e) }); }
+  }, [authFetch, token, nav]);
+
+  /* [CWIS Part004-02] 메뉴 레지스트리 — 레거시 사이드바는 그대로 두고 전환 안전성만 측정한다(무후퇴). */
+  const [reg, setReg] = useState(null);
+  const [shadow, setShadow] = useState(null);
+  const [regOpen, setRegOpen] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [previewPlan, setPreviewPlan] = useState('free');
+  const loadRegistry = useCallback(async () => {
+    if (!token || reg) return;
+    try {
+      const [rRes, sRes] = await Promise.all([
+        authFetch('/api/v425/pm/navigation/registry'),
+        authFetch('/api/v425/pm/navigation/shadow-compare'),
+      ]);
+      setReg(await rRes.json().catch(() => ({ available: false, reason: `http_${rRes.status}` })));
+      setShadow(await sRes.json().catch(() => null));
+    } catch (e) { setReg({ available: false, reason: String(e?.message || e) }); }
+  }, [authFetch, token, reg]);
+  const runPreview = useCallback(async (plan) => {
+    setPreviewPlan(plan); setPreview(null);
+    try {
+      const r = await authFetch('/api/v425/pm/navigation/preview', {
+        method: 'POST', body: JSON.stringify({ principal_type: 'USER', plan, platform: 'WEB_DESKTOP' }),
+      });
+      setPreview(await r.json().catch(() => null));
+    } catch (e) { setPreview({ ok: false, error: String(e?.message || e) }); }
+  }, [authFetch]);
   const isExtRole = invRole === 'guest' || invRole === 'partner';
   const loadInvites = useCallback(async () => {
     try { const r = await authFetch('/api/v425/pm/collaboration/invitations'); if (r.ok) { const j = await r.json(); setInvites(Array.isArray(j?.invitations) ? j.invitations : []); } } catch (_) { /* 권한 없으면 무시 */ }
@@ -240,6 +279,172 @@ export default function CollaborationHome() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* [CWIS Part004-01] 내비게이션 진단 — 관리자만 200(백엔드 admin 게이트). 접기 기본, 열 때만 로드. */}
+      <div style={{ marginTop: 20, padding: 18, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
+        <button
+          onClick={() => { setNavOpen(o => !o); loadNav(); }}
+          aria-expanded={navOpen}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+        >
+          <span style={{ fontSize: 14, fontWeight: 800 }}>🧭 {t('collab.nav.title', '내비게이션 진단')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', padding: '2px 8px', borderRadius: 99, background: 'rgba(100,116,139,0.10)' }}>CWIS Part004-01 · 관리자</span>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>{navOpen ? '▲' : '▼'}</span>
+        </button>
+
+        {navOpen && (
+          <div style={{ marginTop: 12 }}>
+            {nav == null && <div style={{ fontSize: 12, color: '#64748b' }}>{t('collab.nav.loading', '불러오는 중…')}</div>}
+
+            {nav && nav.available === false && (
+              <div style={{ fontSize: 12, color: '#b45309', background: 'rgba(217,119,6,0.08)', padding: 10, borderRadius: 8 }}>
+                {/* ★정직 미산출: 스냅샷이 없으면 0 이나 빈 목록으로 '정상'인 척하지 않는다. */}
+                {t('collab.nav.unavailable', '진단 스냅샷이 없습니다')} — <code>{nav.reason || 'unknown'}</code>
+                {nav.how_to_generate && <> · <code>{nav.how_to_generate}</code></>}
+              </div>
+            )}
+
+            {nav && nav.available && (
+              <>
+                <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 12 }}>
+                  {[
+                    ['메뉴 항목', nav.metrics?.navigation_items_discovered],
+                    ['라우트', nav.metrics?.routes_total],
+                    ['Dead Link', nav.metrics?.navigation_dead_links_total],
+                    ['도달 불가', nav.metrics?.navigation_unreachable_total],
+                    ['권한 불일치', nav.metrics?.navigation_permission_mismatches_total],
+                    ['중복', nav.metrics?.navigation_duplicates_total],
+                  ].map(([label, v]) => (
+                    <div key={label} style={{ textAlign: 'center', minWidth: 84 }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: v ? '#d97706' : '#16a34a' }}>{v ?? '—'}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>
+                  {t('collab.nav.generated', '생성')}: {nav.generated_at ? String(nav.generated_at).slice(0, 19).replace('T', ' ') : '—'}
+                  {nav.source_revision ? ` · rev ${nav.source_revision}` : ''}
+                </div>
+                <div style={{ display: 'grid', gap: 6, maxHeight: 320, overflowY: 'auto' }}>
+                  {(nav.issues || []).filter(i => i.severity === 'P0' || i.severity === 'P1' || i.severity === 'P2').map((i, idx) => (
+                    <div key={`${i.code}-${i.path}-${idx}`} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 12 }}>
+                      <span style={{ fontWeight: 800, color: i.severity === 'P0' ? '#dc2626' : i.severity === 'P1' ? '#d97706' : '#2563eb', flexShrink: 0 }}>{i.severity}</span>
+                      <span style={{ fontWeight: 700, flexShrink: 0 }}>{i.code}</span>
+                      <code style={{ color: '#64748b', flexShrink: 0 }}>{i.path}</code>
+                      <span style={{ color: '#475569' }}>{i.detail}</span>
+                    </div>
+                  ))}
+                  {(nav.issues || []).filter(i => ['P0', 'P1', 'P2'].includes(i.severity)).length === 0 && (
+                    <div style={{ fontSize: 12, color: '#16a34a' }}>{t('collab.nav.clean', 'P0~P2 이슈 없음')}</div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* [CWIS Part004-02] 통합 메뉴 레지스트리 — 관리자 전용(백엔드 admin 게이트). */}
+      <div style={{ marginTop: 20, padding: 18, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
+        <button
+          onClick={() => { setRegOpen(o => !o); loadRegistry(); }}
+          aria-expanded={regOpen}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+        >
+          <span style={{ fontSize: 14, fontWeight: 800 }}>🗺️ {t('collab.registry.title', '메뉴 레지스트리')}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', padding: '2px 8px', borderRadius: 99, background: 'rgba(100,116,139,0.10)' }}>CWIS Part004-02 · 관리자</span>
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>{regOpen ? '▲' : '▼'}</span>
+        </button>
+
+        {regOpen && (
+          <div style={{ marginTop: 12 }}>
+            {reg == null && <div style={{ fontSize: 12, color: '#64748b' }}>{t('collab.nav.loading', '불러오는 중…')}</div>}
+
+            {reg && reg.ok === false && (
+              <div style={{ fontSize: 12, color: '#b45309', background: 'rgba(217,119,6,0.08)', padding: 10, borderRadius: 8 }}>
+                {t('collab.registry.unavailable', '레지스트리 스냅샷이 없습니다')} — <code>{reg.reason || 'unknown'}</code>
+                {reg.how_to_generate && <> · <code>{reg.how_to_generate}</code></>}
+              </div>
+            )}
+
+            {reg && reg.ok && (
+              <>
+                <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 10 }}>
+                  {[
+                    ['메뉴 항목', reg.item_count],
+                    ['Alias', reg.alias_count],
+                    ['CRITICAL', reg.validation?.counts?.CRITICAL],
+                    ['ERROR', reg.validation?.counts?.ERROR],
+                    ['WARNING', reg.validation?.counts?.WARNING],
+                  ].map(([label, v]) => (
+                    <div key={label} style={{ textAlign: 'center', minWidth: 80 }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: (label === 'CRITICAL' || label === 'ERROR') ? (v ? '#dc2626' : '#16a34a') : '#334155' }}>{v ?? '—'}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{label}</div>
+                    </div>
+                  ))}
+                  <div style={{ textAlign: 'center', minWidth: 110 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: reg.activatable ? '#16a34a' : '#dc2626' }}>
+                      {reg.activatable ? '활성화 가능' : '활성화 차단'}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>{reg.registry_version}</div>
+                  </div>
+                </div>
+
+                {/* ★무후퇴 증거 — 레거시 사이드바와 레지스트리 결과의 플랜별 동일성 */}
+                {shadow?.ok && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6 }}>
+                      🛡️ {t('collab.registry.shadow', '전환 안전성(레거시 ↔ 레지스트리)')}{' '}
+                      <span style={{ color: shadow.all_identical ? '#16a34a' : '#dc2626' }}>
+                        {shadow.all_identical ? '전 플랜 동일' : '차이 발견'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gap: 4 }}>
+                      {Object.entries(shadow.by_plan || {}).map(([plan, d]) => (
+                        <div key={plan} style={{ display: 'flex', gap: 10, fontSize: 12, padding: '5px 10px', borderRadius: 6, background: 'rgba(148,163,184,0.06)' }}>
+                          <b style={{ minWidth: 84 }}>{plan}</b>
+                          <span style={{ color: '#64748b' }}>legacy {d.legacy_count} / registry {d.registry_count}</span>
+                          <span style={{ marginLeft: 'auto', color: d.identical ? '#16a34a' : '#dc2626', fontWeight: 700 }}>
+                            {d.identical ? 'IDENTICAL' : `누락 ${d.missing_in_registry.length} · 과다 ${d.extra_in_registry.length}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{shadow.note}</div>
+                  </div>
+                )}
+
+                {/* 관리자 Preview — 실제 권한 변경 없음(계산만) */}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 800 }}>👁 {t('collab.registry.preview', '플랜별 메뉴 미리보기')}</span>
+                  {['free', 'starter', 'growth', 'pro', 'enterprise', 'admin'].map(p => (
+                    <button key={p} onClick={() => runPreview(p)}
+                      style={{ fontSize: 11, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
+                        border: `1px solid ${previewPlan === p ? 'rgba(37,99,235,0.5)' : 'rgba(148,163,184,0.4)'}`,
+                        background: previewPlan === p ? 'rgba(37,99,235,0.08)' : 'transparent' }}>{p}</button>
+                  ))}
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{t('collab.registry.previewNote', '계산만 수행 — 권한 변경·대행 로그인 없음')}</span>
+                </div>
+                {preview?.ok && (
+                  <div style={{ fontSize: 12, color: '#475569', padding: '8px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)' }}>
+                    <b>{previewPlan}</b> · 노출 {preview.stats?.visible ?? '—'} / 전체 {preview.stats?.total ?? '—'}
+                    {' · '}권한차단 {preview.stats?.permission ?? 0}
+                    {' · '}플랫폼차단 {preview.stats?.platform ?? 0}
+                    {' · '}빈섹션정리 {preview.stats?.pruned_empty ?? 0}
+                    <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {(preview.items || []).map(sec => (
+                        <span key={sec.menu_key} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(37,99,235,0.08)', color: '#2563eb' }}>
+                          {sec.menu_key} ({sec.children?.length || 0})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "analyzer": "tools/navigation_analyze.mjs",
+    "spec": "CWIS Part004-01",
+    "generated_by": "static analysis (no source execution)",
+    "sources": [
+      "frontend/src/layout/sidebarManifest.js",
+      "frontend/src/App.jsx",
+      "frontend/src/components/CommandPalette.jsx",
+      "frontend/src/components/MobileBottomNav.jsx",
+      "frontend/src/auth/planMenuPolicy.js",
+      "backend/src/routes.php"
+    ]
+  },
+  "gaps": [
+    {
+      "code": "MOBILE_NO_PERMISSION_FILTER",
+      "severity": "P2",
+      "path": "(mobile bottom nav)",
+      "source_path": "frontend/src/components/MobileBottomNav.jsx",
+      "detail": "모바일 하단 탭이 hasMenuAccess/pathToMenuKey 를 전혀 쓰지 않는다 → 플랜/역할과 무관하게 5개 탭 고정 노출. 탭 진입 자체는 MenuAccessGuard 가 PlanGate 로 막지만, 사용자에겐 \"쓸 수 없는 탭\"이 계속 보인다(사이드바와 노출 규칙 불일치)."
+    },
+    {
+      "code": "PALETTE_ADMIN_ENTRY",
+      "severity": "P3",
+      "path": "/user-management",
+      "source_path": "frontend/src/components/CommandPalette.jsx",
+      "detail": "Command Palette 에 admin 전용 명령(system||user_management) 포함 — 런타임 hasMenuAccess 필터로 차단되지만 정의 자체가 admin 메뉴를 회원 팔레트에 섞는다."
+    },
+    {
+      "code": "UNDECLARED_ACCESS_KEY",
+      "severity": "P3",
+      "path": "system||sub_admin_mgmt",
+      "source_path": "frontend/src/auth/planMenuPolicy.js",
+      "detail": "사이드바가 쓰는 menuKey 가 MENU_MIN_PLAN 에 없다 → DEFAULT_MIN_PLAN(pro) 폴백. fail-secure 라 보안 문제는 아니나 의도치 않은 상위플랜 게이팅 위험."
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "analyzer": "tools/navigation_analyze.mjs",
+    "spec": "CWIS Part004-01",
+    "generated_by": "static analysis (no source execution)",
+    "sources": [
+      "frontend/src/layout/sidebarManifest.js",
+      "frontend/src/App.jsx",
+      "frontend/src/components/CommandPalette.jsx",
+      "frontend/src/components/MobileBottomNav.jsx",
+      "frontend/src/auth/planMenuPolicy.js",
+      "backend/src/routes.php"
+    ]
+  },
+  "context": {
+    "tenant": {
+      "in_url": false,
+      "storage": "localStorage.tenantId",
+      "header": "X-Tenant-ID (services/apiClient.js)",
+      "switcher": null
+    },
+    "organization": {
+      "in_url": false,
+      "storage": null,
+      "note": "조직=tenant 로 매핑(CWIS Part002) — 별도 축 없음"
+    },
+    "workspace": {
+      "in_url": false,
+      "storage": "backend WorkspaceState(KV, tenant 스코프)",
+      "switcher": null
+    },
+    "project": {
+      "in_url": true,
+      "storage": null,
+      "route_pattern": "/pm/projects/:id",
+      "route_count": 9
+    }
+  },
+  "preference_stores": [
+    {
+      "key": "g_sidebar_favs",
+      "purpose": "사이드바 즐겨찾기",
+      "where": "localStorage",
+      "tenant_scoped": false,
+      "file": "frontend/src/layout/Sidebar.jsx"
+    },
+    {
+      "key": "g_sidebar_recents",
+      "purpose": "최근 방문(경로만)",
+      "where": "localStorage",
+      "tenant_scoped": false,
+      "file": "frontend/src/layout/Sidebar.jsx"
+    },
+    {
+      "key": "g_user_menu_visibility",
+      "purpose": "개인 메뉴 숨김",
+      "where": "localStorage",
+      "tenant_scoped": false,
+      "file": "frontend/src/context/MenuVisibilityContext.jsx"
+    },
+    {
+      "key": "g_admin_menu_tree_cache",
+      "purpose": "admin 메뉴 가시성 캐시(TTL 5분)",
+      "where": "localStorage",
+      "tenant_scoped": false,
+      "file": "frontend/src/context/MenuVisibilityContext.jsx"
+    },
+    {
+      "key": "menu_tree",
+      "purpose": "전역 메뉴 가시성/필수역할/필수플랜",
+      "where": "MySQL (AdminMenu.php)",
+      "tenant_scoped": false,
+      "file": "backend/src/Handlers/AdminMenu.php"
+    }
+  ],
+  "sidebar_dict": {
+    "source_path": "frontend/src/layout/sidebarI18n.js",
+    "langs": [
+      "ko",
+      "en",
+      "ja",
+      "zh",
+      "zh-TW",
+      "de",
+      "fr",
+      "es",
+      "pt",
+      "ru",
+      "ar",
+      "hi",
+      "th",
+      "vi",
+      "id"
+    ],
+    "missingByLang": {}
+  }
+}

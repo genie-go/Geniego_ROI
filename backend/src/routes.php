@@ -1458,6 +1458,25 @@ return function (App $app): void {
         'POST /v425/pm/collaboration/access/check'               => 'Genie\\Handlers\\PM\\Collaboration::checkAccess',
         'GET /v425/pm/collaboration/access/grants'               => 'Genie\\Handlers\\PM\\Collaboration::listAccessGrants',
         'POST /v425/pm/collaboration/access/grants/{id}/revoke'  => 'Genie\\Handlers\\PM\\Collaboration::revokeAccessGrant',
+        // [CWIS Part004-01] 내비게이션 진단 리포트(admin) — 스캐너 스냅샷 읽기 전용 노출
+        'GET /v425/pm/collaboration/navigation/analysis'         => 'Genie\\Handlers\\PM\\Collaboration::navigationAnalysis',
+        // [CWIS Part004-02] 통합 내비게이션 레지스트리 — 사용자 트리 + 관리자 Registry/Validate/Preview/Shadow/Override
+        'GET /v425/pm/navigation'                          => 'Genie\\Handlers\\PM\\Navigation::tree',
+        'GET /v425/pm/navigation/registry'                 => 'Genie\\Handlers\\PM\\Navigation::registryView',
+        'POST /v425/pm/navigation/validate'                => 'Genie\\Handlers\\PM\\Navigation::validate',
+        'POST /v425/pm/navigation/preview'                 => 'Genie\\Handlers\\PM\\Navigation::preview',
+        'GET /v425/pm/navigation/shadow-compare'           => 'Genie\\Handlers\\PM\\Navigation::shadowCompare',
+        'GET /v425/pm/navigation/overrides'                => 'Genie\\Handlers\\PM\\Navigation::listOverrides',
+        'POST /v425/pm/navigation/overrides'               => 'Genie\\Handlers\\PM\\Navigation::upsertOverride',
+        'POST /v425/pm/navigation/overrides/{id}/remove'   => 'Genie\\Handlers\\PM\\Navigation::removeOverride',
+        'GET /v425/pm/navigation/items/{menuKey}'          => 'Genie\\Handlers\\PM\\Navigation::item',
+        // [CWIS Part004-03] Context Domain + Unified Sidebar + Breadcrumb
+        'GET /v425/pm/context'                             => 'Genie\\Handlers\\PM\\NavigationContext::current',
+        'GET /v425/pm/context/options'                     => 'Genie\\Handlers\\PM\\NavigationContext::options',
+        'POST /v425/pm/context/switch'                     => 'Genie\\Handlers\\PM\\NavigationContext::switchContext',
+        'POST /v425/pm/context/validate'                   => 'Genie\\Handlers\\PM\\NavigationContext::validateContext',
+        'GET /v425/pm/sidebar'                             => 'Genie\\Handlers\\PM\\NavigationContext::sidebar',
+        'GET /v425/pm/breadcrumb'                          => 'Genie\\Handlers\\PM\\NavigationContext::breadcrumb',
         // [231차 PM 초엔터프라이즈] 포트폴리오/EVM/RAID/타임시트/베이스라인/리소스 — PM\Enterprise
         'GET /v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
@@ -1516,6 +1535,24 @@ return function (App $app): void {
         'POST /api/v425/pm/collaboration/access/check'               => 'Genie\\Handlers\\PM\\Collaboration::checkAccess',
         'GET /api/v425/pm/collaboration/access/grants'               => 'Genie\\Handlers\\PM\\Collaboration::listAccessGrants',
         'POST /api/v425/pm/collaboration/access/grants/{id}/revoke'  => 'Genie\\Handlers\\PM\\Collaboration::revokeAccessGrant',
+        'GET /api/v425/pm/collaboration/navigation/analysis'         => 'Genie\\Handlers\\PM\\Collaboration::navigationAnalysis',
+        // [CWIS Part004-02] 통합 내비게이션 레지스트리 — 사용자 트리 + 관리자 Registry/Validate/Preview/Shadow/Override
+        'GET /api/v425/pm/navigation'                          => 'Genie\\Handlers\\PM\\Navigation::tree',
+        'GET /api/v425/pm/navigation/registry'                 => 'Genie\\Handlers\\PM\\Navigation::registryView',
+        'POST /api/v425/pm/navigation/validate'                => 'Genie\\Handlers\\PM\\Navigation::validate',
+        'POST /api/v425/pm/navigation/preview'                 => 'Genie\\Handlers\\PM\\Navigation::preview',
+        'GET /api/v425/pm/navigation/shadow-compare'           => 'Genie\\Handlers\\PM\\Navigation::shadowCompare',
+        'GET /api/v425/pm/navigation/overrides'                => 'Genie\\Handlers\\PM\\Navigation::listOverrides',
+        'POST /api/v425/pm/navigation/overrides'               => 'Genie\\Handlers\\PM\\Navigation::upsertOverride',
+        'POST /api/v425/pm/navigation/overrides/{id}/remove'   => 'Genie\\Handlers\\PM\\Navigation::removeOverride',
+        'GET /api/v425/pm/navigation/items/{menuKey}'          => 'Genie\\Handlers\\PM\\Navigation::item',
+        // [CWIS Part004-03] Context Domain + Unified Sidebar + Breadcrumb
+        'GET /api/v425/pm/context'                             => 'Genie\\Handlers\\PM\\NavigationContext::current',
+        'GET /api/v425/pm/context/options'                     => 'Genie\\Handlers\\PM\\NavigationContext::options',
+        'POST /api/v425/pm/context/switch'                     => 'Genie\\Handlers\\PM\\NavigationContext::switchContext',
+        'POST /api/v425/pm/context/validate'                   => 'Genie\\Handlers\\PM\\NavigationContext::validateContext',
+        'GET /api/v425/pm/sidebar'                             => 'Genie\\Handlers\\PM\\NavigationContext::sidebar',
+        'GET /api/v425/pm/breadcrumb'                          => 'Genie\\Handlers\\PM\\NavigationContext::breadcrumb',
         'GET /api/v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /api/v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
         'PATCH /api/v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
@@ -3735,6 +3772,22 @@ return function (App $app): void {
     $register('POST',   '/v425/pm/collaboration/access/check');
     $register('GET',    '/v425/pm/collaboration/access/grants');
     $register('POST',   '/v425/pm/collaboration/access/grants/{id}/revoke');
+    $register('GET',    '/v425/pm/collaboration/navigation/analysis');
+    $register('GET',    '/v425/pm/navigation');
+    $register('GET',    '/v425/pm/navigation/registry');
+    $register('POST',   '/v425/pm/navigation/validate');
+    $register('POST',   '/v425/pm/navigation/preview');
+    $register('GET',    '/v425/pm/navigation/shadow-compare');
+    $register('GET',    '/v425/pm/navigation/overrides');
+    $register('POST',   '/v425/pm/navigation/overrides');
+    $register('POST',   '/v425/pm/navigation/overrides/{id}/remove');
+    $register('GET',    '/v425/pm/navigation/items/{menuKey}');
+    $register('GET',    '/v425/pm/context');
+    $register('GET',    '/v425/pm/context/options');
+    $register('POST',   '/v425/pm/context/switch');
+    $register('POST',   '/v425/pm/context/validate');
+    $register('GET',    '/v425/pm/sidebar');
+    $register('GET',    '/v425/pm/breadcrumb');
     // [231차 PM 초엔터프라이즈] Enterprise
     $register('GET',    '/v425/pm/portfolios');
     $register('POST',   '/v425/pm/portfolios');
@@ -3792,6 +3845,22 @@ return function (App $app): void {
     $register('POST',   '/api/v425/pm/collaboration/access/check');
     $register('GET',    '/api/v425/pm/collaboration/access/grants');
     $register('POST',   '/api/v425/pm/collaboration/access/grants/{id}/revoke');
+    $register('GET',    '/api/v425/pm/collaboration/navigation/analysis');
+    $register('GET',    '/api/v425/pm/navigation');
+    $register('GET',    '/api/v425/pm/navigation/registry');
+    $register('POST',   '/api/v425/pm/navigation/validate');
+    $register('POST',   '/api/v425/pm/navigation/preview');
+    $register('GET',    '/api/v425/pm/navigation/shadow-compare');
+    $register('GET',    '/api/v425/pm/navigation/overrides');
+    $register('POST',   '/api/v425/pm/navigation/overrides');
+    $register('POST',   '/api/v425/pm/navigation/overrides/{id}/remove');
+    $register('GET',    '/api/v425/pm/navigation/items/{menuKey}');
+    $register('GET',    '/api/v425/pm/context');
+    $register('GET',    '/api/v425/pm/context/options');
+    $register('POST',   '/api/v425/pm/context/switch');
+    $register('POST',   '/api/v425/pm/context/validate');
+    $register('GET',    '/api/v425/pm/sidebar');
+    $register('GET',    '/api/v425/pm/breadcrumb');
     $register('GET',    '/api/v425/pm/portfolios');
     $register('POST',   '/api/v425/pm/portfolios');
     $register('PATCH',  '/api/v425/pm/portfolios/{id}');
