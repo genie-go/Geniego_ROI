@@ -60,7 +60,8 @@ final class Collaboration extends Shared
         ['collaboration.workspace',    '워크스페이스',     'PARTIAL', '002', ['collaboration.foundation'],  'WorkspaceState KV 실재 · 협업 UI 는 데모 shell(재작성 대상)'],
         // [CWIS Part002] 조직/워크스페이스/팀/멤버 — 대부분 기존구조 재사용(교차검증: 명세 §4 복제금지·§1 Reuse).
         ['collaboration.organization', '조직',             'ENABLED', '002', ['collaboration.foundation'],  'tenant=조직(tenant_business_profile: company_name/industry). 별도 org 계층 신설은 제품범위 검토 후'],
-        ['collaboration.external',     '외부 협업(게스트/파트너)', 'PARTIAL', '002', ['collaboration.organization'], 'AgencyPortal(agency_client_link)·PartnerPortal 부분 존재 · 통합 게스트/파트너 초대는 후속'],
+        ['collaboration.external',     '외부 협업(게스트/파트너)', 'ENABLED', '003', ['collaboration.invitation'], '외부 스코프 초대·접근 그랜트 구현 — 특정 프로젝트만·만료·최소권한(read/comment)·PM 게이트 Default Deny·감사'],
+        ['collaboration.access',       '접근통제(RBAC+스코프)',    'ENABLED', '003', ['collaboration.security'],    '기존 RBAC(TeamPermissions/api_key/PM 역할) 재사용 + 외부 스코프 그랜트 evaluateAccess. 전면 ABAC/JIT/위임/SoD 는 제품범위 보류'],
         ['collaboration.invitation',   '초대',             'ENABLED', '002', ['collaboration.member'],      '초대 엔진 구현 — token_hash(SHA256)/만료/1회성/이메일검증/rate/감사·수락 시 UserAuth 프로비저너 재사용(member/manager)'],
         ['collaboration.department',   '부서',             'PLANNED', '002', ['collaboration.workspace'],   '부재 · 제품범위(소규모 팀 SaaS) 검토 필요 — 다단계 부서계층 수요 확인 후'],
         ['collaboration.squad',        '스쿼드',           'PLANNED', '002', ['collaboration.team'],        '부재 · 제품범위 검토(스쿼드/애자일 조직 수요 확인 후)'],
@@ -391,10 +392,16 @@ final class Collaboration extends Shared
         $b = (array)($req->getParsedBody() ?? []);
         if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
         $email = strtolower(trim((string)($b['email'] ?? '')));
-        $role  = in_array(($b['membership_type'] ?? $b['role'] ?? 'member'), ['member', 'manager'], true) ? (string)($b['membership_type'] ?? $b['role'] ?? 'member') : 'member';
+        $roleIn = (string)($b['membership_type'] ?? $b['role'] ?? 'member');
+        $role  = in_array($roleIn, ['member', 'manager', 'guest', 'partner'], true) ? $roleIn : 'member';
+        $isExternal = in_array($role, ['guest', 'partner'], true);   // [CWIS Part003] 외부 협업자
         $teamName = trim((string)($b['team_name'] ?? '')) ?: null;
-        $days = max(1, min(30, (int)($b['expires_days'] ?? 7)));
+        // 외부(게스트/파트너)는 특정 프로젝트 스코프 필수(전사 접근 금지·최소권한). 내부는 조직 스코프.
+        $scopeType = $isExternal ? 'PROJECT' : 'ORGANIZATION';
+        $scopeId   = $isExternal ? trim((string)($b['scope_id'] ?? $b['project_id'] ?? '')) : $tenant;
+        $days = max(1, min($isExternal ? 90 : 30, (int)($b['expires_days'] ?? ($isExternal ? 14 : 7)))); // 외부는 만료 필수·기본 14일
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return self::json($resp, ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.'], 422);
+        if ($isExternal && $scopeId === '') return self::json($resp, ['ok' => false, 'error' => '외부 협업자는 접근할 프로젝트(scope_id)를 지정해야 합니다.'], 422);
 
         // 중복검사: 이미 가입된 이메일 / 대기중 초대
         try {
@@ -416,7 +423,7 @@ final class Collaboration extends Shared
         try {
             $pdo->prepare("INSERT INTO collaboration_invitations (public_id,tenant_id,scope_type,scope_id,email,membership_type,team_name,token_hash,status,invited_by,expires_at,created_at,updated_at)
                            VALUES (?,?,?,?,?,?,?,?,'PENDING',?,?,?,?)")
-                ->execute(['inv_' . substr($hash, 0, 16), $tenant, 'ORGANIZATION', $tenant, $email, $role, $teamName, $hash, (string)($g['user_id'] ?? $tenant), $exp, $now, $now]);
+                ->execute(['inv_' . substr($hash, 0, 16), $tenant, $scopeType, $scopeId, $email, $role, $teamName, $hash, (string)($g['user_id'] ?? $tenant), $exp, $now, $now]);
         } catch (\Throwable $e) {
             return self::json($resp, ['ok' => false, 'error' => 'persist_failed', 'message' => $e->getMessage()], 500);
         }
@@ -515,9 +522,16 @@ final class Collaboration extends Shared
             return self::json($resp, ['ok' => false, 'error' => 'expired'], 410);
         }
         $tenant = (string)$inv['tenant_id'];
+        $membershipType = (string)$inv['membership_type'];
+        $isExternal = in_array($membershipType, ['guest', 'partner'], true);
         $ownerPlan = self::tenantOwnerPlan($pdo, $tenant);
-        $prov = \Genie\Handlers\UserAuth::provisionInvitedMember($pdo, $tenant, (int)($inv['invited_by'] ?? 0), $ownerPlan, (string)$inv['email'], $password, $name, (string)$inv['membership_type'], $inv['team_name'] ?? null);
+        $prov = \Genie\Handlers\UserAuth::provisionInvitedMember($pdo, $tenant, (int)($inv['invited_by'] ?? 0), $ownerPlan, (string)$inv['email'], $password, $name, $isExternal ? 'guest' : $membershipType, $inv['team_name'] ?? null);
         if (empty($prov['ok'])) return self::json($resp, ['ok' => false, 'error' => $prov['error'] ?? 'provision_failed'], (int)($prov['code'] ?? 422));
+        // [CWIS Part003] 외부(게스트/파트너)는 full 접근이 아니라 초대된 프로젝트에만 스코프 그랜트(만료·최소권한 read/comment).
+        if ($isExternal) {
+            self::ensureGrantsTable($pdo, $isDemo);
+            self::insertGrant($pdo, $tenant, strtoupper($membershipType), (string)$prov['user_id'], (string)($inv['scope_type'] ?: 'PROJECT'), (string)($inv['scope_id'] ?? ''), ['read', 'comment'], (string)($inv['invited_by'] ?? ''), '초대 수락(외부 협업)', (string)($inv['expires_at'] ?? ''));
+        }
         // 1회성 소진(status→ACCEPTED). 조건부 UPDATE 로 경쟁 이중수락 차단.
         $mk = $pdo->prepare("UPDATE collaboration_invitations SET status='ACCEPTED', accepted_at=?, accepted_user_id=?, updated_at=? WHERE id=? AND status='PENDING'");
         $mk->execute([gmdate('c'), (string)$prov['user_id'], gmdate('c'), $inv['id']]);
@@ -535,5 +549,135 @@ final class Collaboration extends Shared
             $r = $st->fetch(\PDO::FETCH_ASSOC);
             return $r ?: null;
         } catch (\Throwable $e) { return null; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+     * [CWIS Part003] 외부 스코프 접근 그랜트 (ReBAC 스코프 그랜트 + 외부정책 · 비중복)
+     *  ★기존 RBAC(TeamPermissions/api_key/PM 역할게이트) 재사용 — 외부(게스트/파트너)만 스코프 한정 접근을 신규 관리.
+     *  Default Deny · 만료 · 최소권한 · 테넌트격리 · 감사. 전면 ABAC/JIT/위임/SoD 는 제품범위 보류(analysis §4).
+     * ════════════════════════════════════════════════════════════════════ */
+
+    private static array $grantsEnsured = [];
+
+    private static function ensureGrantsTable(\PDO $pdo, bool $isDemo): void
+    {
+        $memo = $isDemo ? 'demo' : 'ops';
+        if (isset(self::$grantsEnsured[$memo])) return;
+        self::$grantsEnsured[$memo] = true;
+        $isMy = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql';
+        try {
+            if ($isMy) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS collaboration_access_grants (
+                    id INT AUTO_INCREMENT PRIMARY KEY, public_id VARCHAR(64), tenant_id VARCHAR(100) NOT NULL,
+                    principal_type VARCHAR(20) DEFAULT 'GUEST', principal_id VARCHAR(100) NOT NULL,
+                    scope_type VARCHAR(30) DEFAULT 'PROJECT', scope_id VARCHAR(100), permissions_json TEXT,
+                    effect VARCHAR(10) DEFAULT 'ALLOW', valid_from VARCHAR(32), valid_until VARCHAR(32),
+                    granted_by VARCHAR(100), grant_reason VARCHAR(255), revoked_at VARCHAR(32), created_at VARCHAR(32), updated_at VARCHAR(32),
+                    KEY idx_grant_principal (tenant_id, principal_id), KEY idx_grant_scope (tenant_id, scope_type, scope_id), KEY idx_grant_exp (valid_until)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS collaboration_access_grants (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, public_id TEXT, tenant_id TEXT NOT NULL, principal_type TEXT DEFAULT 'GUEST',
+                    principal_id TEXT NOT NULL, scope_type TEXT DEFAULT 'PROJECT', scope_id TEXT, permissions_json TEXT,
+                    effect TEXT DEFAULT 'ALLOW', valid_from TEXT, valid_until TEXT, granted_by TEXT, grant_reason TEXT,
+                    revoked_at TEXT, created_at TEXT, updated_at TEXT)");
+                $pdo->exec("CREATE INDEX IF NOT EXISTS idx_grant_principal ON collaboration_access_grants(tenant_id, principal_id)");
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    private static function insertGrant(\PDO $pdo, string $tenant, string $principalType, string $principalId, string $scopeType, string $scopeId, array $perms, string $grantedBy, string $reason, string $validUntil): void
+    {
+        $now = gmdate('c');
+        try {
+            $pdo->prepare("INSERT INTO collaboration_access_grants (public_id,tenant_id,principal_type,principal_id,scope_type,scope_id,permissions_json,effect,valid_from,valid_until,granted_by,grant_reason,created_at,updated_at)
+                           VALUES (?,?,?,?,?,?,?,'ALLOW',?,?,?,?,?,?)")
+                ->execute(['grt_' . bin2hex(random_bytes(6)), $tenant, $principalType, $principalId, $scopeType, $scopeId, json_encode($perms, JSON_UNESCAPED_UNICODE), $now, $validUntil, $grantedBy, $reason, $now, $now]);
+        } catch (\Throwable $e) {}
+    }
+
+    /**
+     * [CWIS Part003] 접근 결정(RBAC+ReBAC 통합·Default Deny). 평가순서: 내부멤버(기존 역할)=ALLOW →
+     *   외부(guest/partner)는 유효(미만료·미철회) 스코프 그랜트가 action 커버 시만 ALLOW → 그 외 Default Deny.
+     * @return array ['allowed','decision','reason','expires_at']
+     */
+    public static function evaluateAccess(\PDO $pdo, bool $isDemo, string $tenant, string $principalId, string $teamRole, string $scopeType, string $scopeId, string $action): array
+    {
+        if (!in_array($teamRole, ['guest', 'partner'], true)) {
+            return ['allowed' => true, 'decision' => 'ALLOW', 'reason' => 'internal_member', 'expires_at' => null];
+        }
+        self::ensureGrantsTable($pdo, $isDemo);
+        try {
+            $st = $pdo->prepare("SELECT permissions_json, valid_until FROM collaboration_access_grants
+                                 WHERE tenant_id=? AND principal_id=? AND scope_type=? AND scope_id=? AND effect='ALLOW' AND revoked_at IS NULL");
+            $st->execute([$tenant, $principalId, $scopeType, $scopeId]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                if ((string)($r['valid_until'] ?? '') !== '' && (string)$r['valid_until'] < gmdate('c')) continue; // 만료
+                $perms = json_decode((string)($r['permissions_json'] ?? '[]'), true) ?: [];
+                if (in_array($action, $perms, true) || in_array('*', $perms, true)) {
+                    return ['allowed' => true, 'decision' => 'ALLOW', 'reason' => 'external_scoped_grant', 'expires_at' => $r['valid_until'] ?? null];
+                }
+            }
+        } catch (\Throwable $e) {}
+        return ['allowed' => false, 'decision' => 'DENY', 'reason' => 'default_deny_external', 'expires_at' => null];
+    }
+
+    private static function principalTeamRole(\PDO $pdo, string $tenant, string $principalId): string
+    {
+        if (ctype_digit($principalId)) {
+            try {
+                $st = $pdo->prepare("SELECT team_role FROM app_user WHERE id=? AND tenant_id=?");
+                $st->execute([(int)$principalId, $tenant]);
+                $r = $st->fetchColumn();
+                if ($r !== false) return (string)($r ?: 'member');
+            } catch (\Throwable $e) {}
+        }
+        return 'member';
+    }
+
+    /** POST /v425/pm/collaboration/access/check (analyst+) — 특정 principal 의 스코프 접근 결정(권한확인/시뮬레이션). */
+    public static function checkAccess(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'analyst');
+        if (isset($g['error'])) return $g['error'];
+        $b = (array)($req->getParsedBody() ?? []);
+        if (empty($b)) { $d = json_decode((string)$req->getBody(), true); if (is_array($d)) $b = $d; }
+        $principalId = (string)($b['principal_id'] ?? $b['user_id'] ?? '');
+        if ($principalId === '') return self::json($resp, ['ok' => false, 'error' => 'principal_id 필요'], 422);
+        $scopeType = strtoupper((string)($b['scope_type'] ?? 'PROJECT'));
+        $scopeId = (string)($b['scope_id'] ?? '');
+        $action = (string)($b['action'] ?? 'read');
+        $teamRole = self::principalTeamRole($g['pdo'], $g['tenant'], $principalId);
+        $dec = self::evaluateAccess($g['pdo'], $g['isDemo'], $g['tenant'], $principalId, $teamRole, $scopeType, $scopeId, $action);
+        return self::json($resp, ['ok' => true, 'principal_id' => $principalId, 'data' => $dec]);
+    }
+
+    /** GET /v425/pm/collaboration/access/grants (analyst+) — 외부 접근 그랜트 목록. */
+    public static function listAccessGrants(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'analyst');
+        if (isset($g['error'])) return $g['error'];
+        self::ensureGrantsTable($g['pdo'], $g['isDemo']);
+        $rows = [];
+        try {
+            $st = $g['pdo']->prepare("SELECT public_id,principal_type,principal_id,scope_type,scope_id,permissions_json,valid_until,granted_by,grant_reason,revoked_at,created_at FROM collaboration_access_grants WHERE tenant_id=? ORDER BY id DESC LIMIT 200");
+            $st->execute([$g['tenant']]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+        return self::json($resp, ['ok' => true, 'tenant' => $g['tenant'], 'grants' => $rows, 'count' => count($rows)]);
+    }
+
+    /** POST /v425/pm/collaboration/access/grants/{id}/revoke (admin). */
+    public static function revokeAccessGrant(Request $req, Response $resp, array $args): Response
+    {
+        $g = self::gate($req, $resp, 'admin');
+        if (isset($g['error'])) return $g['error'];
+        self::ensureGrantsTable($g['pdo'], $g['isDemo']);
+        $pid = (string)($args['id'] ?? '');
+        $st = $g['pdo']->prepare("UPDATE collaboration_access_grants SET revoked_at=?, updated_at=? WHERE tenant_id=? AND public_id=? AND revoked_at IS NULL");
+        $st->execute([gmdate('c'), gmdate('c'), $g['tenant'], $pid]);
+        if ($st->rowCount() === 0) return self::json($resp, ['ok' => false, 'error' => '철회할 그랜트가 없습니다.'], 404);
+        try { self::auditLog($g['pdo'], ['tenant_id' => $g['tenant'], 'actor_user_id' => (string)($g['user_id'] ?? $g['tenant']), 'entity_type' => 'collaboration_access_grant', 'entity_id' => $pid, 'action' => 'access_grant_revoked', 'ip' => self::clientIp($req), 'ua' => self::userAgent($req)]); } catch (\Throwable $e) {}
+        return self::json($resp, ['ok' => true]);
     }
 }

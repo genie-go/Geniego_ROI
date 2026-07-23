@@ -73,6 +73,16 @@ abstract class Shared
             return ['error' => self::json($resp, ['error' => 'tenant_required'], 401)];
         }
 
+        // [CWIS Part003] 외부 협업자(team_role=guest/partner)는 PM 리소스 전면접근 차단 — 초대된 리소스에만
+        //   스코프 그랜트로 접근(현재 per-endpoint 그랜트 enforcement 미배선 → 안전측 Default Deny). 내부 멤버 무영향(무회귀).
+        try {
+            $au = \Genie\Handlers\UserAuth::authedUser($req);
+            if (is_array($au) && in_array((string)($au['team_role'] ?? ''), ['guest', 'partner'], true)) {
+                return ['error' => self::json($resp, ['error' => 'external_no_resource_access',
+                    'message' => '외부 협업자는 초대된 리소스에만 접근할 수 있습니다.'], 403)];
+            }
+        } catch (\Throwable $e) { /* 해석 실패는 통과(내부 경로 무중단) */ }
+
         $rank = ['viewer' => 0, 'connector' => 1, 'analyst' => 2, 'admin' => 3];
         $cur = $rank[$role] ?? -1;
         $need = $rank[$minRole] ?? 99;

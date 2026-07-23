@@ -1454,6 +1454,10 @@ return function (App $app): void {
         'GET /v425/pm/collaboration/invitations/verify'          => 'Genie\\Handlers\\PM\\Collaboration::verifyInvitation',
         'POST /v425/pm/collaboration/invitations/accept'         => 'Genie\\Handlers\\PM\\Collaboration::acceptInvitation',
         'POST /v425/pm/collaboration/invitations/{id}/revoke'    => 'Genie\\Handlers\\PM\\Collaboration::revokeInvitation',
+        // [CWIS Part003] 외부 스코프 접근통제
+        'POST /v425/pm/collaboration/access/check'               => 'Genie\\Handlers\\PM\\Collaboration::checkAccess',
+        'GET /v425/pm/collaboration/access/grants'               => 'Genie\\Handlers\\PM\\Collaboration::listAccessGrants',
+        'POST /v425/pm/collaboration/access/grants/{id}/revoke'  => 'Genie\\Handlers\\PM\\Collaboration::revokeAccessGrant',
         // [231차 PM 초엔터프라이즈] 포트폴리오/EVM/RAID/타임시트/베이스라인/리소스 — PM\Enterprise
         'GET /v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
@@ -1509,6 +1513,9 @@ return function (App $app): void {
         'GET /api/v425/pm/collaboration/invitations/verify'          => 'Genie\\Handlers\\PM\\Collaboration::verifyInvitation',
         'POST /api/v425/pm/collaboration/invitations/accept'         => 'Genie\\Handlers\\PM\\Collaboration::acceptInvitation',
         'POST /api/v425/pm/collaboration/invitations/{id}/revoke'    => 'Genie\\Handlers\\PM\\Collaboration::revokeInvitation',
+        'POST /api/v425/pm/collaboration/access/check'               => 'Genie\\Handlers\\PM\\Collaboration::checkAccess',
+        'GET /api/v425/pm/collaboration/access/grants'               => 'Genie\\Handlers\\PM\\Collaboration::listAccessGrants',
+        'POST /api/v425/pm/collaboration/access/grants/{id}/revoke'  => 'Genie\\Handlers\\PM\\Collaboration::revokeAccessGrant',
         'GET /api/v425/pm/portfolios'                => 'Genie\\Handlers\\PM\\Enterprise::listPortfolios',
         'POST /api/v425/pm/portfolios'               => 'Genie\\Handlers\\PM\\Enterprise::createPortfolio',
         'PATCH /api/v425/pm/portfolios/{id}'         => 'Genie\\Handlers\\PM\\Enterprise::patchPortfolio',
@@ -3724,6 +3731,10 @@ return function (App $app): void {
     $register('GET',    '/v425/pm/collaboration/invitations/verify');
     $register('POST',   '/v425/pm/collaboration/invitations/accept');
     $register('POST',   '/v425/pm/collaboration/invitations/{id}/revoke');
+    // [CWIS Part003] 외부 스코프 접근통제
+    $register('POST',   '/v425/pm/collaboration/access/check');
+    $register('GET',    '/v425/pm/collaboration/access/grants');
+    $register('POST',   '/v425/pm/collaboration/access/grants/{id}/revoke');
     // [231차 PM 초엔터프라이즈] Enterprise
     $register('GET',    '/v425/pm/portfolios');
     $register('POST',   '/v425/pm/portfolios');
@@ -3778,6 +3789,9 @@ return function (App $app): void {
     $register('GET',    '/api/v425/pm/collaboration/invitations/verify');
     $register('POST',   '/api/v425/pm/collaboration/invitations/accept');
     $register('POST',   '/api/v425/pm/collaboration/invitations/{id}/revoke');
+    $register('POST',   '/api/v425/pm/collaboration/access/check');
+    $register('GET',    '/api/v425/pm/collaboration/access/grants');
+    $register('POST',   '/api/v425/pm/collaboration/access/grants/{id}/revoke');
     $register('GET',    '/api/v425/pm/portfolios');
     $register('POST',   '/api/v425/pm/portfolios');
     $register('PATCH',  '/api/v425/pm/portfolios/{id}');

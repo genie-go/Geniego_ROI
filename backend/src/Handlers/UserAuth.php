@@ -1376,7 +1376,7 @@ final class UserAuth
     {
         self::ensureTenantColumns($pdo);
         $email = strtolower(trim($email)); $name = trim($name);
-        $role = in_array($role, ['manager', 'member'], true) ? $role : 'member'; // admin/owner 초대부여 불가
+        $role = in_array($role, ['manager', 'member', 'guest'], true) ? $role : 'member'; // [CWIS Part003] guest 허용(외부 스코프 접근)·admin/owner 초대부여 불가
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return ['ok' => false, 'error' => '올바른 이메일 형식이 아닙니다.', 'code' => 422];
         if (($pwErr = self::passwordPolicyError($password)) !== null) return ['ok' => false, 'error' => $pwErr, 'code' => 422];
         if (strlen($name) < 1) return ['ok' => false, 'error' => '이름을 입력해 주세요.', 'code' => 422];

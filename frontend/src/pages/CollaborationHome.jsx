@@ -71,16 +71,25 @@ export default function CollaborationHome() {
   const [invites, setInvites] = useState([]);
   const [invEmail, setInvEmail] = useState('');
   const [invRole, setInvRole] = useState('member');
+  const [invScope, setInvScope] = useState(''); // [Part003] 외부(guest/partner) 프로젝트 스코프
   const [invResult, setInvResult] = useState(null);
   const [invBusy, setInvBusy] = useState(false);
+  const [grants, setGrants] = useState([]);
+  const isExtRole = invRole === 'guest' || invRole === 'partner';
   const loadInvites = useCallback(async () => {
     try { const r = await authFetch('/api/v425/pm/collaboration/invitations'); if (r.ok) { const j = await r.json(); setInvites(Array.isArray(j?.invitations) ? j.invitations : []); } } catch (_) { /* 권한 없으면 무시 */ }
+    try { const r2 = await authFetch('/api/v425/pm/collaboration/access/grants'); if (r2.ok) { const j2 = await r2.json(); setGrants(Array.isArray(j2?.grants) ? j2.grants : []); } } catch (_) {}
   }, [authFetch]);
   useEffect(() => { if (token) loadInvites(); }, [token, loadInvites]);
+  const revokeGrant = useCallback(async (pid) => {
+    try { const r = await authFetch(`/api/v425/pm/collaboration/access/grants/${encodeURIComponent(pid)}/revoke`, { method: 'POST' }); if (r.ok) await loadInvites(); } catch (_) {}
+  }, [authFetch, loadInvites]);
   const createInvite = useCallback(async () => {
     if (!invEmail) return; setInvBusy(true); setInvResult(null);
     try {
-      const r = await authFetch('/api/v425/pm/collaboration/invitations', { method: 'POST', body: JSON.stringify({ email: invEmail, membership_type: invRole }) });
+      const payload = { email: invEmail, membership_type: invRole };
+      if (invRole === 'guest' || invRole === 'partner') payload.scope_id = invScope;
+      const r = await authFetch('/api/v425/pm/collaboration/invitations', { method: 'POST', body: JSON.stringify(payload) });
       const j = await r.json();
       if (!r.ok || !j?.ok) setInvResult({ err: j?.error || `실패(HTTP ${r.status})` });
       else { setInvResult({ ok: true, url: j.accept_url, sent: j.email_sent }); setInvEmail(''); await loadInvites(); }
@@ -190,10 +199,16 @@ export default function CollaborationHome() {
           <input type="email" placeholder={t('collab.invite.email', '초대할 이메일')} value={invEmail} onChange={e => setInvEmail(e.target.value)}
             style={{ flex: '1 1 200px', minWidth: 180, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)' }} />
           <select value={invRole} onChange={e => setInvRole(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)' }}>
-            <option value="member">{t('collab.role.member', '멤버')}</option>
-            <option value="manager">{t('collab.role.manager', '매니저')}</option>
+            <option value="member">{t('collab.role.member', '멤버(내부)')}</option>
+            <option value="manager">{t('collab.role.manager', '매니저(내부)')}</option>
+            <option value="guest">{t('collab.role.guest', '게스트(외부)')}</option>
+            <option value="partner">{t('collab.role.partner', '파트너(외부)')}</option>
           </select>
-          <button onClick={createInvite} disabled={invBusy || !invEmail}
+          {isExtRole && (
+            <input placeholder={t('collab.invite.scope', '프로젝트 ID(외부 접근 범위)')} value={invScope} onChange={e => setInvScope(e.target.value)}
+              style={{ flex: '1 1 160px', minWidth: 140, padding: '8px 10px', borderRadius: 8, border: '1px solid #f59e0b' }} />
+          )}
+          <button onClick={createInvite} disabled={invBusy || !invEmail || (isExtRole && !invScope)}
             style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: invBusy || !invEmail ? 0.5 : 1 }}>
             {invBusy ? '…' : t('collab.invite.send', '초대 보내기')}
           </button>
@@ -213,6 +228,20 @@ export default function CollaborationHome() {
             </div>
           ))}
         </div>
+        {/* [CWIS Part003] 외부 접근 그랜트(게스트/파트너 스코프) */}
+        {grants.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#b45309', marginBottom: 6 }}>🔑 {t('collab.grants.title', '외부 접근 그랜트(스코프 한정·만료)')}</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {grants.map(gr => (
+                <div key={gr.public_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', fontSize: 12 }}>
+                  <span>{gr.principal_type} #{gr.principal_id} · {gr.scope_type}:{gr.scope_id} · {gr.revoked_at ? <span style={{ color: '#94a3b8' }}>철회됨</span> : <span style={{ color: '#16a34a' }}>유효</span>}{gr.valid_until ? ' · ~' + String(gr.valid_until).slice(0, 10) : ''}</span>
+                  {!gr.revoked_at && <button onClick={() => revokeGrant(gr.public_id)} style={{ fontSize: 11, color: '#dc2626', border: '1px solid rgba(220,38,38,0.3)', borderRadius: 6, padding: '2px 10px', background: 'transparent', cursor: 'pointer' }}>{t('collab.invite.revoke', '철회')}</button>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
