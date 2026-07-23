@@ -327,7 +327,10 @@ final class Logistics
         [$code, $body, $err] = self::httpGet($url);
         if ($err) return ['ok' => false, 'status' => 'error', 'note' => "추적 조회 오류: {$err}"];
         if ($code !== 200 || !is_array($body)) return ['ok' => false, 'status' => 'error', 'note' => "추적 HTTP {$code}"];
-        if (!empty($body['status']) && $body['status'] === false) {
+        // [P4후속 실결함] 종전 `!empty($body['status']) && $body['status']===false` 는 영구 거짓이었다
+        //   (!empty 는 truthy 요구·===false 는 falsy 요구 → 동시 불가). sweettracker 실패응답 {status:false,msg}
+        //   을 못 잡고 성공처럼 진행하던 결함. status 가 명시적 false 일 때만 실패로 판정.
+        if (($body['status'] ?? null) === false) {
             return ['ok' => false, 'status' => 'error', 'note' => (string)($body['msg'] ?? '조회 실패')];
         }
         $level = (int)($body['level'] ?? 0);
