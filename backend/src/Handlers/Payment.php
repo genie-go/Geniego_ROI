@@ -91,12 +91,15 @@ final class Payment
             )->fetchAll(\PDO::FETCH_ASSOC);
             if (!empty($rows)) {
                 $out = [];
-                $months = ['monthly'=>1,'quarterly'=>3,'semi_annual'=>6,'biannual'=>6,'yearly'=>12];
                 foreach ($rows as $r) {
                     $base  = (int)$r['price_krw'];
                     $disc  = (float)$r['discount_pct'];
-                    $final = $disc > 0 ? (int)round($base * (1 - $disc / 100)) : $base;
-                    $out[$r['plan']][$r['cycle']] = $final;
+                    // [현 차수] 과금주기 개월수 곱셈 — 종전 분기는 월기준가만 담아(dead $months 맵이 곱셈 의도 증거)
+                    //   yearly/quarterly 선택 시 1개월가만 결제하고 전체 주기를 부여(매출 누수) 또는 프론트 총액 제출 시
+                    //   422 차단. plan_pricing 폴백(:115)·하드코딩 기본값(quarterly 237000=79000×3·yearly 708000=59000×12)·
+                    //   getPublicPricingPlans(:786,817) 전부 total=월가×개월수 규약과 정합화(price_krw=월기준가 전제).
+                    $monthly = $disc > 0 ? (int)round($base * (1 - $disc / 100)) : $base;
+                    $out[$r['plan']][$r['cycle']] = $monthly * self::cycleMonths($r['cycle']);
                 }
                 return $out;
             }
