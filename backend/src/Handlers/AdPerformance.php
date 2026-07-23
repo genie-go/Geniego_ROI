@@ -197,7 +197,10 @@ class AdPerformance {
                     'status'      => 'active',
                     'objective'   => 'Conversion',
                     'spend'       => $spend,
-                    'roas'        => $spend > 0 ? round($rev / $spend, 2) : 0,
+                    // [현 차수] 산출불가(spend=0)는 임의 0 아닌 null(정직 미산출) — 본 파일 205행 '임의숫자 금지' 원칙·
+                    //   Insights.php:511-513/AttributionEngine.php:194-196 의 NULL SSOT 와 정합. 0 은 'ROAS 0(실적 없음)'으로
+                    //   오독되어 부분싱크/유기채널의 실매출(revenue>0·spend=0)을 은폐한다. 프론트는 null→'—'(미측정) 표기.
+                    'roas'        => $spend > 0 ? round($rev / $spend, 2) : null,
                     'impressions' => $imp,
                     'clicks'      => $clk,
                     'ctr'         => $imp > 0 ? round($clk * 100 / $imp, 2) : 0,

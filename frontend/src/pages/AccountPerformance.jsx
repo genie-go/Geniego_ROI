@@ -243,7 +243,9 @@ export default function AccountPerformance() {
             const objective = c.objective || 'Conversion';
             const cSpend = (c.spend || c.spent || c.budget || 0) * f;
             const alct = (c.budget ? (typeof c.budget === 'string' ? parseFloat(c.budget.replace(/[^0-9.]/g, '')) : c.budget) : (c.spend || c.spent || 0)) * f;
-            const roasVal = typeof c.roas === 'string' ? parseFloat(c.roas.replace(/[^0-9.]/g, '')) : (c.roas || 0);
+            // [현 차수] 산출불가 null 보존(백엔드 AdPerformance roas=null=정직 미산출) — 종전 (c.roas||0) 은 null 을 0 으로
+            //   코어싱해 "ROAS 0(실적없음)"으로 오독시켰다. null 은 아래 표에서 '—'(미측정)로 표기. 문자열/숫자는 그대로.
+            const roasVal = c.roas == null ? null : (typeof c.roas === 'string' ? parseFloat(c.roas.replace(/[^0-9.]/g, '')) : c.roas);
             return {
                 ...c, account_team: sanitizeInput(teamName), objective, roas: roasVal,
                 spend: Math.round(cSpend), allocated: Math.round(alct), impressions: Math.round((c.impressions || 0) * f), clicks: Math.round((c.clicks || 0) * f),
@@ -300,7 +302,7 @@ export default function AccountPerformance() {
         const agg = { Awareness: { spend: 0, roas: 0, count: 0 }, Consideration: { spend: 0, roas: 0, count: 0 }, Conversion: { spend: 0, roas: 0, count: 0 } };
         // [227차 감사 P2] objective별 ROAS = 지출가중(Σroas×spend/Σspend) — 단순평균은 소액·고ROAS 캠페인이
         //   과대반영돼 왜곡(191차 AdStatusAnalysis blendedRoas 패턴 정합).
-        ACTIVE_META_DATA.forEach(c => { if (agg[c.objective]) { agg[c.objective].spend += c.spend; agg[c.objective].roas += c.roas * c.spend; agg[c.objective].count++; } });
+        ACTIVE_META_DATA.forEach(c => { if (agg[c.objective]) { agg[c.objective].spend += c.spend; agg[c.objective].roas += (c.roas || 0) * c.spend; agg[c.objective].count++; } });
         Object.keys(agg).forEach(k => { agg[k].roas = agg[k].spend > 0 ? agg[k].roas / agg[k].spend : 0; });
         return agg;
     }, [ACTIVE_META_DATA]);
@@ -536,7 +538,7 @@ export default function AccountPerformance() {
                                                     <SpendSpark value={campaign.spend} max={maxSpend} />
                                                 </div>
                                             </td>
-                                            <td style={{ textAlign: 'right', fontWeight: 800, color: campaign.roas >= 4 ? '#16a34a' : '#4f8ef7', padding: '14px 12px' }}>{campaign.roas.toFixed(2)}x</td>
+                                            <td style={{ textAlign: 'right', fontWeight: 800, color: (campaign.roas ?? 0) >= 4 ? '#16a34a' : '#4f8ef7', padding: '14px 12px' }}>{campaign.roas != null ? campaign.roas.toFixed(2) + 'x' : '—'}</td>
                                             <td style={{ textAlign: 'right', color: '#334155', padding: '14px 12px' }}>{campaign.impressions.toLocaleString()}</td>
                                             <td style={{ textAlign: 'right', color: '#334155', padding: '14px 12px' }}>{campaign.clicks.toLocaleString()}</td>
                                             <td style={{ textAlign: 'right', color: '#64748b', padding: '14px 12px' }}>{campaign.ctr.toFixed(2)}%</td>
