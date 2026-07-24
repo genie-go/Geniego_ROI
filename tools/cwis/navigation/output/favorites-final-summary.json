@@ -1,0 +1,215 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST10",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T02:14:25+00:00",
+    "overall_completion_percentage": 20,
+    "completion_by_definition": {
+        "AS_UI_PREFERENCE": {
+            "percentage": 50,
+            "satisfied": 3,
+            "required": 6,
+            "note": "tenantStorage.js:14 규정상 현행 device-local 저장이 규칙 준수인 경우"
+        },
+        "AS_MEMBER_DATA": {
+            "percentage": 20,
+            "satisfied": 3,
+            "required": 15,
+            "note": "기기 간 동기화되는 회원 데이터로 재정의하는 경우"
+        }
+    },
+    "reuse_percentage": 2,
+    "new_implementation_percentage": 80,
+    "legacy_percentage": 0,
+    "technical_debt_count": 6,
+    "critical_gap_count": 3,
+    "high_gap_count": 4,
+    "reuse_candidate_count": 25,
+    "refactoring_candidate_count": 1,
+    "removal_candidate_count": 4,
+    "roadmap_phase_statistics": {
+        "NOT_SCHEDULED": 1484,
+        "PHASE_3": 35,
+        "PHASE_5": 14,
+        "PHASE_7": 3,
+        "PHASE_8": 5
+    },
+    "priority_statistics": {
+        "P1": 17,
+        "P2": 35,
+        "P3": 1489
+    },
+    "implementation_decision_statistics": {
+        "EXTEND": 27,
+        "KEEP_AS_IS": 1429,
+        "MANUAL_REVIEW": 56,
+        "REMOVE": 4,
+        "REUSE": 25
+    },
+    "gap_severity_statistics": {
+        "CRITICAL": 3,
+        "HIGH": 4,
+        "LOW": 2,
+        "MEDIUM": 4,
+        "NONE": 3,
+        "UNKNOWN": 1
+    },
+    "gap_count": 17,
+    "risk_count": 5,
+    "capability_checklist": [
+        {
+            "id": "CAP-01",
+            "name": "즐겨찾기 토글 UI",
+            "scope": "PREFERENCE",
+            "category": "UI",
+            "present": true,
+            "evidence": "ST08 클러스터 sidebar-favorites 증거축 COMPONENT — FAV-NRM-000005 QuickAccessPanel"
+        },
+        {
+            "id": "CAP-02",
+            "name": "클라이언트 상태 관리",
+            "scope": "PREFERENCE",
+            "category": "FRONTEND",
+            "present": true,
+            "evidence": "ST08 증거축 STORE — FAV-NRM-001391 useFavorites"
+        },
+        {
+            "id": "CAP-03",
+            "name": "기기 로컬 영속",
+            "scope": "PREFERENCE",
+            "category": "FRONTEND",
+            "present": true,
+            "evidence": "ST03 state_inventory storage_key='g_sidebar_favs', device_local_only=true"
+        },
+        {
+            "id": "CAP-04",
+            "name": "접근성(토글 상태 노출)",
+            "scope": "PREFERENCE",
+            "category": "UX",
+            "present": false,
+            "evidence": "ST03 실측 aria-pressed 0건 — 즐겨찾기 토글 버튼이 스크린리더에 상태를 알리지 않음"
+        },
+        {
+            "id": "CAP-05",
+            "name": "순서 지정(사용자 정렬)",
+            "scope": "PREFERENCE",
+            "category": "FRONTEND",
+            "present": false,
+            "evidence": "ST04 table_inventory ordering_detected 대상 테이블 자체가 없고, ST03 상태단위에 정렬 필드 없음"
+        },
+        {
+            "id": "CAP-06",
+            "name": "자동 테스트",
+            "scope": "PREFERENCE",
+            "category": "TEST",
+            "present": false,
+            "evidence": "ST06 테스트 143건 중 즐겨찾기 대상 1건이며 그마저 본 CWIS 작업이 만든 Alias 보존 검증"
+        },
+        {
+            "id": "CAP-07",
+            "name": "서버 지속화 테이블",
+            "scope": "MEMBER_DATA",
+            "category": "DATABASE",
+            "present": false,
+            "evidence": "ST04 전 321개 테이블 중 즐겨찾기 테이블 0건"
+        },
+        {
+            "id": "CAP-08",
+            "name": "스키마 생성 경로",
+            "scope": "MEMBER_DATA",
+            "category": "DATABASE",
+            "present": false,
+            "evidence": "ST04 migration_inventory 21건 중 즐겨찾기 관련 0건"
+        },
+        {
+            "id": "CAP-09",
+            "name": "REST 엔드포인트",
+            "scope": "MEMBER_DATA",
+            "category": "API",
+            "present": false,
+            "evidence": "ST05 라우트 1,511개 중 즐겨찾기 직접 라우트 0건"
+        },
+        {
+            "id": "CAP-10",
+            "name": "서버 핸들러",
+            "scope": "MEMBER_DATA",
+            "category": "BACKEND",
+            "present": false,
+            "evidence": "ST08 클러스터 sidebar-favorites server_axes=[] (CONTROLLER/SERVICE/REPOSITORY 전무)"
+        },
+        {
+            "id": "CAP-11",
+            "name": "기기 간 동기화",
+            "scope": "MEMBER_DATA",
+            "category": "FRONTEND",
+            "present": false,
+            "evidence": "ST03 state_inventory server_synced_detected=false, ST09 서버 계층 실의존 0건"
+        },
+        {
+            "id": "CAP-12",
+            "name": "다형성 리소스 지원",
+            "scope": "MEMBER_DATA",
+            "category": "DATABASE",
+            "present": false,
+            "evidence": "ST04 polymorphic_detected 참인 테이블 0건 — 메뉴 경로 외 리소스를 즐겨찾기할 수단 없음"
+        },
+        {
+            "id": "CAP-13",
+            "name": "권한 게이트 적용",
+            "scope": "MEMBER_DATA",
+            "category": "AUTHORIZATION",
+            "present": false,
+            "evidence": "ST09 즐겨찾기 훅에서 AUTHORIZES 엣지 0건. 단 게이트 자체는 재사용 가능(REUSE_CANDIDATE 10건)"
+        },
+        {
+            "id": "CAP-14",
+            "name": "변경 감사 로그",
+            "scope": "MEMBER_DATA",
+            "category": "OBSERVABILITY",
+            "present": false,
+            "evidence": "ST09 즐겨찾기에서 menu_audit_log/pm_audit_log 로 향하는 실의존 0건. 테이블은 존재하므로 재사용 가능"
+        },
+        {
+            "id": "CAP-15",
+            "name": "테넌트 격리",
+            "scope": "MEMBER_DATA",
+            "category": "TENANT",
+            "present": false,
+            "evidence": "ST08 실측 — 사이드바는 raw localStorage 사용(테넌트 네임스페이스 없음). 단 tenantStorage.js:14 가 UI 프리퍼런스는 스코프 불요로 규정하므로 현행은 규칙 준수이며, 회원 데이터로 재정의할 때만 결여가 된다"
+        }
+    ],
+    "infrastructure_absent": [
+        {
+            "category": "CACHE",
+            "severity": "NONE",
+            "finding": "Redis/Memcached 부재(backend/src 실측 predis·ext-redis 0건, Navigation.php:16 이 부재를 명시). 현행 캐시는 프로세스 메모+파일 스냅샷+ETag. **즐겨찾기 규모에서 분산 캐시는 불필요**하므로 Gap 이 아니다"
+        },
+        {
+            "category": "QUEUE",
+            "severity": "NONE",
+            "finding": "Queue/Outbox 인프라 부재(실측 Queue::·Bus:: 0건). 즐겨찾기 토글은 동기 처리로 충분하므로 Gap 이 아니다"
+        },
+        {
+            "category": "SEARCH",
+            "severity": "NONE",
+            "finding": "Elasticsearch/Meilisearch 부재(실측 0건). 즐겨찾기는 사용자당 수십 건 규모라 검색엔진이 불필요하다"
+        },
+        {
+            "category": "EVENT",
+            "severity": "LOW",
+            "finding": "도메인 이벤트 버스 부재. 즐겨찾기 변경을 다른 도메인이 구독할 요구가 확인되지 않아 선행 요구 없음"
+        },
+        {
+            "category": "WORKSPACE",
+            "severity": "UNKNOWN",
+            "finding": "ST07 NavigationContext::ABSENT_AXES — Workspace·Project 엔티티와 멤버십 행 자체가 부재. 협업 범위 즐겨찾기를 원한다면 **엔티티 신설이 선행 조건**이며 본 Unit 범위를 넘는다"
+        }
+    ],
+    "roadmap_phase_note": "NOT_SCHEDULED = 로드맵 행동이 필요 없는 레코드. 1,400여 건의 무행동 레코드를 PHASE_8(Cleanup)에 몰아넣으면 정리 단계 규모가 거짓으로 부풀기 때문에 명세 8단계와 별도로 도입한 명시값이다"
+}

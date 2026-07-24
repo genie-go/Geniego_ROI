@@ -1,0 +1,63 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST10",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T02:14:25+00:00",
+    "count": 4,
+    "removal_candidates": [
+        {
+            "normalized_id": "FAV-NRM-001219",
+            "name": "illuminate/database",
+            "declared_version": "^10.0",
+            "dependency_type": "PRODUCTION",
+            "legacy_evidence": [
+                "ST06 usage_status=DECLARED_NOT_FOUND, 탐지 네임스페이스 기준 import·use 0건",
+                "ST09 fan_in=0"
+            ],
+            "scope_note": "즐겨찾기 범위 밖 — 저장소 전역 정리 항목",
+            "manual_review": true
+        },
+        {
+            "normalized_id": "FAV-NRM-001220",
+            "name": "monolog/monolog",
+            "declared_version": "^3.0",
+            "dependency_type": "PRODUCTION",
+            "legacy_evidence": [
+                "ST06 usage_status=DECLARED_NOT_FOUND, 탐지 네임스페이스 기준 import·use 0건",
+                "ST09 fan_in=0"
+            ],
+            "scope_note": "즐겨찾기 범위 밖 — 저장소 전역 정리 항목",
+            "manual_review": true
+        },
+        {
+            "normalized_id": "FAV-NRM-001221",
+            "name": "php-di/php-di",
+            "declared_version": "^7.0",
+            "dependency_type": "PRODUCTION",
+            "legacy_evidence": [
+                "ST06 usage_status=DECLARED_NOT_FOUND, 탐지 네임스페이스 기준 import·use 0건",
+                "ST09 fan_in=0"
+            ],
+            "scope_note": "즐겨찾기 범위 밖 — 저장소 전역 정리 항목",
+            "manual_review": true
+        },
+        {
+            "normalized_id": "FAV-NRM-001225",
+            "name": "vlucas/phpdotenv",
+            "declared_version": "^5.5",
+            "dependency_type": "PRODUCTION",
+            "legacy_evidence": [
+                "ST06 usage_status=DECLARED_NOT_FOUND, 탐지 네임스페이스 기준 import·use 0건",
+                "ST09 fan_in=0"
+            ],
+            "scope_note": "즐겨찾기 범위 밖 — 저장소 전역 정리 항목",
+            "manual_review": true
+        }
+    ]
+}

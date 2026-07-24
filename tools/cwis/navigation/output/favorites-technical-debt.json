@@ -1,0 +1,81 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST10",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T02:14:25+00:00",
+    "debt_count": 6,
+    "technical_debt": [
+        {
+            "debt_id": "FAV-DEBT-001",
+            "title": "즐겨찾기 테스트 커버리지 0",
+            "category": "TEST",
+            "severity": "MEDIUM",
+            "evidence": [
+                "ST06 테스트 143건 중 즐겨찾기 대상 1건이며 그마저 본 CWIS 작업의 Alias 보존 검증"
+            ],
+            "remediation": "재사용 가능한 인메모리 SQLite 픽스처 3종을 전용해 검증 추가",
+            "priority": "P2"
+        },
+        {
+            "debt_id": "FAV-DEBT-002",
+            "title": "표준 테스트 러너 부재",
+            "category": "TEST",
+            "severity": "MEDIUM",
+            "evidence": [
+                "ST06 PHPUnit/Pest/Vitest/Jest/Cypress/Playwright 설정 파일 0건, 테스트 자산은 자체 셀프테스트 6종뿐"
+            ],
+            "remediation": "러너 도입은 저장소 전역 결정 — 즐겨찾기 단독으로 판단하지 말 것",
+            "priority": "P2"
+        },
+        {
+            "debt_id": "FAV-DEBT-003",
+            "title": "미사용 Composer 프로덕션 의존성 4건",
+            "category": "BACKEND",
+            "severity": "LOW",
+            "evidence": [
+                "ST06 전 소스 독립 스캔 결과 사용처 0건: php-di/php-di, vlucas/phpdotenv, illuminate/database, monolog/monolog"
+            ],
+            "remediation": "즐겨찾기 범위 밖 — 저장소 전역 정리 항목으로 별도 승인 필요",
+            "priority": "P3"
+        },
+        {
+            "debt_id": "FAV-DEBT-004",
+            "title": "스키마 생성 경로가 마이그레이션이 아니라 ensureTables",
+            "category": "DATABASE",
+            "severity": "MEDIUM",
+            "evidence": [
+                "ST04 실측 — 전 321개 테이블이 backend/src 의 ensureTables DDL 로 생성되며 backend/migrations 는 세션 172 에서 정지"
+            ],
+            "remediation": "★즐겨찾기 테이블을 새 마이그레이션 파일로 만들면 배포 경로에 실리지 않는다. 기존 ensureTables 패턴을 따라야 한다",
+            "priority": "P0"
+        },
+        {
+            "debt_id": "FAV-DEBT-005",
+            "title": "즐겨찾기 토글의 접근성 상태 미노출",
+            "category": "UX",
+            "severity": "MEDIUM",
+            "evidence": [
+                "ST03 실측 aria-pressed 0건"
+            ],
+            "remediation": "토글 버튼에 aria-pressed 부여",
+            "priority": "P2"
+        },
+        {
+            "debt_id": "FAV-DEBT-006",
+            "title": "ST04 마이그레이션 파서 SQL 키워드 오탐",
+            "category": "DOCUMENTATION",
+            "severity": "LOW",
+            "evidence": [
+                "ST07 FAV-CFL-000001 — `IF NOT EXISTS` 의 IF 가 affected_table 로 추출"
+            ],
+            "remediation": "search-favorites-database.php 파서 보정",
+            "priority": "P3"
+        }
+    ]
+}

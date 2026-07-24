@@ -1,0 +1,26 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST10",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T02:14:25+00:00",
+    "count": 1,
+    "refactoring_candidates": [
+        {
+            "normalized_id": "FAV-NRM-000016",
+            "name": "IF",
+            "target": "tools/cwis/navigation/scripts/search-favorites-database.php",
+            "reason": "마이그레이션 파서가 `IF NOT EXISTS` 의 SQL 키워드를 테이블명으로 추출",
+            "evidence": [
+                "ST07 FAV-CFL-000001"
+            ],
+            "priority": "P3",
+            "complexity": "LOW"
+        }
+    ]
+}
