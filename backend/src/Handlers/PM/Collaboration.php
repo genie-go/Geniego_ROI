@@ -57,7 +57,7 @@ final class Collaboration extends Shared
         ['collaboration.attachment',   '첨부',             'ENABLED', '001', ['collaboration.task'],        'PM pm_attachments 재사용'],
         ['collaboration.notification', '알림',             'ENABLED', '001', ['collaboration.foundation'],  'user_notification/WebPush 재사용'],
         ['collaboration.realtime',     '실시간(단방향)',   'PARTIAL', '001', ['collaboration.foundation'],  'PM SSE 단방향 존재 · 양방향(WS/CRDT) 부재'],
-        ['collaboration.workspace',    '워크스페이스',     'PARTIAL', '002', ['collaboration.foundation'],  'WorkspaceState KV 실재 · 협업 UI 는 데모 shell(재작성 대상)'],
+        ['collaboration.workspace',    '워크스페이스',     'ENABLED', '002', ['collaboration.foundation'],  '개인 워크스페이스 홈(GET /hub) 실배선 — 작업/활동/멘션/프로젝트 집계 + 플랜별 기능 컨텍스트. 전 구독플랜 사용(viewer+)'],
         // [CWIS Part002] 조직/워크스페이스/팀/멤버 — 대부분 기존구조 재사용(교차검증: 명세 §4 복제금지·§1 Reuse).
         ['collaboration.organization', '조직',             'ENABLED', '002', ['collaboration.foundation'],  'tenant=조직(tenant_business_profile: company_name/industry). 별도 org 계층 신설은 제품범위 검토 후'],
         ['collaboration.external',     '외부 협업(게스트/파트너)', 'ENABLED', '003', ['collaboration.invitation'], '외부 스코프 초대·접근 그랜트 구현 — 특정 프로젝트만·만료·최소권한(read/comment)·PM 게이트 Default Deny·감사'],
@@ -79,7 +79,7 @@ final class Collaboration extends Shared
         ['collaboration.navigation.mobile_foundation', '모바일 내비 기반',    'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         'Drawer/Focus Trap/Escape/배경 스크롤 잠금 구현. 하단 탭(MobileBottomNav)은 아직 레거시 하드코딩 — Part004-07 에서 Registry 연결'],
         ['collaboration.navigation.favorites',       '즐겨찾기·고정',         'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         'Sidebar QuickAccessPanel 실재(localStorage 디바이스 로컬) · 서버 영속/계정 이동 부재'],
         ['collaboration.navigation.recents',         '최근 항목',             'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         '최근 방문 5건 실재(경로만 저장·언어 무관 재해석) · 서버 영속 부재'],
-        ['collaboration.navigation.personal_hub',    '개인 작업함',           'PLANNED',   '004', ['collaboration.task'],                       '내 작업/승인/멘션 통합 진입점 부재(도메인별 산재)'],
+        ['collaboration.navigation.personal_hub',    '개인 작업함',           'ENABLED',   '004', ['collaboration.task'],                       '협업 홈 워크스페이스(GET /hub)에 내 작업·활동·멘션·프로젝트 통합 진입점 실배선. 승인 통합은 collaboration.approval 연동(진행 중)'],
         ['collaboration.navigation.command_palette', 'Command Palette',       'PARTIAL',   '004', ['collaboration.navigation.registry'],        'Ctrl+K 팔레트 실재(28개 하드코딩·플랜필터 적용) · manifest 미참조라 구조적 드리프트'],
         ['collaboration.mention',      '멘션',             'PARTIAL', '003', ['collaboration.comment'],     'mentions_csv 컬럼 스텁 · 해석/알림 파이프라인 부재'],
         ['collaboration.approval',     '승인 워크플로',    'PARTIAL', '009', ['collaboration.foundation'],  '3계열 산재(Alerting/Catalog/FeedTemplate) · 통합 필요'],
@@ -753,6 +753,115 @@ final class Collaboration extends Shared
             'context' => $data['context'] ?? null,
             'preference_stores' => $data['preference_stores'] ?? null,
             'issues' => $data['issues'] ?? [],
+        ]);
+    }
+
+    /* ── [CWIS Part A] 협업 워크스페이스 홈(개인 작업함) — 모든 구독플랜 회원 사용 ───────────── */
+
+    /** 플랜 티어(협업 고급기능 게이팅용). 코어(개인 워크스페이스)는 전 플랜 tier 0. */
+    private const PLAN_RANK = ['demo'=>0,'free'=>0,'starter'=>1,'basic'=>1,'growth'=>2,'pro'=>3,'business'=>3,'platform_growth'=>4,'enterprise'=>4,'admin'=>5];
+
+    /** capability_key → 최소 플랜 티어(그 미만 플랜은 잠금 표시·업셀). 미지정=0(전 플랜 사용). */
+    private const CAPABILITY_MIN_TIER = [
+        'collaboration.member'=>1, 'collaboration.team'=>1, 'collaboration.invitation'=>1,
+        'collaboration.mention'=>2, 'collaboration.approval'=>2, 'collaboration.external'=>2, 'collaboration.access'=>2,
+    ];
+
+    private static function planTier(string $plan): int
+    {
+        return self::PLAN_RANK[strtolower(trim($plan))] ?? 0;
+    }
+
+    /**
+     * GET /v425/pm/collaboration/hub — 협업 워크스페이스 홈(개인 작업함).
+     *   내 열린 작업·최근 활동·멘션·프로젝트를 집계(PM 테이블 재사용·신규 도메인 0). 테넌트 격리.
+     *   ★모든 구독플랜 세션 회원 사용 가능(gate viewer+·requirePro 아님) — 고급 기능만 플랜 티어로 잠금 표시(자기에 맞게).
+     */
+    public static function personalHub(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'viewer');
+        if (isset($g['error'])) return $g['error'];
+        $pdo = $g['pdo']; $tenant = $g['tenant'];
+
+        $hub = [
+            'tasks'    => ['by_status' => [], 'open_total' => 0, 'overdue' => 0, 'due_soon' => 0, 'items' => []],
+            'activity' => [],
+            'mentions' => [],
+            'projects' => ['active' => 0, 'total' => 0],
+        ];
+
+        // 작업 현황(테넌트 스코프·비보관)
+        try {
+            $st = $pdo->prepare("SELECT status, COUNT(*) c FROM pm_tasks WHERE tenant_id=? AND archived_at IS NULL GROUP BY status");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $hub['tasks']['by_status'][(string)$r['status']] = (int)$r['c']; }
+            foreach (['todo','in_progress','review','blocked'] as $s) { $hub['tasks']['open_total'] += $hub['tasks']['by_status'][$s] ?? 0; }
+            $today = gmdate('Y-m-d'); $soon = gmdate('Y-m-d', time() + 7 * 86400);
+            $q = $pdo->prepare("SELECT COUNT(*) FROM pm_tasks WHERE tenant_id=? AND archived_at IS NULL AND status NOT IN ('done','cancelled') AND due_date IS NOT NULL AND due_date < ?");
+            $q->execute([$tenant, $today]); $hub['tasks']['overdue'] = (int)$q->fetchColumn();
+            $q2 = $pdo->prepare("SELECT COUNT(*) FROM pm_tasks WHERE tenant_id=? AND archived_at IS NULL AND status NOT IN ('done','cancelled') AND due_date IS NOT NULL AND due_date BETWEEN ? AND ?");
+            $q2->execute([$tenant, $today, $soon]); $hub['tasks']['due_soon'] = (int)$q2->fetchColumn();
+            $q3 = $pdo->prepare("SELECT t.id, t.title, t.status, t.priority, t.due_date, t.progress_pct, t.project_id, p.name project_name
+                                 FROM pm_tasks t LEFT JOIN pm_projects p ON p.id=t.project_id AND p.tenant_id=t.tenant_id
+                                 WHERE t.tenant_id=? AND t.archived_at IS NULL AND t.status NOT IN ('done','cancelled')
+                                 ORDER BY (t.due_date IS NULL) ASC, t.due_date ASC, t.updated_at DESC LIMIT 12");
+            $q3->execute([$tenant]); $hub['tasks']['items'] = $q3->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) { /* 테이블 부재/쿼리 실패 → 빈 집계(정직·0 위장 안 함) */ }
+
+        // 최근 활동(pm_audit_log 재사용)
+        try {
+            $st = $pdo->prepare("SELECT entity_type, entity_id, action, actor_user_id, created_at FROM pm_audit_log WHERE tenant_id=? ORDER BY id DESC LIMIT 15");
+            $st->execute([$tenant]); $hub['activity'] = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {}
+
+        // 최근 멘션(워크스페이스 내 @언급 댓글 — collaboration.mention 기반)
+        try {
+            $st = $pdo->prepare("SELECT c.id, c.task_id, c.author_id, c.body, c.mentions_csv, c.created_at, t.title task_title
+                                 FROM pm_task_comments c LEFT JOIN pm_tasks t ON t.id=c.task_id AND t.tenant_id=c.tenant_id
+                                 WHERE c.tenant_id=? AND c.mentions_csv IS NOT NULL AND c.mentions_csv <> ''
+                                 ORDER BY c.created_at DESC LIMIT 10");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $body = (string)($r['body'] ?? '');
+                $hub['mentions'][] = [
+                    'id' => $r['id'], 'task_id' => $r['task_id'], 'task_title' => $r['task_title'],
+                    'author_id' => $r['author_id'], 'excerpt' => mb_substr($body, 0, 140),
+                    'mentions' => array_values(array_filter(explode(',', (string)$r['mentions_csv']))),
+                    'created_at' => $r['created_at'],
+                ];
+            }
+        } catch (\Throwable $e) {}
+
+        // 프로젝트 집계
+        try {
+            $st = $pdo->prepare("SELECT status, COUNT(*) c FROM pm_projects WHERE tenant_id=? GROUP BY status");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $hub['projects']['total'] += (int)$r['c'];
+                if ((string)$r['status'] === 'active') $hub['projects']['active'] += (int)$r['c'];
+            }
+        } catch (\Throwable $e) {}
+
+        // 플랜 컨텍스트 — 각 플랜이 자기에 맞게: 활성 capability + 잠금(상위플랜 필요) 목록.
+        $plan = \Genie\PlanLimits::tenantPlan($pdo, $tenant);
+        $tier = self::planTier($plan);
+        $overlay = self::tenantOverlay($pdo, $tenant);
+        $available = []; $locked = [];
+        foreach (self::CATALOG as $c) {
+            $key = $c[0]; $status = $c[2];
+            if (!in_array($status, ['ENABLED', 'PARTIAL'], true)) continue; // 미착수(PLANNED 등)는 제외
+            $minTier = self::CAPABILITY_MIN_TIER[$key] ?? 0;
+            if ($tier >= $minTier && self::effectiveEnabled(['key' => $key, 'status' => $status], $overlay)) {
+                $available[] = $key;
+            } elseif ($tier < $minTier) {
+                $locked[] = ['key' => $key, 'name' => $c[1], 'min_tier' => $minTier];
+            }
+        }
+
+        return self::json($resp, [
+            'ok'   => true,
+            'hub'  => $hub,
+            'plan' => ['name' => $plan, 'tier' => $tier, 'available_capabilities' => $available, 'locked_capabilities' => $locked],
         ]);
     }
 }

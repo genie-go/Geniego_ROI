@@ -20,6 +20,11 @@ const STATUS_META = {
   BLOCKED:    { label: '차단됨',    color: '#dc2626', bg: 'rgba(220,38,38,0.10)', bd: 'rgba(220,38,38,0.30)' },
 };
 
+// [Part A] 워크스페이스 홈 — 작업 상태 점/활동 라벨(pm_tasks status·pm_audit_log action ENUM 과 1:1).
+const STATUS_DOT = { todo: '#94a3b8', in_progress: '#2563eb', review: '#d97706', blocked: '#dc2626', done: '#16a34a', cancelled: '#cbd5e1' };
+const ACTION_LABEL = { create: '생성', update: '수정', delete: '삭제', restore: '복원', status_change: '상태변경', assign: '배정', unassign: '배정해제' };
+const isOverdue = (d) => { try { return d && String(d).slice(0, 10) < new Date().toISOString().slice(0, 10); } catch { return false; } };
+
 export default function CollaborationHome() {
   const t = useT();
   const { token } = useAuth() || {};
@@ -54,6 +59,18 @@ export default function CollaborationHome() {
   }, [authFetch, token]);
 
   useEffect(() => { load(); }, [load]);
+
+  // [Part A] 워크스페이스 홈(개인 작업함) — 모든 구독플랜 세션 회원(gate viewer+·requirePro 아님).
+  const [hub, setHub] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const loadHub = useCallback(async () => {
+    if (!token) return;
+    try {
+      const r = await authFetch('/api/v425/pm/collaboration/hub');
+      if (r.ok) { const j = await r.json(); setHub(j?.hub || null); setPlan(j?.plan || null); }
+    } catch (_) { /* 실패는 워크스페이스 숨김(관리 콘솔은 계속 노출) */ }
+  }, [authFetch, token]);
+  useEffect(() => { if (token) loadHub(); }, [token, loadHub]);
 
   const toggle = useCallback(async (cap) => {
     const action = cap.enabled ? 'disable' : 'enable';
@@ -163,6 +180,89 @@ export default function CollaborationHome() {
 
       {error && <div style={{ padding: 12, borderRadius: 8, background: 'rgba(220,38,38,0.08)', color: '#dc2626', fontSize: 13, marginBottom: 12 }}>불러오기 오류: {error}</div>}
       {msg && <div style={{ padding: 12, borderRadius: 8, background: 'rgba(217,119,6,0.10)', color: '#b45309', fontSize: 13, marginBottom: 12 }}>{msg}</div>}
+
+      {/* [Part A] 워크스페이스 — 모든 구독플랜 회원의 개인 작업함(내 작업·활동·멘션·프로젝트). 플랜에 맞게 사용. */}
+      {hub && (
+        <div style={{ marginBottom: 24 }}>
+          {plan && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 15, fontWeight: 800 }}>🧑‍💻 {t('collab.ws.title', '내 워크스페이스')}</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: '#2563eb', padding: '3px 10px', borderRadius: 99, background: 'rgba(37,99,235,0.08)' }}>
+                {t('collab.ws.plan', '내 플랜')}: {plan.name}
+              </span>
+              <span style={{ fontSize: 11, color: '#16a34a' }}>{t('collab.ws.available', '사용 가능')} {plan.available_capabilities?.length || 0}</span>
+              {plan.locked_capabilities?.length > 0 && (
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>· {t('collab.ws.locked', '상위 플랜')} {plan.locked_capabilities.length}</span>
+              )}
+            </div>
+          )}
+
+          {/* 작업 요약 카드 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10, marginBottom: 14 }}>
+            {[
+              [t('collab.ws.open', '진행 중 작업'), hub.tasks?.open_total ?? 0, '#2563eb'],
+              [t('collab.ws.overdue', '기한 초과'), hub.tasks?.overdue ?? 0, (hub.tasks?.overdue > 0 ? '#dc2626' : '#16a34a')],
+              [t('collab.ws.dueSoon', '임박(7일)'), hub.tasks?.due_soon ?? 0, (hub.tasks?.due_soon > 0 ? '#d97706' : '#16a34a')],
+              [t('collab.ws.projects', '활성 프로젝트'), hub.projects?.active ?? 0, '#334155'],
+            ].map(([label, v, color]) => (
+              <div key={label} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border,#e2e8f0)', textAlign: 'center' }}>
+                <div style={{ fontSize: 26, fontWeight: 900, color, lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 2열: 작업 목록 / 활동·멘션 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 14 }}>
+            <div style={{ padding: 14, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
+              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 10 }}>📋 {t('collab.ws.myTasks', '작업 목록')}</div>
+              {(hub.tasks?.items || []).length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('collab.ws.noTasks', '열린 작업이 없습니다.')}</div>}
+              <div style={{ display: 'grid', gap: 6, maxHeight: 300, overflowY: 'auto' }}>
+                {(hub.tasks?.items || []).map(tk => (
+                  <div key={tk.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '7px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 12 }}>
+                    <span style={{ flexShrink: 0, width: 8, height: 8, borderRadius: 99, background: STATUS_DOT[tk.status] || '#94a3b8' }} />
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tk.title}</span>
+                    {tk.project_name && <span style={{ fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{tk.project_name}</span>}
+                    {tk.due_date && <span style={{ fontSize: 10, color: isOverdue(tk.due_date) ? '#dc2626' : '#64748b', flexShrink: 0 }}>{String(tk.due_date).slice(5, 10)}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ padding: 14, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
+              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 10 }}>🔔 {t('collab.ws.activity', '최근 활동')}</div>
+              <div style={{ display: 'grid', gap: 5, maxHeight: 150, overflowY: 'auto', marginBottom: 10 }}>
+                {(hub.activity || []).length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('collab.ws.noActivity', '최근 활동이 없습니다.')}</div>}
+                {(hub.activity || []).map((a, i) => (
+                  <div key={i} style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 6 }}>
+                    <span style={{ fontWeight: 700, color: '#475569' }}>{ACTION_LABEL[a.action] || a.action}</span>
+                    <span>{a.entity_type}</span>
+                    <span style={{ marginLeft: 'auto', color: '#94a3b8' }}>{a.created_at ? String(a.created_at).slice(5, 16).replace('T', ' ') : ''}</span>
+                  </div>
+                ))}
+              </div>
+              {(hub.mentions || []).length > 0 && (
+                <>
+                  <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 6, color: '#7c3aed' }}>@ {t('collab.ws.mentions', '멘션')}</div>
+                  <div style={{ display: 'grid', gap: 5, maxHeight: 120, overflowY: 'auto' }}>
+                    {(hub.mentions || []).map(m => (
+                      <div key={m.id} style={{ fontSize: 11, color: '#475569', padding: '5px 8px', borderRadius: 6, background: 'rgba(124,58,237,0.05)' }}>
+                        <b>{m.task_title || m.task_id}</b>: {m.excerpt}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {plan?.locked_capabilities?.length > 0 && (
+            <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(100,116,139,0.06)', fontSize: 12, color: '#64748b' }}>
+              🔒 {t('collab.ws.upgradeHint', '상위 플랜에서 사용 가능')}: {plan.locked_capabilities.map(c => c.name).join(', ')}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Readiness */}
       <div style={{ display: 'flex', gap: 20, alignItems: 'center', padding: 18, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)', marginBottom: 20, flexWrap: 'wrap' }}>
