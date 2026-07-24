@@ -337,7 +337,10 @@ final class ChannelCreds
         $verified = false;
         if ($tenant !== '' && $tenant !== 'demo' && !str_starts_with($tenant, 'demo') && $verifiableField && $plainValue !== '') {
             try {
-                [$vok] = self::pingChannel($channel, $keyName, $plainValue);
+                // [현 차수 D1] 다중필드 채널(shopify/naver/coupang/amazon)은 형제 자격증명까지 로드해 실검증.
+                //   종전엔 pingChannel(단일필드 soft-ok)이라 저장만으로 '발급 확인됨' 위장(fake-green). 단일토큰
+                //   채널(meta/tiktok/google/kakao/youtube)은 pingChannelWithCreds 내부에서 pingChannel 로 폴백(무변경).
+                [$vok] = self::pingChannelWithCreds($pdo, $tenant, $channel, $keyName, $plainValue);
                 try {
                     $pdo->prepare('UPDATE channel_credential SET last_tested_at=?, test_status=? WHERE tenant_id=? AND channel=? AND key_name=?')
                         ->execute([$now, $vok ? 'ok' : 'error', $tenant, $channel, $keyName]);
@@ -644,7 +647,9 @@ final class ChannelCreds
         // [237차] naver_sa(검색광고) 라이브 검증은 /ncc/campaigns 가 잘못된 creds 에 308(리다이렉트)을 반환해
         //   유효 creds 인식을 보장 못함(거짓 실패 위험) → honest soft-ok('저장됨, 동기화 시 검증') 유지(미편입).
         $live = ['meta_ads', 'meta', 'tiktok', 'tiktok_business', 'google_ads', 'google', 'kakao', 'kakao_moment', 'youtube',
-                 'naver', 'naver_smartstore', 'coupang', 'amazon', 'amazon_spapi'];
+                 'naver', 'naver_smartstore', 'coupang', 'amazon', 'amazon_spapi',
+                 // [현 차수] shopify — pingShopifyCreds 가 GET /shop.json 실호출 검증(길이체크 가짜 대체).
+                 'shopify'];
         if (in_array($channel, $live, true)) return true;
         $c = ChannelSync::normalizeChannelKey($channel);
         return $c !== $channel && in_array($c, $live, true);
@@ -733,6 +738,10 @@ final class ChannelCreds
         if ($is(['naver', 'naver_smartstore'])) return self::pingNaverCreds(self::loadCredMap($pdo, $tenant, $channel));
         if ($is(['coupang']))                   return self::pingCoupangCreds(self::loadCredMap($pdo, $tenant, $channel));
         if ($is(['amazon', 'amazon_spapi']))    return self::pingAmazonCreds(self::loadCredMap($pdo, $tenant, $channel));
+        // [현 차수] Shopify 실검증 — 종전 pingShopify 는 토큰 길이(≥32)만 확인하는 가짜(fake-green)였다.
+        //   test_status='ok' 가 "발급 확인"으로 오인되나 실제 토큰은 무효라 동기화에서 401 발생(실제 재현).
+        //   shop_domain(형제 자격증명)까지 로드해 Admin API GET /shop.json 로 실호출 검증한다.
+        if ($is(['shopify']))                   return self::pingShopifyCreds(self::loadCredMap($pdo, $tenant, $channel));
         return self::pingChannel($channel, $keyName, $keyValue);
     }
 
@@ -781,6 +790,25 @@ final class ChannelCreds
         return [false, 'Amazon 키 검증 실패: ' . ($body['error_description'] ?? $body['error'] ?? "HTTP $code")];
     }
 
+    /** Shopify Admin API — shop_domain+access_token 로 GET /shop.json 실호출(200=발급 확인). shopifyFetch 와 동일 인증.
+     *  ★종전 pingShopify(토큰 길이만 확인)를 대체하는 진짜 검증 — 무효 토큰을 등록 시점에 정직하게 잡는다. */
+    private static function pingShopifyCreds(array $m): array
+    {
+        $shop  = rtrim(trim((string)($m['shop_domain'] ?? '')), '/');
+        $token = trim((string)($m['access_token'] ?? $m['api_password'] ?? ''));
+        if ($shop === '' || $token === '') return [false, 'Shopify: shop_domain·access_token 모두 등록해야 발급 확인됩니다.'];
+        // 사용자 흔한 실수 방어 — https:// 접두·경로 제거 후 .myshopify.com 보정(shopifyFetch 와 동일 정규화).
+        $shop = preg_replace('#^https?://#i', '', $shop);
+        $shop = preg_replace('#/.*$#', '', $shop);
+        if (!str_contains($shop, '.')) $shop .= '.myshopify.com';
+        [$code, $body, $err] = self::httpGet("https://{$shop}/admin/api/2024-10/shop.json", ['X-Shopify-Access-Token' => $token]);
+        if ($err) return [false, "Shopify 연결 오류: $err"];
+        if ($code === 200 && !empty($body['shop'])) return [true, 'Shopify Admin API 검증 확인됨 (' . ($body['shop']['name'] ?? $shop) . ')'];
+        if ($code === 401 || $code === 403) return [false, 'Shopify 키 검증 실패(HTTP ' . $code . '): 앱 설치 후 발급된 Admin API 액세스 토큰(shpat_…)인지, Shop 도메인과 일치하는지 확인하세요. (API 키/시크릿이 아닙니다.)'];
+        if ($code === 404) return [false, 'Shopify 키 검증 실패(404): Shop 도메인을 확인하세요 (xxx.myshopify.com).'];
+        return [false, 'Shopify 키 검증 실패: ' . (is_array($body['errors'] ?? null) ? json_encode($body['errors']) : ($body['errors'] ?? "HTTP $code"))];
+    }
+
     private static function pingMeta(string $accessToken): array
     {
         [$code, $body, $err] = self::httpGet(
@@ -821,11 +849,11 @@ final class ChannelCreds
 
     private static function pingShopify(string $apiKey): array
     {
-        // Without the shop domain we can only confirm key format
-        if (strlen($apiKey) >= 32) {
-            return [true, 'Shopify: API key format valid (live test requires shop domain)'];
-        }
-        return [false, 'Shopify: API key appears too short'];
+        // ★[현 차수] fake-green 제거 — 종전엔 길이(≥32)만으로 [true,'valid'] 를 반환해 무효 토큰을
+        //   '발급 확인됨'으로 위장했다(실측: 'https:...' 129자 값이 ok 로 통과 → 동기화 401).
+        //   shop_domain 없이는 진짜 검증이 불가하므로 유효성을 주장하지 않는다(soft-ok=false).
+        //   실검증은 shop_domain 을 로드하는 pingShopifyCreds(pingChannelWithCreds 경유)가 담당한다.
+        return [false, 'Shopify: shop_domain 과 함께 실검증됩니다 — 자격증명 저장 후 "테스트"로 확인하세요.'];
     }
 
     private static function pingKakao(string $accessToken): array

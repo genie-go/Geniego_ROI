@@ -391,7 +391,14 @@ final class ChannelSync
         // Orders
         [$oCode, $oBody] = self::httpGet("https://{$shop}/admin/api/2024-01/orders.json?limit=50&status=any&fields=id,name,email,customer,line_items,financial_status,fulfillment_status,created_at,cancelled_at,shipping_address,total_price,currency", $headers);
 
-        if ($pCode !== 200) return ['ok'=>false, 'error'=>"Shopify HTTP {$pCode}", 'products'=>[], 'orders'=>[]];
+        if ($pCode !== 200) {
+            // [현 차수] 401/403 은 인증 실패 — 등록 시 pingShopifyCreds(GET /shop.json)로 실검증하므로 여기 도달 시
+            //   토큰이 무효/만료거나 shop 도메인 불일치. 사용자에게 재발급 경로를 정직하게 안내(가짜 성공 금지).
+            $hint = in_array($pCode, [401, 403], true)
+                ? "Shopify 인증 실패(HTTP {$pCode}) — Admin API 액세스 토큰(shpat_…)이 무효/만료이거나 Shop 도메인과 불일치합니다. 커스텀 앱 재설치 후 발급된 토큰인지 확인하세요."
+                : "Shopify HTTP {$pCode}";
+            return ['ok'=>false, 'error'=>$hint, 'products'=>[], 'orders'=>[]];
+        }
 
         $products = array_map(function ($p) {
             $v = $p['variants'][0] ?? [];
