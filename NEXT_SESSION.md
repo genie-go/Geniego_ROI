@@ -11,6 +11,7 @@
 - **협업 전면 재구성**: "개발 스펙 추적판"→팀 협업 플랫폼. **P0 내부정보 노출 제거**(toDTO 슬림=description/Part/키 제거·capability 그리드/진단/레지스트리 UI 제거)·`teamWorkspace`(팀/멤버/팀간협업 프로젝트, 업종무관, `/team-members` SSOT 동기화) — `91e569e`. ★라이브 실 teams=15
 - **협업 대화·공지 게시판**(`CollabBoard`: `collab_post/reply/reaction`·스코프 org/team/project·스레드·이모지 리액션·핀·@멘션) — `aa6d58b`. ★E2E PASS(운영 MySQL)
 - **플로팅 위젯 자유배치**(`useDraggable`: 챗봇·시작가이드 드래그 이동·위치 device-local 영속·선택메뉴 가림 해소) — `c106bf4`
+- **팀 목록 중복 제거**(협업-4): '팀 협업' 카드와 게시판 공간 선택기가 팀 15개를 이중 노출 → 공간 선택기를 컴팩트 드롭다운으로 전환(무회귀) — `8583db3`
 
 ### ★미완 / 차기 우선순위
 1. ★★**실시간 인프라**(WS 실시간 채팅·프레즌스, CRDT 문서 공동편집, WebRTC 화상회의) — **정본 로드맵=`docs/COLLABORATION_REALTIME_ROADMAP.md`**. 위장(fake-green) 금지로 이번 세션 미구현. **인프라 도입 선행 필수**(자가호스팅 Swoole/Node-ws vs 관리형 Pusher/Ably — 사용자 승인 게이트). **P1 준실시간 폴링**은 인프라 0으로 즉시 착수 가능(단 "실시간" 표기 금지·"자동 새로고침"으로 정직 표기).
