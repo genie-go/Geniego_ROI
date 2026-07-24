@@ -14,7 +14,8 @@
     "nav:registry": "node tools/navigation_registry_build.mjs",
     "nav:registry:check": "node tools/navigation_registry_build.mjs --dry-run --quiet --fail-on=ERROR",
     "nav:context:test": "php backend/bin/navigation_context_selftest.php",
-    "nav:all": "npm run nav:registry && npm run nav:test && npm run nav:registry:check && php backend/bin/navigation_registry.php selftest && php backend/bin/navigation_context_selftest.php"
+    "nav:all": "npm run nav:registry && npm run nav:test && npm run nav:registry:check && php backend/bin/navigation_registry.php selftest && php backend/bin/navigation_context_selftest.php",
+    "fav:test": "node tools/favorites_selftest.mjs"
   },
   "dependencies": {
     "archiver": "^7.0.1",

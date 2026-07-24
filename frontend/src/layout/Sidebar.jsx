@@ -12,6 +12,39 @@ import { IS_DEMO } from '../utils/demoEnv';
 /* 데모 모드 감지 — 180차: broad includes('demo') 제거 → demoEnv 정본 격리 */
 const IS_DEMO_MODE = IS_DEMO;
 
+/* 즐겨찾기 토글 별표 — 메뉴 항목 옆에 붙는 유일한 "추가" 진입점.
+ *
+ * ★[현 차수] 이 버튼이 없어서 즐겨찾기는 도달 불가능한 기능이었다.
+ *   초기 커밋 이래 toggleFav 는 QuickAccessPanel 의 ✕(해제) 버튼에서만 호출됐다.
+ *   즉 **추가할 방법이 없으니 favs 는 영원히 비어 있고**, hasFavs 가 false 라
+ *   즐겨찾기 탭 자체가 렌더되지 않았다(해제 버튼도 함께 도달 불가).
+ *   i18n `sidebar.addFav` 는 15개국 전부에 이미 준비돼 있었다 — 버튼만 없었다.
+ *
+ * 접근성: 토글이므로 aria-pressed 로 현재 상태를 스크린리더에 노출한다(ST03 실측 0건 → 보강).
+ * 무후퇴: NavLink 를 감싸지 않고 형제로 두며, NavLink 는 기존 className·style 을 그대로 유지한다.
+ */
+function FavStar({ path, isFav, onToggle, addLabel, removeLabel, size = 12 }) {
+  if (!onToggle) return null;
+  const label = isFav ? removeLabel : addLabel;
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggle(path); }}
+      aria-pressed={isFav}
+      aria-label={label}
+      title={label}
+      style={{
+        flexShrink: 0, padding: '2px 5px', border: 'none', background: 'transparent',
+        cursor: 'pointer', lineHeight: 1, fontSize: size,
+        color: isFav ? '#eab308' : 'var(--text-3)',
+        opacity: isFav ? 1 : 0.45, transition: 'opacity 150ms, color 150ms',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
+      onMouseLeave={e => { e.currentTarget.style.opacity = isFav ? 1 : 0.45; }}
+    >{isFav ? '★' : '☆'}</button>
+  );
+}
+
 /* 즐겨찾기 */
 function useFavorites() {
   const [favs, setFavs] = useState(() => {
@@ -120,7 +153,11 @@ function Upgradal({ menuLabel, onClose, t }) {
 
 
 /* Section Component with Lock Support */
-function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick, navigate, isSubAdmin, subMenuAllowed, isMobile }) {
+function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLockClick, navigate, isSubAdmin, subMenuAllowed, isMobile, favs, toggleFav, favLabels }) {
+  // ★favLabels 는 useT() 로케일 사전에서 미리 뽑아 넘긴다.
+  //   이 컴포넌트의 t 는 SIDEBAR_DICT(평면 키) 라서 `sidebar.addFav` 같은 네임스페이스 키를 못 찾는다.
+  //   두 사전을 섞으면 라벨이 키 문자열 그대로 노출되므로 반드시 분리한다.
+  const isFavPath = (p) => !!(favs && favs.has(p));
   const location = useLocation();
   const { isVisible: isMenuVisible, getVisibility } = useMenuVisibility();
   const hasActive = section.items.some(i => location.pathname === i.to);
@@ -182,13 +219,18 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
       );
     }
     return (
-      <NavLink
-        to={item.to}
-        className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-      >
-        <span className="nav-icon">{item.icon}</span>
-        <span className="truncate">{label}</span>
-      </NavLink>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <NavLink
+          to={item.to}
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          style={{ flex: 1, minWidth: 0 }}
+        >
+          <span className="nav-icon">{item.icon}</span>
+          <span className="truncate">{label}</span>
+        </NavLink>
+        <FavStar path={item.to} isFav={isFavPath(item.to)} onToggle={toggleFav}
+          addLabel={favLabels?.add} removeLabel={favLabels?.remove} size={13} />
+      </div>
     );
   }
 
@@ -298,19 +340,22 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
               );
             }
             return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-                style={{ fontSize: 11, paddingLeft: 24, position: "relative" }}
-              >
-                <span style={{
-                  position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
-                  width: 6, height: 1, background: "rgba(99,140,255,0.25)",
-                }} />
-                <span className="nav-icon" style={{ fontSize: 12 }}>{item.icon}</span>
-                <span className="truncate">{label}</span>
-              </NavLink>
+              <div key={item.to} style={{ display: 'flex', alignItems: 'center' }}>
+                <NavLink
+                  to={item.to}
+                  className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+                  style={{ fontSize: 11, paddingLeft: 24, position: "relative", flex: 1, minWidth: 0 }}
+                >
+                  <span style={{
+                    position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+                    width: 6, height: 1, background: "rgba(99,140,255,0.25)",
+                  }} />
+                  <span className="nav-icon" style={{ fontSize: 12 }}>{item.icon}</span>
+                  <span className="truncate">{label}</span>
+                </NavLink>
+                <FavStar path={item.to} isFav={isFavPath(item.to)} onToggle={toggleFav}
+                  addLabel={favLabels?.add} removeLabel={favLabels?.remove} />
+              </div>
             );
           })}
         </div>
@@ -327,8 +372,12 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
   if (!hasFavs && !hasRecents) return null;
 
   const activeTab = tab === 'favs' && !hasFavs ? 'recents' : tab === 'recents' && !hasRecents ? 'favs' : tab;
+  // ★[현 차수] 즐겨찾기는 Set 삽입 순서(=추가한 순서)로 나열되는데 아래에서 slice(0,5) 로 자른다.
+  //   그대로 두면 이미 5개가 있을 때 **새로 추가한 항목이 목록에 나타나지 않아** 추가가 실패한 것처럼 보인다.
+  //   최신 추가분이 앞에 오도록 뒤집어 방금 누른 항목이 항상 보이게 한다.
+  //   (드래그로 순서를 직접 바꾸는 기능은 별건이며 본 차수 범위 밖 — 실사용 요구가 확인되지 않았다.)
   const items = activeTab === 'favs'
-    ? [...favs].map(path => allItems.find(it => it.to === path) || { to: path, label: path, icon: '📄' })
+    ? [...favs].reverse().map(path => allItems.find(it => it.to === path) || { to: path, label: path, icon: '📄' })
     : recents;
   const itemCount = activeTab === 'favs' ? favs.size : recents.length;
 
@@ -388,7 +437,13 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
                 <span style={{ fontSize: 10, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label ? t(item.label) : item.to}</span>
               </button>
               {activeTab === 'favs' && toggleFav && (
-                <button onClick={() => toggleFav(item.to)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#eab308', fontSize: 10, flexShrink: 0, lineHeight: 1 }} title={t('sidebar.removeFav')}>✕</button>
+                <button
+                  type="button"
+                  onClick={() => toggleFav(item.to)}
+                  aria-label={`${t('sidebar.removeFav', 'Remove favorite')} — ${item.label ? t(item.label) : item.to}`}
+                  title={t('sidebar.removeFav', 'Remove favorite')}
+                  style={{ padding: '4px 6px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#eab308', fontSize: 10, flexShrink: 0, lineHeight: 1 }}
+                >✕</button>
               )}
             </div>
           ))}
@@ -417,6 +472,11 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { unreadAlertCount, activeCampaignCount } = useGlobalData();
   const { favs, toggle: toggleFav } = useFavorites();
+  // 별표 라벨은 로케일 사전(useT)에서 뽑는다 — NavSection 의 t 는 SIDEBAR_DICT(평면 키)라 못 찾는다.
+  const favLabels = React.useMemo(() => ({
+    add: t('sidebar.addFav', 'Add to favorites'),
+    remove: t('sidebar.removeFav', 'Remove favorite'),
+  }), [t]);
 
   // 모든 메뉴 아이템 flat 목록 (최근방문용) — labelKey는 navT로 변환 (gNav.* 포함)
   const allMenuItems = React.useMemo(() => {
@@ -607,6 +667,9 @@ export default function Sidebar() {
             isSubAdmin={isSubAdmin}
             subMenuAllowed={subMenuAllowed}
             isMobile={isMobile}
+            favs={favs}
+            toggleFav={toggleFav}
+            favLabels={favLabels}
           />
         ))}
       </div>
