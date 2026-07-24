@@ -928,18 +928,19 @@ final class Collaboration extends Shared
         } catch (\Throwable $e) { /* team 테이블 부재 → 빈 목록(정직) */ }
 
         // 팀 간 협업 프로젝트 — 태스크 담당자가 2개 이상 팀에 걸친 프로젝트(크로스팀 협업 실측). best-effort.
-        //   ★user_id 조인: app_user.id(INT) vs pm_task_assignees.user_id(VARCHAR)는 컬레이션이 달라 문자열
-        //   비교가 실패한다 → `a.user_id + 0`(수치 문맥 강제)로 컬레이션 무관 숫자 비교(MySQL·SQLite 공통).
+        //   ★컬레이션 트랩: app_user(utf8mb4_0900_ai_ci) 문자열 컬럼을 pm_*(utf8mb4_unicode_ci) 컬럼과 직접
+        //   비교하면 'Illegal mix of collations' 실패한다. app_user.tenant_id 는 교차비교 대신 **바인딩 리터럴**과
+        //   비교하고, id 조인은 `a.user_id + 0`(수치 문맥)으로 컬레이션을 우회한다(MySQL·SQLite 공통).
         $crossTeam = [];
         try {
             $sql = "SELECT p.id pid, p.name pname, COUNT(DISTINCT u.team_id) team_cnt, COUNT(DISTINCT a.user_id) member_cnt
                     FROM pm_projects p
                     JOIN pm_tasks t ON t.project_id = p.id AND t.tenant_id = p.tenant_id
                     JOIN pm_task_assignees a ON a.task_id = t.id AND a.tenant_id = t.tenant_id
-                    JOIN app_user u ON u.id = a.user_id + 0 AND u.tenant_id = p.tenant_id AND u.team_id IS NOT NULL
+                    JOIN app_user u ON u.id = a.user_id + 0 AND u.tenant_id = ? AND u.team_id IS NOT NULL
                     WHERE p.tenant_id = ?
                     GROUP BY p.id, p.name HAVING team_cnt >= 2 ORDER BY team_cnt DESC, member_cnt DESC LIMIT 8";
-            $st = $pdo->prepare($sql); $st->execute([$tenant]);
+            $st = $pdo->prepare($sql); $st->execute([$tenant, $tenant]);
             foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
                 $crossTeam[] = ['project_id' => (string)$r['pid'], 'name' => (string)$r['pname'], 'team_count' => (int)$r['team_cnt'], 'member_count' => (int)$r['member_cnt']];
             }
