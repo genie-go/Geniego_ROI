@@ -150,7 +150,6 @@ export default function CollaborationHome() {
   const comingCaps = useMemo(() => Object.entries(CAP_COMING).map(([key, label]) => ({ key, label })), []);
   const teams = teamData?.teams || [];
   const crossTeam = teamData?.cross_team_projects || [];
-  const departments = teamData?.departments || [];
 
   return (
     <div style={{ padding: '20px 24px', maxWidth: 1180, margin: '0 auto' }}>
@@ -305,15 +304,6 @@ export default function CollaborationHome() {
           </div>
         )}
 
-        {/* 부서 분포(있을 때만) */}
-        {departments.length > 0 && (
-          <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>{t('collab.team.depts', '부서')}:</span>
-            {departments.map(d => (
-              <span key={d.name} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: 'rgba(148,163,184,0.1)', color: '#475569' }}>{d.name} {d.member_count}</span>
-            ))}
-          </div>
-        )}
       </section>
 
       {/* ═══ 3. 팀원 초대 ═══ */}
