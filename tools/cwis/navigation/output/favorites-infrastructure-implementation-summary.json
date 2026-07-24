@@ -1,0 +1,231 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST03",
+  "title": "Favorites Infrastructure Repository & Persistence Implementation",
+  "schema_version": "1.0.0",
+  "status": "BLOCKED",
+  "generated_at": "2026-07-24",
+  "source_revision": "b4c6b2758da3",
+
+  "source_artifacts_read": [
+    "tools/cwis/navigation/output/favorites-gap-analysis.json",
+    "tools/cwis/navigation/output/favorites-roadmap.json",
+    "tools/cwis/navigation/output/favorites-implementation-plan.json",
+    "tools/cwis/navigation/output/favorites-classification.json",
+    "tools/cwis/navigation/output/favorites-dependency-map.json",
+    "tools/cwis/navigation/output/favorites-reuse-map.json",
+    "tools/cwis/navigation/output/favorites-impact-map.json",
+    "tools/cwis/navigation/output/favorites-application-implementation-summary.json",
+    "tools/cwis/navigation/output/favorites-removal-candidates.json",
+    "tools/cwis/navigation/output/favorites-database-table-inventory.json"
+  ],
+
+  "blocking_reasons": [
+    {
+      "id": "BLK-1",
+      "criterion": "ST01 Repository Interface 없음",
+      "spec_reference": "§28 BLOCKED 1행 (정확 일치)",
+      "finding": "ST01 Domain Layer = 사용자 확정 NOT_IMPLEMENTED(커밋 d7c1aafeaa1). FavoriteRepositoryInterface·FavoriteReadRepositoryInterface 가 존재하지 않는다. §3 은 '정의된 Interface 와 정확히 호환되어야 한다'고 규정하는데 호환 대상이 없다",
+      "verified": true
+    },
+    {
+      "id": "BLK-2",
+      "criterion": "ST02 Handler 계약 확인 불가",
+      "spec_reference": "§28 BLOCKED 2행 (정확 일치)",
+      "finding": "ST02 Application Layer = BLOCKED(favorites-application-implementation-summary.json). Command/Query Handler·Application DTO·Transaction Manager Port·Clock·Event Dispatcher Port 전부 미생성. Read Repository 가 반환해야 할 DTO 타입이 정의되지 않았다",
+      "verified": true
+    },
+    {
+      "id": "BLK-3",
+      "criterion": "§22 허용 코드 경로 전부 부재",
+      "spec_reference": "§22 (프로젝트의 실제 구조에 존재하는 경로만 허용)",
+      "finding": "app/Infrastructure·src/Infrastructure·Shared/Infrastructure·app/Persistence·src/Persistence·modules/*/Infrastructure·packages/*/Infrastructure 전부 부재. 저장소 전수 Infrastructure/Persistence 디렉터리 0건. config/ 만 존재하나 내용은 config/quality/eslint-baseline.json 단일(프론트엔드 ESLint 베이스라인) — Persistence 설정 도메인이 아니다",
+      "verified": true
+    },
+    {
+      "id": "BLK-4",
+      "criterion": "Workspace Scope 정책 확인 불가",
+      "spec_reference": "§13 · §28 BLOCKED 4행",
+      "finding": "Workspace 엔티티·멤버십 부재(ST07 ABSENT_AXES). §13 은 'workspace_id IS NULL 등 명확한 Global Scope 표현을 쓰고 NULL 과 전체 Workspace 를 동일 의미로 처리하지 마라'고 규정하나, 컬럼을 만들면 전 행이 NULL 이 되어 금지된 상태가 구조적으로 강제된다",
+      "verified": true
+    },
+    {
+      "id": "BLK-5",
+      "criterion": "Favorites Domain 구조와 Persistence 구조 충돌",
+      "spec_reference": "§28 BLOCKED 5행 · §2",
+      "finding": "§2 는 'ORM Model 을 Domain Entity 로 사용하지 않는다'·'Domain 은 Infrastructure 를 참조하지 않는다'를 요구한다. 그러나 Domain 자체가 없고 ORM 도 실사용되지 않는다(아래 orm_detected). 분리할 두 축이 모두 부재하므로 Clean Architecture 경계 자체가 성립하지 않는다",
+      "verified": true
+    },
+    {
+      "id": "BLK-6",
+      "criterion": "상위 게이트 결정과 충돌 (지속)",
+      "spec_reference": "favorites-roadmap.json PHASE_1/PHASE_2",
+      "finding": "PHASE_1 정의 = 'UI 프리퍼런스' 사용자 확정. 로드맵이 PHASE_2(지속화)를 conditional_on='PHASE_1 정의 = MEMBER_DATA' 로 명시. Persistence Layer 는 그 조건부 PHASE 의 본체다",
+      "verified": true
+    }
+  ],
+
+  "orm_detected": {
+    "value": "NONE (raw PDO)",
+    "declared_but_unused": {
+      "package": "illuminate/database ^10.0",
+      "declared_in": "backend/composer.json require",
+      "vendor_installed": true,
+      "usage_in_source": 0,
+      "evidence": "backend/src 전수 Illuminate\\ · Eloquent · Capsule · 'extends Model' 0건. ST06 usage_status=DECLARED_NOT_FOUND · ST09 fan_in=0 · 제거 후보 FAV-NRM-001219 로 이미 등록됨",
+      "trap_note": "★composer.json 만 보면 'Laravel Eloquent 사용'으로 오답한다. 선언≠사용 — §1 의 'Laravel Eloquent 사용 여부' 질문에 대한 실측 답은 NO"
+    },
+    "actual": "raw PDO 126개 파일. Query Builder·DBAL 미사용",
+    "implication": "§3 이 요구한 ORM Persistence Model·§12 의 'Laravel DB Transaction Adapter 재사용'·'Doctrine EntityManager 정책' 은 적용 대상이 없다"
+  },
+
+  "database_detected": {
+    "primary": "MySQL 8.0.37 (geniego_roi)",
+    "fallback": "SQLite (Db.php:140~149 투명 폴백)",
+    "dual_backend_implication": "★모든 DDL·동시성 전략이 두 엔진에서 동일 동작해야 한다. 이것이 아래 duplicate_prevention_strategy 선택의 결정 요인",
+    "live_verification": "NOT_EXECUTED — §24·§26 이 운영 DB 접속 금지. 본 요약의 스키마 사실은 전부 코드 실측 근거"
+  },
+
+  "repositories_created": [],
+  "repositories_modified": [],
+  "repositories_reused": [],
+  "mappers_created": [],
+  "models_created": [],
+  "models_modified": [],
+  "transaction_adapters": [],
+  "read_models": [],
+  "domain_contract_changes": [],
+  "application_contract_changes": [],
+
+  "tenant_scope_strategy": {
+    "implemented": false,
+    "designed": true,
+    "measured_convention": "tenant_id VARCHAR(100) NOT NULL + 전 쿼리 WHERE tenant_id=? 명시. Row Level Security 없음 — 격리가 100% 애플리케이션 쿼리 조건에 의존",
+    "design": "모든 Repository 메서드 시그니처가 tenantId 를 필수 인자로 받고, ID 단독 조회 메서드를 제공하지 않는다(§13 find(id) 단독 금지). 인덱스 idx_fav_tenant(tenant_id,id) 로 ID 경로에서도 tenant 조건을 커버",
+    "source_of_tenant": "PM\\Shared::gate() 반환 $g['tenant'] — 인증 컨텍스트에서 취득하며 요청 본문 tenantId 를 신뢰하지 않는다"
+  },
+
+  "workspace_scope_strategy": {
+    "implemented": false,
+    "designed": false,
+    "status": "NOT_APPLICABLE",
+    "reason": "Workspace 엔티티 부재(BLK-4). 컬럼 신설 시 전 행 NULL 이 되어 §13 이 금지한 'NULL=전체 Workspace' 상태가 강제되므로 **의도적으로 설계에서 제외**했다. 유사 개념인 scope_type/scope_id(ORGANIZATION|PROJECT) 관용은 존재하나 즐겨찾기 요구가 확인되지 않았다"
+  },
+
+  "soft_delete_strategy": {
+    "implemented": false,
+    "designed": true,
+    "measured_convention": "★deleted_at 관용 0건(backend/src 전수). 실재 관용은 status VARCHAR(20) + 사건별 타임스탬프(accepted_at·revoked_at 계열), 그리고 is_active(44개 파일)",
+    "design": "status('ACTIVE'|'REMOVED') + removed_at VARCHAR(32). 기본 목록 쿼리는 status='ACTIVE' 강제, 삭제 항목은 전용 메서드에서만 조회",
+    "deviation_note": "★명세 §9 '기존 Soft Delete 정책을 재사용하라' — 재사용 대상이 없다. deleted_at 채택은 저장소 신규 관용 신설이 되므로 기존 status 관용을 계승했다"
+  },
+
+  "duplicate_prevention_strategy": {
+    "implemented": false,
+    "designed": true,
+    "chosen": "GENERATED_ACTIVE_KEY — active_key 컬럼(ACTIVE 일 때 자연키 해시, REMOVED 일 때 NULL) + UNIQUE(active_key)",
+    "★key_finding": "MySQL 8.0 은 부분(필터) 유니크 인덱스를 지원하지 않는다. 'CREATE UNIQUE INDEX ... WHERE status=ACTIVE' 구문 자체가 없다. SQLite 는 지원한다. 따라서 명세 §10 이 제시한 'Partial Unique Index' 선택지는 **주 백엔드에서 사용 불가**이며, 두 엔진에 동일 코드로 적용되는 유일한 이식 가능 전략이 NULL 허용 UNIQUE 키 컬럼이다(NULL 은 양쪽 모두 UNIQUE 중복 검사에서 제외)",
+    "why_not_natural_composite_unique": "삭제 행이 남아 있는 한 동일 리소스 재등록 불가 → Restore 경로와 충돌",
+    "detail": "favorites-persistence-schema-requirements.json unique_constraint_strategy"
+  },
+
+  "concurrency_strategy": {
+    "implemented": false,
+    "designed": true,
+    "measured_convention": "★저장소 정본은 조건부 UPDATE + affected-rows 소유권 판정이며, 그 이유가 SQLite 폴백 호환이라고 코드 주석에 명시돼 있다(Catalog.php:1726 · ChannelSync.php:6194). 비관적 락은 MySQL 분기 내에서만 제한 사용(Omnichannel.php:405 FOR UPDATE SKIP LOCKED)",
+    "optimistic_lock_existing": "NONE — version/lock_version 컬럼 0건, ORM 부재로 자동 버저닝 없음. §11 '기존 Optimistic Locking 이 있으면 재사용하라'의 재사용 대상 없음",
+    "design_per_race": [
+      { "race": "동일 Favorite 동시 생성", "defense": "UNIQUE(active_key) 위반 → FavoriteConflict 변환. ★Application 사전 조회만으로 방지 불가하다는 §10 요구를 DB 제약이 충족" },
+      { "race": "동일 Favorite 동시 삭제", "defense": "조건부 UPDATE ... WHERE status='ACTIVE'; affected=0 이면 이미 삭제됨 → 멱등 성공 처리" },
+      { "race": "삭제와 복원 동시 실행", "defense": "조건부 UPDATE 로 상태 전이를 원자화. 복원은 WHERE status='REMOVED' 조건, 동시 UNIQUE 위반 시 Conflict" },
+      { "race": "동일 Principal 목록 동시 재정렬", "defense": "단일 트랜잭션 내 전체 UPDATE, 부분 실패 없음. version 부재로 last-write-wins — ★잔여 위험으로 기록" },
+      { "race": "Toggle 동시 요청", "defense": "UNIQUE 제약이 최종 방어선. 두 요청이 각각 create/remove 로 갈릴 때 최종 상태는 비결정적 — ★Toggle 은 본질적으로 비멱등이며 클라이언트 재시도 시 상태 반전 위험 기록" },
+      { "race": "오래된 Version 으로 저장", "defense": "version 컬럼 미채택. 필요 시 조건부 UPDATE affected=0 → FavoriteConcurrencyException" }
+    ],
+    "residual_risks": [
+      "Reorder last-write-wins — 두 기기가 동시에 재정렬하면 후자가 전자를 덮는다. version 컬럼 도입으로 해소 가능하나 현행 관용에 없음",
+      "Toggle 비멱등성 — 네트워크 재시도가 상태를 반전시킬 수 있다. Idempotency 인프라 부재(ST02 확인)"
+    ]
+  },
+
+  "pagination_strategy": {
+    "implemented": false,
+    "designed": true,
+    "measured_convention": "NONE — 공통 Pagination 클래스 0건, Cursor Pagination 관용 0건. 핸들러별 LIMIT/OFFSET ad-hoc. §16 '기존 Pagination Convention 을 재사용하라'의 재사용 대상 없음",
+    "design": "즐겨찾기는 사용자당 수십 건 규모(gap-analysis SEARCH 항목이 동일 근거로 검색엔진 불필요 판정)이므로 Cursor Pagination 불필요. 단순 limit 상한(기본 100·최대 200) + 안정 정렬로 충분",
+    "sort_whitelist": "★사용자 입력 컬럼을 ORDER BY 에 직접 삽입하지 않고 명시적 Map(position|created_at|id → 실제 컬럼)으로 변환. SQL Injection 제거(§16)",
+    "stable_order": "position ASC, created_at ASC, id ASC — 동일 position 에서도 매 요청 순서 불변. ★created_at 이 VARCHAR 문자열이므로 ISO-8601 고정폭이어야 사전순=시간순이 성립(형식 혼입 시 정렬 붕괴) — 설계 전제로 명시"
+  },
+
+  "index_candidates": [
+    "uq_fav_active (active_key) UNIQUE",
+    "idx_fav_owner (tenant_id, principal_type, principal_id, status, position)",
+    "idx_fav_res (tenant_id, principal_type, principal_id, resource_type, status)",
+    "idx_fav_tenant (tenant_id, id)"
+  ],
+
+  "test_candidates": {
+    "note": "§21 형식 준수 — 구현이 없으므로 전부 조건부(Option B 채택 시). 별도 Test Step 예정이므로 후보만 기록",
+    "candidates": [
+      "save and reconstitute — 조회 복원 시 Domain Event 재발생 없음",
+      "tenant isolation — 타 테넌트 favorite 조회·수정 불가",
+      "workspace isolation — ★NOT_APPLICABLE (Workspace 축 부재)",
+      "duplicate prevention — 동시 INSERT 2건 중 1건만 성공(UNIQUE 위반 → Conflict)",
+      "soft delete — 기본 목록에서 REMOVED 제외",
+      "restore conflict — 활성 중복 존재 시 복원 거부",
+      "stable ordering — 동일 position 다수에서 반복 조회 순서 불변",
+      "bulk reorder transaction — 중간 실패 시 전체 롤백",
+      "optimistic locking conflict — ★version 미채택이므로 조건부 UPDATE affected=0 검증으로 대체",
+      "deleted item exclusion — 명시적 메서드에서만 삭제 항목 조회",
+      "read repository pagination — limit 상한·음수 거부·sort 화이트리스트",
+      "invalid enum mapping — 미지원 status/resource_type 저장값이 조용히 UNKNOWN 으로 치환되지 않고 MappingException 발생",
+      "★dual-backend parity — MySQL 과 SQLite 폴백에서 UNIQUE·정렬 동작 동일성(본 설계의 최대 위험 지점)"
+    ]
+  },
+
+  "validation_results": {
+    "php_files_changed": 0,
+    "php_lint": "N/A — 변경된 PHP 파일 없음",
+    "phpstan": "N/A — 변경된 PHP 파일 없음 (레벨5·baseline 288 존재하나 실행 대상 없음)",
+    "package_installs": 0,
+    "database_verification": "NOT_EXECUTED — §26 규정에 따라 DB 접속 검증 미실행",
+    "git_status_short": "tracked 변경 0건",
+    "git_diff_name_only": "빈 결과",
+    "git_diff_check": "빈 결과",
+    "checks_from_section_26": [
+      { "check": "모든 PHP 파일 Syntax",             "result": "N/A (대상 0)" },
+      { "check": "Namespace 와 PSR-4 경로 일치",      "result": "N/A (대상 0)" },
+      { "check": "Repository Interface 완전 구현",     "result": "N/A — Interface 부재(BLK-1)" },
+      { "check": "Domain 에서 Infrastructure 참조 없음","result": "PASS (변경 0)" },
+      { "check": "Application Core 에서 ORM 직접 참조 없음","result": "PASS (변경 0)" },
+      { "check": "ORM Model 과 Domain Entity 분리",    "result": "N/A — 양쪽 모두 부재(BLK-5)" },
+      { "check": "Tenant Scope 없는 Query 없음",       "result": "PASS (신규 쿼리 0)" },
+      { "check": "Workspace Scope 누락 없음",          "result": "N/A — Workspace 축 부재" },
+      { "check": "Soft Delete 목록 제외",              "result": "N/A (구현 0) — 설계에는 반영" },
+      { "check": "삭제 조회 명시성",                   "result": "N/A (구현 0) — 설계에는 반영" },
+      { "check": "안정적 정렬",                        "result": "N/A (구현 0) — 설계에는 반영" },
+      { "check": "DTO 에 ORM Model 노출 없음",         "result": "PASS (DTO 0)" },
+      { "check": "Transaction Boundary 호환",          "result": "N/A — Port 부재(BLK-2)" },
+      { "check": "Commit 전 외부 Event 발행 없음",      "result": "PASS (Event 0)" },
+      { "check": "중복 공통 구현 없음",                 "result": "PASS — 신규 Repository Base·Mapper·Transaction Adapter·Pagination 0건" },
+      { "check": "순환 의존성 없음",                    "result": "PASS (신규 의존 0)" },
+      { "check": "허용 경로 외 변경 없음",              "result": "PASS — 산출물 3건 전부 §22 허용 경로" }
+    ]
+  },
+
+  "limitations": [
+    "코드 0건 — §22 허용 코드 경로 7개가 저장소에 전부 부재하며, 구현 대상 Interface(ST01)와 소비자 계약(ST02)이 모두 없다",
+    "Migration 파일 미생성 — §24 준수(별도 Step 예정 + ensureTables 가 저장소 정본이므로 애초에 Migration 산출물이 아님)",
+    "실제 DB 검증 NOT_EXECUTED — §26 규정",
+    "Workspace Scope 설계 제외 — 엔티티 부재로 §13 요구를 만족시킬 방법이 없음",
+    "version(낙관적 락) 미채택 — 저장소 관용 부재. Reorder last-write-wins 와 Toggle 비멱등성이 잔여 위험으로 남음",
+    "본 산출물의 스키마 설계는 **조건부**다 — PHASE_1 이 MEMBER_DATA 로 재결정될 때만 유효"
+  ],
+
+  "next_step_readiness": {
+    "st04_ready": false,
+    "condition": "SP02-TK002 계열(ST01 Domain → ST02 Application → ST03 Infrastructure)이 연속 3단계 BLOCKED. 근본 원인은 단일하다 — PHASE_1 정의 결정이 서버 지속화 축을 소멸시켰고, 저장소에 DDD/CQRS/ORM 스트라텀이 존재하지 않는다. ST04 이후를 같은 전제로 진행하면 동일 판정이 반복된다",
+    "recommendation": "★Option A — SP02-TK002 계열 전체를 종결 처리하고 PHASE_3(프론트엔드 확장) 잔여 3건으로 이동. CAP-04 aria-pressed · BACKLOG-2 터치타깃 44px · BACKLOG-1 6개↑ 열람 경로. 전부 Sidebar.jsx 확장이며 죽은 코드 0",
+    "option_b_path": "MEMBER_DATA 재결정 시에도 DDD/CQRS 가 아니라 저장소 관용(ensureFavoriteTable + Handlers/Favorites.php + routes.php /api 접두 등록 + PM\\Shared::gate 재사용)으로 구현해야 헌법 Golden Rule(Extend)에 부합한다. 본 문서의 스키마 설계는 그 경로에서 그대로 사용 가능하다",
+    "reusable_output": "★본 Step 이 남긴 favorites-persistence-schema-requirements.json 은 Option B 채택 시 즉시 사용 가능한 설계 자산이다. 특히 MySQL 부분 유니크 인덱스 미지원 사실과 그 이식 가능 대안은 구현 시점에 반드시 필요한 정보다"
+  }
+}

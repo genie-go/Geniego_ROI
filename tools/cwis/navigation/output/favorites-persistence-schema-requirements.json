@@ -1,0 +1,208 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST03",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-24",
+  "source_revision": "b4c6b2758da3",
+  "status_context": "BLOCKED — 본 문서는 구현 기록이 아니라 **조건부 설계 기록**이다. PHASE_1 정의가 'UI 프리퍼런스'로 확정되어 있는 한 아래 스키마는 생성되지 않는다. Option B(MEMBER_DATA 재결정)가 채택될 때만 유효하다.",
+
+  "table_name": "favorite",
+  "table_name_rationale": "저장소 실측 명명 관용 = 단수 snake_case 도메인 접두(collaboration_invitations 는 복수이나 app_user·saved_report·omni_outbox·menu_audit_log 는 단수). 즐겨찾기는 단일 개념이므로 'favorite' 권장. ★확정 아님 — Option B 채택 시 결정 필요",
+
+  "existing_table_detected": false,
+  "existing_table_evidence": "ST04 favorites-database-table-inventory.json — 저장소 전체 321개 테이블 중 즐겨찾기 테이블 0건. 유일 히트 saved_report 는 favorites_direct=false(리포트 저장 기능이며 즐겨찾기 아님)",
+
+  "existing_columns": [],
+  "existing_indexes": [],
+  "missing_columns": "ALL — 테이블 자체가 부재하므로 전 컬럼이 missing",
+  "missing_indexes": "ALL — 동일",
+  "column_changes": [],
+
+  "measured_conventions": {
+    "note": "★아래는 추측이 아니라 backend/src 실측이다. 스키마 설계는 전부 이 관용에서 파생됐다.",
+    "orm": {
+      "value": "NONE",
+      "evidence": "composer.json 에 illuminate/database ^10.0 선언 + backend/vendor/illuminate 설치됨. 그러나 backend/src 사용 0건(Illuminate\\·Eloquent·Capsule·extends Model 전부 0). raw PDO 가 126개 파일. ★ST06 이 이미 usage_status=DECLARED_NOT_FOUND·fan_in=0 으로 제거 후보 등록(FAV-NRM-001219)",
+      "trap": "composer.json 만 읽으면 'Laravel Eloquent 사용'으로 오답한다. 선언≠사용"
+    },
+    "database": {
+      "primary": "MySQL 8.0.37 (geniego_roi)",
+      "fallback": "SQLite — Db.php:140~149, MySQL 연결 실패 시 data/genie_*.sqlite 또는 /tmp 로 투명 폴백",
+      "implication": "★모든 DDL 이 드라이버 분기 필수. 실측 관용 = isMysql(pdo) 분기 후 CREATE TABLE 2벌 작성(PM/Collaboration.php:363~380 이 정본 예시)"
+    },
+    "schema_creation_path": {
+      "value": "ensureTables self-healing",
+      "evidence": "backend/migrations/ 는 세션 172에서 정지. 이후 전 스키마 변경은 핸들러별 ensure*() 가 CREATE TABLE IF NOT EXISTS 로 자가치유. 실측 72개 핸들러 파일이 이 패턴 사용",
+      "implication": "Migration 파일이 아니라 ensureFavoriteTable(PDO,$isDemo) 정적 메서드가 관용 산출물"
+    },
+    "primary_key": {
+      "value": "INT AUTO_INCREMENT + 별도 public_id VARCHAR(64)",
+      "evidence": "collaboration_invitations — id INT AUTO_INCREMENT PRIMARY KEY, public_id VARCHAR(64)",
+      "uuid_ulid_policy": "NONE — UUID/ULID 를 PK 로 쓰는 관용 없음. 외부 노출 식별자는 public_id 문자열"
+    },
+    "timestamp_policy": {
+      "value": "VARCHAR(32) / TEXT 문자열 저장",
+      "evidence": "collaboration_invitations — created_at VARCHAR(32), updated_at VARCHAR(32), expires_at VARCHAR(32). 네이티브 DATETIME/TIMESTAMP 아님",
+      "implication": "★ORDER BY created_at 이 문자열 정렬이 된다. ISO-8601 고정폭이면 사전순=시간순이 성립하나, 형식 혼입 시 정렬이 깨진다"
+    },
+    "soft_delete_policy": {
+      "value": "NONE — deleted_at 관용 부재",
+      "evidence": "backend/src 전수 'deleted_at' 0건. 실제 관용은 status VARCHAR(20) + 사건별 타임스탬프 컬럼(accepted_at·declined_at·revoked_at) 조합, 그리고 is_active(44개 파일)",
+      "implication": "★명세 §9 '기존 Soft Delete 정책을 재사용하라' 는 재사용 대상이 없다. deleted_at 도입은 저장소 신규 관용 신설이 된다"
+    },
+    "optimistic_lock_policy": {
+      "value": "NONE",
+      "evidence": "version/lock_version/row_version 컬럼 0건(api_version·schema_version 등 무관 히트 제외). ORM 부재로 자동 버저닝도 없음",
+      "implication": "★명세 §11 '기존 Optimistic Locking 이 있으면 반드시 재사용하라' — 재사용 대상 없음. version 컬럼은 신규 관용"
+    },
+    "concurrency_convention": {
+      "value": "조건부 UPDATE + affected-rows 소유권 판정 (이중 백엔드 이식성 목적)",
+      "evidence": [
+        "Catalog.php:1726 — 'FOR UPDATE/SKIP LOCKED 불필요 — SQLite 폴백 환경에서도 동일하게 동작한다'",
+        "ChannelSync.php:6194 — '조건부 UPDATE 의 affected rows 로 소유권을 판정한다(FOR UPDATE 불필요·SQLite/MySQL 동일 동작)'",
+        "Omnichannel.php:405 — MySQL 한정 SELECT..FOR UPDATE SKIP LOCKED (isMysql 분기 내)"
+      ],
+      "implication": "★저장소는 비관적 락을 기본으로 쓰지 않는다. 조건부 UPDATE 가 정본이며 SQLite 폴백 호환이 그 이유다"
+    },
+    "resource_reference_convention": {
+      "value": "scope_type + scope_id (문자열 논리 참조)",
+      "evidence": "collaboration_invitations — scope_type VARCHAR(30) DEFAULT 'ORGANIZATION', scope_id VARCHAR(100). FK 없음",
+      "implication": "★명세 §14 가 묻는 Resource Reference Convention 의 실재 답. Polymorphic FK 가 아니라 논리 참조이며, 즐겨찾기의 resource_type+resource_id 는 이 관용과 정합"
+    },
+    "index_naming": {
+      "unique": "uq_<약어>_<컬럼> — 예 uq_inv_token",
+      "index": "idx_<약어>_<컬럼들> — 예 idx_inv_tenant (tenant_id,email,status), idx_sr2_tenant",
+      "evidence": "collaboration_invitations · saved_report 실측"
+    },
+    "tenant_scope": {
+      "value": "tenant_id VARCHAR(100) NOT NULL + 전 쿼리 WHERE 조건 명시",
+      "evidence": "PM\\Shared::gate() 가 $g['tenant'] 반환 → 각 쿼리가 tenant_id=? 바인딩. Row Level Security 없음",
+      "implication": "격리는 100% 애플리케이션 쿼리 조건에 의존. 조건 누락이 곧 격리 붕괴"
+    },
+    "workspace_scope": {
+      "value": "ABSENT",
+      "evidence": "Workspace 엔티티·멤버십 테이블 부재(ST07 NavigationContext::ABSENT_AXES). 유사 개념은 scope_type/scope_id(ORGANIZATION|PROJECT) 뿐",
+      "implication": "★명세 §13 이 요구하는 workspace_id IS NULL Global Scope 표현은 채울 대상이 없다"
+    },
+    "json_column_policy": {
+      "value": "MEDIUMTEXT/TEXT 에 JSON 문자열 저장(네이티브 JSON 타입 미사용)",
+      "evidence": "Db.php:465 drivers_json MEDIUMTEXT · config TEXT(saved_report)",
+      "implication": "SQLite 호환 목적. 네이티브 JSON 함수 인덱싱 불가"
+    },
+    "enum_policy": {
+      "value": "VARCHAR + 애플리케이션 화이트리스트 검증(네이티브 ENUM 미사용)",
+      "evidence": "status VARCHAR(20) DEFAULT 'PENDING' + in_array($roleIn,['member','manager','guest','partner'],true) 검증",
+      "implication": "명세 §15 'DB Raw String 을 Domain 에 그대로 전달하지 마라' 는 in_array 화이트리스트가 현행 대응"
+    },
+    "pagination_convention": {
+      "value": "NONE (공통) — 핸들러별 LIMIT/OFFSET ad-hoc",
+      "evidence": "Pagination 클래스 0건. Cursor Pagination 관용 0건",
+      "implication": "명세 §16 '기존 Pagination Convention 을 재사용하라' — 재사용 대상 없음"
+    },
+    "error_handling": {
+      "value": "try { ... } catch (\\Throwable $e) { /* graceful */ } — 무음 성공 처리",
+      "evidence": "ensureInvitationTable 등 ensure* 전반",
+      "caveat": "★290차후속 P2 에서 빈 catch 339→0 정리했으므로 신규 코드는 사유 주석 필수"
+    }
+  },
+
+  "required_columns": {
+    "note": "★조건부 설계 — Option B 채택 시에만 유효. 컬럼 타입은 위 measured_conventions 에서 파생했다(추측 아님).",
+    "columns": [
+      { "name": "id",             "mysql": "INT AUTO_INCREMENT PRIMARY KEY", "sqlite": "INTEGER PRIMARY KEY AUTOINCREMENT", "rationale": "PK 관용" },
+      { "name": "public_id",      "mysql": "VARCHAR(64)",  "sqlite": "TEXT", "rationale": "외부 노출 식별자 관용(collaboration_invitations)" },
+      { "name": "tenant_id",      "mysql": "VARCHAR(100) NOT NULL", "sqlite": "TEXT NOT NULL", "rationale": "테넌트 격리 필수·NOT NULL" },
+      { "name": "principal_type", "mysql": "VARCHAR(30) NOT NULL DEFAULT 'USER'", "sqlite": "TEXT NOT NULL DEFAULT 'USER'", "rationale": "★현행 실재 축은 USER 단일. TEAM/ROLE 은 엔티티 부재" },
+      { "name": "principal_id",   "mysql": "VARCHAR(100) NOT NULL", "sqlite": "TEXT NOT NULL", "rationale": "app_user.id 논리 참조" },
+      { "name": "resource_type",  "mysql": "VARCHAR(30) NOT NULL", "sqlite": "TEXT NOT NULL", "rationale": "scope_type 관용 계승. 현행 실사용값은 'MENU' 단일" },
+      { "name": "resource_id",    "mysql": "VARCHAR(255) NOT NULL", "sqlite": "TEXT NOT NULL", "rationale": "★현행 즐겨찾기 값은 메뉴 경로 문자열(/analytics/roi 등)이라 100자 초과 여지 → 255 권장" },
+      { "name": "favorite_type",  "mysql": "VARCHAR(30) NOT NULL DEFAULT 'DEFAULT'", "sqlite": "TEXT NOT NULL DEFAULT 'DEFAULT'", "rationale": "요구 미확인 — 단일값 상수. ★불필요 시 제거 권장" },
+      { "name": "position",       "mysql": "INT NOT NULL DEFAULT 0", "sqlite": "INTEGER NOT NULL DEFAULT 0", "rationale": "CAP-05 정렬. ★현재 요구 미확인(BACKLOG-3)" },
+      { "name": "status",         "mysql": "VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'", "sqlite": "TEXT NOT NULL DEFAULT 'ACTIVE'", "rationale": "★저장소 관용은 deleted_at 이 아니라 status. ACTIVE|REMOVED" },
+      { "name": "active_key",     "mysql": "VARCHAR(255)", "sqlite": "TEXT", "rationale": "★중복 방지 핵심 — 아래 unique_constraint_strategy 참조" },
+      { "name": "removed_at",     "mysql": "VARCHAR(32)", "sqlite": "TEXT", "rationale": "사건 타임스탬프 관용(revoked_at 계열). deleted_at 대신" },
+      { "name": "created_by",     "mysql": "VARCHAR(100)", "sqlite": "TEXT", "rationale": "감사 컬럼" },
+      { "name": "updated_by",     "mysql": "VARCHAR(100)", "sqlite": "TEXT", "rationale": "감사 컬럼" },
+      { "name": "created_at",     "mysql": "VARCHAR(32)", "sqlite": "TEXT", "rationale": "★문자열 타임스탬프 관용. ISO-8601 고정폭 필수(정렬 안정성)" },
+      { "name": "updated_at",     "mysql": "VARCHAR(32)", "sqlite": "TEXT", "rationale": "동일" }
+    ],
+    "deliberately_omitted": [
+      { "column": "workspace_id", "reason": "★Workspace 엔티티 부재(ABSENT_AXES). 채울 값이 없는 컬럼을 만들면 전 행 NULL 이 되고, 명세 §13 이 금지한 'NULL 과 전체 Workspace 를 동일 의미로 처리' 상태가 구조적으로 강제된다. Option B 에서도 Workspace 신설이 선행되어야 추가 가능" },
+      { "column": "version", "reason": "낙관적 락 관용 부재 + 즐겨찾기는 단일 사용자 소유 리소스라 경쟁 쓰기 확률이 낮다. 필요 시 후속 도입(아래 concurrency 참조)" },
+      { "column": "deleted_at", "reason": "★저장소에 deleted_at 관용 0건. status + removed_at 로 대체하여 신규 관용 신설을 피한다" }
+    ]
+  },
+
+  "unique_constraint_strategy": {
+    "chosen": "GENERATED_ACTIVE_KEY (애플리케이션 유지 active_key 컬럼 + 복합 UNIQUE)",
+    "definition": "active_key = status='ACTIVE' 일 때 md5(tenant_id|principal_type|principal_id|resource_type|resource_id|favorite_type), REMOVED 일 때 NULL. UNIQUE (active_key) — NULL 은 MySQL·SQLite 양쪽에서 UNIQUE 중복 검사에서 제외되므로 삭제된 행은 무제한 누적 가능하고 활성 행은 1건으로 강제된다",
+    "why_not_partial_unique_index": "★MySQL 8.0 은 부분(필터) 인덱스를 지원하지 않는다 — 'CREATE UNIQUE INDEX ... WHERE status=\\'ACTIVE\\'' 구문 자체가 없다. SQLite 는 지원한다. 즉 명세 §10 의 'Partial Unique Index' 선택지는 **주 백엔드에서 사용 불가**이며, 두 백엔드에 동일 코드로 적용되는 유일한 이식 가능 전략이 NULL 허용 UNIQUE 키 컬럼이다",
+    "why_not_composite_unique_on_natural_columns": "자연키 전체에 UNIQUE 를 걸면 삭제(REMOVED) 행이 남아 있는 한 동일 리소스를 다시 즐겨찾기할 수 없다. Restore 경로와 정면 충돌",
+    "why_not_mysql_generated_column": "MySQL 8.0 은 생성 컬럼을 지원하나 SQLite 폴백과 DDL 이 갈리고, 두 엔진의 표현식 문법·결정성 제약이 달라 이식성이 깨진다. 애플리케이션에서 채우는 편이 저장소 관용(드라이버 분기 최소화)에 부합",
+    "residual_risk": "애플리케이션이 active_key 를 잘못 계산하면 제약이 무력화된다 → 계산 지점을 Repository 단일 메서드로 강제하고 회귀 테스트 필수",
+    "concurrency_guarantee": "동일 즐겨찾기 동시 생성 시 두 번째 INSERT 가 UNIQUE 위반으로 실패 → 이를 FavoriteConflict 로 변환(명세 §19). ★Application 사전 조회만으로는 방지 불가하다는 §10 요구를 이 제약이 충족"
+  },
+
+  "required_indexes": [
+    { "name": "uq_fav_active", "columns": ["active_key"], "unique": true, "purpose": "활성 중복 방지(위 전략)" },
+    { "name": "idx_fav_owner", "columns": ["tenant_id", "principal_type", "principal_id", "status", "position"], "unique": false, "purpose": "Principal 전체 목록 + 안정 정렬. 최좌측 tenant_id 로 격리 쿼리 커버" },
+    { "name": "idx_fav_res",   "columns": ["tenant_id", "principal_type", "principal_id", "resource_type", "status"], "unique": false, "purpose": "Resource Type 별 목록 · 존재 확인" },
+    { "name": "idx_fav_tenant","columns": ["tenant_id", "id"], "unique": false, "purpose": "ID 조회 시에도 tenant 조건 강제(명세 §13 find(id) 단독 금지)" }
+  ],
+  "index_naming_rationale": "실측 관용 uq_<약어>_<컬럼> / idx_<약어>_<컬럼들>. 약어 'fav'",
+
+  "foreign_key_strategy": {
+    "value": "NONE — 논리 참조",
+    "rationale": "저장소 실측 FK 관용 부재(collaboration_invitations FK 0건, saved_report foreign_keys []). resource_id 는 메뉴 경로 등 비테이블 리소스를 가리키므로 FK 대상이 존재하지 않는다. 명세 §14 가 허용한 '논리적 Reference + Application Port 검증' 경로를 따른다",
+    "principal_id_fk": "app_user 참조 가능하나 저장소 관용상 FK 미사용 — 일관성 유지 위해 논리 참조"
+  },
+
+  "soft_delete_columns": {
+    "primary": "status VARCHAR(20) ('ACTIVE' | 'REMOVED')",
+    "timestamp": "removed_at VARCHAR(32)",
+    "note": "★deleted_at 미채택 — 저장소 관용 0건이므로 신규 관용 신설을 피함",
+    "list_query_rule": "기본 목록 쿼리는 status='ACTIVE' 강제. 삭제 항목은 전용 메서드에서만 조회(명세 §9)"
+  },
+  "audit_columns": ["created_by", "updated_by", "created_at", "updated_at"],
+  "version_column": {
+    "present": false,
+    "reason": "저장소 낙관적 락 관용 부재 + 단일 소유자 리소스. 필요 시 조건부 UPDATE(affected rows) 로 충돌 감지 — 저장소 정본 동시성 관용과 일치",
+    "if_added": "UPDATE ... WHERE id=? AND tenant_id=? AND version=? 형태, affected rows=0 이면 FavoriteConcurrencyException"
+  },
+
+  "migration_required": false,
+  "migration_required_rationale": "★두 겹의 이유. (1) PHASE_1 정의 = 'UI 프리퍼런스' 확정 상태에서는 서버 테이블 자체가 불필요하다(로드맵이 PHASE_2 를 conditional_on MEMBER_DATA 로 명시). (2) Option B 로 재결정되더라도 저장소는 세션 172 이후 migrations/ 를 사용하지 않고 ensureTables 자가치유가 정본이므로, 산출물은 Migration 파일이 아니라 ensureFavoriteTable() 이 된다. 명세 §24 의 'Migration 구현이 별도 Step 이면 파일 생성 금지' 를 준수하여 설계만 기록",
+
+  "migration_risks": [
+    "ensureTables 패턴은 CREATE TABLE IF NOT EXISTS 만 수행하므로 **기존 테이블에 컬럼 추가가 자동 반영되지 않는다**. 스키마 진화 시 별도 ALTER 자가치유 로직 필요(저장소 기존 부채)",
+    "MySQL 실패 시 SQLite 로 투명 폴백되므로, 폴백 상태에서 생성된 테이블은 운영 MySQL 과 별개 데이터가 된다 — 즐겨찾기가 조용히 사라진 것처럼 보일 수 있다",
+    "운영·데모 2개 환경 동시 적용 필요(메모리 feedback_177_demo_prod_parity)",
+    "graceful catch(\\Throwable) 관용으로 인해 DDL 실패가 무음 처리될 수 있음 — 신규 코드는 사유 주석·로깅 필수"
+  ],
+  "rollback_requirements": [
+    "테이블 신설만 수행하므로 롤백은 DROP TABLE favorite 로 충분(기존 데이터 영향 없음)",
+    "★프론트엔드가 localStorage 를 계속 SSOT 로 사용하는 한 서버 테이블 제거가 기능 후퇴를 일으키지 않는다 — 이 무해성은 Option B 1단계에서만 성립하며, 서버 SSOT 전환 후에는 성립하지 않는다"
+  ],
+  "data_backfill_requirements": [
+    {
+      "item": "기존 localStorage 즐겨찾기 이관",
+      "detail": "현행 값은 각 사용자 브라우저의 g_sidebar_favs 에만 존재한다. 서버는 이 값을 알 수 없으므로 **일괄 백필이 원리적으로 불가능**하다",
+      "only_viable_path": "클라이언트 최초 로그인 시 1회 업로드 병합(client-initiated merge). 서버 백필 스크립트로는 해결 불가",
+      "risk": "병합 규칙 미정 시 다기기 사용자에게서 즐겨찾기 중복·소실 발생 가능"
+    }
+  ],
+
+  "manual_review": [
+    "★PHASE_1 정의 재결정 여부 — 본 문서 전체의 전제",
+    "favorite_type · position 컬럼의 실제 요구 존재 여부(현재 미확인 — BACKLOG-3)",
+    "principal_type 을 USER 단일로 고정할지, 미래 TEAM 확장을 위해 컬럼을 남길지",
+    "resource_id 255자 상한이 최장 메뉴 경로를 수용하는지 실측 필요",
+    "active_key 해시 충돌 무시 가능성(md5 128bit — 테넌트당 수십 건 규모에서 무시 가능하나 명시 필요)",
+    "테이블명 단수/복수 확정"
+  ],
+
+  "unknown_items": [
+    { "item": "운영 MySQL 실제 sql_mode·collation 세부", "status": "UNKNOWN", "reason": "명세 §24·§26 이 운영 DB 접속을 금지. 로컬 검증도 미실행(NOT_EXECUTED)" },
+    { "item": "운영 DB 의 현행 테이블 목록 실측", "status": "UNKNOWN", "reason": "동일. 본 문서의 '테이블 0건'은 **코드 실측(ensureTables·migrations 전수)** 근거이며 라이브 DB 조회 결과가 아니다" },
+    { "item": "SQLite 폴백 버전(부분 인덱스 지원 3.8.0+ / 생성 컬럼 3.31+)", "status": "UNKNOWN", "reason": "런타임 환경 미조회. 단 채택 전략(NULL 허용 UNIQUE)은 두 기능 모두 불필요하므로 영향 없음" }
+  ]
+}

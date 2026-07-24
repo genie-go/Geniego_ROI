@@ -22,8 +22,15 @@ const IS_DEMO_MODE = IS_DEMO;
  *
  * 접근성: 토글이므로 aria-pressed 로 현재 상태를 스크린리더에 노출한다(ST03 실측 0건 → 보강).
  * 무후퇴: NavLink 를 감싸지 않고 형제로 두며, NavLink 는 기존 className·style 을 그대로 유지한다.
+ *
+ * ★[현 차수] touch — 모바일 터치 타깃 보강(BACKLOG-2).
+ *   기존 hit 영역은 padding 2px 5px + glyph 12~13px = 약 23x17px 로 WCAG 2.5.5 권장 44px 에 미달했다.
+ *   **글리프 크기는 그대로 두고 hit 영역만 44x44 로 넓힌다**(시각 변화 0 · 무후퇴).
+ *   행 높이는 늘지 않는다 — styles.css:797 `.sidebar .nav-item { min-height:44px !important }` 로
+ *   모바일 행이 이미 44px 이상이라 minHeight 44 가 행을 밀어내지 않기 때문이다.
+ *   (이 전제가 깨지면 NavSection 의 _itemH=48 아코디언 maxHeight 계산이 클리핑을 일으키므로 함께 확인할 것.)
  */
-function FavStar({ path, isFav, onToggle, addLabel, removeLabel, size = 12 }) {
+function FavStar({ path, isFav, onToggle, addLabel, removeLabel, size = 12, touch = false }) {
   if (!onToggle) return null;
   const label = isFav ? removeLabel : addLabel;
   return (
@@ -34,10 +41,13 @@ function FavStar({ path, isFav, onToggle, addLabel, removeLabel, size = 12 }) {
       aria-label={label}
       title={label}
       style={{
-        flexShrink: 0, padding: '2px 5px', border: 'none', background: 'transparent',
+        flexShrink: 0, border: 'none', background: 'transparent',
         cursor: 'pointer', lineHeight: 1, fontSize: size,
         color: isFav ? '#eab308' : 'var(--text-3)',
         opacity: isFav ? 1 : 0.45, transition: 'opacity 150ms, color 150ms',
+        ...(touch
+          ? { minWidth: 44, minHeight: 44, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
+          : { padding: '2px 5px' }),
       }}
       onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
       onMouseLeave={e => { e.currentTarget.style.opacity = isFav ? 1 : 0.45; }}
@@ -229,7 +239,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
           <span className="truncate">{label}</span>
         </NavLink>
         <FavStar path={item.to} isFav={isFavPath(item.to)} onToggle={toggleFav}
-          addLabel={favLabels?.add} removeLabel={favLabels?.remove} size={13} />
+          addLabel={favLabels?.add} removeLabel={favLabels?.remove} size={13} touch={isMobile} />
       </div>
     );
   }
@@ -354,7 +364,7 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
                   <span className="truncate">{label}</span>
                 </NavLink>
                 <FavStar path={item.to} isFav={isFavPath(item.to)} onToggle={toggleFav}
-                  addLabel={favLabels?.add} removeLabel={favLabels?.remove} />
+                  addLabel={favLabels?.add} removeLabel={favLabels?.remove} touch={isMobile} />
               </div>
             );
           })}
@@ -365,24 +375,37 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
 }
 
 /* 즐겨찾기/최근방문 패널 (아코디언) */
-function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isExpanded, onToggle }) {
+function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isExpanded, onToggle, isMobile }) {
   const [tab, setTab] = useState('recents');
   const hasFavs = favs && favs.size > 0;
   const hasRecents = recents && recents.length > 0;
   if (!hasFavs && !hasRecents) return null;
 
   const activeTab = tab === 'favs' && !hasFavs ? 'recents' : tab === 'recents' && !hasRecents ? 'favs' : tab;
-  // ★[현 차수] 즐겨찾기는 Set 삽입 순서(=추가한 순서)로 나열되는데 아래에서 slice(0,5) 로 자른다.
-  //   그대로 두면 이미 5개가 있을 때 **새로 추가한 항목이 목록에 나타나지 않아** 추가가 실패한 것처럼 보인다.
-  //   최신 추가분이 앞에 오도록 뒤집어 방금 누른 항목이 항상 보이게 한다.
+  // ★즐겨찾기는 Set 삽입 순서(=추가한 순서)로 나열되므로 최신 추가분이 앞에 오도록 뒤집는다.
   //   (드래그로 순서를 직접 바꾸는 기능은 별건이며 본 차수 범위 밖 — 실사용 요구가 확인되지 않았다.)
+  //
+  // ★[현 차수] BACKLOG-1 해소 — 6개 이상 열람 경로 부재.
+  //   기존에는 slice(0,5) 로 잘라내어 6번째부터는 **어떤 방법으로도 볼 수 없었다**(더보기 0건).
+  //   해법으로 "더보기 버튼"이나 별도 관리 화면을 신설하지 않고 **목록을 스크롤 가능하게** 바꾼다.
+  //   근거: (1) 총 개수는 이미 탭 라벨(`⭐Favorites {n}`)과 헤더 배지에 노출돼 있어 "더 있다"는 신호가 존재한다
+  //        (2) 스크롤은 신규 UI 개념·신규 i18n 키·임의 제품 결정이 필요 없는 최소 해법이다
+  //        (3) 신규 메뉴 자제 원칙에 부합한다.
+  //   recents 는 useRecentVisits(_, 5) 가 원천에서 이미 5개로 제한하므로 이 변경의 영향을 받지 않는다.
   const items = activeTab === 'favs'
     ? [...favs].reverse().map(path => allItems.find(it => it.to === path) || { to: path, label: path, icon: '📄' })
     : recents;
   const itemCount = activeTab === 'favs' ? favs.size : recents.length;
 
   return (
-    <div style={{ margin: '4px 8px 0', borderRadius: 10, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)', overflow: 'hidden' }}>
+    // ★[현 차수] flexShrink:0 — 패널이 테두리(2px)만 남고 찌그러지던 결함 수정.
+    //   .sidebar 는 display:flex/column 이고 이 패널은 flex 아이템이다. 그런데 `overflow:hidden` 때문에
+    //   CSS 사양상 automatic minimum size 가 0 이 되어(min-height:auto → 0), 사이드바 세로 내용이
+    //   넘칠 때마다 flex-shrink 가 이 패널을 0 까지 눌러버렸다(실측: 높이 2px = 위아래 테두리만).
+    //   즉 즐겨찾기/최근방문 패널이 데스크톱에서 **보이지 않았다**.
+    //   ★내 변경 이전에도 동일했음을 실측 대조로 확인했다(구 slice(0,5) 재현 시에도 2px).
+    //   67dee1fe46a 가 고친 "도달 불가" 와 같은 계열의 결함이라 함께 바로잡는다.
+    <div style={{ flexShrink: 0, margin: '4px 8px 0', borderRadius: 10, background: 'rgba(79,142,247,0.04)', border: '1px solid rgba(79,142,247,0.1)', overflow: 'hidden' }}>
       {/* 아코디언 헤더 */}
       <div
         onClick={onToggle}
@@ -426,11 +449,15 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
           </div>
         )}
 
-        {/* 아이템 리스트 */}
-        <div style={{ padding: '4px 0' }}>
-          {items.slice(0, 5).map((item, i) => (
-            <div key={item.to || i} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <button onClick={() => navigate(item.to)} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, padding: '5px 10px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'background 120ms', minWidth: 0 }}
+        {/* 아이템 리스트 — ★스크롤 영역(BACKLOG-1). maxHeight 240 은 바깥 아코디언 300px 안에서
+            탭바(약 23px)+상하 padding(8px) 을 빼고도 남는 값이라 클리핑이 발생하지 않는다. */}
+        <div style={{
+          padding: '4px 0', maxHeight: 240, overflowY: 'auto', overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          {items.map((item, i) => (
+            <div key={item.to || i} style={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: isMobile ? 44 : undefined }}>
+              <button onClick={() => navigate(item.to)} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, padding: '5px 10px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'background 120ms', minWidth: 0, minHeight: isMobile ? 44 : undefined }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <span style={{ fontSize: 12, flexShrink: 0 }}>{item.icon || '📄'}</span>
@@ -442,7 +469,14 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
                   onClick={() => toggleFav(item.to)}
                   aria-label={`${t('sidebar.removeFav', 'Remove favorite')} — ${item.label ? t(item.label) : item.to}`}
                   title={t('sidebar.removeFav', 'Remove favorite')}
-                  style={{ padding: '4px 6px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#eab308', fontSize: 10, flexShrink: 0, lineHeight: 1 }}
+                  style={{
+                    border: 'none', background: 'transparent', cursor: 'pointer', color: '#eab308',
+                    fontSize: 10, flexShrink: 0, lineHeight: 1,
+                    // ★[현 차수] BACKLOG-2 — 해제(✕) 버튼도 모바일에서 44x44 확보(글리프 크기는 불변)
+                    ...(isMobile
+                      ? { minWidth: 44, minHeight: 44, padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
+                      : { padding: '4px 6px' }),
+                  }}
                 >✕</button>
               )}
             </div>
@@ -627,6 +661,7 @@ export default function Sidebar() {
         navigate={navigate} toggleFav={toggleFav} t={t}
         isExpanded={quickExpanded}
         onToggle={() => setQuickExpanded(prev => !prev)}
+        isMobile={isMobile}
       />
 
       {/* 데모/운영 환경 구분 배너 */}

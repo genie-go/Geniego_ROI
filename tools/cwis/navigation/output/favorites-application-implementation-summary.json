@@ -1,0 +1,209 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST02",
+  "title": "Favorites Application Layer Implementation",
+  "schema_version": "1.0.0",
+  "status": "BLOCKED",
+  "generated_at": "2026-07-24",
+  "source_revision": "b4c6b2758da3",
+  "source_artifacts_read": [
+    "tools/cwis/navigation/output/favorites-gap-analysis.json",
+    "tools/cwis/navigation/output/favorites-roadmap.json",
+    "tools/cwis/navigation/output/favorites-implementation-plan.json",
+    "tools/cwis/navigation/output/favorites-reuse-map.json",
+    "tools/cwis/navigation/output/favorites-impact-map.json",
+    "docs/cwis/part004-04/task002-scope-reset.md",
+    "docs/cwis/part004-04/part004-04-phase1-decision-and-implementation.md"
+  ],
+
+  "blocking_reasons": [
+    {
+      "id": "BLK-1",
+      "criterion": "ST01 Domain 구현 없음",
+      "spec_reference": "§27 BLOCKED 조건 1행",
+      "finding": "선행 명세 CWIS-P004-U04-WS01-SP02-TK002-ST01 은 사용자 확정으로 NOT_IMPLEMENTED. 커밋 d7c1aafeaa1 (docs(cwis): Task002 ST01 Domain Layer 미구현 결정 + 범위 재설정).",
+      "evidence": "docs/cwis/part004-04/task002-scope-reset.md · git show d7c1aafeaa1",
+      "verified": true
+    },
+    {
+      "id": "BLK-2",
+      "criterion": "허용 변경 경로 전부 부재",
+      "spec_reference": "§22 (프로젝트의 실제 구조에 존재하는 경로만 허용)",
+      "finding": "코드 경로 5개(app/Application/**, src/Application/**, modules/*/Application/**, packages/*/Application/**, Shared/Application/**) 전부 부재. 저장소 전수 탐색에서 Application 디렉터리 0건·Domain 디렉터리 0건. 루트 app/·src/·modules/·packages/·Shared/ 도 부재. 백엔드 루트는 backend/src/.",
+      "evidence": "find . -type d -name Application|Domain (node_modules·clean_src·.git 제외) → 0건",
+      "verified": true
+    },
+    {
+      "id": "BLK-3",
+      "criterion": "기존 Architecture와 충돌",
+      "spec_reference": "§27 BLOCKED 조건 2행 · 헌법 Golden Rule(Replace 아닌 Extend)",
+      "finding": "backend/src 전수 실측 interface 0 · trait 0 · enum 0. CommandBus/QueryBus/CommandHandler/QueryHandler 0건. Repository 클래스 0건. Handlers 119개 전부 Slim 4 + raw PDO 절차형. DDD/CQRS 도입은 저장소 두 번째 아키텍처 신설.",
+      "evidence": "grep -rE '^\\s*(interface|trait|enum) ' backend/src → 0",
+      "verified": true
+    },
+    {
+      "id": "BLK-4",
+      "criterion": "필수 Repository 계약 부재",
+      "spec_reference": "§27 BLOCKED 조건 3행",
+      "finding": "즐겨찾기 지속화 대상 자체가 없음 — 321개 테이블 중 즐겨찾기 테이블 0건, 1,511개 라우트 중 즐겨찾기 라우트 0건, 서버 핸들러 0건. Repository 가 감쌀 저장소가 존재하지 않는다.",
+      "evidence": "favorites-gap-analysis.json CAP-07/CAP-08/CAP-09/CAP-10 present=false",
+      "verified": true
+    },
+    {
+      "id": "BLK-5",
+      "criterion": "Workspace Context 확인 불가",
+      "spec_reference": "§14 · §27 BLOCKED 조건 4행",
+      "finding": "Workspace 엔티티와 멤버십 행 자체가 부재(ST07 NavigationContext::ABSENT_AXES). 명세가 요구하는 workspaceId·principalType·principalId 축을 실재 데이터로 채울 수 없다. Document/Meeting/Channel/Team/Role 도 전부 부재.",
+      "evidence": "favorites-gap-analysis.json infrastructure_absent[WORKSPACE] severity=UNKNOWN",
+      "verified": true
+    },
+    {
+      "id": "BLK-6",
+      "criterion": "상위 게이트 결정과 정면 충돌",
+      "spec_reference": "favorites-roadmap.json PHASE_1",
+      "finding": "PHASE_1 정의 결정 = 'UI 프리퍼런스'(사용자 확정). 로드맵은 PHASE_2(지속화)·PHASE_4(API)를 conditional_on='PHASE_1 정의 = MEMBER_DATA' 로 명시하며, 'UI 프리퍼런스로 확정되면 PHASE_2·PHASE_4 는 불필요' 라고 기록. Application Layer 는 그 소멸된 서버 지속화 축의 중간 계층이다.",
+      "evidence": "favorites-roadmap.json PHASE_1.note · PHASE_2.conditional_on · PHASE_4.conditional_on",
+      "verified": true
+    },
+    {
+      "id": "BLK-7",
+      "criterion": "구조적 죽은 코드 재생산",
+      "spec_reference": "§23(Controller·Route·Repository 구현 금지) + reference_reachability_check_dead_feature",
+      "finding": "본 명세는 Controller·Route·Repository 구현을 금지한다. 따라서 생성될 Command/Query/Handler/DTO/Port 약 30개는 호출부가 존재할 수 없다. 본 Unit 이 직전 커밋(67dee1fe46a)에서 수정한 결함(즐겨찾기 추가 진입점 부재로 인한 도달 불가)과 동일한 결함을 설계상 보장된 형태로 재생산한다.",
+      "evidence": "git show 67dee1fe46a — feat(favorites): 즐겨찾기 추가 진입점 신설 — 도달 불가 기능 복구",
+      "verified": true
+    }
+  ],
+
+  "convention_investigation": {
+    "note": "§1 이 조사를 지시한 13개 축 전수 실측. 재사용 대상 확정을 위해 수행했으며, 결과가 BLK-3 의 근거가 되었다.",
+    "results": [
+      { "axis": "기존 CQRS 구조",            "exists": false, "evidence": "CommandBus|QueryBus|CommandHandler|QueryHandler grep 0건" },
+      { "axis": "기존 Command Bus",          "exists": false, "evidence": "동일" },
+      { "axis": "기존 Query Bus",            "exists": false, "evidence": "동일" },
+      { "axis": "기존 Handler Naming Convention", "exists": true, "caveat": "동음이의 — Slim 라우트 핸들러(backend/src/Handlers/ 119개)이며 CQRS Handler 가 아니다. routes.php 가 'METHOD /path' => 'Genie\\Handlers\\Class::method' 문자열로 매핑. __invoke()·handle() 어느 Convention 도 아니다" },
+      { "axis": "기존 Application DTO Convention", "exists": false, "evidence": "class *Dto|*DTO|*Result 0건. 핸들러는 연관배열을 JSON 으로 직반환" },
+      { "axis": "기존 Transaction Manager",  "exists": false, "evidence": "TransactionManager|UnitOfWork 0건. raw PDO beginTransaction 이 12개 파일에 산재" },
+      { "axis": "기존 Authorization Port",   "exists": false, "caveat": "게이트는 존재하나 Port 가 아님 — PM\\Shared::gate(Request,Response,string $minRole) (backend/src/Handlers/PM/Shared.php:59) 는 static 메서드이며 Slim Request/Response 를 직접 받는다. §20 이 'Static Helper 의존 금지'·'Framework 객체 금지' 를 규정하므로 그대로 재사용 불가하고, 감싸면 신규 추상화 = §12 중복 금지 충돌" },
+      { "axis": "기존 Tenant Context",       "exists": true,  "evidence": "Slim request attribute auth_tenant · X-Tenant-Id 헤더 주입(backend/public/index.php 미들웨어). Framework 결합형이라 Application Core 로 그대로 유입 불가" },
+      { "axis": "기존 Workspace Context",    "exists": false, "evidence": "Workspace 엔티티·멤버십 부재(ST07 ABSENT_AXES)" },
+      { "axis": "기존 Clock",                "exists": false, "evidence": "ClockInterface 0건. date()/NOW() 직접 호출" },
+      { "axis": "기존 Event Dispatcher",     "exists": false, "evidence": "EventDispatcher|DomainEvent 0건. gap-analysis infrastructure_absent[EVENT] severity=LOW '구독 요구 미확인'" },
+      { "axis": "기존 Pagination DTO",       "exists": false, "evidence": "Pagination 클래스 0건. 핸들러별 limit/offset 파라미터 ad-hoc" },
+      { "axis": "기존 Result 및 Exception 구조", "exists": false, "evidence": "공통 Result/도메인 예외 계층 0건. ['ok'=>bool] 배열 + HTTP status 관용" },
+      { "axis": "기존 Idempotency 구조",     "exists": "PARTIAL", "evidence": "10개 이상 핸들러가 idempotency 문자열을 개별 사용하나 공통 인프라·Port 없음. §18 이 '없으면 신규 인프라 만들지 마라' 규정" }
+    ]
+  },
+
+  "current_favorites_reality": {
+    "scope_decision": "UI 프리퍼런스 (PHASE_1 사용자 확정)",
+    "implementation": "frontend/src/layout/Sidebar.jsx — localStorage 'g_sidebar_favs' 에 메뉴 경로 문자열 Set 저장",
+    "device_local_only": true,
+    "server_side_footprint": "없음 — 테이블 0/321 · 라우트 0/1511 · 핸들러 0 · backend/src 내 'favorit' 문자열 1건(카탈로그 설명문)",
+    "boundary_reference": "메모리 reference_ui_preference_device_local_boundary — raw localStorage UI 프리퍼런스는 테넌트 격리 위반이 아니다"
+  },
+
+  "commands_created": [],
+  "queries_created": [],
+  "handlers_created": [],
+  "services_created": [],
+  "dtos_created": [],
+  "ports_created": [],
+  "classes_reused": [],
+  "classes_modified": [],
+  "classes_created": [],
+  "domain_changes": [],
+
+  "authorization_requirements": {
+    "status": "NOT_REGISTERED",
+    "note": "§13 이 '기존 권한이 없으면 실제 Permission Registration 은 이번 Step 에서 하지 마라' 규정. BLOCKED 상태이므로 Port 정의도 보류하고 후보만 기록한다.",
+    "existing_gate_candidate": "PM\\Shared::gate($req,$resp,$minRole) — 역할 등급 viewer<connector<analyst<admin",
+    "candidates_not_confirmed": ["favorites.view", "favorites.create", "favorites.delete", "favorites.restore", "favorites.reorder"],
+    "blocker": "권한 이름을 임의 확정하지 말라는 §13 규정 + 대상 리소스(서버 즐겨찾기) 부재"
+  },
+
+  "transactional_use_cases": [],
+  "event_dispatch_points": [],
+  "idempotency_strategy": {
+    "decided": false,
+    "reason": "적용 대상 Use Case 가 구현되지 않음. 공통 Idempotency 인프라 부재이며 §18 이 신규 인프라 신설을 금지."
+  },
+
+  "concurrency_risks": [
+    {
+      "id": "CR-1",
+      "scope": "현행 구현(참고)",
+      "risk": "localStorage 기반이므로 동일 기기 다중 탭에서 Set 덮어쓰기가 가능하다(last-write-wins). 기기 로컬 프리퍼런스 범위에서는 수용 가능한 수준으로 판단.",
+      "action": "정보 기록만 — 본 Step 범위 밖"
+    },
+    {
+      "id": "CR-2",
+      "scope": "가정적(MEMBER_DATA 전환 시)",
+      "risk": "Toggle 동시 요청·Reorder 부분 실패는 서버 지속화가 도입될 때 비로소 발생한다. 현재는 발생 조건 자체가 없다.",
+      "action": "PHASE_1 재결정 시 재평가"
+    }
+  ],
+
+  "test_candidates": {
+    "note": "§21 형식 준수. 구현이 없으므로 전부 '조건부 — 서버 지속화 결정 시' 이며, 현행 UI 프리퍼런스 범위 항목만 즉시 유효하다.",
+    "unit_test_candidates": [],
+    "application_test_candidates": [],
+    "integration_test_candidates": [],
+    "concurrency_test_candidates": [],
+    "authorization_test_candidates": [],
+    "tenant_isolation_test_candidates": [],
+    "immediately_valid_frontend_candidates": [
+      "Sidebar 즐겨찾기 토글 후 localStorage 'g_sidebar_favs' 왕복 보존(FAV-GAP-003 · CAP-06)",
+      "즐겨찾기 6개 이상일 때 열람 경로(BACKLOG-1 미해소 상태 회귀 감지)"
+    ]
+  },
+
+  "validation_results": {
+    "php_files_changed": 0,
+    "php_lint": "N/A — 변경된 PHP 파일 없음",
+    "phpstan": "N/A — 변경된 PHP 파일 없음 (PHPStan 레벨5·baseline 288 는 저장소에 존재)",
+    "git_status_short": "tracked 변경 0건 (untracked 빌드 로그 다수는 본 Step 과 무관·사전 존재)",
+    "git_diff_name_only": "빈 결과",
+    "git_diff_check": "빈 결과",
+    "out_of_scope_changes": "없음",
+    "checks_from_section_25": [
+      { "check": "모든 PHP 파일 Syntax",                    "result": "N/A (대상 0)" },
+      { "check": "Namespace 와 PSR-4 경로 일치",             "result": "N/A (대상 0)" },
+      { "check": "Command/Query Immutable",                 "result": "N/A (대상 0)" },
+      { "check": "Handler 단일 책임",                        "result": "N/A (대상 0)" },
+      { "check": "Domain 외부에서 Entity 직접 변경 없음",     "result": "PASS (변경 0)" },
+      { "check": "ORM·Framework 의존이 Application Core 유입 없음", "result": "PASS (변경 0)" },
+      { "check": "Controller 및 Route 수정 없음",            "result": "PASS — routes.php·index.php 무변경" },
+      { "check": "Tenant 조건 없는 조회 없음",               "result": "PASS (신규 조회 0)" },
+      { "check": "Workspace Scope 누락 없음",                "result": "N/A — Workspace 축 자체가 부재" },
+      { "check": "권한 검증 없는 Write Use Case 없음",        "result": "PASS (Write Use Case 0)" },
+      { "check": "Transaction 없는 Write Use Case 없음",      "result": "PASS (Write Use Case 0)" },
+      { "check": "Commit 전 외부 Event 발행 없음",            "result": "PASS (Event 0)" },
+      { "check": "DTO 에서 ORM Entity 직접 노출 없음",        "result": "PASS (DTO 0)" },
+      { "check": "중복 공통 추상화 없음",                     "result": "PASS — 신규 추상화 0건이 본 판정의 핵심" },
+      { "check": "순환 의존성 없음",                          "result": "PASS (신규 의존 0)" },
+      { "check": "허용 경로 외 변경 없음",                    "result": "PASS — 산출물 2건은 §22 허용 경로(docs/cwis/part004-04/**, tools/cwis/navigation/output/**)" }
+    ]
+  },
+
+  "limitations": [
+    "본 Step 은 코드를 생성하지 않았다. §22 가 허용한 코드 경로 5개가 저장소에 전부 부재하므로, 코드를 쓰려면 허용 범위 밖에 새 루트 트리를 신설해야 한다.",
+    "§1 이 지시한 13개 Convention 조사는 전수 수행했고 그 결과 자체가 BLOCKED 근거다.",
+    "권한 이름·Idempotency 전략·Read Model 은 확정하지 않았다(§13·§18 규정 준수).",
+    "Domain Layer 는 수정하지 않았다 — 존재하지 않기 때문이다."
+  ],
+
+  "next_step_readiness": {
+    "st03_ready": false,
+    "condition": "PHASE_1 정의 결정이 'UI 프리퍼런스' 로 유지되는 한 SP02-TK002 계열(Domain·Application·Infrastructure) 전체가 불필요하다. ST03 이후 진행은 두 경로 중 하나를 사용자가 선택해야 한다.",
+    "option_a": {
+      "label": "현 결정 유지(권장)",
+      "action": "SP02-TK002 계열 종결 처리하고, 실측으로 남은 BACKLOG-1(6개 이상 열람 경로)·BACKLOG-2(모바일 터치 타깃 44px)·CAP-04(aria-pressed) 로 이동. 전부 PHASE_3 프론트엔드 축이며 기존 Sidebar.jsx 확장으로 처리 가능.",
+      "cost": "낮음 · 죽은 코드 0"
+    },
+    "option_b": {
+      "label": "PHASE_1 재결정(MEMBER_DATA)",
+      "action": "즐겨찾기를 기기 간 동기화되는 회원 데이터로 재정의. 이 경우에도 DDD/CQRS 신설이 아니라 저장소 기존 관용(ensureTables + Handlers + routes.php)으로 구현해야 헌법 Golden Rule 에 부합한다. 로드맵 PHASE_2·PHASE_4·PHASE_5 순서.",
+      "cost": "중간 · 선행 결정 필요 · Workspace 축은 여전히 부재하므로 principal=user 단일 축으로 축소해야 함"
+    }
+  }
+}

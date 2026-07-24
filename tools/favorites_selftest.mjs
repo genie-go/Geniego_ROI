@@ -76,11 +76,18 @@ for (const l of LOCALES) {
 }
 check(missing.length === 0, `i18n sidebar.addFav/removeFav 15개국 전부 존재`, missing.join(', '));
 
-/* ── 4. 최신순 정렬 (신규 추가 항목 가시성) ───────────────────────────── */
+/* ── 4. 전체 열람 가능성 (BACKLOG-1 해소 이후) ────────────────────────── */
 check(/\[\.\.\.favs\]\.reverse\(\)/.test(src),
-  '즐겨찾기 목록이 최신순(reverse) — slice(0,5) 로 잘려도 방금 추가한 항목이 보인다');
-const sliceMatch = src.match(/items\.slice\(0,\s*(\d+)\)/);
-check(!!sliceMatch, '표시 개수 제한이 명시적', sliceMatch ? '' : 'slice 미발견');
+  '즐겨찾기 목록이 최신순(reverse) — 방금 추가한 항목이 맨 위에 보인다');
+
+// ★[현 차수] 판정 기준 반전 — 기존엔 `items.slice(0,5)` 존재를 요구했으나, 그 제한이 곧
+//   BACKLOG-1(6개 이상 열람 경로 부재) 의 원인이었다. 이제는 **잘라내지 않는 것**이 정답이다.
+//   자르기가 부활하면 6번째부터 다시 도달 불가가 되므로 그것을 회귀로 잡는다.
+check(!/items\.slice\(0,\s*\d+\)/.test(src),
+  '즐겨찾기 목록을 잘라내지 않는다(6개 이상도 열람 가능 — BACKLOG-1 회귀 차단)');
+// 잘라내지 않는 대신 스크롤로 접근하므로, 스크롤 컨테이너가 실제로 존재해야 한다.
+check(/overflowY:\s*'auto'/.test(src) && /maxHeight:\s*240/.test(src),
+  '목록이 스크롤 컨테이너(maxHeight+overflowY:auto)로 감싸져 있다');
 
 /* ── 5. 저장 키 불변 (기존 사용자 데이터 승계) ───────────────────────── */
 check((src.match(/g_sidebar_favs/g) || []).length >= 2,
@@ -98,6 +105,19 @@ check(nested.length === 0, 'NavLink 내부에 button 중첩 없음(무효 HTML·
 // 별표 클릭이 링크 이동을 유발하지 않도록 preventDefault 존재
 check(/e\.preventDefault\(\);\s*e\.stopPropagation\(\)/.test(src),
   '별표 클릭 시 preventDefault+stopPropagation(페이지 이동 방지)');
+
+/* ── 7. 모바일 터치 타깃 (BACKLOG-2 해소) ─────────────────────────────── */
+// WCAG 2.5.5 권장 44px. 이전 실측 약 23x17px.
+check(/touch\s*=\s*false/.test(src) && /touch=\{isMobile\}/.test(src),
+  'FavStar 가 모바일에서 touch 모드로 배선됨');
+check((src.match(/minWidth:\s*44,\s*minHeight:\s*44/g) || []).length >= 2,
+  '별표·해제 버튼 모바일 히트영역 44x44 (WCAG 2.5.5)');
+
+/* ── 8. 패널 찌그러짐 방지 ────────────────────────────────────────────── */
+// .sidebar 는 flex column 이고 패널은 overflow:hidden 이라 automatic minimum size 가 0 이 된다.
+// flexShrink:0 이 없으면 사이드바 내용이 넘칠 때 패널이 테두리(2px)만 남고 사라진다(실측).
+check(/flexShrink:\s*0,\s*margin:\s*'4px 8px 0'/.test(src),
+  '즐겨찾기 패널에 flexShrink:0 (사이드바 넘침 시 패널 소멸 차단)');
 
 console.log(FAIL === 0
   ? `\n${C.grn}[favorites-selftest] 전 항목 통과${C.rst}`
