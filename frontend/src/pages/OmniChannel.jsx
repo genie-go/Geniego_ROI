@@ -255,6 +255,8 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
         error: { label: `⚠ ${t('omniChannel.statusError')}`, color: '#ef4444' },
         untested: { label: `● ${t('omniChannel.statusUntested')}`, color: '#eab308' },
         not_configured: { label: `○ ${t('omniChannel.statusNotConfig')}`, color: '#666' },
+        // [현 차수 D2] 자격증명 미완성 = '설정 필요'(슬레이트) — 녹색 '연동됨' 위장 금지. 설정됨+성공만 녹색.
+        awaiting_credentials: { label: `⚙ ${t('omniChannel.awaitingCreds', '설정 필요')}`, color: '#64748b' },
         none: { label: `○ ${t('omniChannel.statusNotConfig')}`, color: '#666' },
     }), [t]);
 
@@ -305,7 +307,14 @@ function ChannelTab({ channelStatus, onRefresh, plan, isDemo, t, csIsConnected }
                                         <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>
                                             {t('omniChannel.colProduct')} {(st.product_count || 0).toLocaleString()} · {t('omniChannel.colOrderNo')} {(st.order_count || 0).toLocaleString()} · {t('omniChannel.colRevenue')} {fmt(st.revenue || 0)}
                                             {/* [263차 Track C] 동기화 관측성 — 마지막 동기화 경과/오류 배지(263차 백엔드가 비-commerce 채널도 stamp). */}
-                                            {st.last_synced && (() => { const mins = Math.max(0, Math.round((Date.now() - new Date(st.last_synced).getTime()) / 60000)); const ago = mins < 60 ? `${mins}분 전` : mins < 1440 ? `${Math.round(mins / 60)}시간 전` : `${Math.round(mins / 1440)}일 전`; return <span style={{ marginLeft: 8, color: st.sync_status === 'error' ? '#ef4444' : '#16a34a', fontWeight: 700 }} title={`${t('omniChannel.colLastSync', '마지막 동기화')}: ${st.last_synced}`}>{st.sync_status === 'error' ? `⚠ ${t('omniChannel.syncError', '동기화 오류')}` : `🕒 ${ago}`}</span>; })()}
+                                            {st.last_synced && (() => { const mins = Math.max(0, Math.round((Date.now() - new Date(st.last_synced).getTime()) / 60000)); const ago = mins < 60 ? `${mins}분 전` : mins < 1440 ? `${Math.round(mins / 60)}시간 전` : `${Math.round(mins / 1440)}일 전`;
+                                                // [현 차수 D2] 3-way — 종전엔 error 아니면 무조건 녹색 '🕒 동기화됨'이라 자격증명 미완성(awaiting_credentials)도 녹색 위장.
+                                                //   미설정=슬레이트 '⚙ 설정 필요' / 오류=빨강 / 성공=녹색 으로 정직 구분.
+                                                const ss = st.sync_status;
+                                                const isAwait = ss === 'awaiting_credentials';
+                                                const col = ss === 'error' ? '#ef4444' : (isAwait ? '#64748b' : '#16a34a');
+                                                const txt = ss === 'error' ? `⚠ ${t('omniChannel.syncError', '동기화 오류')}` : (isAwait ? `⚙ ${t('omniChannel.awaitingCreds', '설정 필요')}` : `🕒 ${ago}`);
+                                                return <span style={{ marginLeft: 8, color: col, fontWeight: 700 }} title={`${t('omniChannel.colLastSync', '마지막 동기화')}: ${st.last_synced}`}>{txt}</span>; })()}
                                         </div>
                                     </div>
                                     <Tag label={sStyle.label} color={sStyle.color} />
@@ -666,6 +675,8 @@ function OverviewTab({ channelStatus, t }) {
         error: { label: `⚠ ${t('omniChannel.statusError')}`, color: '#ef4444' },
         untested: { label: `● ${t('omniChannel.statusUntested')}`, color: '#eab308' },
         not_configured: { label: `○ ${t('omniChannel.statusNotConfig')}`, color: '#666' },
+        // [현 차수 D2] 자격증명 미완성 = '설정 필요'(슬레이트) — 녹색 '연동됨' 위장 금지. 설정됨+성공만 녹색.
+        awaiting_credentials: { label: `⚙ ${t('omniChannel.awaitingCreds', '설정 필요')}`, color: '#64748b' },
         none: { label: `○ ${t('omniChannel.statusNotConfig')}`, color: '#666' },
     }), [t]);
 

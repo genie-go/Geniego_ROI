@@ -818,8 +818,12 @@ const STATUS_COLORS = {
   ok:    { bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.25)',  fg: '#16a34a' },
   error: { bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.25)',  fg: '#dc2626' },
   pending:{bg: 'rgba(250,204,21,0.10)', border: 'rgba(250,204,21,0.25)', fg: '#ca8a04' },
+  // [현 차수 D2] 자격증명 미완성 = '설정 필요'(슬레이트). 녹색 성공/빨강 오류와 명확히 구분(가짜 녹색 제거).
+  awaiting_credentials: { bg: 'rgba(100,116,139,0.14)', border: 'rgba(100,116,139,0.32)', fg: '#475569' },
   none:  { bg: 'rgba(148,163,184,0.10)',border: 'rgba(148,163,184,0.25)',fg: '#64748b' },
 };
+// [현 차수 D2] 상태 → 사람이 읽는 라벨(원시 대문자 대신). 미정의는 원시값 대문자 폴백.
+const STATUS_LABELS = { awaiting_credentials: '설정 필요' };
 
 /* ─── Toast — 운영 UX 보조 (간단 inline) ───────────────────────── */
 function useToast() {
@@ -2278,7 +2282,9 @@ function ActiveKeysTab({ creds, channels, loading, onTest, onDelete, onAddClick,
                 <td style={{ padding: '10px 16px', fontFamily: 'monospace', color: 'var(--text-3)' }}>{c.key_value_masked || '—'}</td>
                 <td style={{ padding: '10px 16px' }}>
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, fontWeight: 700 }}>
-                    {(c.test_status || t('ak.statusUntested','untested')).toUpperCase()}
+                    {STATUS_LABELS[c.test_status]
+                      ? t('ak.statusAwaitingCreds', STATUS_LABELS[c.test_status])
+                      : (c.test_status || t('ak.statusUntested','untested')).toUpperCase()}
                   </span>
                 </td>
                 <td style={{ padding: '10px 16px', color: 'var(--text-3)', fontSize: 11 }}>

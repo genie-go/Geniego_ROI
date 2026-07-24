@@ -475,7 +475,7 @@ final class ChannelSync
         $refreshToken  = trim((string)($creds['refresh_token'] ?? $creds['key_value'] ?? ''));
         $marketplaceId = trim((string)($creds['marketplace_id'] ?? 'ATVPDKIKX0DER'));
         if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Amazon SP-API: client_id·client_secret·refresh_token·marketplace_id 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Amazon SP-API: client_id·client_secret·refresh_token·marketplace_id 입력 필요'];
         }
         // 1) LWA refresh_token → access_token
         [$tCode, $tBody] = self::httpPost(
@@ -645,7 +645,7 @@ final class ChannelSync
         $secretKey = trim((string)($creds['secret_key'] ?? ''));
         $vendorId  = trim((string)($creds['vendor_id'] ?? ''));
         if ($accessKey === '' || $secretKey === '' || $vendorId === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Coupang: access_key·secret_key·vendor_id 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Coupang: access_key·secret_key·vendor_id 입력 필요'];
         }
         $host  = 'https://api-gateway.coupang.com';
         $path  = "/v2/providers/openapi/apis/api/v4/vendors/{$vendorId}/ordersheets";
@@ -852,7 +852,7 @@ final class ChannelSync
                 'note'     => '네이버 Commerce API: 데모 시뮬레이션.',
             ];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'네이버 Commerce API: Client ID/Secret 등록 시 실데이터가 동기화됩니다.'];
+        return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'네이버 Commerce API: Client ID/Secret 등록 시 실데이터가 동기화됩니다.'];
     }
 
     /**
@@ -1326,7 +1326,7 @@ final class ChannelSync
         if ($tenant === 'demo') {
             return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('ebay','eBay'), 'orders'=>self::buildDemoChannelOrders('ebay','eBay'), 'note'=>'eBay Inventory API: OAuth token required for live sync.'];
         }
-        return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'eBay: OAuth 토큰 등록 시 실데이터(상품·주문)가 동기화됩니다.'];
+        return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'eBay: OAuth 토큰 등록 시 실데이터(상품·주문)가 동기화됩니다.'];
     }
 
     // ── TikTok Shop ──────────────────────────────────────────────────────
@@ -1343,7 +1343,7 @@ final class ChannelSync
         $accessToken = trim((string)($creds['access_token'] ?? $creds['key_value'] ?? ''));
         $shopCipher  = trim((string)($creds['shop_cipher'] ?? ''));
         if ($appKey === '' || $appSecret === '' || $accessToken === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: app_key·app_secret·access_token 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'TikTok Shop: app_key·app_secret·access_token 입력 필요'];
         }
         $base = 'https://open-api.tiktokglobalshop.com';
         // 1) shop_cipher 미입력 시 인가된 샵 목록에서 도출.
@@ -1451,7 +1451,7 @@ final class ChannelSync
         $serviceSecret = trim((string)($creds['service_secret'] ?? ''));
         $licenseKey    = trim((string)($creds['license_key'] ?? ''));
         if ($serviceSecret === '' || $licenseKey === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Rakuten: service_secret·license_key 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Rakuten: service_secret·license_key 입력 필요'];
         }
         $headers = ['Authorization' => 'ESA ' . base64_encode($serviceSecret . ':' . $licenseKey), 'Content-Type' => 'application/json; charset=utf-8'];
         // 1) 주문번호 검색(최근 7일, dateType=1 주문일). JST(+09:00).
@@ -1538,7 +1538,7 @@ final class ChannelSync
         $clientSecret = trim((string)($creds['client_secret'] ?? ''));
         $refreshToken = trim((string)($creds['refresh_token'] ?? ''));
         if ($mallId === '' || $clientId === '' || $clientSecret === '' || $refreshToken === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Cafe24: mall_id·client_id·client_secret·refresh_token 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Cafe24: mall_id·client_id·client_secret·refresh_token 입력 필요'];
         }
         $apiBase = "https://{$mallId}.cafe24api.com/api/v2";
         // 1) refresh_token → access_token (Basic base64(client_id:client_secret)).
@@ -1647,7 +1647,7 @@ final class ChannelSync
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('woocommerce','WooCommerce'), 'orders'=>self::buildDemoChannelOrders('woocommerce','WooCommerce'), 'note'=>'demo preview'];
         $site = rtrim(trim((string)($creds['site_url'] ?? '')), '/');
         $ck = trim((string)($creds['consumer_key'] ?? '')); $cs = trim((string)($creds['consumer_secret'] ?? ''));
-        if ($site === '' || $ck === '' || $cs === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'WooCommerce: site_url·consumer_key·consumer_secret 입력 필요'];
+        if ($site === '' || $ck === '' || $cs === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'WooCommerce: site_url·consumer_key·consumer_secret 입력 필요'];
         if (!str_starts_with($site, 'http')) $site = 'https://' . $site;
         $auth = '&consumer_key=' . rawurlencode($ck) . '&consumer_secret=' . rawurlencode($cs);
         [$pCode, $pBody] = self::httpGet("{$site}/wp-json/wc/v3/products?per_page=50{$auth}");
@@ -1687,7 +1687,7 @@ final class ChannelSync
     {
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('magento','Magento'), 'orders'=>self::buildDemoChannelOrders('magento','Magento'), 'note'=>'demo preview'];
         $base = rtrim(trim((string)($creds['base_url'] ?? '')), '/'); $tok = trim((string)($creds['access_token'] ?? ''));
-        if ($base === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Magento: base_url·access_token(Integration 토큰) 입력 필요'];
+        if ($base === '' || $tok === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Magento: base_url·access_token(Integration 토큰) 입력 필요'];
         if (!str_starts_with($base, 'http')) $base = 'https://' . $base;
         $h = ['Authorization'=>'Bearer ' . $tok, 'Accept'=>'application/json'];
         [$pCode, $pBody] = self::httpGet("{$base}/rest/V1/products?searchCriteria%5BpageSize%5D=50", $h);
@@ -1724,7 +1724,7 @@ final class ChannelSync
     {
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('walmart','Walmart'), 'orders'=>self::buildDemoChannelOrders('walmart','Walmart'), 'note'=>'demo preview'];
         $cid = trim((string)($creds['client_id'] ?? '')); $cs = trim((string)($creds['client_secret'] ?? ''));
-        if ($cid === '' || $cs === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Walmart: client_id·client_secret 입력 필요'];
+        if ($cid === '' || $cs === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Walmart: client_id·client_secret 입력 필요'];
         $basic = base64_encode($cid . ':' . $cs);
         $cid2 = uniqid('gg', true);
         [$tCode, $tBody] = self::httpPost('https://marketplace.walmartapis.com/v3/token',
@@ -1785,7 +1785,7 @@ final class ChannelSync
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('etsy','Etsy'), 'orders'=>self::buildDemoChannelOrders('etsy','Etsy'), 'note'=>'demo preview'];
         $key = trim((string)($creds['api_key'] ?? '')); $shop = trim((string)($creds['shop_id'] ?? ''));
         $oauth = trim((string)($creds['oauth_token'] ?? $creds['access_token'] ?? ''));
-        if ($key === '' || $shop === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Etsy: api_key(keystring)·shop_id 입력 필요'];
+        if ($key === '' || $shop === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Etsy: api_key(keystring)·shop_id 입력 필요'];
         $h = ['x-api-key'=>$key, 'Accept'=>'application/json'];
         [$pCode, $pBody] = self::httpGet("https://openapi.etsy.com/v3/application/shops/" . rawurlencode($shop) . "/listings/active?limit=50", $h);
         $products = [];
@@ -1825,7 +1825,7 @@ final class ChannelSync
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('shopee','Shopee'), 'orders'=>self::buildDemoChannelOrders('shopee','Shopee'), 'note'=>'demo preview'];
         $pid = trim((string)($creds['partner_id'] ?? '')); $pkey = trim((string)($creds['partner_key'] ?? ''));
         $shop = trim((string)($creds['shop_id'] ?? '')); $tok = trim((string)($creds['access_token'] ?? ''));
-        if ($pid === '' || $pkey === '' || $shop === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Shopee: partner_id·partner_key·shop_id·access_token(OAuth 인증 후) 입력 필요'];
+        if ($pid === '' || $pkey === '' || $shop === '' || $tok === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Shopee: partner_id·partner_key·shop_id·access_token(OAuth 인증 후) 입력 필요'];
         $host = 'https://partner.shopeemobile.com'; $ts = time();
         $sign = fn(string $path) => hash_hmac('sha256', $pid . $path . $ts . $tok . $shop, $pkey);
         $path = '/api/v2/order/get_order_list';
@@ -1887,7 +1887,7 @@ final class ChannelSync
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('lazada','Lazada'), 'orders'=>self::buildDemoChannelOrders('lazada','Lazada'), 'note'=>'demo preview'];
         $appKey = trim((string)($creds['app_key'] ?? '')); $appSecret = trim((string)($creds['app_secret'] ?? ''));
         $tok = trim((string)($creds['access_token'] ?? '')); $region = strtolower(trim((string)($creds['region'] ?? 'sg')));
-        if ($appKey === '' || $appSecret === '' || $tok === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Lazada: app_key·app_secret·access_token(OAuth 인증 후)·region 입력 필요'];
+        if ($appKey === '' || $appSecret === '' || $tok === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Lazada: app_key·app_secret·access_token(OAuth 인증 후)·region 입력 필요'];
         $hostMap = ['sg'=>'api.lazada.sg','my'=>'api.lazada.com.my','th'=>'api.lazada.co.th','id'=>'api.lazada.co.id','ph'=>'api.lazada.com.ph','vn'=>'api.lazada.vn'];
         $host = 'https://' . ($hostMap[$region] ?? 'api.lazada.sg') . '/rest';
         [$oCode, $oBody] = self::lazadaGet($host, '/orders/get', $appKey, $appSecret, $tok,
@@ -1949,7 +1949,7 @@ final class ChannelSync
     {
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('qoo10','Qoo10'), 'orders'=>self::buildDemoChannelOrders('qoo10','Qoo10'), 'note'=>'demo preview'];
         $key = trim((string)($creds['api_key'] ?? '')); $seller = trim((string)($creds['seller_id'] ?? ''));
-        if ($key === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Qoo10: QSM API 키(api_key)·seller_id 입력 필요'];
+        if ($key === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Qoo10: QSM API 키(api_key)·seller_id 입력 필요'];
         // QSM OpenAPI: ShippingBasic.GetShippingInfo_v2 로 최근 배송대기/발송 주문 조회. key=ApiKey.
         $url = 'https://api.qoo10.com/GMKT.INC.Front.QAPIService/ebayjapan.qapi?' . http_build_query([
             'v'=>'1.0', 'method'=>'ShippingBasic.GetShippingInfo_v2', 'key'=>$key,
@@ -1983,7 +1983,7 @@ final class ChannelSync
     {
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('yahoo_jp','Yahoo! Japan'), 'orders'=>self::buildDemoChannelOrders('yahoo_jp','Yahoo! Japan'), 'note'=>'demo preview'];
         $tok = trim((string)($creds['access_token'] ?? '')); $seller = trim((string)($creds['seller_id'] ?? ''));
-        if ($tok === '' || $seller === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Yahoo! Japan: access_token(OAuth)·seller_id(스토어 계정) 입력 필요'];
+        if ($tok === '' || $seller === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'Yahoo! Japan: access_token(OAuth)·seller_id(스토어 계정) 입력 필요'];
         // OrderList API(XML). 최근 30일 신규주문 검색. Bearer 인증.
         $body = '<Req><Search><Result>50</Result><Start>1</Start><Sort>+order_time</Sort>'
               . '<Condition><OrderTimeFrom>' . gmdate('YmdHis', time() - 30 * 86400) . '</OrderTimeFrom></Condition>'
@@ -2012,7 +2012,7 @@ final class ChannelSync
         if ($tenant === 'demo') return ['ok'=>true, 'products'=>self::buildDemoChannelProducts('godomall','고도몰'), 'orders'=>self::buildDemoChannelOrders('godomall','고도몰'), 'note'=>'demo preview'];
         $pkey = trim((string)($creds['partner_key'] ?? '')); $apiKey = trim((string)($creds['api_key'] ?? ''));
         $mall = rtrim(trim((string)($creds['mall_url'] ?? '')), '/');
-        if ($pkey === '' || $apiKey === '' || $mall === '') return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'godomall: partner_key·api_key·mall_url(스토어 도메인) 입력 필요'];
+        if ($pkey === '' || $apiKey === '' || $mall === '') return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'godomall: partner_key·api_key·mall_url(스토어 도메인) 입력 필요'];
         if (!str_starts_with($mall, 'http')) $mall = 'https://' . $mall;
         // godo5 OpenAPI: /api/order.php (최근 주문). 키 인증 파라미터.
         [$oCode, $oBody] = self::httpGet("{$mall}/api/order.php?" . http_build_query([
@@ -2222,7 +2222,7 @@ final class ChannelSync
         // [285차] 11번가 셀러 Open API 실연동 — openapikey 헤더. 신규주문 목록(XML).
         $apiKey = trim((string)($creds['api_key'] ?? $creds['openapikey'] ?? $creds['key_value'] ?? ''));
         if ($apiKey === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'11번가: 오픈API 키(api_key) 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'11번가: 오픈API 키(api_key) 입력 필요'];
         }
         // [285차] 조회창 = KST 기준 최근 7일. 11번가 상한(7일)을 초과하지 않도록 5분 여유를 둔다.
         $tz    = new \DateTimeZone('Asia/Seoul');
@@ -2327,7 +2327,7 @@ final class ChannelSync
         $apiKey   = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? ''));
         $sellerId = trim((string)($creds['seller_id'] ?? ''));
         if ($apiKey === '' || $sellerId === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>"{$label}: ESM api_key·seller_id 입력 필요"];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>"{$label}: ESM api_key·seller_id 입력 필요"];
         }
         $site = $channel === 'auction' ? 'IAC' : 'GMKT';
         $from = gmdate('Y-m-d', time() - 7 * 86400);
@@ -2373,7 +2373,7 @@ final class ChannelSync
         $apiKey   = trim((string)($creds['api_key'] ?? $creds['key_value'] ?? ''));
         $sellerId = trim((string)($creds['seller_id'] ?? ''));
         if ($apiKey === '' || $sellerId === '') {
-            return ['ok'=>true, 'products'=>[], 'orders'=>[], 'note'=>'롯데온: api_key·seller_id 입력 필요'];
+            return ['ok'=>false, 'awaiting_credentials'=>true, 'products'=>[], 'orders'=>[], 'note'=>'롯데온: api_key·seller_id 입력 필요'];
         }
         $from = gmdate('Ymd', time() - 7 * 86400);
         $to   = gmdate('Ymd');
@@ -5013,8 +5013,15 @@ final class ChannelSync
         $productCount = 0;
         $orderCount   = 0;
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 = 연동 대기(거짓 'ok' 방지)
+        $awaitingCreds = !empty($result['awaiting_credentials']); // [현 차수 D2] 자격증명 미완성 신호
         $testStatus = 'untested';
-        if ($result['ok']) {
+        if ($awaitingCreds) {
+            // [현 차수 D2] 미설정 채널 — 'awaiting_credentials'(설정 필요)로 정직 표기(녹색 성공/빨강 오류 아님).
+            //   종전엔 어댑터가 ok=true 를 반환해 아래 블록에서 'ok'(녹색)로 위장됐다(수집 0인데).
+            $testStatus = 'awaiting_credentials';
+            $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=?,test_status=? WHERE id=?")
+                ->execute([$now, 'awaiting_credentials', 'awaiting_credentials', $credId]);
+        } elseif ($result['ok']) {
             $productCount = self::saveProducts($pdo, $tenant, $channel, $result['products'] ?? []);
             $orderCount   = self::saveOrders($pdo, $tenant, $channel, $result['orders'] ?? []);
             // [282차 A-P1 거짓연동 위장 차단] 커머스 어댑터는 자격증명 불완전/라이브 API 4xx 여도 graceful 하게
@@ -5252,13 +5259,20 @@ final class ChannelSync
         }
 
         $pending = !empty($result['pending']); // [현 차수] H1: stub 채널 연동 대기 표기
-        $newStatus = !($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok');
+        // [현 차수 D2] ★가짜 녹색 제거 — 자격증명 미완성 채널을 'ok'(성공)로 표시하던 것을 'awaiting_credentials'(설정 필요)로.
+        //   종전엔 18개 커머스 어댑터가 creds 미완성에 ok=true 반환 → sync_status='ok'(녹색)로 위장(실제 0건 유입).
+        //   3상태 명확화: 미설정=awaiting_credentials(설정 필요) / 설정+실패=error / 설정+성공=ok.
+        $awaitingCreds = !empty($result['awaiting_credentials']);
+        $newStatus = $awaitingCreds ? 'awaiting_credentials'
+                   : (!($result['ok'] ?? false) ? 'error' : ($pending ? 'pending' : 'ok'));
         $pdo->prepare("UPDATE channel_credential SET last_synced_at=?,sync_status=? WHERE tenant_id=? AND channel=?")
             ->execute([$now, $newStatus, $tenant, $channel]);
 
         return [
             'ok'            => (bool)($result['ok'] ?? false),
             'pending'       => $pending,
+            'awaiting_credentials' => $awaitingCreds,             // [현 차수 D2] 미설정 채널 정직 표기(프론트 '설정 필요')
+            'status'        => $newStatus,                        // ok | error | pending | awaiting_credentials
             'product_count' => $pCount,
             'order_count'   => $oCount,
             'synced_at'     => $now,

@@ -886,9 +886,10 @@ final class ChannelCreds
             ? "SELECT channel, COUNT(*) as key_count,
                       MAX(CASE WHEN sync_status='error' THEN 1 ELSE 0 END) as any_err,
                       MAX(CASE WHEN sync_status='ok' THEN 1 ELSE 0 END) as any_ok,
-                      MAX(CASE WHEN sync_status='pending' THEN 1 ELSE 0 END) as any_pend
+                      MAX(CASE WHEN sync_status='pending' THEN 1 ELSE 0 END) as any_pend,
+                      MAX(CASE WHEN sync_status='awaiting_credentials' THEN 1 ELSE 0 END) as any_await
                FROM channel_credential WHERE tenant_id=? AND is_active=1 GROUP BY channel"
-            : "SELECT channel, COUNT(*) as key_count, 0 as any_err, 0 as any_ok, 0 as any_pend
+            : "SELECT channel, COUNT(*) as key_count, 0 as any_err, 0 as any_ok, 0 as any_pend, 0 as any_await
                FROM channel_credential WHERE tenant_id=? AND is_active=1 GROUP BY channel";
         $stmt = $pdo->prepare($sel);
         $stmt->execute([$tenant]);
@@ -896,10 +897,13 @@ final class ChannelCreds
 
         $channels = [];
         foreach ($rows as $r) {
-            // 우선순위: error > ok > pending > none. (ok 가 하나라도 있으면 실연동된 것으로 간주)
+            // [현 차수 D2] 우선순위: error > ok > pending > awaiting_credentials(설정 필요) > none.
+            //   ★자격증명 미완성 채널을 'none'(미등록)이 아니라 'awaiting_credentials'(설정 필요·부분등록)로 정직 구분.
+            //   종전엔 미완성 채널이 sync_status='ok' 라 any_ok=1 → 'ok'(녹색 위장)였다(D2 근본).
             $ss = (int)($r['any_err'] ?? 0) ? 'error'
                 : ((int)($r['any_ok'] ?? 0) ? 'ok'
-                : ((int)($r['any_pend'] ?? 0) ? 'pending' : 'none'));
+                : ((int)($r['any_pend'] ?? 0) ? 'pending'
+                : ((int)($r['any_await'] ?? 0) ? 'awaiting_credentials' : 'none')));
             $channels[(string)$r['channel']] = [
                 'keyCount'    => (int)$r['key_count'],
                 'hasRequired' => (int)$r['key_count'] > 0,
