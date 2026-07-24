@@ -1,0 +1,48 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06",
+    "generated_at": "2026-07-24T01:12:16+00:00",
+    "asset_count": 3,
+    "assets": [
+        {
+            "asset_id": "FAV-TST-AST-000001",
+            "asset_name": "navigation_context_selftest.php (in-memory SQLite fixture)",
+            "asset_type": "FIXTURE",
+            "file_path": "backend/bin/navigation_context_selftest.php",
+            "target": "PDO(sqlite::memory:)",
+            "reusable_candidate": true,
+            "sensitive_data_candidate": false,
+            "confidence": "HIGH",
+            "note": "즐겨찾기 테이블 검증에 그대로 재사용 가능한 인메모리 DB 픽스처"
+        },
+        {
+            "asset_id": "FAV-TST-AST-000002",
+            "asset_name": "navigation_context_selftest.php (synthetic registry builder)",
+            "asset_type": "HELPER",
+            "file_path": "backend/bin/navigation_context_selftest.php",
+            "target": "navigation registry",
+            "reusable_candidate": true,
+            "sensitive_data_candidate": false,
+            "confidence": "MEDIUM"
+        },
+        {
+            "asset_id": "FAV-TST-AST-000003",
+            "asset_name": "navigation_registry_selftest.php (synthetic registry builder)",
+            "asset_type": "HELPER",
+            "file_path": "backend/bin/navigation_registry_selftest.php",
+            "target": "navigation registry",
+            "reusable_candidate": true,
+            "sensitive_data_candidate": false,
+            "confidence": "MEDIUM"
+        }
+    ],
+    "absent_asset_types": {
+        "FACTORY": "database/factories 디렉터리 부재 · Laravel Factory 미사용",
+        "FIXTURE_FILE": "tests/Fixtures 부재 — 픽스처는 테스트 파일 내부 인라인(위 FIXTURE 항목 참조)",
+        "MOCK": "Mockery/Prophecy 미설치 · createMock 0건",
+        "STUB": "전용 스텁 디렉터리 부재",
+        "SPY": "Spy 프레임워크 미설치",
+        "API_MOCK": "MSW/cy.intercept/page.route 미사용 — E2E 는 실서버 호출",
+        "DATASET": "Pest dataset 미사용(Pest 미설치)",
+        "BASE_TEST_CASE": "PHPUnit TestCase 미사용 — 각 자체검증 스크립트가 독립 실행"
+    }
+}

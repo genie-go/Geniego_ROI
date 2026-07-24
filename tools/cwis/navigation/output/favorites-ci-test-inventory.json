@@ -1,0 +1,19 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06",
+    "generated_at": "2026-07-24T01:12:16+00:00",
+    "job_count": 1,
+    "jobs": [
+        {
+            "ci_id": "FAV-CI-000001",
+            "provider": "GITHUB_ACTIONS",
+            "workflow_file": ".github/workflows/deploy.yml",
+            "job_name": "UNKNOWN",
+            "commands": [
+                "node tools/e2e/smoke.mjs"
+            ],
+            "favorites_specific": false,
+            "coverage_detected": false,
+            "required_status_candidate": "UNKNOWN"
+        }
+    ]
+}

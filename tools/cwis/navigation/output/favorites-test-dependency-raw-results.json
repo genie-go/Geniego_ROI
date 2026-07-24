@@ -1,0 +1,133 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06",
+    "source_revision": "eef2c555883c",
+    "generated_at": "2026-07-24T01:12:16+00:00",
+    "test_frameworks": {
+        "phpunit": "ABSENT",
+        "pest": "ABSENT",
+        "vitest": "ABSENT",
+        "jest": "ABSENT",
+        "cypress": "ABSENT",
+        "playwright": "ABSENT",
+        "mockery": "ABSENT",
+        "faker": "ABSENT",
+        "axe": "ABSENT",
+        "msw": "ABSENT",
+        "storybook": "ABSENT",
+        "infection": "ABSENT",
+        "actual": "CUSTOM — tools/e2e/*.mjs(E2E 3종) + tools/*_selftest.mjs + backend/bin/*_selftest.php",
+        "static_analysis": "PHPStan 2.x (backend/phpstan.neon · level 5 + baseline)"
+    },
+    "package_managers": [
+        "COMPOSER (backend/composer.json+lock)",
+        "NPM (frontend/ + root package-lock.json)"
+    ],
+    "spec_test_paths": {
+        "tests": "ABSENT",
+        "tests/Unit": "ABSENT",
+        "tests/Feature": "ABSENT",
+        "tests/Integration": "ABSENT",
+        "tests/Api": "ABSENT",
+        "tests/Security": "ABSENT",
+        "spec": "ABSENT",
+        "__tests__": "ABSENT",
+        "cypress": "ABSENT",
+        "playwright": "ABSENT",
+        "e2e": "ABSENT",
+        "tests/e2e": "ABSENT",
+        "database/factories": "ABSENT",
+        "database/seeders": "ABSENT",
+        "tests/Fixtures": "ABSENT",
+        "tests/Support": "ABSENT",
+        "tests/Mocks": "ABSENT"
+    },
+    "config_files": {
+        "phpunit.xml": "ABSENT",
+        "phpunit.xml.dist": "ABSENT",
+        "pest.php": "ABSENT",
+        "tests/Pest.php": "ABSENT",
+        "vitest.config.js": "ABSENT",
+        "vitest.config.ts": "ABSENT",
+        "jest.config.js": "ABSENT",
+        "cypress.config.js": "ABSENT",
+        "playwright.config.js": "ABSENT",
+        "backend/phpstan.neon": "EXISTS",
+        "infection.json": "ABSENT"
+    },
+    "st04_overlap_note": "★ST04 통합 실행분은 *selftest* 글롭만 봐서 tools/e2e/(3종)와 CI 테스트 스테이지를 놓쳤다. 본 Step 이 전수 재수집·정정한다.",
+    "test_files_scanned": 6,
+    "total_test_cases": 143,
+    "favorites_test_cases": 1,
+    "test_signal_counts": {
+        "tenant": 21,
+        "authorization": 14,
+        "duplicate": 1,
+        "ordering": 3,
+        "pagination": 0,
+        "cache": 0,
+        "event": 0,
+        "queue": 0,
+        "accessibility": 1,
+        "mobile": 1,
+        "optimistic": 1,
+        "architecture": 0
+    },
+    "matches_found": 2,
+    "sensitive_values_masked": 0,
+    "package_usage_status_counts": {
+        "USED": 30,
+        "DECLARED_NOT_FOUND": 4,
+        "UNKNOWN": 1,
+        "CONFIG_ONLY": 8,
+        "TRANSITIVE_ONLY": 2,
+        "DEV_ONLY": 3
+    },
+    "gap_type_counts": {
+        "ACCESSIBILITY_WITHOUT_A11Y_TEST": 1,
+        "PACKAGE_DECLARED_WITHOUT_USAGE": 4,
+        "UNKNOWN": 1
+    },
+    "files_failed": 0,
+    "results": [
+        {
+            "result_id": "FAV-TST-000001",
+            "keyword": "test_case",
+            "matched_keywords": [
+                "favorite"
+            ],
+            "matched_text": "$t('실스냅샷: 기존 사이드바 경로가 전부 alias 로 보존된다(즐겨찾기 Key 무손실)', function () use ($REAL, $ok) {",
+            "file_path": "backend/bin/navigation_registry_selftest.php",
+            "line_number": 395,
+            "column_number": 1,
+            "language": "PHP",
+            "source_type": "TEST_CASE",
+            "test_framework": "CUSTOM_SELFTEST_PHP",
+            "classification": "POTENTIAL_FAVORITES_TEST",
+            "symbol_name": "실스냅샷: 기존 사이드바 경로가 전부 alias 로 보존된다(즐겨찾기 Key 무손실)",
+            "symbol_type": "TEST_METHOD",
+            "priority": "HIGH",
+            "possibly_generated": false,
+            "notes": []
+        },
+        {
+            "result_id": "FAV-TST-000002",
+            "keyword": "file_level",
+            "matched_keywords": [
+                "favorite"
+            ],
+            "matched_text": "(파일 내 즐겨찾기 키워드 존재)",
+            "file_path": "backend/bin/navigation_registry_selftest.php",
+            "line_number": 0,
+            "column_number": 1,
+            "language": "PHP",
+            "source_type": "TEST_FILE",
+            "test_framework": "CUSTOM_SELFTEST_PHP",
+            "classification": "POTENTIAL_REUSABLE_TEST_INFRASTRUCTURE",
+            "symbol_name": "navigation_registry_selftest.php",
+            "symbol_type": "TEST_FILE",
+            "priority": "MEDIUM",
+            "possibly_generated": false,
+            "notes": []
+        }
+    ]
+}

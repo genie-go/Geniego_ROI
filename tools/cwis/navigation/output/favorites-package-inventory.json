@@ -1,0 +1,1148 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06",
+    "generated_at": "2026-07-24T01:12:16+00:00",
+    "package_count": 48,
+    "usage_status_counts": {
+        "USED": 30,
+        "DECLARED_NOT_FOUND": 4,
+        "UNKNOWN": 1,
+        "CONFIG_ONLY": 8,
+        "TRANSITIVE_ONLY": 2,
+        "DEV_ONLY": 3
+    },
+    "note": "★선언만으로 USED 판정하지 않는다. Composer 는 vendor/*/composer.json 의 psr-4 네임스페이스를 읽어 실제 use/new 흔적을 대조했다.",
+    "packages": [
+        {
+            "package_id": "FAV-PKG-000001",
+            "ecosystem": "COMPOSER",
+            "package_name": "slim/slim",
+            "declared_version": "^4.12",
+            "resolved_version": "4.15.2",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "USED",
+            "usage_files": [
+                "backend/src/routes.php",
+                "backend/public/index.php"
+            ],
+            "detected_namespaces": [
+                "Slim"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000002",
+            "ecosystem": "COMPOSER",
+            "package_name": "slim/psr7",
+            "declared_version": "^1.6",
+            "resolved_version": "1.8.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "USED",
+            "usage_files": [
+                "backend/public/index.php"
+            ],
+            "detected_namespaces": [
+                "Slim\\Psr7"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000003",
+            "ecosystem": "COMPOSER",
+            "package_name": "php-di/php-di",
+            "declared_version": "^7.0",
+            "resolved_version": "7.1.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "DECLARED_NOT_FOUND",
+            "usage_files": [],
+            "detected_namespaces": [
+                "DI"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000004",
+            "ecosystem": "COMPOSER",
+            "package_name": "vlucas/phpdotenv",
+            "declared_version": "^5.5",
+            "resolved_version": "v5.6.3",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "DECLARED_NOT_FOUND",
+            "usage_files": [],
+            "detected_namespaces": [
+                "Dotenv"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000005",
+            "ecosystem": "COMPOSER",
+            "package_name": "illuminate/database",
+            "declared_version": "^10.0",
+            "resolved_version": "v10.49.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "DECLARED_NOT_FOUND",
+            "usage_files": [],
+            "detected_namespaces": [
+                "Illuminate\\Database"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000006",
+            "ecosystem": "COMPOSER",
+            "package_name": "monolog/monolog",
+            "declared_version": "^3.0",
+            "resolved_version": "3.10.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "usage_status": "DECLARED_NOT_FOUND",
+            "usage_files": [],
+            "detected_namespaces": [
+                "Monolog"
+            ],
+            "abandoned": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000007",
+            "ecosystem": "COMPOSER",
+            "package_name": "phpstan/phpstan",
+            "declared_version": "^2.0",
+            "resolved_version": "2.2.5",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "usage_status": "UNKNOWN",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "relevance": [
+                "TEST_FRAMEWORK"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000008",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/android",
+            "declared_version": "^6.2.1",
+            "resolved_version": "6.2.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000009",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/app",
+            "declared_version": "^6.0.3",
+            "resolved_version": "6.0.3",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/native/capacitorInit.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000010",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/cli",
+            "declared_version": "^6.2.1",
+            "resolved_version": "6.2.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000011",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/core",
+            "declared_version": "^6.2.1",
+            "resolved_version": "6.2.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/native/capacitorInit.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000012",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/ios",
+            "declared_version": "^6.2.1",
+            "resolved_version": "6.2.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000013",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/keyboard",
+            "declared_version": "^6.0.4",
+            "resolved_version": "6.0.4",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/native/capacitorInit.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000014",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/splash-screen",
+            "declared_version": "^6.0.4",
+            "resolved_version": "6.0.4",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/native/capacitorInit.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000015",
+            "ecosystem": "NPM",
+            "package_name": "@capacitor/status-bar",
+            "declared_version": "^6.0.3",
+            "resolved_version": "6.0.3",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/native/capacitorInit.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000016",
+            "ecosystem": "NPM",
+            "package_name": "d3-geo",
+            "declared_version": "^3.1.1",
+            "resolved_version": "3.1.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "TRANSITIVE_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": "react-simple-maps",
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000017",
+            "ecosystem": "NPM",
+            "package_name": "dompurify",
+            "declared_version": "^3.0.9",
+            "resolved_version": "3.4.2",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/utils/xssSanitizer.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000018",
+            "ecosystem": "NPM",
+            "package_name": "hls.js",
+            "declared_version": "^1.6.16",
+            "resolved_version": "1.6.16",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/components/CctvPlayer.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000019",
+            "ecosystem": "NPM",
+            "package_name": "isomorphic-dompurify",
+            "declared_version": "^2.9.0",
+            "resolved_version": "2.36.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000020",
+            "ecosystem": "NPM",
+            "package_name": "react",
+            "declared_version": "^18.3.1",
+            "resolved_version": "18.3.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/auth/useVisibleTabs.js",
+                "frontend/src/auth/AuthContext.jsx",
+                "frontend/src/components/AIRecommendBanner.jsx",
+                "frontend/src/components/DataTable.jsx",
+                "frontend/src/components/KPICard.jsx",
+                "frontend/src/components/Sparkline.jsx",
+                "frontend/src/components/dashboards/DashLayout.jsx",
+                "frontend/src/components/dashboards/DashPeriodSelector.jsx",
+                "frontend/src/components/dashboards/dashPeriod.js",
+                "frontend/src/components/dashboards/DashGuide.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000021",
+            "ecosystem": "NPM",
+            "package_name": "react-dom",
+            "declared_version": "^18.3.1",
+            "resolved_version": "18.3.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/components/OnboardingGuide.jsx",
+                "frontend/src/layout/Topbar.jsx",
+                "frontend/src/main.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000022",
+            "ecosystem": "NPM",
+            "package_name": "react-router-dom",
+            "declared_version": "^6.26.2",
+            "resolved_version": "6.30.3",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/auth/useAdminReadOnly.js",
+                "frontend/src/components/AIRecommendBanner.jsx",
+                "frontend/src/components/dashboards/DashOverview.jsx",
+                "frontend/src/components/HelpPanel.jsx",
+                "frontend/src/components/KeyboardShortcuts.jsx",
+                "frontend/src/components/MobileBottomNav.jsx",
+                "frontend/src/components/OnboardingTour.jsx",
+                "frontend/src/components/CardRequiredBanner.jsx",
+                "frontend/src/components/CardBillingGuide.jsx",
+                "frontend/src/components/RoleViewBar.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000023",
+            "ecosystem": "NPM",
+            "package_name": "react-simple-maps",
+            "declared_version": "^3.0.0",
+            "resolved_version": "3.0.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/components/dashboards/DashSalesGlobal.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000024",
+            "ecosystem": "NPM",
+            "package_name": "recharts",
+            "declared_version": "^3.8.0",
+            "resolved_version": "3.8.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/pages/AIInsights.jsx",
+                "frontend/src/pages/Marketing.jsx",
+                "frontend/src/pages/AdStatusAnalysis.jsx",
+                "frontend/src/pages/BudgetTracker.jsx",
+                "frontend/src/pages/AccountPerformance.jsx",
+                "frontend/src/App.jsx",
+                "frontend/upgrade_ai_insights.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000025",
+            "ecosystem": "NPM",
+            "package_name": "ssh2-sftp-client",
+            "declared_version": "^12.1.0",
+            "resolved_version": "12.1.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/upload_backend.cjs",
+                "frontend/upload_server.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000026",
+            "ecosystem": "NPM",
+            "package_name": "topojson-client",
+            "declared_version": "^3.1.0",
+            "resolved_version": "3.1.0",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "TRANSITIVE_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": "react-simple-maps",
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000027",
+            "ecosystem": "NPM",
+            "package_name": "xlsx",
+            "declared_version": "^0.18.5",
+            "resolved_version": "0.18.5",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/pages/PriceOpt.jsx",
+                "frontend/src/pages/OrderHub.jsx",
+                "frontend/src/pages/PnLDashboard.jsx",
+                "frontend/src/pages/CatalogSync.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000028",
+            "ecosystem": "NPM",
+            "package_name": "@vitejs/plugin-react",
+            "declared_version": "^4.3.1",
+            "resolved_version": "4.7.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/vite.config.js",
+                "./vite.config.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000029",
+            "ecosystem": "NPM",
+            "package_name": "eslint",
+            "declared_version": "^8.57.0",
+            "resolved_version": "8.57.1",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000030",
+            "ecosystem": "NPM",
+            "package_name": "eslint-plugin-react",
+            "declared_version": "^7.34.0",
+            "resolved_version": "7.37.5",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000031",
+            "ecosystem": "NPM",
+            "package_name": "eslint-plugin-react-hooks",
+            "declared_version": "^4.6.0",
+            "resolved_version": "4.6.2",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000032",
+            "ecosystem": "NPM",
+            "package_name": "ssh2",
+            "declared_version": "^1.17.0",
+            "resolved_version": "1.17.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/migrations/_archived/patch_demo_tenant.cjs",
+                "tools/migrations/_archived/fix_demo_complete.cjs",
+                "tools/migrations/_archived/fix_demo_final.cjs",
+                "tools/migrations/_archived/fix_demo_tenant.cjs",
+                "tools/migrations/_archived/fix_deploy.cjs",
+                "tools/migrations/_archived/fix_nested.cjs",
+                "tools/migrations/_archived/fix_nginx.cjs",
+                "tools/migrations/_archived/fix_nginx_demo.cjs",
+                "tools/migrations/_archived/fix_path.cjs",
+                "tools/migrations/_archived/fix_php_syntax.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000033",
+            "ecosystem": "NPM",
+            "package_name": "terser",
+            "declared_version": "^5.36.0",
+            "resolved_version": "5.46.2",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "CONFIG_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000034",
+            "ecosystem": "NPM",
+            "package_name": "vite",
+            "declared_version": "^5.4.2",
+            "resolved_version": "5.4.21",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "frontend/package.json",
+            "scope": "frontend",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/vite.config.js",
+                "./vite.config.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000035",
+            "ecosystem": "NPM",
+            "package_name": "archiver",
+            "declared_version": "^7.0.1",
+            "resolved_version": "7.0.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/_deploy_dist.cjs",
+                "frontend/_deploy_fresh.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000036",
+            "ecosystem": "NPM",
+            "package_name": "axios",
+            "declared_version": "^1.13.6",
+            "resolved_version": "1.13.6",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/migrations/_archived/supreme_deploy.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000037",
+            "ecosystem": "NPM",
+            "package_name": "dotenv",
+            "declared_version": "^17.3.1",
+            "resolved_version": "17.3.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/migrations/_archived/supreme_deploy.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000038",
+            "ecosystem": "NPM",
+            "package_name": "jquery",
+            "declared_version": "^3.7.1",
+            "resolved_version": "3.7.1",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/components/SummernoteEditor.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000039",
+            "ecosystem": "NPM",
+            "package_name": "summernote",
+            "declared_version": "^0.8.20",
+            "resolved_version": "0.8.20",
+            "dependency_type": "PRODUCTION",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/components/SummernoteEditor.jsx"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000040",
+            "ecosystem": "NPM",
+            "package_name": "@vitejs/plugin-react",
+            "declared_version": "^5.0.0",
+            "resolved_version": "5.2.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/vite.config.js",
+                "./vite.config.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000041",
+            "ecosystem": "NPM",
+            "package_name": "acorn",
+            "declared_version": "^8.16.0",
+            "resolved_version": "8.16.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/triage.mjs",
+                "tools/dedup_collisions.mjs",
+                "tools/inject_attrdata_i18n.cjs",
+                "tools/inject_devhub_wh_i18n.cjs",
+                "tools/inject_incr_i18n.cjs",
+                "tools/inject_exp_i18n.cjs",
+                "tools/inject_n244_i18n.cjs",
+                "tools/inject_n254_adv_i18n.cjs",
+                "tools/inject_n254_authsignup_i18n.cjs",
+                "tools/inject_n254_eff_i18n.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000042",
+            "ecosystem": "NPM",
+            "package_name": "acorn-jsx",
+            "declared_version": "^5.3.2",
+            "resolved_version": "5.3.2",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "DEV_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000043",
+            "ecosystem": "NPM",
+            "package_name": "acorn-walk",
+            "declared_version": "^8.3.5",
+            "resolved_version": "8.3.5",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "DEV_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000044",
+            "ecosystem": "NPM",
+            "package_name": "astring",
+            "declared_version": "^1.9.0",
+            "resolved_version": "1.9.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "DEV_ONLY",
+            "usage_files": [],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000045",
+            "ecosystem": "NPM",
+            "package_name": "path",
+            "declared_version": "^0.12.7",
+            "resolved_version": "0.12.7",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/src/fix_global_i18n.cjs",
+                "frontend/src/tools_i18n.cjs",
+                "tools/purge_demo.js",
+                "tools/migrations/_archived/patch_kpi_i18n.js",
+                "tools/migrations/_archived/patch_sidebar_i18n.js",
+                "tools/migrations/_archived/patch_influencer_i18n.cjs",
+                "tools/migrations/_archived/patch_sms_i18n.cjs",
+                "tools/migrations/_archived/patch_sms_v2.cjs",
+                "tools/migrations/_archived/patch_sms_v3.cjs",
+                "tools/migrations/_archived/patch_sms_v4.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000046",
+            "ecosystem": "NPM",
+            "package_name": "playwright",
+            "declared_version": "^1.61.1",
+            "resolved_version": "1.61.1",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/e2e/render.mjs",
+                "frontend/check_error.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000047",
+            "ecosystem": "NPM",
+            "package_name": "ssh2",
+            "declared_version": "^1.17.0",
+            "resolved_version": "1.17.0",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "tools/migrations/_archived/patch_demo_tenant.cjs",
+                "tools/migrations/_archived/fix_demo_complete.cjs",
+                "tools/migrations/_archived/fix_demo_final.cjs",
+                "tools/migrations/_archived/fix_demo_tenant.cjs",
+                "tools/migrations/_archived/fix_deploy.cjs",
+                "tools/migrations/_archived/fix_nested.cjs",
+                "tools/migrations/_archived/fix_nginx.cjs",
+                "tools/migrations/_archived/fix_nginx_demo.cjs",
+                "tools/migrations/_archived/fix_path.cjs",
+                "tools/migrations/_archived/fix_php_syntax.cjs"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        },
+        {
+            "package_id": "FAV-PKG-000048",
+            "ecosystem": "NPM",
+            "package_name": "vite",
+            "declared_version": "^7.3.1",
+            "resolved_version": "7.3.1",
+            "dependency_type": "DEVELOPMENT",
+            "direct_dependency": true,
+            "manifest": "package.json",
+            "scope": "root",
+            "usage_status": "USED",
+            "usage_files": [
+                "frontend/vite.config.js",
+                "./vite.config.js"
+            ],
+            "detected_namespaces": [],
+            "abandoned": null,
+            "transitive_of": null,
+            "relevance": [
+                "UNKNOWN"
+            ],
+            "reusable_candidate": false,
+            "notes": []
+        }
+    ]
+}

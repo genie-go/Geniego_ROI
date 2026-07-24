@@ -1,0 +1,111 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06",
+    "generated_at": "2026-07-24T01:12:16+00:00",
+    "gap_count": 6,
+    "gap_type_counts": {
+        "ACCESSIBILITY_WITHOUT_A11Y_TEST": 1,
+        "PACKAGE_DECLARED_WITHOUT_USAGE": 4,
+        "UNKNOWN": 1
+    },
+    "note": "severity 는 확정하지 않는다(ST10 소관). 근거 없는 Gap 은 생성하지 않았다.",
+    "gaps": [
+        {
+            "gap_id": "FAV-TST-GAP-000001",
+            "gap_type": "ACCESSIBILITY_WITHOUT_A11Y_TEST",
+            "source_files": [
+                "frontend/src/layout/Sidebar.jsx",
+                "frontend/src/pages/CaseStudy.jsx"
+            ],
+            "test_files": [],
+            "evidence": [
+                "ST03 실측: 즐겨찾기 토글에 aria-pressed 0건",
+                "본 Step 실측: 접근성 테스트 케이스 1건 중 즐겨찾기 대상 0건",
+                "axe/jest-axe 미설치"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "gap_id": "FAV-TST-GAP-000002",
+            "gap_type": "PACKAGE_DECLARED_WITHOUT_USAGE",
+            "source_files": [
+                "backend/composer.json"
+            ],
+            "test_files": [],
+            "evidence": [
+                "php-di/php-di 선언(^7.0) · 탐지 네임스페이스 [\"DI\"]",
+                "백엔드/프런트 전 소스에서 import·use 흔적 0건"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "gap_id": "FAV-TST-GAP-000003",
+            "gap_type": "PACKAGE_DECLARED_WITHOUT_USAGE",
+            "source_files": [
+                "backend/composer.json"
+            ],
+            "test_files": [],
+            "evidence": [
+                "vlucas/phpdotenv 선언(^5.5) · 탐지 네임스페이스 [\"Dotenv\"]",
+                "백엔드/프런트 전 소스에서 import·use 흔적 0건"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "gap_id": "FAV-TST-GAP-000004",
+            "gap_type": "PACKAGE_DECLARED_WITHOUT_USAGE",
+            "source_files": [
+                "backend/composer.json"
+            ],
+            "test_files": [],
+            "evidence": [
+                "illuminate/database 선언(^10.0) · 탐지 네임스페이스 [\"Illuminate\\\\Database\"]",
+                "백엔드/프런트 전 소스에서 import·use 흔적 0건"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "gap_id": "FAV-TST-GAP-000005",
+            "gap_type": "PACKAGE_DECLARED_WITHOUT_USAGE",
+            "source_files": [
+                "backend/composer.json"
+            ],
+            "test_files": [],
+            "evidence": [
+                "monolog/monolog 선언(^3.0) · 탐지 네임스페이스 [\"Monolog\"]",
+                "백엔드/프런트 전 소스에서 import·use 흔적 0건"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "gap_id": "FAV-TST-GAP-000006",
+            "gap_type": "UNKNOWN",
+            "source_files": [],
+            "test_files": [
+                "backend/bin/navigation_context_selftest.php",
+                "backend/bin/navigation_registry_selftest.php",
+                "tools/e2e/render.mjs",
+                "tools/e2e/scenarios.mjs",
+                "tools/e2e/smoke.mjs",
+                "tools/navigation_analyze_selftest.mjs"
+            ],
+            "evidence": [
+                "표준 테스트 러너(PHPUnit/Pest/Vitest/Jest/Cypress/Playwright) 전부 미설치 — 설정 파일 0건",
+                "테스트 자산은 자체 검증 스크립트 6종뿐",
+                "신규 즐겨찾기 기능에 표준 테스트를 추가하려면 러너 도입이 선행되어야 한다"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        }
+    ]
+}
