@@ -1,0 +1,48 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST07",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T01:42:18+00:00",
+    "alias_count": 5,
+    "aliases": [
+        {
+            "alias": "favourite",
+            "canonical_candidate": "favorite",
+            "alias_type": "SPELLING_VARIANT",
+            "auto_replace": true
+        },
+        {
+            "alias": "favourites",
+            "canonical_candidate": "favorites",
+            "alias_type": "SPELLING_VARIANT",
+            "auto_replace": true
+        },
+        {
+            "alias": "bookmark",
+            "canonical_candidate": "favorite",
+            "alias_type": "SEMANTIC_NEIGHBOR",
+            "auto_replace": false,
+            "reason": "북마크와 즐겨찾기는 본 저장소에서 서로 다른 구현이다(Sidebar 즐겨찾기 vs CaseStudy 북마크) — 자동 치환 금지"
+        },
+        {
+            "alias": "saved item",
+            "canonical_candidate": "favorite",
+            "alias_type": "SEMANTIC_NEIGHBOR",
+            "auto_replace": false,
+            "reason": "saved_report 는 BI 리포트 정의 저장이라 즐겨찾기와 의미가 다르다"
+        },
+        {
+            "alias": "pinned item",
+            "canonical_candidate": "favorite",
+            "alias_type": "SEMANTIC_NEIGHBOR",
+            "auto_replace": false,
+            "reason": "한국어 '고정' 은 대부분 fixed 의미(ST02·ST03 오탐 61건)"
+        }
+    ]
+}

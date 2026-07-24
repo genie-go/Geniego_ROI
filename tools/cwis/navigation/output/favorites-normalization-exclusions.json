@@ -1,0 +1,14 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST07",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T01:42:18+00:00",
+    "exclusion_count": 0,
+    "exclusions": []
+}

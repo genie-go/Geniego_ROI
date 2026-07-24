@@ -1,0 +1,114 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST07",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T01:42:18+00:00",
+    "statistics": {
+        "input_files": 31,
+        "inputs_available": 23,
+        "inputs_empty_valid": 8,
+        "inputs_missing": 0,
+        "inputs_invalid": 0,
+        "revision_status": "PARTIAL_MATCH",
+        "revisions": [
+            "423e9e16db33",
+            "817c29681204",
+            "98ee8c4fe8a0",
+            "b4bb7503a47a",
+            "eef2c555883c"
+        ],
+        "input_record_total": 1102,
+        "raw_match_records": 125,
+        "total_normalized_records": 1541,
+        "records_with_source_record_id": 957,
+        "derived_records": 584,
+        "merge_events": 633,
+        "total_relationships": 1728,
+        "unresolved_relationships_dropped": 0,
+        "total_conflicts": 1,
+        "total_exclusions": 0,
+        "total_aliases": 5,
+        "auto_replace_aliases": 2,
+        "manual_review_aliases": 3,
+        "sensitive_values_redacted": 0,
+        "orphan_records": 24,
+        "by_entity_type": {
+            "API_ENDPOINT": 3,
+            "CI_JOB": 1,
+            "COMPONENT": 2,
+            "DATABASE_COLUMN": 6,
+            "DATABASE_INDEX": 1,
+            "DATABASE_TABLE": 21,
+            "DEPENDENCY_USAGE": 608,
+            "FILE": 539,
+            "GAP_CANDIDATE": 6,
+            "MIDDLEWARE": 10,
+            "MIGRATION": 21,
+            "PACKAGE": 45,
+            "RAW_MATCH": 125,
+            "RISK_CANDIDATE": 2,
+            "STATE_UNIT": 2,
+            "SYMBOL": 3,
+            "TEST_ASSET": 3,
+            "TEST_CASE": 143
+        },
+        "by_source_domain": {
+            "API": 24,
+            "BACKEND": 66,
+            "CI": 2,
+            "CROSS_DOMAIN": 27,
+            "DATABASE": 74,
+            "FRONTEND": 85,
+            "PACKAGE": 1105,
+            "TEST": 158
+        },
+        "by_classification": {
+            "DIRECT_IMPLEMENTATION_CANDIDATE": 22,
+            "FALSE_POSITIVE_CANDIDATE": 87,
+            "GAP_CANDIDATE": 6,
+            "PACKAGE_ONLY": 653,
+            "RELATED_INFRASTRUCTURE_CANDIDATE": 21,
+            "RISK_CANDIDATE": 2,
+            "TEST_ONLY": 148,
+            "UNKNOWN": 602
+        },
+        "by_priority": {
+            "HIGH": 11,
+            "IGNORE_CANDIDATE": 51,
+            "LOW": 163,
+            "MEDIUM": 4,
+            "UNKNOWN": 1312
+        },
+        "by_confidence": {
+            "HIGH": 653,
+            "LOW": 36,
+            "MEDIUM": 206,
+            "UNKNOWN": 646
+        },
+        "by_status": {
+            "ACTIVE_CANDIDATE": 1517,
+            "ORPHANED": 24
+        },
+        "by_relationship_type": {
+            "ALTERS": 1,
+            "CONTAINS": 7,
+            "CREATES": 20,
+            "DECLARED_BY": 48,
+            "DEFINED_IN": 921,
+            "HANDLES": 3,
+            "IMPORTS": 608,
+            "PROTECTED_BY": 12,
+            "REFERENCES": 8,
+            "SEMANTICALLY_RELATED": 100
+        },
+        "by_conflict_type": {
+            "UPSTREAM_SQL_KEYWORD_AS_TABLE_NAME": 1
+        }
+    }
+}

@@ -1,0 +1,173 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CWIS Favorites Normalized Record",
+    "type": "object",
+    "required": [
+        "normalized_id",
+        "entity_type",
+        "canonical_key",
+        "canonical_name",
+        "source_domain",
+        "source_record_ids",
+        "source_files",
+        "classification",
+        "priority",
+        "confidence",
+        "status",
+        "attributes"
+    ],
+    "properties": {
+        "normalized_id": {
+            "type": "string",
+            "pattern": "^FAV-NRM-\\d{6}$"
+        },
+        "entity_type": {
+            "type": "string",
+            "enum": [
+                "FILE",
+                "SYMBOL",
+                "COMPONENT",
+                "STATE_UNIT",
+                "API_ENDPOINT",
+                "API_CONTROLLER",
+                "API_REQUEST",
+                "API_RESPONSE",
+                "MIDDLEWARE",
+                "OPENAPI_OPERATION",
+                "DATABASE_TABLE",
+                "DATABASE_COLUMN",
+                "DATABASE_CONSTRAINT",
+                "DATABASE_INDEX",
+                "ORM_MAPPING",
+                "MIGRATION",
+                "TEST_CASE",
+                "TEST_ASSET",
+                "PACKAGE",
+                "DEPENDENCY_USAGE",
+                "CI_JOB",
+                "RISK_CANDIDATE",
+                "GAP_CANDIDATE",
+                "RAW_MATCH",
+                "UNKNOWN"
+            ]
+        },
+        "canonical_key": {
+            "type": "string",
+            "minLength": 1
+        },
+        "canonical_name": {
+            "type": "string"
+        },
+        "source_domain": {
+            "type": "string",
+            "enum": [
+                "BACKEND",
+                "FRONTEND",
+                "DATABASE",
+                "API",
+                "TEST",
+                "PACKAGE",
+                "CI",
+                "CROSS_DOMAIN",
+                "UNKNOWN"
+            ]
+        },
+        "source_record_ids": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "uniqueItems": true
+        },
+        "source_files": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\.\\.).*$"
+            },
+            "uniqueItems": true
+        },
+        "classification": {
+            "type": "string",
+            "enum": [
+                "UNKNOWN",
+                "DIRECT_IMPLEMENTATION_CANDIDATE",
+                "RELATED_INFRASTRUCTURE_CANDIDATE",
+                "LEGACY_CANDIDATE",
+                "FALSE_POSITIVE_CANDIDATE",
+                "DOCUMENTATION_ONLY",
+                "TEST_ONLY",
+                "PACKAGE_ONLY",
+                "RISK_CANDIDATE",
+                "GAP_CANDIDATE",
+                "CONFLICTING"
+            ]
+        },
+        "priority": {
+            "type": "string",
+            "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "IGNORE_CANDIDATE",
+                "UNKNOWN"
+            ]
+        },
+        "confidence": {
+            "type": "string",
+            "enum": [
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "UNKNOWN"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "ACTIVE_CANDIDATE",
+                "MERGED",
+                "CONFLICTING",
+                "ORPHANED",
+                "INVALID_SOURCE",
+                "DEPRECATED_CANDIDATE",
+                "IGNORED_CANDIDATE",
+                "UNKNOWN"
+            ]
+        },
+        "tenant_scope": {
+            "type": "string",
+            "enum": [
+                "YES",
+                "NO",
+                "UNKNOWN",
+                "CONFLICTING",
+                "NOT_APPLICABLE"
+            ]
+        },
+        "workspace_scope": {
+            "type": "string",
+            "enum": [
+                "YES",
+                "NO",
+                "UNKNOWN",
+                "CONFLICTING",
+                "NOT_APPLICABLE"
+            ]
+        },
+        "project_scope": {
+            "type": "string",
+            "enum": [
+                "YES",
+                "NO",
+                "UNKNOWN",
+                "CONFLICTING",
+                "NOT_APPLICABLE"
+            ]
+        },
+        "attributes": {
+            "type": "object"
+        }
+    }
+}

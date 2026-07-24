@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CWIS Favorites Normalization Conflict",
+    "type": "object",
+    "required": [
+        "conflict_id",
+        "conflict_type",
+        "canonical_key",
+        "normalized_ids",
+        "resolution_status"
+    ],
+    "properties": {
+        "conflict_id": {
+            "type": "string",
+            "pattern": "^FAV-CFL-\\d{6}$"
+        },
+        "conflict_type": {
+            "type": "string"
+        },
+        "canonical_key": {
+            "type": "string",
+            "minLength": 1
+        },
+        "normalized_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "pattern": "^FAV-NRM-\\d{6}$"
+            }
+        },
+        "resolution_status": {
+            "type": "string",
+            "enum": [
+                "UNRESOLVED",
+                "AUTO_RESOLVED",
+                "NOT_A_CONFLICT",
+                "DEFERRED_TO_CLASSIFICATION"
+            ]
+        },
+        "severity_candidate": {
+            "type": "string"
+        },
+        "requires_manual_review": {
+            "type": "boolean"
+        }
+    }
+}

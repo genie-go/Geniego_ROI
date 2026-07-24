@@ -1,0 +1,32 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST07",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T01:42:18+00:00",
+    "conflict_count": 1,
+    "conflicts": [
+        {
+            "conflict_id": "FAV-CFL-000001",
+            "conflict_type": "UPSTREAM_SQL_KEYWORD_AS_TABLE_NAME",
+            "canonical_key": "table:unknown:unknown:if",
+            "normalized_ids": [
+                "FAV-NRM-000016"
+            ],
+            "source_record_ids": [
+                "FAV-DB-MIG-000019"
+            ],
+            "resolution_status": "UNRESOLVED",
+            "severity_candidate": "LOW",
+            "requires_manual_review": true,
+            "notes": [
+                "ST04 migration 파서가 `IF NOT EXISTS` 의 SQL 키워드 'IF' 를 affected_table 로 추출했다(출처 backend/migrations/20260527_171_003_plan_period_pricing.sql). 실재 테이블이 아니므로 ST08 분류에서 제거해야 한다. 본 Step 은 상류 산출물 수정이 금지(§119)라 충돌로만 기록한다."
+            ]
+        }
+    ]
+}

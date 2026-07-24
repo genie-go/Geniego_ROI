@@ -1,0 +1,75 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CWIS Favorites Normalized Relationship",
+    "type": "object",
+    "required": [
+        "relationship_id",
+        "relationship_type",
+        "from_normalized_id",
+        "to_normalized_id",
+        "confidence"
+    ],
+    "properties": {
+        "relationship_id": {
+            "type": "string",
+            "pattern": "^FAV-REL-\\d{6}$"
+        },
+        "relationship_type": {
+            "type": "string",
+            "enum": [
+                "DEFINED_IN",
+                "CONTAINS",
+                "CALLS",
+                "USES",
+                "DEPENDS_ON",
+                "IMPLEMENTS",
+                "MAPS_TO",
+                "EXPOSES",
+                "HANDLES",
+                "VALIDATES_WITH",
+                "RETURNS",
+                "PROTECTED_BY",
+                "DOCUMENTS",
+                "POTENTIAL_DOCUMENTS",
+                "TESTS",
+                "MOCKS",
+                "CREATES",
+                "ALTERS",
+                "DROPS",
+                "RENAMES",
+                "REFERENCES",
+                "SCOPED_BY",
+                "CACHED_BY",
+                "PUBLISHES",
+                "LISTENS_TO",
+                "QUEUES",
+                "IMPORTS",
+                "DECLARED_BY",
+                "RESOLVED_BY",
+                "SEMANTICALLY_RELATED",
+                "POTENTIAL_DUPLICATE",
+                "POTENTIAL_MATCH",
+                "POTENTIAL_REPLACEMENT",
+                "ALIAS_CANDIDATE",
+                "UNKNOWN"
+            ]
+        },
+        "from_normalized_id": {
+            "type": "string",
+            "pattern": "^FAV-NRM-\\d{6}$"
+        },
+        "to_normalized_id": {
+            "type": "string",
+            "pattern": "^FAV-NRM-\\d{6}$"
+        },
+        "confidence": {
+            "type": "string",
+            "enum": [
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "UNKNOWN"
+            ]
+        }
+    }
+}
