@@ -1,0 +1,83 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST09",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T02:03:32+00:00",
+    "total_records": 1541,
+    "total_dependencies": 1728,
+    "dependency_statistics": {
+        "by_type": {
+            "AUTHORIZES": 12,
+            "DEPENDS_ON": 984,
+            "IMPORTS": 608,
+            "ROUTES_TO": 3,
+            "UNKNOWN": 100,
+            "WRITES": 21
+        },
+        "by_level": {
+            "BUILDTIME_DEPENDENCY": 1451,
+            "DIRECT_DEPENDENCY": 15,
+            "OPTIONAL_DEPENDENCY": 100,
+            "RUNTIME_DEPENDENCY": 15,
+            "TEST_DEPENDENCY": 147
+        },
+        "record_dependency_level": {
+            "BUILDTIME_DEPENDENCY": 816,
+            "DIRECT_DEPENDENCY": 35,
+            "RUNTIME_DEPENDENCY": 3,
+            "SHARED_DEPENDENCY": 3,
+            "TEST_DEPENDENCY": 147,
+            "UNKNOWN": 537
+        }
+    },
+    "reuse_statistics": {
+        "by_level": {
+            "GLOBAL": 7,
+            "LOCAL": 196,
+            "MODULE": 30,
+            "NONE": 1306,
+            "USER": 2
+        },
+        "by_relationship": {
+            "NO_REUSE": 1513,
+            "REUSE_CANDIDATE": 28
+        }
+    },
+    "impact_statistics": {
+        "HIGH": 17,
+        "LOW": 1310,
+        "MEDIUM": 51,
+        "NONE": 103,
+        "UNKNOWN": 15,
+        "VERY_HIGH": 45
+    },
+    "layer_statistics": {
+        "API": 4,
+        "Application": 73,
+        "Database": 193,
+        "Domain": 8,
+        "Frontend": 410,
+        "Infrastructure": 21,
+        "Package": 653,
+        "Shared": 10,
+        "Test": 158,
+        "Unknown": 11
+    },
+    "circular_dependency_count": 0,
+    "broken_dependency_count": 0,
+    "reuse_candidate_count": 28,
+    "global_reuse_count": 7,
+    "module_reuse_count": 30,
+    "manual_review_count": 82,
+    "absent_reuse_levels": [
+        "WORKSPACE",
+        "PROJECT"
+    ],
+    "absent_reuse_levels_reason": "ST07 NavigationContext::ABSENT_AXES 가 확인한 대로 이 저장소에는 Workspace·Project 엔티티와 멤버십 행이 존재하지 않는다. 두 등급이 0 인 것은 분석 누락이 아니라 축 자체의 부재다"
+}
