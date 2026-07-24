@@ -1475,6 +1475,17 @@ const CatalogTab = memo(function CatalogTab() {
         return () => { alive = false; };
     }, []);
 
+    // [현 차수 B1] 등록채널(catalog_listing) 맵 — 채널 컬럼이 '수집'뿐 아니라 우리가 writeback 등록한
+    //   채널까지 정확히 표시하도록. 수집 전이라도 등록됨을 반영(종전엔 '미연동' 오표시).
+    const [registeredMap, setRegisteredMap] = useState(null);
+    useEffect(() => {
+        let alive = true;
+        getJsonAuth('/api/catalog/registered')
+            .then(d => { if (alive) setRegisteredMap(d.registered || {}); })
+            .catch(() => { if (alive) setRegisteredMap({}); });
+        return () => { alive = false; };
+    }, []);
+
     const syncedImages = useMemo(() => {
         const m = {};
         (chRows || []).forEach(p => {
@@ -1606,6 +1617,18 @@ const CatalogTab = memo(function CatalogTab() {
             });
         });
 
+        // [현 차수 B1] 등록채널(catalog_listing) 병합 — 수집(channel_products)에 없어도 우리가 등록한 채널을
+        //   채널 컬럼에 정확히 표시. 존재하는 상품행에만 덧씌운다(등록만 된 재고외 상품은 신설 안 함).
+        if (registeredMap) {
+            Object.entries(registeredMap).forEach(([sku, chans]) => {
+                const row = bySku.get(String(sku));
+                if (row && Array.isArray(chans)) {
+                    if (!Array.isArray(row.channels)) row.channels = [];
+                    chans.forEach(c => { const cc = String(c || ''); if (cc && !row.channels.includes(cc)) row.channels.push(cc); });
+                }
+            });
+        }
+
         // ★서버 목록으로 '교체'하지 않고 '조정'한다. 이 effect 는 inventory/channelProductPrices 가 바뀔 때마다
         //   다시 도는데(엑셀 임포트 직후 syncCatalogItem 이 inventory 를 갱신한다), 통째로 교체하면
         //   ①임포트·수동추가한 행과 ②아직 채널에 반영 안 한 가격/재고 편집이 눈앞에서 사라진다.
@@ -1626,7 +1649,7 @@ const CatalogTab = memo(function CatalogTab() {
             prevBySku.forEach(r => { if (r._local) locals.push(r); });
             return [...locals, ...out];
         });
-    }, [poRows, chRows, inventory, channelProductPrices, syncedImages]);
+    }, [poRows, chRows, registeredMap, inventory, channelProductPrices, syncedImages]);
 
     const showToast = (msg, color = "#22c55e") => {
         setToast({ msg, color });

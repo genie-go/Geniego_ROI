@@ -991,6 +991,33 @@ class Catalog
     }
 
     /* GET /catalog/listings — 테넌트 등록 리스팅 조회 */
+    /** GET /catalog/registered — SKU 별 '등록된 채널' 맵(catalog_listing 기준·action<>unregister).
+     *  목록의 채널 컬럼이 수집(channel_products)뿐 아니라 우리가 writeback 등록한 채널까지 정확히 표시하도록 한다.
+     *  ★종전엔 channels 가 수집분만 반영해, 등록했으나 아직 미수집인 채널이 '미연동'으로 보이던 갭 해소. */
+    public static function registeredChannels(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        self::ensureTables();
+        $pdo = self::db();
+        $tenant = self::tenant($req);
+        [$scC, $pC] = TeamPermissions::scopeSqlNamed($req, 'channel', 'channel', 'abc'); // 채널 스코프 격리(listings 와 동일)
+        [$scP, $pP] = TeamPermissions::scopeSqlNamed($req, 'product', 'sku', 'abp');
+        $params = [':t' => $tenant] + $pC + $pP;
+        $map = [];
+        try {
+            $st = $pdo->prepare("SELECT DISTINCT sku, channel FROM catalog_listing
+                                 WHERE tenant_id=:t AND action <> 'unregister' AND channel <> '' AND sku <> ''{$scC}{$scP}");
+            $st->execute($params);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $sku = (string)$r['sku']; $ch = (string)$r['channel'];
+                if ($sku === '' || $ch === '') continue;
+                if (!isset($map[$sku])) $map[$sku] = [];
+                if (!in_array($ch, $map[$sku], true)) $map[$sku][] = $ch;
+            }
+        } catch (\Throwable $e) { $map = []; }
+        return self::jsonRes($res, ['ok' => true, 'registered' => $map]);
+    }
+
     public static function listings(Request $req, Response $res): Response
     {
         if ($err = UserAuth::requirePro($req, $res)) return $err;

@@ -100,6 +100,8 @@ return function (App $app): void {
         'POST /catalog/writeback/{channel}/{sku}' => 'Genie\\Handlers\\Catalog::writeback',
         'POST /catalog/bulk-price'                => 'Genie\\Handlers\\Catalog::bulkPrice',
         'GET /catalog/listings'                   => 'Genie\\Handlers\\Catalog::listings',
+        'GET /catalog/registered'                 => 'Genie\\Handlers\\Catalog::registeredChannels', // [현 차수] 목록 채널 컬럼 — 등록채널(catalog_listing) 맵
+
         'GET /catalog/price-history'              => 'Genie\\Handlers\\Catalog::priceHistory', // 193차 Sprint4 #6
         // [현 차수] Writeback Console 실배선 — 구 /v382/*(404)·/v401·/v398(api_key 401) 세션 기반 통합
         'POST /catalog/writeback/policy'                  => 'Genie\\Handlers\\Catalog::policyValidate',
@@ -3024,6 +3026,7 @@ return function (App $app): void {
     $register('POST',   '/catalog/writeback/{channel}/{sku}');
     $register('POST',   '/catalog/bulk-price');
     $register('GET',    '/catalog/listings');
+    $register('GET',    '/catalog/registered'); // [현 차수] 목록 채널 컬럼 — 등록채널(catalog_listing) 맵
     $register('GET',    '/catalog/price-history'); // 193차 Sprint4 #6
     // [현 차수] Writeback Console 실배선 ($custom 맵 + $register 동반 필수)
     $register('POST',   '/catalog/writeback/policy');
