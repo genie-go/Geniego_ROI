@@ -1,5 +1,65 @@
 # NEXT_SESSION 인계서
 
+## ★★[290차후속-2] **CWIS Part004-04 즐겨찾기 — Option A 배포 + SP02-TK002 계열 종결** (2026-07-24)
+
+**상태: 커밋 6건(이 세션) · origin push 완료 · 운영+데모 프론트 배포·라이브 실검증(playwright) 완료 · SP02-TK002 6계열 CLOSED**
+
+> ★**성격**: CWIS-P004-U04-WS01-SP02-TK002 (즐겨찾기 서버 지속화) 6계열 명세를 순차 수신 →
+> Part001~004·CCIS 와 동일 원칙(명세 맹종 금지·실측·부재/모순 증명·실 갭만 수정)으로 처리.
+> 결론 = **PHASE_1='UI 프리퍼런스'(사용자 4회 확정)가 서버 지속화 축 전체를 소멸** → 5계층 BLOCKED,
+> 실질 잔여(프론트 UX 3건)만 구현·배포. 사용자 "계열 종료" 확정으로 종결.
+
+### A. SP02-TK002 계열 판정 (6계층 전부)
+
+| Step | 대상 | 판정 | 근거 |
+|---|---|---|---|
+| ST01 | Domain | **NOT_IMPLEMENTED** | DDD 스트라텀 0·§허용경로(app/·src/·Domain/) 부재·사용자확정 |
+| ST02 | Application | **BLOCKED** | CQRS/CommandBus 0·Controller 계층 없음(Slim Handler 절차형) |
+| ST03 | Infrastructure | **BLOCKED** | ORM 미사용(illuminate 선언·fan_in 0)·deleted_at·version 관용 0 |
+| ST04 | DB Schema | **BLOCKED(불필요)** | 마이그레이션 dir 세션172 정지(정본=ensureTables)·죽은 스키마 |
+| ST05 | API/HTTP | **BLOCKED(불필요)** | ★라우트 등록=도달가능 죽은 공격면(테이블 없음). §허용 routes/·Http/ 부재 |
+| ST06 | Test | **미처리** | 종결 계열이라 산출물 미생성. 테스트 대상 코드 0·PHPUnit 부재 |
+
+- 종결 기록 = `docs/cwis/part004-04/SP02-TK002-series-closure.md`. **ST06+ 재투입 금지**(같은 BLOCKED 반복).
+- ★**Option B(MEMBER_DATA) 재개 자산 보존**: `favorites-persistence-schema-requirements.json`(스키마·★MySQL 부분유니크 미지원→NULL허용 active_key+UNIQUE) + `favorites-api-contract.json`(9엔드포인트·저장소 관용). **구현형태=ensureFavoriteTable+Handlers/Favorites.php+routes.php(/api)+PM\Shared::gate**(Controller/Migration 아님).
+
+### B. 실제 구현·배포 (UI 프리퍼런스 PHASE_3 · 커밋 1234a6f0957)
+
+- **CAP-04 aria-pressed**: 이미 해소돼 있었음(67dee1fe46a·ST10 실측이 그 이전). 라이브 별표 77개 확인.
+- **BACKLOG-1 (6개↑ 열람)**: `Sidebar.jsx` `items.slice(0,5)` 제거 → 스크롤 컨테이너(maxHeight 240). 더보기/관리화면 신설 없이 최소 해법.
+- **BACKLOG-2 (모바일 터치)**: 별표·해제(✕) 버튼 44×44(WCAG 2.5.5). 글리프 불변·행 44px 유지(styles.css:797)로 아코디언 무클리핑.
+- ★**부수 선재결함**: 즐겨찾기 패널이 데스크톱에서 2px(테두리만)로 소멸. `.sidebar` flex column + 패널 `overflow:hidden` → auto min-size 0 → flex-shrink 가 눌러버림. **내 변경 이전에도 동일함을 실측 대조 확인**. `flexShrink:0` 1속성 수정. 트랩 메모리=`reference_sidebar_flex_panel_collapse_trap`.
+- **BACKLOG-3 (드래그 순서)**: 요구 미확인·의도적 미구현 유지.
+- 회귀 가드 `npm run fav:test` 15→18항(판정 반전: slice 존재요구→잘라내지않음요구 + 44×44 + flexShrink). `nav:test` 36항.
+
+### C. ★배포 현황 (운영+데모 프론트·본 세션 실측)
+
+- **분리 빌드 dist swap**(데모혼입 트랩 방지): 운영=`npm run build`(VITE_DEMO_MODE 0), 데모=`--mode demo`(플래그 1). 각 tgz 업로드 → staging 추출 → `rsync -a --delete`(고아 청크 제거) → chown www:www.
+- **라이브 검증**: www.genieroi.com 서빙 `index-BrpatU1_.js` 에 flexShrink+44×44 존재·데모오염 0·g_sidebar_favs 정상. HTTP 200 양쪽.
+- Playwright 실측: 모바일 390(별표 44×44·행 44·8개 스크롤 도달)·데스크톱 1440(8개 즉시표시·패널 273px 복원). **백엔드/nginx 변경 없음**(프론트 전용)→fpm reload 불필요.
+- 서버 백업: `dist.bak.fav`(운영·데모 각각) 보관.
+- ★**로컬 dist 재빌드 복원**: swap 후 로컬 dist가 데모빌드 잔존 → 운영빌드로 재빌드(재배포 사고 방지).
+
+### D. 커밋 (6건·origin push 완료)
+
+```
+4a6f385eb42 docs(cwis): SP02-TK002 계열 종결 — CLOSED(Option A)
+93d65986d3f docs(cwis): ST05 API 계층 = BLOCKED(불필요)
+db0968cc457 docs(cwis): ST04 DB 스키마 = BLOCKED(불필요)
+1234a6f0957 feat(favorites): 6개↑ 열람·모바일 터치타깃·패널 소멸 수정 (Option A)  ← 유일 코드변경·배포됨
+d7c1aafeaa1 docs(cwis): ST01 Domain Layer 미구현 결정 (이전 세션)
+67dee1fe46a feat(favorites): 즐겨찾기 추가 진입점 신설 (이전 세션)
+```
+- 전 커밋 pre-commit 훅 통과(G2 sacred SHA·G10 react-hooks·B4 시크릿). ST02·ST03 판정 산출물은 1234a6f0957 에 포함.
+
+### E. ★다음 세션 참고
+
+- **CWIS 즐겨찾기 = 종결.** 신규 Part 스펙은 사용자 제공 대기(코드에서 도출 불가·`docs/cwis/`에 part004-04 만 존재).
+- ★**미배포 잔여(이전 세션 이월·본 세션 무관)**: 290차후속 §B의 **Part024 테넌트격리 2건(프론트)** 이 여전히 미배포일 수 있음 — 본 세션 즐겨찾기 dist swap 은 현재 소스 기준 fresh 빌드라, Part024 수정이 소스에 커밋돼 있었다면 함께 반영됐을 가능성 있음. **다음 프론트 배포 전 실측 확인 필요**(오버클레임 금지).
+- 상시 규칙 불변: 배포 사전승인·데모/운영 분리빌드·rsync --delete·라이브 SHA 검증.
+
+---
+
 ## ★★[290차후속] **우선순위 7건 실구현·라이브배포 + CCIS Part005~026 적용** (2026-07-23)
 
 **상태: 커밋 28건 · push 완료 · 운영+데모 프론트/백엔드 배포·라이브 실검증(playwright) 완료 · 실 개선 6건 · 미배포/미검증 명시**
