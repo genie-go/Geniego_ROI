@@ -81,8 +81,8 @@ final class Collaboration extends Shared
         ['collaboration.navigation.recents',         '최근 항목',             'PARTIAL',   '004', ['collaboration.navigation.sidebar'],         '최근 방문 5건 실재(경로만 저장·언어 무관 재해석) · 서버 영속 부재'],
         ['collaboration.navigation.personal_hub',    '개인 작업함',           'ENABLED',   '004', ['collaboration.task'],                       '협업 홈 워크스페이스(GET /hub)에 내 작업·활동·멘션·프로젝트 통합 진입점 실배선. 승인 통합은 collaboration.approval 연동(진행 중)'],
         ['collaboration.navigation.command_palette', 'Command Palette',       'PARTIAL',   '004', ['collaboration.navigation.registry'],        'Ctrl+K 팔레트 실재(28개 하드코딩·플랜필터 적용) · manifest 미참조라 구조적 드리프트'],
-        ['collaboration.mention',      '멘션',             'PARTIAL', '003', ['collaboration.comment'],     'mentions_csv 컬럼 스텁 · 해석/알림 파이프라인 부재'],
-        ['collaboration.approval',     '승인 워크플로',    'PARTIAL', '009', ['collaboration.foundation'],  '3계열 산재(Alerting/Catalog/FeedTemplate) · 통합 필요'],
+        ['collaboration.mention',      '멘션',             'ENABLED', '003', ['collaboration.comment'],     '본문 @토큰+mentions_csv 해석 → 테넌트 사용자 매칭 → user_notification 알림(Comments::notifyMentions). 협업 홈 멘션 피드 표면화'],
+        ['collaboration.approval',     '승인 워크플로',    'ENABLED', '009', ['collaboration.foundation'],  '통합 승인함 — action_request(승인 SSOT) pending 을 협업 홈에 표면화 + 기존 /v423/approvals decide 재사용(집행 SSOT 불변·중복 생산 0)'],
         ['collaboration.presence',     '접속 상태',        'PLANNED', '004', ['collaboration.realtime'],    '양방향 실시간 전제(미착수)'],
         ['collaboration.messaging',    '메시징',           'PLANNED', '005', ['collaboration.channel'],     '팀 내부 메시징(미착수·인프라 부재)'],
         ['collaboration.channel',      '채널',             'PLANNED', '005', ['collaboration.workspace'],   '협업 채널(미착수)'],
@@ -784,10 +784,11 @@ final class Collaboration extends Shared
         $pdo = $g['pdo']; $tenant = $g['tenant'];
 
         $hub = [
-            'tasks'    => ['by_status' => [], 'open_total' => 0, 'overdue' => 0, 'due_soon' => 0, 'items' => []],
-            'activity' => [],
-            'mentions' => [],
-            'projects' => ['active' => 0, 'total' => 0],
+            'tasks'     => ['by_status' => [], 'open_total' => 0, 'overdue' => 0, 'due_soon' => 0, 'items' => []],
+            'activity'  => [],
+            'mentions'  => [],
+            'projects'  => ['active' => 0, 'total' => 0],
+            'approvals' => ['pending' => 0, 'items' => []],
         ];
 
         // 작업 현황(테넌트 스코프·비보관)
@@ -841,6 +842,23 @@ final class Collaboration extends Shared
                 if ((string)$r['status'] === 'active') $hub['projects']['active'] += (int)$r['c'];
             }
         } catch (\Throwable $e) {}
+
+        // 승인 대기(action_request pending) — 통합 승인함(collaboration.approval). action_request=승인 SSOT(289차).
+        //   테넌트 격리·같은 물리 DB(Db::pdoFor). 테이블 부재 시 빈 목록(정직).
+        try {
+            $st = $pdo->prepare("SELECT id, policy_id, status, action_json, created_at FROM action_request WHERE tenant_id=? AND status='pending' ORDER BY id DESC LIMIT 10");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $act = json_decode((string)($r['action_json'] ?? ''), true);
+                $hub['approvals']['items'][] = [
+                    'id'         => (int)$r['id'],
+                    'type'       => is_array($act) ? (string)($act['type'] ?? $act['action'] ?? 'action') : 'action',
+                    'summary'    => is_array($act) ? mb_substr(json_encode($act, JSON_UNESCAPED_UNICODE), 0, 120) : '',
+                    'created_at' => $r['created_at'],
+                ];
+            }
+            $hub['approvals']['pending'] = count($hub['approvals']['items']);
+        } catch (\Throwable $e) { /* action_request 부재 → 승인 없음(정직) */ }
 
         // 플랜 컨텍스트 — 각 플랜이 자기에 맞게: 활성 capability + 잠금(상위플랜 필요) 목록.
         $plan = \Genie\PlanLimits::tenantPlan($pdo, $tenant);

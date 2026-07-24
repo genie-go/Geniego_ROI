@@ -72,6 +72,18 @@ export default function CollaborationHome() {
   }, [authFetch, token]);
   useEffect(() => { if (token) loadHub(); }, [token, loadHub]);
 
+  // [Part A-3] 통합 승인함 — action_request(승인 SSOT)을 협업 홈에서 결재. 집행은 기존 /v423/approvals(중복 0).
+  const [apprBusy, setApprBusy] = useState('');
+  const decideApproval = useCallback(async (id, decision) => {
+    setApprBusy(id + decision);
+    try {
+      const r = await authFetch(`/api/v423/approvals/${encodeURIComponent(id)}/decide`, { method: 'POST', body: JSON.stringify({ decision }) });
+      if (r.ok) await loadHub();
+      else { const j = await r.json().catch(() => ({})); setMsg(j?.detail || j?.error || `승인 처리 실패(HTTP ${r.status})`); }
+    } catch (e) { setMsg(String(e?.message || e)); }
+    finally { setApprBusy(''); }
+  }, [authFetch, loadHub]);
+
   const toggle = useCallback(async (cap) => {
     const action = cap.enabled ? 'disable' : 'enable';
     setBusyKey(cap.key); setMsg('');
@@ -203,6 +215,7 @@ export default function CollaborationHome() {
               [t('collab.ws.open', '진행 중 작업'), hub.tasks?.open_total ?? 0, '#2563eb'],
               [t('collab.ws.overdue', '기한 초과'), hub.tasks?.overdue ?? 0, (hub.tasks?.overdue > 0 ? '#dc2626' : '#16a34a')],
               [t('collab.ws.dueSoon', '임박(7일)'), hub.tasks?.due_soon ?? 0, (hub.tasks?.due_soon > 0 ? '#d97706' : '#16a34a')],
+              [t('collab.ws.approvals', '승인 대기'), hub.approvals?.pending ?? 0, (hub.approvals?.pending > 0 ? '#7c3aed' : '#16a34a')],
               [t('collab.ws.projects', '활성 프로젝트'), hub.projects?.active ?? 0, '#334155'],
             ].map(([label, v, color]) => (
               <div key={label} style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border,#e2e8f0)', textAlign: 'center' }}>
@@ -255,6 +268,31 @@ export default function CollaborationHome() {
               )}
             </div>
           </div>
+
+          {/* [Part A-3] 통합 승인함 — action_request pending 을 이 자리에서 결재(집행 SSOT=기존 Alerting). */}
+          {(hub.approvals?.items || []).length > 0 && (
+            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, border: '1px solid rgba(124,58,237,0.25)' }}>
+              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 10, color: '#7c3aed' }}>✅ {t('collab.ws.approvalInbox', '통합 승인함')} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({hub.approvals.pending})</span></div>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {(hub.approvals.items || []).map(ap => (
+                  <div key={ap.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 12px', borderRadius: 8, background: 'rgba(124,58,237,0.05)', fontSize: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 700, color: '#7c3aed', flexShrink: 0 }}>#{ap.id}</span>
+                    <span style={{ fontWeight: 700, flexShrink: 0 }}>{ap.type}</span>
+                    <span style={{ flex: 1, minWidth: 120, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ap.summary}</span>
+                    <span style={{ fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{ap.created_at ? String(ap.created_at).slice(0, 10) : ''}</span>
+                    <button onClick={() => decideApproval(ap.id, 'approve')} disabled={apprBusy === ap.id + 'approve'}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, cursor: 'pointer', border: '1px solid rgba(22,163,74,0.4)', background: 'transparent', color: '#16a34a', flexShrink: 0 }}>
+                      {apprBusy === ap.id + 'approve' ? '…' : t('collab.ws.approve', '승인')}
+                    </button>
+                    <button onClick={() => decideApproval(ap.id, 'reject')} disabled={apprBusy === ap.id + 'reject'}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, cursor: 'pointer', border: '1px solid rgba(220,38,38,0.4)', background: 'transparent', color: '#dc2626', flexShrink: 0 }}>
+                      {apprBusy === ap.id + 'reject' ? '…' : t('collab.ws.reject', '반려')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {plan?.locked_capabilities?.length > 0 && (
             <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(100,116,139,0.06)', fontSize: 12, color: '#64748b' }}>
