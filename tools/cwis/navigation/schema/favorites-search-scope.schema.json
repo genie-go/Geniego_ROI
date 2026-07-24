@@ -1,0 +1,294 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://genieroi.local/cwis/schema/favorites-search-scope.schema.json",
+  "title": "CWIS Favorites Search Scope",
+  "description": "CWIS-P004-U04-WS01-SP01-TK001-ST01 이 생성하는 검색 범위 설정의 계약. 상대 경로만 허용하고 Directory Traversal 을 차단한다.",
+  "type": "object",
+
+  "required": [
+    "specification_id",
+    "version",
+    "include_directories",
+    "exclude_directories",
+    "file_extensions",
+    "primary_keywords",
+    "classifications",
+    "layers",
+    "sensitive_patterns"
+  ],
+
+  "additionalProperties": true,
+
+  "definitions": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "저장소 루트 기준 상대 경로. 절대 경로·상위 이동·홈 확장 금지.",
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!~)(?!.*\\.\\.)[A-Za-z0-9._][A-Za-z0-9._/-]*$"
+    },
+    "globPattern": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "제외용 glob. 절대 경로·상위 이동 금지.",
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!~)(?!.*\\.\\.).+$"
+    },
+    "keyword": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "uniqueStringArray": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/keyword" },
+      "uniqueItems": true
+    }
+  },
+
+  "properties": {
+    "specification_id": {
+      "type": "string",
+      "const": "CWIS-P004-U04-WS01-SP01-TK001-ST01"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "title": { "type": "string" },
+    "generated_at": {
+      "type": ["string", "null"],
+      "description": "ISO-8601 또는 null(수동 작성)"
+    },
+    "generated_by": { "type": "string" },
+
+    "stack": {
+      "type": "object",
+      "description": "실측된 기술 스택. 명세의 전제가 아니라 저장소 실체를 기록한다.",
+      "additionalProperties": { "type": "string" }
+    },
+
+    "detection_traps": {
+      "type": "array",
+      "description": "탐지 오도 요인. 후속 Step 이 잘못된 스택을 쫓지 않도록 근거와 함께 기록한다.",
+      "items": {
+        "type": "object",
+        "required": ["trap", "reality", "action"],
+        "properties": {
+          "trap": { "type": "string" },
+          "claims": { "type": "string" },
+          "reality": { "type": "string" },
+          "evidence": { "type": "string" },
+          "action": { "type": "string" }
+        }
+      }
+    },
+
+    "prerequisite_reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "status"],
+        "properties": {
+          "path": { "$ref": "#/definitions/relativePath" },
+          "status": {
+            "type": "string",
+            "enum": ["FOUND", "NOT_FOUND", "INCOMPLETE", "UNREADABLE"]
+          },
+          "lines": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+
+    "include_directories": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/relativePath" }
+    },
+    "include_files": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/relativePath" }
+    },
+    "noisy_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "reason", "handling"],
+        "properties": {
+          "path": { "$ref": "#/definitions/relativePath" },
+          "reason": { "type": "string" },
+          "handling": { "type": "string" }
+        }
+      }
+    },
+    "exclude_directories": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/relativePath" }
+    },
+    "exclude_globs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/globPattern" }
+    },
+
+    "file_extensions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+      }
+    },
+    "excluded_extensions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+    },
+
+    "primary_keywords": {
+      "allOf": [
+        { "$ref": "#/definitions/uniqueStringArray" },
+        { "minItems": 1 }
+      ]
+    },
+    "primary_keywords_ko": { "$ref": "#/definitions/uniqueStringArray" },
+    "secondary_keywords": { "$ref": "#/definitions/uniqueStringArray" },
+    "secondary_keywords_ko": { "$ref": "#/definitions/uniqueStringArray" },
+    "code_pattern_keywords": { "$ref": "#/definitions/uniqueStringArray" },
+
+    "known_repo_symbols": {
+      "type": "object",
+      "description": "선행 Part 에서 실측 확인된 기존 구현 식별자. 일반 키워드로 놓칠 수 있는 대상을 명시 고정한다.",
+      "additionalProperties": true
+    },
+
+    "database_keywords": {
+      "type": "object",
+      "required": ["tables", "columns"],
+      "properties": {
+        "tables": { "$ref": "#/definitions/uniqueStringArray" },
+        "columns": { "$ref": "#/definitions/uniqueStringArray" },
+        "ddl_patterns": { "$ref": "#/definitions/uniqueStringArray" }
+      }
+    },
+    "api_keywords": {
+      "type": "object",
+      "required": ["paths", "methods"],
+      "properties": {
+        "paths": { "$ref": "#/definitions/uniqueStringArray" },
+        "methods": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"] }
+        },
+        "route_registration_patterns": { "$ref": "#/definitions/uniqueStringArray" }
+      }
+    },
+    "frontend_keywords": {
+      "type": "object",
+      "required": ["components", "hooks_and_stores"],
+      "properties": {
+        "components": { "$ref": "#/definitions/uniqueStringArray" },
+        "hooks_and_stores": { "$ref": "#/definitions/uniqueStringArray" },
+        "selectors": { "$ref": "#/definitions/uniqueStringArray" }
+      }
+    },
+    "package_manifest_targets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/relativePath" }
+    },
+
+    "classifications": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "DIRECT_IMPLEMENTATION",
+          "PARTIAL_IMPLEMENTATION",
+          "RELATED_INFRASTRUCTURE",
+          "UI_ONLY",
+          "BACKEND_ONLY",
+          "DATABASE_ONLY",
+          "LEGACY_IMPLEMENTATION",
+          "DEPRECATED_IMPLEMENTATION",
+          "TEST_ONLY",
+          "DOCUMENTATION_ONLY",
+          "FALSE_POSITIVE",
+          "UNKNOWN"
+        ]
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "DOMAIN",
+          "APPLICATION",
+          "INFRASTRUCTURE",
+          "HTTP_API",
+          "FRONTEND",
+          "DATABASE",
+          "CONFIGURATION",
+          "SECURITY",
+          "EVENT",
+          "QUEUE",
+          "CACHE",
+          "TEST",
+          "DOCUMENTATION",
+          "UNKNOWN"
+        ]
+      }
+    },
+    "result_metadata_fields": {
+      "allOf": [
+        { "$ref": "#/definitions/uniqueStringArray" },
+        { "minItems": 1 }
+      ]
+    },
+    "false_positive_hints": { "$ref": "#/definitions/uniqueStringArray" },
+
+    "sensitive_patterns": {
+      "allOf": [
+        { "$ref": "#/definitions/uniqueStringArray" },
+        { "minItems": 1 }
+      ]
+    },
+    "redaction_rules": {
+      "type": "object",
+      "required": ["mode", "replacement", "forbidden_to_store"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["mask_value_keep_key", "drop_match", "hash_only"] },
+        "replacement": { "type": "string", "minLength": 1 },
+        "max_matched_text_length": { "type": "integer", "minimum": 20, "maximum": 2000 },
+        "forbidden_to_store": { "$ref": "#/definitions/uniqueStringArray" },
+        "path_policy": { "type": "string" }
+      }
+    },
+
+    "search_priority": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["order", "scope", "reason"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1 },
+          "scope": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "next_step": { "type": "string" }
+  }
+}

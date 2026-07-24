@@ -1,0 +1,386 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST01",
+  "version": "1.0",
+  "title": "Favorites Existing System Analysis — Search Scope",
+  "generated_at": null,
+  "generated_by": "manual (ST01)",
+
+  "_note_scope": "★교차검증 결과 명세 §6 의 후보 경로(app/, routes/, resources/js, database/migrations, tests/) 는 본 저장소에 전부 부재하다. 실측으로 존재가 확인된 경로만 등재한다.",
+
+  "stack": {
+    "backend_framework": "Slim 4 (slim/slim ^4.12 + slim/psr7 + php-di) — Laravel/Symfony 아님(artisan·symfony.lock 부재)",
+    "backend_php": ">=8.1 (운영 8.1.34)",
+    "backend_orm": "raw PDO 싱글턴(backend/src/Db.php). illuminate/database ^10.0 은 composer 의존성으로 선언되어 있으나 코드 경로는 PDO 사용 — Eloquent 모델 검색은 헛수고일 가능성 높음",
+    "backend_autoload": "PSR-4 Genie\\ => backend/src/",
+    "frontend_framework": "React 18.3 + Vite 5.4 + react-router-dom 6 (Vue/Inertia/Blade/Twig/Alpine 부재)",
+    "frontend_language": "JavaScript(JSX) — TypeScript 미사용",
+    "frontend_state": "React Context API (Pinia/Vuex/Redux/Zustand/TanStack Query 전부 부재)",
+    "frontend_http": "fetch 래퍼 frontend/src/services/apiClient.js (Axios 부재)",
+    "database": "MySQL 8.0.37 주 + SQLite 폴백(backend/src/Db.php) — 라이브 실측 driver=mysql",
+    "cache": "없음(Redis/predis/ext-redis 부재) — 파일 스냅샷 + 프로세스 메모 + HTTP ETag",
+    "search_engine": "없음(Elasticsearch/OpenSearch/Meilisearch/Algolia/Vector DB 부재)",
+    "queue": "없음(cron 스크립트 backend/bin/*_cron.php)",
+    "test_runner": "없음(PHPUnit/Pest/Jest 부재) — tools/*_selftest.mjs · backend/bin/*_selftest.php 자체 검증",
+    "static_analysis": "PHPStan 2.x (backend/phpstan.neon · level 5 + baseline)",
+    "json_schema_validator": "없음 — 신규 설치 금지(명세 §26) → 자체 검증 스크립트로 대체"
+  },
+
+  "detection_traps": [
+    {
+      "trap": "docker-compose.yml (저장소 루트)",
+      "claims": "postgres:16-alpine + DATABASE_URL=postgresql+psycopg2://... (Python DSN)",
+      "reality": "실제 백엔드는 PHP/Slim + MySQL 8.0.37(SQLite 폴백). 라이브 서버 실측 driver=mysql",
+      "evidence": "초기 커밋 98abb366e60(2026-04-28) 이후 미갱신 · backend/composer.json 에 pgsql 드라이버 요구 없음 · Db.php 는 mysql/sqlite DSN 만 생성",
+      "action": "ST04(Database Search) 에서 PostgreSQL 마이그레이션·psycopg2 경로를 찾지 말 것. docker-compose.yml 히트는 FALSE_POSITIVE 로 분류한다."
+    },
+    {
+      "trap": "config/ 디렉터리",
+      "claims": "프레임워크 설정 디렉터리처럼 보임",
+      "reality": "config/quality/eslint-baseline.json 단 1개 — 프레임워크 config 아님",
+      "action": "Configuration Layer 검색 시 backend/.env·frontend/.env* 와 vite.config.js 를 실제 설정 소스로 취급"
+    },
+    {
+      "trap": "backend/migrations/",
+      "claims": "스키마 정본처럼 보임",
+      "reality": "세션 172 에서 동결됨. 이후 스키마는 각 핸들러의 ensureTables() 자가치유로 생성",
+      "action": "ST04 는 migrations/*.sql 뿐 아니라 backend/src/**/*.php 의 CREATE TABLE 문자열도 반드시 검색해야 한다"
+    },
+    {
+      "trap": "frontend/src/i18n/locales/*.js",
+      "claims": "한국어 검색어의 최대 히트 지점",
+      "reality": "ko.js 약 1MB · 15개 언어 · .clineignore 등재. '즐겨찾기' 등이 대량 매칭되나 대부분 UI 라벨 사전",
+      "action": "noisy_paths 로 분리. 히트는 기본 UI_ONLY/DOCUMENTATION_ONLY 후보로 두고 개별 승격 판단"
+    }
+  ],
+
+  "prerequisite_reports": [
+    { "path": "docs/cwis/part004-01-implementation-report.md", "status": "FOUND", "lines": 294 },
+    { "path": "docs/cwis/part004-02-implementation-report.md", "status": "FOUND", "lines": 333 },
+    { "path": "docs/cwis/part004-03-implementation-report.md", "status": "FOUND", "lines": 301 }
+  ],
+
+  "include_directories": [
+    "backend/src",
+    "backend/bin",
+    "backend/migrations",
+    "backend/data",
+    "frontend/src",
+    "frontend/public",
+    "tools",
+    "docs",
+    "config"
+  ],
+
+  "include_files": [
+    "backend/composer.json",
+    "backend/composer.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "package.json",
+    "package-lock.json",
+    "frontend/vite.config.js",
+    "vite.config.js"
+  ],
+
+  "noisy_paths": [
+    {
+      "path": "frontend/src/i18n/locales",
+      "reason": "15개 로케일(ko.js 약 1MB) — 한국어 키워드가 대량 매칭",
+      "handling": "검색은 하되 --max-count 로 제한하고 기본 분류를 UI_ONLY 로 둔다"
+    },
+    {
+      "path": "docs",
+      "reason": "CWIS 명세·보고서 자체가 키워드를 다수 포함",
+      "handling": "기본 분류 DOCUMENTATION_ONLY. 구현 근거로 사용 금지"
+    }
+  ],
+
+  "exclude_directories": [
+    ".git",
+    ".github",
+    ".idea",
+    ".vscode",
+    ".playwright-mcp",
+    "node_modules",
+    "backend/vendor",
+    "frontend/node_modules",
+    "frontend/dist",
+    "frontend/src/i18n/locales_backup",
+    "clean_src",
+    "backup",
+    "legacy_v338_pkg",
+    "dist",
+    "build",
+    "coverage",
+    ".cache",
+    "tmp",
+    "temp",
+    "logs",
+    "storage/logs",
+    "storage/framework",
+    "public/build"
+  ],
+
+  "exclude_globs": [
+    "**/*.min.js",
+    "**/*.min.css",
+    "**/*.map",
+    "**/*.lock.json",
+    "_be_*/**",
+    "_dist_*/**",
+    "_build_*.log",
+    "Screen capture/**",
+    "**/*.bak",
+    "**/*.bak.*",
+    "**/dist.bak*/**"
+  ],
+
+  "_note_exclusions": "저장소 루트에는 세션 산출물(_be_*, _dist_*, _build_*.log, *.tgz)이 다수 있으나 루트 자체를 include_directories 에 넣지 않아 자연 제외된다. include_files 로 필요한 매니페스트만 개별 지정한다.",
+
+  "file_extensions": {
+    "backend": ["php", "sql", "json", "yaml", "yml", "neon"],
+    "frontend": ["js", "jsx", "mjs", "cjs", "json", "css", "html"],
+    "database": ["sql", "php"],
+    "configuration": ["json", "yaml", "yml", "env", "neon", "conf"],
+    "documentation": ["md", "txt"]
+  },
+
+  "excluded_extensions": [
+    "png", "jpg", "jpeg", "gif", "webp", "svg", "ico",
+    "pdf", "zip", "tar", "gz", "tgz", "7z",
+    "exe", "dll", "so", "phar",
+    "woff", "woff2", "ttf", "eot",
+    "mp3", "mp4", "webm",
+    "sqlite", "sqlite3", "db"
+  ],
+
+  "primary_keywords": [
+    "favorite", "favorites", "favourite", "favourites",
+    "bookmark", "bookmarks",
+    "starred", "unstar",
+    "pin", "pinned", "unpin",
+    "saved_item", "saved_items",
+    "user_favorite", "user_favorites"
+  ],
+
+  "primary_keywords_ko": [
+    "즐겨찾기", "즐겨 찾기", "북마크", "저장한 항목", "저장된 항목", "별표", "고정", "핀"
+  ],
+
+  "secondary_keywords": [
+    "recent", "recents", "history", "view_history", "last_viewed",
+    "quick_link", "quickaccess", "shortcut",
+    "personalization", "preference", "preferences",
+    "user_setting", "user_settings",
+    "navigation_preference", "sidebar_preference", "menu_preference"
+  ],
+
+  "secondary_keywords_ko": [
+    "최근 항목", "최근 본", "최근 방문", "사용자 설정", "개인 설정",
+    "사이드바 설정", "메뉴 설정", "빠른 링크", "바로가기"
+  ],
+
+  "known_repo_symbols": {
+    "_note": "★Part004-01~03 에서 실측 확인된 기존 구현의 실제 식별자. 일반 키워드만으로는 놓칠 수 있어 명시 등재한다(ST02/ST03 이 반드시 히트해야 하는 대상).",
+    "storage_keys": [
+      "g_sidebar_favs",
+      "g_sidebar_recents",
+      "g_user_menu_visibility",
+      "g_admin_menu_tree_cache",
+      "g_sidebar_ui_state"
+    ],
+    "frontend_symbols": [
+      "useFavorites",
+      "useRecentVisits",
+      "QuickAccessPanel",
+      "toggleFav",
+      "recentPaths",
+      "MenuVisibilityContext",
+      "useMenuVisibility",
+      "setUserVisibility",
+      "resetUserPrefs",
+      "UserMenuPreferences",
+      "tScopedKey",
+      "tGetJSON",
+      "tSetJSON",
+      "currentTenant"
+    ],
+    "backend_symbols": [
+      "collaboration_user_contexts",
+      "navigation_overrides",
+      "is_default",
+      "tenant_kv",
+      "WorkspaceState",
+      "plan_menu_access",
+      "menu_tree"
+    ],
+    "registry_anchors": [
+      "menu_key",
+      "alias_key",
+      "target_menu_key",
+      "legacy_permission_key",
+      "navigation_registry.json"
+    ]
+  },
+
+  "code_pattern_keywords": [
+    "FavoriteService", "FavouriteService", "BookmarkService", "PinnedItemService", "RecentItemService",
+    "FavoriteRepository", "BookmarkRepository",
+    "FavoriteController", "BookmarkController",
+    "FavoritePolicy", "BookmarkPolicy",
+    "FavoriteResource", "BookmarkResource",
+    "FavoriteDTO", "BookmarkDTO",
+    "addFavorite", "removeFavorite", "toggleFavorite", "isFavorite",
+    "markAsFavorite", "unmarkAsFavorite",
+    "addBookmark", "removeBookmark", "toggleBookmark",
+    "pinItem", "unpinItem",
+    "is_favorite", "favorite_id", "favorite_type",
+    "favoritable", "bookmarkable", "is_pinned", "pinned_at", "starred_at"
+  ],
+
+  "database_keywords": {
+    "tables": [
+      "favorites", "favourites", "bookmarks",
+      "user_favorites", "user_bookmarks",
+      "favorite_items", "bookmark_items",
+      "pinned_items", "saved_items", "user_saved_items",
+      "navigation_favorites"
+    ],
+    "columns": [
+      "favorite_id", "favoritable_id", "favoritable_type",
+      "bookmarkable_id", "bookmarkable_type",
+      "resource_id", "resource_type",
+      "user_id", "principal_id", "tenant_id", "workspace_id",
+      "position", "sort_order", "pinned_at", "created_at", "deleted_at"
+    ],
+    "ddl_patterns": [
+      "CREATE TABLE IF NOT EXISTS",
+      "ALTER TABLE",
+      "CREATE UNIQUE INDEX",
+      "UNIQUE KEY"
+    ]
+  },
+
+  "api_keywords": {
+    "paths": [
+      "/favorites", "/favourites", "/bookmarks", "/saved", "/pins",
+      "/star", "/unstar", "/favorite", "/unfavorite", "/bookmark", "/unbookmark"
+    ],
+    "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    "route_registration_patterns": [
+      "$custom",
+      "$register",
+      "Genie\\\\Handlers\\\\",
+      "/v425/",
+      "/api/v425/"
+    ],
+    "_note": "본 저장소의 라우트 정본은 backend/src/routes.php 의 'METHOD /path' => 'Class::method' 문자열 맵이다. Laravel Route:: / Symfony Attribute 라우팅은 존재하지 않는다."
+  },
+
+  "frontend_keywords": {
+    "components": [
+      "FavoriteButton", "BookmarkButton", "StarButton", "PinButton",
+      "SavedItems", "FavoritesList", "BookmarksList", "PinnedItems",
+      "FavoriteIcon", "BookmarkIcon", "StarIcon"
+    ],
+    "hooks_and_stores": [
+      "useFavorites", "useBookmarks", "usePinnedItems",
+      "favoriteStore", "bookmarkStore", "savedItemStore",
+      "toggleFavorite", "toggleBookmark"
+    ],
+    "selectors": [
+      "favorite-button", "bookmark-button", "star-button", "pin-button",
+      "data-testid=\"favorite", "data-testid=\"bookmark"
+    ]
+  },
+
+  "package_manifest_targets": [
+    "backend/composer.json",
+    "backend/composer.lock",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "package.json",
+    "package-lock.json"
+  ],
+
+  "classifications": [
+    "DIRECT_IMPLEMENTATION",
+    "PARTIAL_IMPLEMENTATION",
+    "RELATED_INFRASTRUCTURE",
+    "UI_ONLY",
+    "BACKEND_ONLY",
+    "DATABASE_ONLY",
+    "LEGACY_IMPLEMENTATION",
+    "DEPRECATED_IMPLEMENTATION",
+    "TEST_ONLY",
+    "DOCUMENTATION_ONLY",
+    "FALSE_POSITIVE",
+    "UNKNOWN"
+  ],
+
+  "layers": [
+    "DOMAIN",
+    "APPLICATION",
+    "INFRASTRUCTURE",
+    "HTTP_API",
+    "FRONTEND",
+    "DATABASE",
+    "CONFIGURATION",
+    "SECURITY",
+    "EVENT",
+    "QUEUE",
+    "CACHE",
+    "TEST",
+    "DOCUMENTATION",
+    "UNKNOWN"
+  ],
+
+  "result_metadata_fields": [
+    "result_id", "keyword", "matched_text", "file_path", "line_number",
+    "language", "layer", "classification", "symbol_name", "related_resource",
+    "tenant_aware", "user_scoped", "workspace_scoped",
+    "permission_detected", "test_detected", "notes"
+  ],
+
+  "false_positive_hints": [
+    "별점/평점(rating, review star) 문맥의 star",
+    "CSS/아이콘 글리프의 star·pin(예: ★, 📌)",
+    "'pin' 이 PIN 번호·핀코드·pinned dependency(package-lock)를 뜻하는 경우",
+    "'history' 가 브라우저 history API·git history 를 뜻하는 경우",
+    "'preference' 가 마케팅 수신동의(PreferenceCenter)를 뜻하는 경우 — 즐겨찾기와 무관",
+    "'recent' 이 최근 주문·최근 캠페인 등 도메인 데이터 정렬을 뜻하는 경우",
+    "docker-compose.yml 의 PostgreSQL 관련 히트(스택 불일치 스텁)",
+    "docs/cwis/** 의 명세 문구 자체"
+  ],
+
+  "sensitive_patterns": [
+    "password", "passwd", "secret", "token", "api_key", "apikey",
+    "private_key", "authorization", "bearer", "cookie", "session",
+    "client_secret", "access_key", "GENIE_DB_PASS", "APP_KEY", "PG_ENC_KEY"
+  ],
+
+  "redaction_rules": {
+    "mode": "mask_value_keep_key",
+    "replacement": "[REDACTED]",
+    "max_matched_text_length": 200,
+    "forbidden_to_store": [
+      ".env 전체 내용",
+      "토큰/비밀번호/세션ID/쿠키 원문",
+      "Private Key",
+      "개인정보 전체 Payload",
+      "개발자 개인 디렉터리 절대경로"
+    ],
+    "path_policy": "보고서와 결과 JSON 에는 저장소 루트 기준 상대경로만 기록한다"
+  },
+
+  "search_priority": [
+    { "order": 1, "scope": "backend/src", "reason": "핸들러·라우트·스키마 자가치유가 모두 여기 — 실구현 존재 여부의 결정적 근거" },
+    { "order": 2, "scope": "frontend/src", "reason": "Part004-01 실측상 기존 즐겨찾기(useFavorites/QuickAccessPanel)가 프론트에만 존재" },
+    { "order": 3, "scope": "backend/migrations", "reason": "테이블 정본 후보(단 172 동결 — ensureTables 병행 검색 필수)" },
+    { "order": 4, "scope": "backend/composer.json + frontend/package.json", "reason": "외부 패키지 재사용 가능성" },
+    { "order": 5, "scope": "tools", "reason": "레지스트리·진단 도구가 menu_key 앵커를 보유" },
+    { "order": 6, "scope": "docs", "reason": "선행 판단 근거 확인용(구현 근거 아님)" }
+  ],
+
+  "next_step": "CWIS-P004-U04-WS01-SP01-TK001-ST02 (Backend Favorites Keyword Search)"
+}
