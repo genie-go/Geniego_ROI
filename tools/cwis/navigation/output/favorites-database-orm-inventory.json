@@ -1,0 +1,8 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST04",
+    "generated_at": "2026-07-24T00:43:17+00:00",
+    "orm_detected": "NONE — extends Model 0건 · ORM\\Entity 0건 · use Illuminate 0건(실측). raw PDO 사용",
+    "mapping_count": 0,
+    "mappings": [],
+    "note": "Eloquent Model / Doctrine Entity 실사용 0건(실측). 데이터 접근은 backend/src/Db.php 의 raw PDO. ORM 매핑 인벤토리가 비어 있는 것 자체가 결론이다."
+}

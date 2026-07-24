@@ -1,0 +1,426 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST04",
+    "generated_at": "2026-07-24T00:43:17+00:00",
+    "migration_count": 21,
+    "note": "★backend/migrations 는 세션 172 에서 동결. 이후 스키마는 핸들러 ensureTables() DDL 이 정본이며 본 스캔에 포함됨.",
+    "migrations": [
+        {
+            "migration_id": "FAV-DB-MIG-000001",
+            "migration_name": "20260526_165_001_create_orderhub_claims",
+            "file_path": "backend/migrations/20260526_165_001_create_orderhub_claims.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_165",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "orderhub_claims"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000002",
+            "migration_name": "20260526_165_002_create_orderhub_settlements",
+            "file_path": "backend/migrations/20260526_165_002_create_orderhub_settlements.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_165",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "orderhub_settlements"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000003",
+            "migration_name": "20260526_168_001_create_pm_projects",
+            "file_path": "backend/migrations/20260526_168_001_create_pm_projects.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_projects"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000004",
+            "migration_name": "20260526_168_002_create_pm_tasks",
+            "file_path": "backend/migrations/20260526_168_002_create_pm_tasks.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_tasks"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000005",
+            "migration_name": "20260526_168_003_create_pm_milestones",
+            "file_path": "backend/migrations/20260526_168_003_create_pm_milestones.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_milestones"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000006",
+            "migration_name": "20260526_168_004_create_pm_task_dependencies",
+            "file_path": "backend/migrations/20260526_168_004_create_pm_task_dependencies.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_task_dependencies"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000007",
+            "migration_name": "20260526_168_005_create_pm_task_assignees",
+            "file_path": "backend/migrations/20260526_168_005_create_pm_task_assignees.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_task_assignees"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000008",
+            "migration_name": "20260526_168_006_create_pm_task_comments",
+            "file_path": "backend/migrations/20260526_168_006_create_pm_task_comments.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_task_comments"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000009",
+            "migration_name": "20260526_168_007_create_pm_attachments",
+            "file_path": "backend/migrations/20260526_168_007_create_pm_attachments.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_attachments"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000010",
+            "migration_name": "20260526_168_008_create_pm_audit_log",
+            "file_path": "backend/migrations/20260526_168_008_create_pm_audit_log.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "pm_audit_log"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000011",
+            "migration_name": "20260526_168_101_create_menu_tree",
+            "file_path": "backend/migrations/20260526_168_101_create_menu_tree.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE",
+                "ADD_CONSTRAINT"
+            ],
+            "affected_tables": [
+                "menu_tree"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000012",
+            "migration_name": "20260526_168_102_create_menu_audit_log",
+            "file_path": "backend/migrations/20260526_168_102_create_menu_audit_log.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "menu_audit_log"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000013",
+            "migration_name": "20260526_168_103_create_menu_defaults",
+            "file_path": "backend/migrations/20260526_168_103_create_menu_defaults.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260526_168",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "menu_defaults"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000014",
+            "migration_name": "20260527_169_001_seed_menu_tree",
+            "file_path": "backend/migrations/20260527_169_001_seed_menu_tree.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_169",
+            "operation_types": [
+                "UNKNOWN"
+            ],
+            "affected_tables": [],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000015",
+            "migration_name": "20260527_169_002_create_plan_config",
+            "file_path": "backend/migrations/20260527_169_002_create_plan_config.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_169",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "plan_config"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000016",
+            "migration_name": "20260527_169_003_create_plan_menu_access",
+            "file_path": "backend/migrations/20260527_169_003_create_plan_menu_access.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_169",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE"
+            ],
+            "affected_tables": [
+                "plan_menu_access"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000017",
+            "migration_name": "20260527_171_001_seed_plan_menu_access",
+            "file_path": "backend/migrations/20260527_171_001_seed_plan_menu_access.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_171",
+            "operation_types": [
+                "DATA_MIGRATION"
+            ],
+            "affected_tables": [],
+            "up_detected": true,
+            "down_detected": false,
+            "rollback_complete_candidate": false,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000018",
+            "migration_name": "20260527_171_002_plan_config_add_columns",
+            "file_path": "backend/migrations/20260527_171_002_plan_config_add_columns.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_171",
+            "operation_types": [
+                "ALTER_TABLE",
+                "DATA_MIGRATION"
+            ],
+            "affected_tables": [
+                "plan_config"
+            ],
+            "up_detected": true,
+            "down_detected": false,
+            "rollback_complete_candidate": false,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000019",
+            "migration_name": "20260527_171_003_plan_period_pricing",
+            "file_path": "backend/migrations/20260527_171_003_plan_period_pricing.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_171",
+            "operation_types": [
+                "CREATE_TABLE",
+                "ALTER_TABLE",
+                "DATA_MIGRATION"
+            ],
+            "affected_tables": [
+                "plan_period_pricing",
+                "IF"
+            ],
+            "up_detected": true,
+            "down_detected": false,
+            "rollback_complete_candidate": false,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000020",
+            "migration_name": "20260527_172_001_menu_value_score",
+            "file_path": "backend/migrations/20260527_172_001_menu_value_score.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_172",
+            "operation_types": [
+                "CREATE_TABLE",
+                "DROP_TABLE",
+                "DATA_MIGRATION"
+            ],
+            "affected_tables": [
+                "menu_value_score"
+            ],
+            "up_detected": true,
+            "down_detected": true,
+            "rollback_complete_candidate": true,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        },
+        {
+            "migration_id": "FAV-DB-MIG-000021",
+            "migration_name": "20260527_172_002_coupon_tables",
+            "file_path": "backend/migrations/20260527_172_002_coupon_tables.sql",
+            "migration_tool": "CUSTOM_SQL (backend/src/Migrate.php applyFiles)",
+            "version_or_timestamp": "20260527_172",
+            "operation_types": [
+                "CREATE_TABLE"
+            ],
+            "affected_tables": [
+                "free_coupons",
+                "coupon_redemptions"
+            ],
+            "up_detected": true,
+            "down_detected": false,
+            "rollback_complete_candidate": false,
+            "favorites_related": false,
+            "priority": "LOW",
+            "confidence": "HIGH"
+        }
+    ]
+}

@@ -1,0 +1,91 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST04",
+    "generated_at": "2026-07-24T00:43:17+00:00",
+    "column_count": 6,
+    "columns": [
+        {
+            "table_name": "saved_report",
+            "column_name": "id",
+            "data_type": "INT",
+            "nullable": true,
+            "default": null,
+            "primary_key": true,
+            "foreign_key": false,
+            "indexed": false,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        },
+        {
+            "table_name": "saved_report",
+            "column_name": "tenant_id",
+            "data_type": "VARCHAR(100)",
+            "nullable": false,
+            "default": "demo",
+            "primary_key": false,
+            "foreign_key": false,
+            "indexed": true,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        },
+        {
+            "table_name": "saved_report",
+            "column_name": "name",
+            "data_type": "VARCHAR(255)",
+            "nullable": false,
+            "default": null,
+            "primary_key": false,
+            "foreign_key": false,
+            "indexed": false,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        },
+        {
+            "table_name": "saved_report",
+            "column_name": "config",
+            "data_type": "TEXT",
+            "nullable": false,
+            "default": null,
+            "primary_key": false,
+            "foreign_key": false,
+            "indexed": false,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        },
+        {
+            "table_name": "saved_report",
+            "column_name": "viz",
+            "data_type": "VARCHAR(20)",
+            "nullable": true,
+            "default": "table",
+            "primary_key": false,
+            "foreign_key": false,
+            "indexed": false,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        },
+        {
+            "table_name": "saved_report",
+            "column_name": "created_at",
+            "data_type": "VARCHAR(32)",
+            "nullable": true,
+            "default": null,
+            "primary_key": false,
+            "foreign_key": false,
+            "indexed": false,
+            "unique": false,
+            "source_file": "backend/src/Handlers/Reports.php",
+            "line_number": 553,
+            "confidence": "HIGH"
+        }
+    ]
+}

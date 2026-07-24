@@ -1,0 +1,20 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST06(통합)",
+    "packages": [],
+    "test_files": [
+        {
+            "file_path": "tools/navigation_analyze_selftest.mjs",
+            "framework": "custom selftest (mjs)"
+        },
+        {
+            "file_path": "backend/bin/navigation_context_selftest.php",
+            "framework": "custom selftest (php)"
+        },
+        {
+            "file_path": "backend/bin/navigation_registry_selftest.php",
+            "framework": "custom selftest (php)"
+        }
+    ],
+    "test_runner": "NONE — PHPUnit/Pest/Jest/Vitest 미설치. 자체 검증 스크립트만 존재",
+    "favorites_related_packages": 0
+}

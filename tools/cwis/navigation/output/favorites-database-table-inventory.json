@@ -1,0 +1,51 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST04",
+    "generated_at": "2026-07-24T00:43:17+00:00",
+    "total_tables_in_repository": 321,
+    "table_count": 1,
+    "tables": [
+        {
+            "table_name": "saved_report",
+            "source_files": [
+                "backend/src/Handlers/Reports.php"
+            ],
+            "created_by_migration": false,
+            "created_by_ensure_tables": true,
+            "altered_by_migrations": [],
+            "columns": [
+                "id",
+                "tenant_id",
+                "name",
+                "config",
+                "viz",
+                "created_at"
+            ],
+            "primary_key": [
+                "id"
+            ],
+            "foreign_keys": [],
+            "indexes": [
+                {
+                    "name": "idx_sr2_tenant",
+                    "columns": [
+                        "tenant_id"
+                    ],
+                    "unique": false
+                }
+            ],
+            "unique_constraints": [],
+            "check_constraints": [],
+            "soft_delete_detected": false,
+            "tenant_aware": "YES",
+            "user_scoped": "NO",
+            "workspace_aware": "NO",
+            "project_aware": "NO",
+            "polymorphic_detected": "NO",
+            "ordering_detected": false,
+            "json_metadata_detected": false,
+            "favorites_direct": false,
+            "priority": "MEDIUM",
+            "confidence": "HIGH"
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05(통합)",
+    "routes": [],
+    "total_routes": 1503,
+    "favorites_routes": 0,
+    "note": "본 저장소 라우트 정본 = routes.php 의 'METHOD /path' => 'Class::method' 문자열 맵. Laravel Route:: / Symfony Attribute 라우팅 부재."
+}

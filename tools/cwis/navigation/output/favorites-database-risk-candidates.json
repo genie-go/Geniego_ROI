@@ -1,0 +1,35 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST04",
+    "generated_at": "2026-07-24T00:43:17+00:00",
+    "risk_count": 2,
+    "risks": [
+        {
+            "risk_id": "FAV-DB-RISK-000001",
+            "risk_type": "MISSING_USER_SCOPE",
+            "table_name": "saved_report",
+            "source_files": [
+                "backend/src/Handlers/Reports.php"
+            ],
+            "evidence": [
+                "user_id/principal_id 컬럼 부재 — 사용자별 저장 불가"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        },
+        {
+            "risk_id": "FAV-DB-RISK-000002",
+            "risk_type": "MISSING_UNIQUE_CONSTRAINT",
+            "table_name": "saved_report",
+            "source_files": [
+                "backend/src/Handlers/Reports.php"
+            ],
+            "evidence": [
+                "중복 방지 UNIQUE 제약 부재"
+            ],
+            "severity_candidate": "UNKNOWN",
+            "requires_manual_review": true,
+            "notes": []
+        }
+    ]
+}
