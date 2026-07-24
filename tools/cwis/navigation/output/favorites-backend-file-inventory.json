@@ -1,0 +1,357 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST02",
+    "generated_at": "2026-07-24T00:22:55+00:00",
+    "file_count": 26,
+    "files": [
+        {
+            "file_path": "backend/bin/navigation_registry_selftest.php",
+            "match_count": 2,
+            "keywords": [
+                "즐겨찾기"
+            ],
+            "symbols": [],
+            "probable_layer": "QUEUE",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/AdAdapters.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "dailyBudget"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/AdminGrowth.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "recordEvent"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Alerting.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "windowRange"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/AttributionEngine.php",
+            "match_count": 2,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "modelAgreement",
+                "solveConversion"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/AutoCampaign.php",
+            "match_count": 3,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "CAD_MAX_H",
+                "computeCadenceHours"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/AutoRecommend.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "benchmarkMap"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/CRM.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "countSentSignals"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/ChannelSync.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "elevenStWrite"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/ClaudeAI.php",
+            "match_count": 3,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "influencerEvalPrompt",
+                "influencerEval",
+                "analyze"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Connectors.php",
+            "match_count": 2,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "amazonReports",
+                "amazonOrders"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/DataPlatform.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "dataLineage"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/DemandForecast.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "loadSeries"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/InstagramDM.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "webhook"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/KakaoChannel.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "callKakaoAPI"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Mmm.php",
+            "match_count": 3,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "fitChannel",
+                "gammaRand"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Onsite.php",
+            "match_count": 5,
+            "keywords": [
+                "고정",
+                "bookmark"
+            ],
+            "symbols": [
+                "ensure",
+                "convert",
+                "recordExposure",
+                "editToken"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/OrderHub.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "observedExclusion"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/PM/Collaboration.php",
+            "match_count": 1,
+            "keywords": [
+                "favorite",
+                "즐겨찾기",
+                "고정"
+            ],
+            "symbols": [
+                "CATALOG"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/PM/Navigation.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "REGISTRY_FILE"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Payment.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "getPublicPricingPlans"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Pnl.php",
+            "match_count": 2,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "components",
+                "summary"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/PreferenceCenter.php",
+            "match_count": 1,
+            "keywords": [
+                "북마크"
+            ],
+            "symbols": [
+                "publicCenter"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Reports.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "query"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/Rollup.php",
+            "match_count": 1,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "dates"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        },
+        {
+            "file_path": "backend/src/Handlers/UserAuth.php",
+            "match_count": 3,
+            "keywords": [
+                "고정"
+            ],
+            "symbols": [
+                "createTeamMember",
+                "mfaMethodConfigured"
+            ],
+            "probable_layer": "HTTP_API",
+            "priority": "IGNORE_CANDIDATE",
+            "possibly_generated": false
+        }
+    ]
+}
