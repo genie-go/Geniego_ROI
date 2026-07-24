@@ -1,0 +1,13 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "available": false,
+    "reason": "CONSTRUCT_NOT_PRESENT_IN_STACK",
+    "construct": "API Resource / JsonResource",
+    "explanation": "JsonResource·ResourceCollection 을 사용하지 않는다. 응답은 핸들러가 연관배열을 만들어 Shared::json() 으로 직렬화한다(래퍼 봉투 없음).",
+    "evidence": [
+        "grep \"JsonResource\" backend/src → 0건",
+        "PM\\Shared::json(Response,$payload,$status) — json_encode 후 Content-Type 지정"
+    ],
+    "responses": []
+}

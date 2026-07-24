@@ -1,0 +1,129 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "available": true,
+    "note": "★즐겨찾기 API 는 0건이나, 신규 API 가 반드시 통과해야 하는 실제 체인을 기록한다(Part004-04 통합 계약).",
+    "middleware_count": 7,
+    "middleware": [
+        {
+            "middleware_name": "body_parsing",
+            "order": 1,
+            "parameters": [],
+            "applies_to": "ALL",
+            "source_file": "backend/public/index.php",
+            "line_number": 24,
+            "implementation": "Slim addBodyParsingMiddleware()",
+            "detected": true
+        },
+        {
+            "middleware_name": "cors",
+            "order": 2,
+            "parameters": [
+                "GENIE_ALLOWED_ORIGINS"
+            ],
+            "applies_to": "ALL",
+            "source_file": "backend/public/index.php",
+            "line_number": 38,
+            "implementation": "인라인 클로저(Laravel 미들웨어 클래스 아님)",
+            "detected": true
+        },
+        {
+            "middleware_name": "api_key_auth",
+            "order": 3,
+            "parameters": [
+                "Authorization: Bearer <key>",
+                "?api_key="
+            ],
+            "applies_to": "public bypass 목록 외 전 라우트",
+            "source_file": "backend/public/index.php",
+            "line_number": 74,
+            "implementation": "SHA-256 해시 조회 후 api_key 테이블 대조. 인라인 클로저",
+            "detected": true,
+            "note": "★PM 계열(/v425/pm/*)은 세션 토큰 bypass 경로를 사용한다 — 신규 즐겨찾기 API 가 세션 인증을 쓰려면 이 bypass 목록에 등재되어야 한다"
+        },
+        {
+            "middleware_name": "rbac",
+            "order": 4,
+            "parameters": [
+                "viewer<connector<analyst<admin",
+                "scopes: write:*, write:ingest, admin:keys"
+            ],
+            "applies_to": "인증된 전 라우트",
+            "source_file": "backend/public/index.php",
+            "line_number": 588,
+            "implementation": "역할 랭크 + 스코프 배열 검사. 쓰기(POST/PUT/PATCH/DELETE)는 analyst+ 또는 write:*",
+            "detected": true,
+            "note": "★즐겨찾기 쓰기 API 는 기본적으로 analyst+ 를 요구하게 된다 — 일반 사용자가 자기 즐겨찾기를 못 만드는 문제가 발생할 수 있어 설계 시 확인 필요"
+        },
+        {
+            "middleware_name": "rate_limit",
+            "order": 5,
+            "parameters": [
+                "per api_key",
+                "per-minute window",
+                "X-RateLimit-Limit",
+                "Retry-After"
+            ],
+            "applies_to": "api_key 인증 라우트",
+            "source_file": "backend/public/index.php",
+            "line_number": 554,
+            "implementation": "api_rate_limit 테이블 upsert(자가치유) · 429 + Retry-After · ★fail-open(가용성 우선)",
+            "detected": true
+        },
+        {
+            "middleware_name": "tenant_injection",
+            "order": 6,
+            "parameters": [
+                "X-Tenant-Id"
+            ],
+            "applies_to": "인증 후 전 라우트",
+            "source_file": "backend/public/index.php",
+            "line_number": 59,
+            "implementation": "auth_key/auth_role/auth_tenant 속성 주입 + X-Tenant-Id 헤더 보강",
+            "detected": true
+        },
+        {
+            "middleware_name": "error_middleware",
+            "order": 7,
+            "parameters": [
+                "displayErrorDetails=false"
+            ],
+            "applies_to": "ALL",
+            "source_file": "backend/public/index.php",
+            "line_number": 667,
+            "implementation": "Slim addErrorMiddleware(false, true, true)",
+            "detected": true
+        }
+    ],
+    "authorization_count": 2,
+    "authorization": [
+        {
+            "mechanism": "PM\\Shared::gate($req,$resp,$minRole)",
+            "type": "HANDLER_GATE",
+            "source_file": "backend/src/Handlers/PM/Shared.php",
+            "roles": [
+                "viewer",
+                "connector",
+                "analyst",
+                "admin"
+            ],
+            "tenant_isolation": true,
+            "external_principal_deny": true,
+            "note": "★CWIS Part003 이 guest/partner 를 PM 리소스 전면 Default Deny 로 봉쇄했다. 즐겨찾기 API 가 PM 계열이면 외부 협업자는 자동 차단된다"
+        },
+        {
+            "mechanism": "plan_menu_access + planMenuPolicy(MENU_MIN_PLAN)",
+            "type": "PLAN_GATE",
+            "source_file": "backend/src/PlanPolicy.php",
+            "roles": [
+                "free",
+                "starter",
+                "growth",
+                "pro",
+                "enterprise",
+                "admin"
+            ],
+            "note": "메뉴 단위 구독 등급 게이트. 즐겨찾기는 메뉴가 아니라 개인 설정이므로 적용 대상인지 판단 필요"
+        }
+    ]
+}

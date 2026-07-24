@@ -1,0 +1,9 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "handler_files_scanned": 119,
+    "handler_actions_scanned": 1423,
+    "controller_count": 0,
+    "note": "Controller 등가물 = backend/src/Handlers/**. public static function 이 Action 에 해당.",
+    "controllers": []
+}

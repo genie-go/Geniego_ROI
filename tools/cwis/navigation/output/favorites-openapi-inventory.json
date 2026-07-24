@@ -1,0 +1,13 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "available": false,
+    "reason": "CONSTRUCT_NOT_PRESENT_IN_STACK",
+    "construct": "OpenAPI / Swagger 명세",
+    "explanation": "활성 코드에 OpenAPI/Swagger 파일과 @OA 어노테이션이 없다. legacy_v338_pkg 아카이브에만 과거 openapi_v309.yaml 이 존재하나 scope 제외(읽기 전용 과거 미러)다.",
+    "evidence": [
+        "find openapi*.yaml / swagger*.yaml (scope 내) → 0건",
+        "grep \"@OA\\\\\" backend/src → 0건"
+    ],
+    "operations": []
+}

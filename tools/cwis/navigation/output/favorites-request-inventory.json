@@ -1,0 +1,13 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "available": false,
+    "reason": "CONSTRUCT_NOT_PRESENT_IN_STACK",
+    "construct": "FormRequest / Validation Rule 클래스",
+    "explanation": "Laravel FormRequest 를 사용하지 않는다. 검증은 각 핸들러 메서드 내부에서 수동으로 수행하고 422 를 반환한다.",
+    "evidence": [
+        "grep \"extends FormRequest\" backend/src → 0건",
+        "핸들러 예: PM\\Collaboration::createInvitation 이 인라인 검증 후 self::json(...,422)"
+    ],
+    "requests": []
+}

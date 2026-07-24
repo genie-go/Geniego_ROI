@@ -1,0 +1,77 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "total_routes_in_map": 1511,
+    "route_count": 3,
+    "direct_favorites_routes": 0,
+    "related_infrastructure_routes": 3,
+    "note": "라우트 정본은 routes.php 문자열 맵. 즐겨찾기 URI 패턴 매칭 결과.",
+    "routes": [
+        {
+            "route_id": "FAV-API-000001",
+            "method": "GET",
+            "uri": "/reports/saved",
+            "route_name": null,
+            "controller": "Genie\\Handlers\\Reports",
+            "action": "savedList",
+            "prefix": null,
+            "api_version": null,
+            "namespace": "Genie\\Handlers",
+            "middleware": [
+                "cors",
+                "api_key_auth_or_session_bypass",
+                "rbac",
+                "rate_limit"
+            ],
+            "permission": "UNKNOWN",
+            "relation": "RELATED_INFRASTRUCTURE",
+            "source_file": "backend/src/routes.php",
+            "line_number": 416,
+            "confidence": "HIGH"
+        },
+        {
+            "route_id": "FAV-API-000002",
+            "method": "POST",
+            "uri": "/reports/saved",
+            "route_name": null,
+            "controller": "Genie\\Handlers\\Reports",
+            "action": "savedCreate",
+            "prefix": null,
+            "api_version": null,
+            "namespace": "Genie\\Handlers",
+            "middleware": [
+                "cors",
+                "api_key_auth_or_session_bypass",
+                "rbac",
+                "rate_limit"
+            ],
+            "permission": "UNKNOWN",
+            "relation": "RELATED_INFRASTRUCTURE",
+            "source_file": "backend/src/routes.php",
+            "line_number": 417,
+            "confidence": "HIGH"
+        },
+        {
+            "route_id": "FAV-API-000003",
+            "method": "DELETE",
+            "uri": "/reports/saved/{id}",
+            "route_name": null,
+            "controller": "Genie\\Handlers\\Reports",
+            "action": "savedDelete",
+            "prefix": null,
+            "api_version": null,
+            "namespace": "Genie\\Handlers",
+            "middleware": [
+                "cors",
+                "api_key_auth_or_session_bypass",
+                "rbac",
+                "rate_limit"
+            ],
+            "permission": "UNKNOWN",
+            "relation": "RELATED_INFRASTRUCTURE",
+            "source_file": "backend/src/routes.php",
+            "line_number": 418,
+            "confidence": "HIGH"
+        }
+    ]
+}

@@ -1,0 +1,101 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST05",
+    "source_revision": "423e9e16db33",
+    "generated_at": "2026-07-24T00:52:18+00:00",
+    "spec_search_paths": {
+        "routes": "ABSENT",
+        "routes/api.php": "ABSENT",
+        "routes/web.php": "ABSENT",
+        "routes/admin.php": "ABSENT",
+        "app/Http": "ABSENT",
+        "app/Controllers": "ABSENT",
+        "app/Http/Controllers": "ABSENT",
+        "src/Controller": "ABSENT",
+        "modules": "ABSENT",
+        "packages": "ABSENT",
+        "plugins": "ABSENT",
+        "docs/api": "ABSENT",
+        "openapi": "ABSENT",
+        "swagger": "ABSENT"
+    },
+    "actual_api_surface": {
+        "backend/src/routes.php": "EXISTS",
+        "backend/src/Handlers": "EXISTS",
+        "backend/public/index.php": "EXISTS",
+        "config": "EXISTS"
+    },
+    "stack_facts": {
+        "router": "backend/src/routes.php — 'METHOD /path' => 'Class::method' 문자열 맵 + $register() 2블록",
+        "laravel_route_facade": "ABSENT (Route:: 0건)",
+        "form_request": "ABSENT (extends FormRequest 0건)",
+        "api_resource": "ABSENT (JsonResource 0건)",
+        "openapi": "ABSENT (활성 코드 0건 · legacy 아카이브에만 존재)",
+        "middleware_style": "index.php 인라인 클로저(미들웨어 클래스 아님)",
+        "rate_limit": "PRESENT — api_rate_limit 테이블 · per api_key/분 · fail-open",
+        "response_envelope": "NONE — 핸들러가 만든 배열을 그대로 json_encode"
+    },
+    "total_routes_in_map": 1511,
+    "register_calls": 1705,
+    "handler_files_scanned": 119,
+    "handler_actions_scanned": 1423,
+    "favorites_routes": 3,
+    "favorites_controllers": 0,
+    "matches_found": 6,
+    "sensitive_values_masked": 0,
+    "results": [
+        {
+            "result_id": "FAV-API-RAW-000001",
+            "keyword": "/reports/saved",
+            "matched_text": "'GET /reports/saved'             => 'Genie\\\\Handlers\\\\Reports::savedList',   // [239차+] BI 저장된 리포트",
+            "file_path": "backend/src/routes.php",
+            "line_number": 416,
+            "source_type": "ROUTE_MAP",
+            "classification": "POTENTIAL_RELATED_INFRASTRUCTURE"
+        },
+        {
+            "result_id": "FAV-API-RAW-000002",
+            "keyword": "/reports/saved",
+            "matched_text": "'POST /reports/saved'            => 'Genie\\\\Handlers\\\\Reports::savedCreate',",
+            "file_path": "backend/src/routes.php",
+            "line_number": 417,
+            "source_type": "ROUTE_MAP",
+            "classification": "POTENTIAL_RELATED_INFRASTRUCTURE"
+        },
+        {
+            "result_id": "FAV-API-RAW-000003",
+            "keyword": "/reports/saved/{id}",
+            "matched_text": "'DELETE /reports/saved/{id}'     => 'Genie\\\\Handlers\\\\Reports::savedDelete',",
+            "file_path": "backend/src/routes.php",
+            "line_number": 418,
+            "source_type": "ROUTE_MAP",
+            "classification": "POTENTIAL_RELATED_INFRASTRUCTURE"
+        },
+        {
+            "result_id": "FAV-API-RAW-000004",
+            "keyword": "/reports/saved",
+            "matched_text": "$register('GET',    '/reports/saved');     // [239차+] BI 저장된 리포트",
+            "file_path": "backend/src/routes.php",
+            "line_number": 3304,
+            "source_type": "ROUTE_REGISTER",
+            "classification": "POTENTIAL_API_IMPLEMENTATION"
+        },
+        {
+            "result_id": "FAV-API-RAW-000005",
+            "keyword": "/reports/saved",
+            "matched_text": "$register('POST',   '/reports/saved');",
+            "file_path": "backend/src/routes.php",
+            "line_number": 3305,
+            "source_type": "ROUTE_REGISTER",
+            "classification": "POTENTIAL_API_IMPLEMENTATION"
+        },
+        {
+            "result_id": "FAV-API-RAW-000006",
+            "keyword": "/reports/saved/{id}",
+            "matched_text": "$register('DELETE', '/reports/saved/{id}');",
+            "file_path": "backend/src/routes.php",
+            "line_number": 3306,
+            "source_type": "ROUTE_REGISTER",
+            "classification": "POTENTIAL_API_IMPLEMENTATION"
+        }
+    ]
+}
