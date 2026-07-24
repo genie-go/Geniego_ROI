@@ -1485,6 +1485,17 @@ class Catalog
         return ['ok' => false, 'error' => "HTTP {$c} " . mb_substr((string)$r, 0, 150)];
     }
 
+    /** [현 차수] Shopify 푸시 HTTP 에러 포맷 — 401/403 은 재발급 경로 안내(고객 자가진단·shopifyFetch 와 일관).
+     *   실측: acct_1 access_token 이 'https:...' URL(무효)이라 등록/동기화가 401. 원시 'Shopify HTTP 401'은
+     *   원인을 못 알려줬다 → shpat_ 토큰·Shop 도메인 확인을 정직하게 안내한다. */
+    private static function shopifyPushErr(int $code, string $resp): string
+    {
+        if ($code === 401 || $code === 403) {
+            return "Shopify 인증 실패(HTTP {$code}) — Admin API 액세스 토큰(shpat_…)이 무효/만료이거나 Shop 도메인과 불일치합니다. 커스텀 앱 재설치 후 발급된 토큰을 [연동 허브]에서 재등록하세요.";
+        }
+        return "Shopify HTTP {$code}: " . mb_substr($resp, 0, 200);
+    }
+
     private static function shopifyWrite(array $creds, array $p, string $operation, ?string $channelProductId): array
     {
         $api = self::shopifyApi($creds);
@@ -1528,7 +1539,7 @@ class Catalog
                  재고 → POST /inventory_levels/set.json (전용)                                        */
             $body = json_encode(['product' => array_merge(['id' => (int)$channelProductId], $product)], JSON_UNESCAPED_UNICODE);
             [$code, $resp] = self::httpReq('PUT', "{$base}/products/{$channelProductId}.json", $headers, $body);
-            if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+            if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => self::shopifyPushErr($code, (string)$resp)];
             $res = ['ok' => true, 'channel_product_id' => (string)$channelProductId];
             $warn = [];
             // 가격 — variant 전용 경로. 실패해도 상품 수정 자체는 성공이므로 경고로 노출(조용한 누락 금지).
@@ -1553,7 +1564,7 @@ class Catalog
             'inventory_management' => 'shopify',
         ]];
         [$code, $resp] = self::httpReq('POST', "{$base}/products.json", $headers, json_encode(['product' => $product], JSON_UNESCAPED_UNICODE));
-        if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => "Shopify HTTP {$code}", 'body' => mb_substr((string)$resp, 0, 300)];
+        if ($code < 200 || $code >= 300) return ['ok' => false, 'error' => self::shopifyPushErr($code, (string)$resp)];
         $d = json_decode((string)$resp, true);
         $pid = isset($d['product']['id']) ? (string)$d['product']['id'] : null;
         $res = ['ok' => true, 'channel_product_id' => $pid];
