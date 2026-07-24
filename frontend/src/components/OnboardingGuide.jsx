@@ -5,6 +5,7 @@ import { useGlobalData } from '../context/GlobalDataContext.jsx';
 import { useI18n } from '../i18n';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { profileComplete } from '../utils/profileComplete.js';
+import { useDraggable } from '../utils/useDraggable.js'; // [현 차수] 가이드 버튼 자유 배치(드래그)
 
 /* [현 차수] ★모바일 환경 감지 — 하단 내비(MobileBottomNav)와 동일 기준(≤768px·standalone). 모바일에선 온보딩을
    상단 배너가 아니라 하단 내비 옆 아이콘 + 바텀시트로 표시해 콘텐츠 영역을 전혀 잠식하지 않는다. */
@@ -112,6 +113,9 @@ export default function OnboardingGuide() {
   const loc = useLocation();
   const nav = useNavigate();
   const { t } = useI18n();
+  // [현 차수] 플로팅 가이드 버튼 자유 배치 — 데스크톱 재실행 필·모바일 FAB 각각 드래그 이동(디바이스 로컬).
+  const dragGuide = useDraggable('onboard_guide_pos');
+  const dragFab = useDraggable('onboard_fab_pos');
 
   // [238차] 단계 바로가기 — 도착지 동작영역 스포트라이트(GuideArrival/E-1) 큐를 설정한 뒤 이동.
   //   단일 단계 큐: 도착 시 cta 마커가 강조되고 "✓ 완료" 배너로 실행을 안내한다. (URL 파라미터 미사용=XSS 오탐 회피)
@@ -217,13 +221,15 @@ export default function OnboardingGuide() {
       <>
         <style>{`@keyframes onbFabPulse{0%,100%{box-shadow:0 6px 22px rgba(0,0,0,0.5),0 0 0 0 rgba(124,58,237,0.5)}50%{box-shadow:0 6px 22px rgba(0,0,0,0.5),0 0 0 8px rgba(124,58,237,0)}}`}</style>
         {/* 하단 내비 옆 나침반 아이콘 — body 포털 + 최상위 z(데모 하단 배너 쿠키/PWA/MFA 위에서도 항상 클릭 가능) */}
-        <button onClick={() => setMobileOpen(o => !o)} aria-label={t('onboard.navLabel', '가이드')} style={{
+        <button onClick={() => { if (dragFab.wasDragged()) return; setMobileOpen(o => !o); }} aria-label={t('onboard.navLabel', '가이드')}
+          onPointerDown={dragFab.onPointerDown} onDoubleClick={dragFab.reset} title={t('onboard.dragHint', '드래그로 이동 · 더블클릭으로 기본 위치')} style={{
           position: 'fixed', right: 12, bottom: 'calc(66px + env(safe-area-inset-bottom, 0px))', zIndex: 2147483000,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-          width: 56, minHeight: 52, padding: '6px', borderRadius: 16, cursor: 'pointer',
+          width: 56, minHeight: 52, padding: '6px', borderRadius: 16, cursor: 'grab', touchAction: 'none',
           background: 'rgba(6,12,22,0.97)', WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)',
           color: '#fff', border: '1px solid rgba(79,130,255,0.3)',
           animation: pending && !mobileOpen ? 'onbFabPulse 1.8s ease-in-out infinite' : 'none',
+          ...dragFab.style,
         }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={mobileOpen ? '#4f8ef7' : '#9fb4e0'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>
           <span style={{ fontSize: 10, fontWeight: 700, color: mobileOpen ? '#4f8ef7' : '#9fb4e0', lineHeight: 1 }}>{t('onboard.navLabel', '가이드')}</span>
@@ -251,14 +257,18 @@ export default function OnboardingGuide() {
   //   fixed 라 페이지 레이아웃을 밀지 않음(콘텐츠 top 상승). 모바일 바텀내비/세이프에어리어 위에 배치.
   if (hidden) {
     return (
-      <button onClick={unhide} className="onb-relaunch" title={t('onboard.showGuide', '시작 가이드 보기')} style={{
+      <button onClick={() => { if (dragGuide.wasDragged()) return; unhide(); }} className="onb-relaunch"
+        onPointerDown={dragGuide.onPointerDown} onDoubleClick={dragGuide.reset}
+        title={t('onboard.dragHint', '드래그로 이동 · 더블클릭으로 기본 위치')} style={{
         // [237차] '다시 펼치기' 미노출 버그: PWA 설치 배너(#pwa-install-banner, fixed z-index:10000, 하단)에
         //   가려 보이지 않았다. z-index 를 배너 위(10001)로 올리고, 배너(≈하단 142px 점유)를 비우도록 위로
         //   배치해 겹침을 제거 → 숨김 후 항상 보이고 클릭 가능.
+        // [현 차수] 선택 메뉴 가림 해소: 드래그로 자유 이동(위치 영속). 기본 위치는 유지(무회귀).
         position: 'fixed', right: 14, bottom: 'calc(150px + env(safe-area-inset-bottom, 0px))', zIndex: 10001,
-        display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 999, cursor: 'grab', touchAction: 'none',
         border: 'none', color: '#fff', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
         background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', boxShadow: '0 6px 20px rgba(79,70,229,0.45)',
+        ...dragGuide.style,
       }}>
         <span style={{ fontSize: 14 }}>🧭</span>
         <span>{t('onboard.showGuide', '시작 가이드')}</span>

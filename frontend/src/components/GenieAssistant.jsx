@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useI18n } from '../i18n/index.js';
 import { tScopedKey } from '../utils/tenantStorage.js';
 import { postJsonAuth } from '../services/apiClient.js'; // [현 차수] 세션 Bearer 인증 호출(v422/ai 인증 필요)
+import { useDraggable } from '../utils/useDraggable.js'; // [현 차수] 런처 자유 배치(드래그)
 
 const LOGO = '/logo_v2.png'; // [현 차수] 순수 지니 캐릭터(어두운 배경, 지도/차량 없음) — GenieMark 가 지니 얼굴만 원형 크롭
 const API = '/api/v422/ai/assistant';
@@ -70,6 +71,7 @@ function starters(lang) {
 export default function GenieAssistant() {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
+  const drag = useDraggable('genie_assistant_pos'); // [현 차수] 런처를 드래그로 자유 배치(디바이스 로컬)
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState('');
   const [msgs, setMsgs] = useState(() => { try { const r = localStorage.getItem(tScopedKey(STORE)); return r ? JSON.parse(r) : []; } catch { return []; } });
@@ -115,8 +117,9 @@ export default function GenieAssistant() {
     <>
       {/* 플로팅 런처 — 로고 */}
       {!open && (
-        <button onClick={() => setOpen(true)} aria-label={title}
-          style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 9000, height: 64, borderRadius: 32, border: '1px solid #eef2f7', cursor: 'pointer', background: '#fff', boxShadow: '0 10px 30px rgba(15,23,42,0.22)', display: 'flex', alignItems: 'center', gap: 11, transition: 'transform .2s', padding: '0 22px 0 6px' }}
+        <button onClick={() => { if (drag.wasDragged()) return; setOpen(true); }} aria-label={title}
+          onPointerDown={drag.onPointerDown} onDoubleClick={drag.reset} title={t('assistant.dragHint', '드래그로 이동 · 더블클릭으로 기본 위치')}
+          style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 9000, height: 64, borderRadius: 32, border: '1px solid #eef2f7', cursor: 'grab', touchAction: 'none', background: '#fff', boxShadow: '0 10px 30px rgba(15,23,42,0.22)', display: 'flex', alignItems: 'center', gap: 11, transition: 'transform .2s', padding: '0 22px 0 6px', ...drag.style }}
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
           <div style={{ position: 'relative' }}>
             <GenieMark size={52} />
