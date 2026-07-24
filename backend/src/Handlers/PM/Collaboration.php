@@ -190,16 +190,15 @@ final class Collaboration extends Shared
 
     private static function toDTO(array $cat, array $overlay): array
     {
+        // ★재구성 P0: 내부 구현 정보(개발자 설명·CWIS Part 번호·의존 capability 키·성숙도 가중치)를
+        //   API 응답에서 제거 — 이 필드들이 테이블/클래스/API 경로/내부 설계를 노출했다. UI 는 자체 비즈니스
+        //   라벨을 쓰고 key/enabled 만 소비한다. name/status/enabled/key(토글용)만 반환한다.
         return [
-            'key'                 => $cat['key'],
-            'name'                => $cat['name'],
-            'status'              => $cat['status'],
-            'enabled'             => self::effectiveEnabled($cat, $overlay),
-            'tenant_overridden'   => array_key_exists($cat['key'], $overlay),
-            'maturity_weight'     => self::WEIGHT[$cat['status']] ?? 0.0,
-            'implementation_part' => $cat['implementation_part'],
-            'dependencies'        => $cat['dependencies'],
-            'description'         => $cat['description'],
+            'key'               => $cat['key'],
+            'name'              => $cat['name'],
+            'status'            => $cat['status'],
+            'enabled'           => self::effectiveEnabled($cat, $overlay),
+            'tenant_overridden' => array_key_exists($cat['key'], $overlay),
         ];
     }
 
@@ -880,6 +879,85 @@ final class Collaboration extends Shared
             'ok'   => true,
             'hub'  => $hub,
             'plan' => ['name' => $plan, 'tier' => $tier, 'available_capabilities' => $available, 'locked_capabilities' => $locked],
+        ]);
+    }
+
+    /**
+     * GET /v425/pm/collaboration/teams — 팀/부서 간 협업 워크스페이스.
+     *   업종 무관(유통·제조·대행사 등 각 기업이 정의한 team 테이블 그대로) 팀 목록·멤버·부서 분포 +
+     *   팀 간 협업 프로젝트(태스크 담당자가 2개 이상 팀에 걸친 프로젝트)를 집계. 테넌트 격리·전 구독플랜(viewer+).
+     *   ★기존 인프라 재사용(team/app_user/acl_permission/pm_*) — 신규 도메인 0.
+     */
+    public static function teamWorkspace(Request $req, Response $resp): Response
+    {
+        $g = self::gate($req, $resp, 'viewer');
+        if (isset($g['error'])) return $g['error'];
+        $pdo = $g['pdo']; $tenant = $g['tenant'];
+
+        // 호출자 팀 해석(내 팀 하이라이트)
+        $callerTeamId = null;
+        try {
+            $au = \Genie\Handlers\UserAuth::authedUser($req);
+            $cid = is_array($au) ? (int)($au['id'] ?? 0) : 0;
+            if ($cid > 0) {
+                $s = $pdo->prepare("SELECT team_id FROM app_user WHERE id=? AND tenant_id=? LIMIT 1");
+                $s->execute([$cid, $tenant]);
+                $callerTeamId = ((int)($s->fetchColumn() ?: 0)) ?: null;
+            }
+        } catch (\Throwable $e) { /* 익명/해석실패 → 내 팀 없음 */ }
+
+        // 팀 목록 + 멤버수 + 매니저 + 대표 멤버
+        $teams = [];
+        try {
+            $st = $pdo->prepare("SELECT id, name, description, team_type, manager_user_id, status FROM team WHERE tenant_id=? AND status<>'deleted' ORDER BY (status='active') DESC, id ASC");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $t) {
+                $tid = (int)$t['id'];
+                $mc = 0; $mgr = ''; $members = [];
+                try { $q = $pdo->prepare("SELECT COUNT(*) FROM app_user WHERE tenant_id=? AND team_id=? AND is_active=1"); $q->execute([$tenant, $tid]); $mc = (int)$q->fetchColumn(); } catch (\Throwable $e) {}
+                if (!empty($t['manager_user_id'])) {
+                    try { $q = $pdo->prepare("SELECT name, email FROM app_user WHERE id=? AND tenant_id=?"); $q->execute([(int)$t['manager_user_id'], $tenant]); $m = $q->fetch(\PDO::FETCH_ASSOC); if ($m) $mgr = (string)($m['name'] ?: $m['email']); } catch (\Throwable $e) {}
+                }
+                try { $q = $pdo->prepare("SELECT name, email, team_role FROM app_user WHERE tenant_id=? AND team_id=? AND is_active=1 ORDER BY id ASC LIMIT 8"); $q->execute([$tenant, $tid]); $members = $q->fetchAll(\PDO::FETCH_ASSOC) ?: []; } catch (\Throwable $e) {}
+                $teams[] = [
+                    'id' => $tid, 'name' => (string)$t['name'], 'description' => (string)($t['description'] ?? ''),
+                    'team_type' => (string)($t['team_type'] ?? 'custom'), 'status' => (string)($t['status'] ?? 'active'),
+                    'member_count' => $mc, 'manager_name' => $mgr, 'members' => $members, 'is_mine' => ($tid === $callerTeamId),
+                ];
+            }
+        } catch (\Throwable $e) { /* team 테이블 부재 → 빈 목록(정직) */ }
+
+        // 부서(dept) 분포 — 조직 구조 개요
+        $departments = [];
+        try {
+            $st = $pdo->prepare("SELECT dept, COUNT(*) c FROM app_user WHERE tenant_id=? AND is_active=1 AND dept IS NOT NULL AND dept<>'' GROUP BY dept ORDER BY c DESC LIMIT 20");
+            $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) { $departments[] = ['name' => (string)$r['dept'], 'member_count' => (int)$r['c']]; }
+        } catch (\Throwable $e) {}
+
+        // 팀 간 협업 프로젝트 — 태스크 담당자가 2개 이상 팀에 걸친 프로젝트(크로스팀 협업 실측). best-effort.
+        $crossTeam = [];
+        try {
+            $sql = "SELECT p.id pid, p.name pname, COUNT(DISTINCT u.team_id) team_cnt, COUNT(DISTINCT a.user_id) member_cnt
+                    FROM pm_projects p
+                    JOIN pm_tasks t ON t.project_id = p.id AND t.tenant_id = p.tenant_id
+                    JOIN pm_task_assignees a ON a.task_id = t.id AND a.tenant_id = t.tenant_id
+                    JOIN app_user u ON CAST(u.id AS CHAR) = a.user_id AND u.tenant_id = p.tenant_id AND u.team_id IS NOT NULL
+                    WHERE p.tenant_id = ?
+                    GROUP BY p.id, p.name HAVING team_cnt >= 2 ORDER BY team_cnt DESC, member_cnt DESC LIMIT 8";
+            $st = $pdo->prepare($sql); $st->execute([$tenant]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) ?: [] as $r) {
+                $crossTeam[] = ['project_id' => (string)$r['pid'], 'name' => (string)$r['pname'], 'team_count' => (int)$r['team_cnt'], 'member_count' => (int)$r['member_cnt']];
+            }
+        } catch (\Throwable $e) { /* 조인/스키마 차이 → 크로스팀 미산출(빈 목록·정직) */ }
+
+        return self::json($resp, [
+            'ok' => true,
+            'teams' => $teams,
+            'departments' => $departments,
+            'cross_team_projects' => $crossTeam,
+            'my_team_id' => $callerTeamId,
+            'can_manage' => in_array((string)$g['role'], ['admin'], true),
         ]);
     }
 }
