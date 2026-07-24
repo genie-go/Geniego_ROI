@@ -1,0 +1,119 @@
+{
+    "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST08",
+    "schema_version": "1.0.0",
+    "source_revisions": [
+        "423e9e16db33",
+        "817c29681204",
+        "98ee8c4fe8a0",
+        "b4bb7503a47a",
+        "eef2c555883c"
+    ],
+    "generated_at": "2026-07-24T01:56:10+00:00",
+    "total_records": 1541,
+    "by_classification": {
+        "DIRECT_IMPLEMENTATION": 0,
+        "PARTIAL_IMPLEMENTATION": 27,
+        "SHARED_INFRASTRUCTURE": 14,
+        "REUSABLE_COMPONENT": 1,
+        "LEGACY_IMPLEMENTATION": 0,
+        "TEST_ONLY": 152,
+        "PACKAGE_ONLY": 1104,
+        "DOCUMENTATION_ONLY": 0,
+        "FALSE_POSITIVE": 187,
+        "CONFLICTING": 1,
+        "UNKNOWN": 55
+    },
+    "by_confidence": {
+        "HIGH": 925,
+        "MEDIUM": 561,
+        "UNKNOWN": 55
+    },
+    "by_evidence_axis": {
+        "COMPONENT": 2,
+        "CONTROLLER": 3,
+        "ENTITY": 21,
+        "MIGRATION": 21,
+        "POLICY": 10,
+        "ROUTE": 3,
+        "STORE": 2
+    },
+    "manual_review_required": 38,
+    "file_records_propagated": 503,
+    "migration_records_derived": 16,
+    "feature_clusters": {
+        "sidebar-favorites": {
+            "verdict": "PARTIAL_IMPLEMENTATION",
+            "scope": "PRIMARY",
+            "axes": [
+                "COMPONENT",
+                "STORE"
+            ],
+            "server_axes": [],
+            "client_axes": [
+                "COMPONENT",
+                "STORE"
+            ],
+            "reason": "증거축 2종(COMPONENT,STORE) — 서버 지속화 계층(Route/Controller/Migration/Table) 전무",
+            "members": 17,
+            "evidence_ids": {
+                "COMPONENT": [
+                    "FAV-NRM-000005"
+                ],
+                "STORE": [
+                    "FAV-NRM-001391"
+                ]
+            }
+        },
+        "casestudy-bookmark": {
+            "verdict": "PARTIAL_IMPLEMENTATION",
+            "scope": "SIBLING",
+            "axes": [
+                "COMPONENT"
+            ],
+            "server_axes": [],
+            "client_axes": [
+                "COMPONENT"
+            ],
+            "reason": "증거축 1종(COMPONENT) — 서버 지속화 계층(Route/Controller/Migration/Table) 전무",
+            "members": 11,
+            "evidence_ids": {
+                "COMPONENT": [
+                    "FAV-NRM-000006"
+                ]
+            }
+        },
+        "saved-report": {
+            "verdict": "FALSE_POSITIVE",
+            "scope": "UNRELATED_PRECEDENT",
+            "axes": [
+                "ENTITY",
+                "ROUTE"
+            ],
+            "server_axes": [
+                "ENTITY",
+                "ROUTE"
+            ],
+            "client_axes": [],
+            "reason": "즐겨찾기 기능이 아니다 — ST07 Alias 가 auto_replace=false 로 판정한 별개 의미. 단 증거축 2종(ENTITY,ROUTE)을 갖춘 **사용자 저장 리소스의 최근접 구현 선례**이므로 ST09 재사용 매핑에서 참조 가치가 있다",
+            "members": 21,
+            "evidence_ids": {
+                "ROUTE": [
+                    "FAV-NRM-000001",
+                    "FAV-NRM-000002",
+                    "FAV-NRM-000003"
+                ],
+                "ENTITY": [
+                    "FAV-NRM-000034"
+                ]
+            }
+        }
+    },
+    "inputs": {
+        "normalized_records": 1541,
+        "relationships": 1728,
+        "conflicts": 1,
+        "aliases": 5,
+        "exclusions": 0
+    },
+    "upstream_direct_candidates_reclassified": 22
+}
