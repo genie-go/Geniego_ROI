@@ -1,0 +1,79 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST07-06",
+  "title": "Favorites Reorder (device-local) Implementation",
+  "schema_version": "1.0.0",
+  "status": "READY",
+  "generated_at": "2026-07-24",
+  "source_revision": "c827b6f2afa",
+  "scope": "device-local (Option A · UI 프리퍼런스)",
+
+  "context": {
+    "backlog_resolved": "BACKLOG-3 (CAP-05 순서 변경) — 이전 '요구 미확인' 보류 상태를 사용자 확정('권장 순으로 진행')으로 해소",
+    "why_device_local": "서버 favorites API 부재(ST05 BLOCKED)라 서버 백엔드 reorder 불가. localStorage 배열 순서로 device-local 재정렬 구현(Option A 범위)",
+    "why_buttons_not_dnd": "DnD 라이브러리 부재(react-dnd/@dnd-kit/sortablejs 0) + §29 패키지 설치 금지 → 키보드 접근 가능한 ▲▼ 버튼(§13 대체·§14 키보드)이 유일 방식"
+  },
+
+  "implementation": {
+    "storage": "기존 'g_sidebar_favs' 경로 배열 그대로 사용 — 무후퇴(기존 사용자 데이터 승계)",
+    "state": "useFavorites 가 Set 하나 유지(삽입순서 보존 = 사용자 순서). [...favs] = 표시 순서",
+    "toggle_change": "추가를 배열 맨 앞 prepend — 이전 'add(끝)+표시 reverse' 와 시각 결과 동일(최신 상단·무후퇴), 순서가 명시적이 되어 재정렬 가능",
+    "move_api": "move(path, dir) — 인접 항목 스왑, 경계(첫/끝)에서 no-op, localStorage 즉시 persist",
+    "display_change": "표시부 .reverse() 제거 → WYSIWYG(저장 순서 = 표시 순서), reorder 와 정합",
+    "ui": "QuickAccessPanel 즐겨찾기 행마다 ▲▼ 세로 버튼(✕ 앞). 항목 2개 이상일 때만 노출. 첫 항목 ▲ / 끝 항목 ▼ disabled"
+  },
+
+  "files_modified": [
+    "frontend/src/layout/Sidebar.jsx (useFavorites move + prepend, panel 표시순서·▲▼ 버튼)",
+    "frontend/src/i18n/locales/*.js × 15 (sidebar.moveFavUp/moveFavDown)",
+    "tools/favorites_selftest.mjs (회귀 가드 +6항 = 26항)"
+  ],
+  "files_created": [
+    "tools/cwis/navigation/output/favorites-reorder-summary.json",
+    "docs/cwis/part004-04/part004-04-ws01-sp02-tk002-st07-06-reorder.md"
+  ],
+
+  "accessibility": {
+    "semantic_button": "<button type='button'> — 키보드 Tab+Enter 네이티브 동작(실측 focusable=true)",
+    "aria_label": "'위로 이동 — {메뉴명}' / '아래로 이동 — {메뉴명}' (대상 포함)",
+    "boundary_disable": "첫 항목 ▲·끝 항목 ▼ disabled (실측 확인) — disabled 버튼은 포커스 제외(정상)",
+    "touch_target": "모바일 ▲/▼ 각 44w×22h, 세로 합산 44×44 (WCAG 2.5.5). ✕ 44×44",
+    "color_only": "상태를 색으로만 표현하지 않음(글리프 ▲▼ + disabled opacity)"
+  },
+
+  "localization": {
+    "keys_added": ["sidebar.moveFavUp", "sidebar.moveFavDown"],
+    "locales": 15,
+    "method": "각 파일의 removeFav 앵커 뒤에 삽입·파일별 키 표기(따옴표 유무) 계승·UTF-8 no BOM. 표준 UI 마이크로카피(위/아래 이동) 실번역(기계번역 아님·짧은 표준 동작 라벨)",
+    "note": "코드는 t(key, fallback) 인라인 폴백도 병행 — 키 누락 시에도 렌더 안전"
+  },
+
+  "verification": {
+    "fav_test": "26/26 통과 (신규 reorder 6항 포함)",
+    "lint": "내 변경 파일 lint-clean. ★기존결함(무관): Sidebar.jsx:730 no-unused-vars '(section, i)' 은 HEAD 에 이미 존재(favorites 무관·main 메뉴 map)·범위 밖이라 미수정(플래그만)",
+    "build": "vite build 성공(50s)",
+    "browser_playwright": {
+      "desktop_1440": "8개 렌더·▲▼ 존재·경계 disable 정확·▼클릭 스왑([/dashboard,/crm...]→[/crm,/dashboard...])·localStorage persist·리로드 후 순서 유지·한국어 aria-label·활성버튼 focusable·semantic button",
+      "mobile_390": "드로어 내 ▲/▼ 44×22(합산 44×44)·✕ 44×44·순서 유지"
+    }
+  },
+
+  "no_regression": {
+    "backlog_1": "slice 제거+스크롤 유지(잘라내지 않음)",
+    "backlog_2": "별표·✕ 44×44 유지",
+    "panel_collapse": "flexShrink:0 유지",
+    "add_behavior": "prepend 로 최신 상단 유지(이전 reverse 동작과 시각 동일)",
+    "storage_key": "g_sidebar_favs 불변 — 기존 사용자 즐겨찾기 승계"
+  },
+
+  "limitations": [
+    "device-local 전용 — 기기 간 동기화 없음(서버 API 부재·Option A 범위)",
+    "DnD 드래그 불가(라이브러리 없음) — ▲▼ 버튼 방식",
+    "★기존결함 미수정: Sidebar.jsx:730 no-unused-vars (범위 밖·플래그만)"
+  ],
+
+  "deploy_status": "미배포 — 로컬 빌드·검증까지만. dist swap 은 사용자 승인 후. 미커밋(자동 커밋 금지 준수)",
+
+  "next_step_readiness": {
+    "note": "ST07-06(reorder)=Option A 범위 내 유일한 net-new 프론트 작업 완료. ST07-03/04/05/07 은 이미 구현(REUSE) 또는 서버 API 부재(BLOCKED)로 실질 신규 작업 없음. ST07-08(테스트/통합)은 fav:test 26항으로 상당 부분 충족"
+  }
+}

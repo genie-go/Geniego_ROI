@@ -6511,6 +6511,8 @@ export default {
     "footerLine2": "정산 OS · v423.0.0",
 
     "removeFav": "즐겨찾기 해제",
+    "moveFavUp": "위로 이동",
+    "moveFavDown": "아래로 이동",
 
     "favorites": "즐겨찾기",
 

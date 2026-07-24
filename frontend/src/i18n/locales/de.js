@@ -7228,6 +7228,8 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
       footerLine1: "Umsatz + Risiko + Governance",
       footerLine2: "Abrechnung OS · v423.0.0",
       removeFav: "Favorit entfernen",
+      moveFavUp: "Nach oben",
+      moveFavDown: "Nach unten",
       campaignsRunning: "{{n}} Kampagnen aktiv",
       alertsUnread: "{{n}} Alerts",
       upgrade: "Upgrade →",

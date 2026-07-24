@@ -55,21 +55,43 @@ function FavStar({ path, isFav, onToggle, addLabel, removeLabel, size = 12, touc
   );
 }
 
-/* 즐겨찾기 */
+/* 즐겨찾기
+ * ★[ST07-06] 사용자 지정 순서(device-local Reorder) 지원.
+ *   저장 형태는 이전과 동일한 경로 배열(localStorage 'g_sidebar_favs')이라 **기존 사용자 데이터 무후퇴**.
+ *   상태는 Set 하나를 유지하되, Set 은 삽입 순서를 보존하므로 [...favs] 가 곧 사용자 순서다.
+ *   - toggle 추가: 배열 맨 앞에 prepend(최신이 상단) → 이전의 "add(끝) + 표시 시 reverse" 와 시각 결과 동일(무후퇴)
+ *     하지만 순서가 명시적이 되어 재정렬이 가능해진다(표시부의 reverse 제거와 짝).
+ *   - move: 인접 항목과 위치 교환(경계에서 no-op). DnD 라이브러리 부재로 키보드 접근 가능한 ▲▼ 버튼이 유일 방식.
+ */
 function useFavorites() {
   const [favs, setFavs] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('g_sidebar_favs') || '[]')); }
     catch { return new Set(); }
   });
+  const persist = (arr) => {
+    try { localStorage.setItem('g_sidebar_favs', JSON.stringify(arr)); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
+  };
   const toggle = useCallback((path) => {
     setFavs(prev => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path); else next.add(path);
-      try { localStorage.setItem('g_sidebar_favs', JSON.stringify([...next])); } catch { /* 스토리지 접근 실패(프라이빗 모드/쿼터) 무시 */ }
-      return next;
+      const arr = [...prev];
+      const next = arr.includes(path) ? arr.filter(p => p !== path) : [path, ...arr]; // 추가는 맨 앞(최신 상단)
+      persist(next);
+      return new Set(next);
     });
   }, []);
-  return { favs, toggle };
+  const move = useCallback((path, dir) => {
+    setFavs(prev => {
+      const arr = [...prev];
+      const i = arr.indexOf(path);
+      if (i < 0) return prev;
+      const j = dir === 'up' ? i - 1 : i + 1;
+      if (j < 0 || j >= arr.length) return prev; // 경계 no-op
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      persist(arr);
+      return new Set(arr);
+    });
+  }, []);
+  return { favs, toggle, move };
 }
 
 /* 최근 방문 */
@@ -375,25 +397,21 @@ function NavSection({ section, t, isOpen, onToggle, hasMenuAccess, isDemo, onLoc
 }
 
 /* 즐겨찾기/최근방문 패널 (아코디언) */
-function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isExpanded, onToggle, isMobile }) {
+function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, moveFav, t, isExpanded, onToggle, isMobile }) {
   const [tab, setTab] = useState('recents');
   const hasFavs = favs && favs.size > 0;
   const hasRecents = recents && recents.length > 0;
   if (!hasFavs && !hasRecents) return null;
 
   const activeTab = tab === 'favs' && !hasFavs ? 'recents' : tab === 'recents' && !hasRecents ? 'favs' : tab;
-  // ★즐겨찾기는 Set 삽입 순서(=추가한 순서)로 나열되므로 최신 추가분이 앞에 오도록 뒤집는다.
-  //   (드래그로 순서를 직접 바꾸는 기능은 별건이며 본 차수 범위 밖 — 실사용 요구가 확인되지 않았다.)
-  //
-  // ★[현 차수] BACKLOG-1 해소 — 6개 이상 열람 경로 부재.
-  //   기존에는 slice(0,5) 로 잘라내어 6번째부터는 **어떤 방법으로도 볼 수 없었다**(더보기 0건).
-  //   해법으로 "더보기 버튼"이나 별도 관리 화면을 신설하지 않고 **목록을 스크롤 가능하게** 바꾼다.
-  //   근거: (1) 총 개수는 이미 탭 라벨(`⭐Favorites {n}`)과 헤더 배지에 노출돼 있어 "더 있다"는 신호가 존재한다
-  //        (2) 스크롤은 신규 UI 개념·신규 i18n 키·임의 제품 결정이 필요 없는 최소 해법이다
-  //        (3) 신규 메뉴 자제 원칙에 부합한다.
-  //   recents 는 useRecentVisits(_, 5) 가 원천에서 이미 5개로 제한하므로 이 변경의 영향을 받지 않는다.
+  // ★[ST07-06] 즐겨찾기는 이제 **사용자 지정 순서**(useFavorites 가 Set 삽입순서로 보존)를 그대로 표시한다.
+  //   이전의 `.reverse()` 를 제거 — 재정렬(move)과 짝을 이뤄야 하기 때문. toggle 이 추가를 맨 앞에 prepend 하므로
+  //   "최신 추가분이 상단"이라는 기존 시각 동작은 유지된다(무후퇴).
+  //   BACKLOG-1(6개↑ 열람): slice(0,5) 제거 + 아래 스크롤 컨테이너로 해소됨(유지).
+  //   recents 는 useRecentVisits(_, 5) 가 원천에서 5개로 제한하므로 재정렬 대상 아님.
+  const favOrder = [...favs]; // Set 삽입 순서 = 사용자 순서
   const items = activeTab === 'favs'
-    ? [...favs].reverse().map(path => allItems.find(it => it.to === path) || { to: path, label: path, icon: '📄' })
+    ? favOrder.map(path => allItems.find(it => it.to === path) || { to: path, label: path, icon: '📄' })
     : recents;
   const itemCount = activeTab === 'favs' ? favs.size : recents.length;
 
@@ -463,6 +481,30 @@ function QuickAccessPanel({ favs, recents, allItems, navigate, toggleFav, t, isE
                 <span style={{ fontSize: 12, flexShrink: 0 }}>{item.icon || '📄'}</span>
                 <span style={{ fontSize: 10, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label ? t(item.label) : item.to}</span>
               </button>
+              {/* ★[ST07-06] 순서 변경 — DnD 라이브러리 부재로 키보드 접근 가능한 ▲▼ 버튼(§13·§14 대체 방식).
+                  버튼이라 Tab+Enter 로 조작 가능하고, 경계(첫/끝)에서는 disabled 로 no-op. */}
+              {activeTab === 'favs' && moveFav && itemCount > 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                  {[{ dir: 'up', glyph: '▲', dis: i === 0, lbl: t('sidebar.moveFavUp', 'Move up') },
+                    { dir: 'down', glyph: '▼', dis: i === items.length - 1, lbl: t('sidebar.moveFavDown', 'Move down') }].map(b => (
+                    <button
+                      key={b.dir}
+                      type="button"
+                      disabled={b.dis}
+                      onClick={() => moveFav(item.to, b.dir)}
+                      aria-label={`${b.lbl} — ${item.label ? t(item.label) : item.to}`}
+                      title={b.lbl}
+                      style={{
+                        border: 'none', background: 'transparent', color: 'var(--text-3)',
+                        fontSize: 7, lineHeight: 1, cursor: b.dis ? 'default' : 'pointer',
+                        opacity: b.dis ? 0.25 : 0.6, padding: 0,
+                        // 모바일: 두 버튼 세로 합산이 44px 이상 되도록 각 22px + 히트 확보
+                        ...(isMobile ? { minWidth: 44, minHeight: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' } : { minWidth: 16, height: 11 }),
+                      }}
+                    >{b.glyph}</button>
+                  ))}
+                </div>
+              )}
               {activeTab === 'favs' && toggleFav && (
                 <button
                   type="button"
@@ -505,7 +547,7 @@ export default function Sidebar() {
   const { open: mobileOpen, close: mobileClose } = useMobileSidebar();
   const navigate = useNavigate();
   const { unreadAlertCount, activeCampaignCount } = useGlobalData();
-  const { favs, toggle: toggleFav } = useFavorites();
+  const { favs, toggle: toggleFav, move: moveFav } = useFavorites();
   // 별표 라벨은 로케일 사전(useT)에서 뽑는다 — NavSection 의 t 는 SIDEBAR_DICT(평면 키)라 못 찾는다.
   const favLabels = React.useMemo(() => ({
     add: t('sidebar.addFav', 'Add to favorites'),
@@ -658,7 +700,7 @@ export default function Sidebar() {
       {/* 즐겨찾기 + 최근방문 패널 (아코디언) */}
       <QuickAccessPanel
         favs={favs} recents={recents} allItems={allMenuItems}
-        navigate={navigate} toggleFav={toggleFav} t={t}
+        navigate={navigate} toggleFav={toggleFav} moveFav={moveFav} t={t}
         isExpanded={quickExpanded}
         onToggle={() => setQuickExpanded(prev => !prev)}
         isMobile={isMobile}

@@ -11160,6 +11160,8 @@ export default {"paymentSuccess": {"invalidInfo":"भुगतान जान�
       pinned: "Pinned",
       quickAccess: "Quick Access",
       removeFav: "Remove from favorites",
+      moveFavUp: "ऊपर ले जाएँ",
+      moveFavDown: "नीचे ले जाएँ",
       addFav: "Add to favorites",
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",

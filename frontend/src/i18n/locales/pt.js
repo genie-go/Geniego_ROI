@@ -11160,6 +11160,8 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
       pinned: "Pinned",
       quickAccess: "Quick Access",
       removeFav: "Remove from favorites",
+      moveFavUp: "Mover para cima",
+      moveFavDown: "Mover para baixo",
       addFav: "Add to favorites",
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",

@@ -11268,6 +11268,8 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
       pinned: "Đã ghim",
       quickAccess: "Truy cập nhanh",
       removeFav: "Xóa khỏi yêu thích",
+      moveFavUp: "Di chuyển lên",
+      moveFavDown: "Di chuyển xuống",
       addFav: "Thêm vào yêu thích",
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",

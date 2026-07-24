@@ -5970,6 +5970,8 @@ export default {"paymentSuccess": {"invalidInfo":"ข้อมูลการช
       footerLine1: "รายได้ + ความเสี่ยง + ธรรมาภิบาล",
       footerLine2: "ระบบจัดการ OS · v423.0.0",
       removeFav: "ลบรายการโปรด",
+      moveFavUp: "เลื่อนขึ้น",
+      moveFavDown: "เลื่อนลง",
       favorites: "รายการโปรด",
       recentVisits: "เยี่ยมชมล่าสุด",
       addFavorite: "เพิ่มในรายการโปรด",

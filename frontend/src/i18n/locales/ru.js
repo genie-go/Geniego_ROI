@@ -11160,6 +11160,8 @@ export default {"paymentSuccess": {"invalidInfo":"Платёжные данны�
       pinned: "Pinned",
       quickAccess: "Quick Access",
       removeFav: "Remove from favorites",
+      moveFavUp: "Вверх",
+      moveFavDown: "Вниз",
       addFav: "Add to favorites",
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",

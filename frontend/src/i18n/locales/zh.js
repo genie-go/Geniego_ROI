@@ -8643,6 +8643,8 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "footerLine1": "收入 + 风险 + 治理",
     "footerLine2": "结算 OS · v423.0.0",
     "removeFav": "取消收藏",
+    "moveFavUp": "上移",
+    "moveFavDown": "下移",
     "campaignsRunning": "{{n}} 个广告系列正在运行",
     "alertsUnread": "{{n}} 个警报",
     "upgrade": "升级 →",

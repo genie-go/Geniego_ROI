@@ -6434,6 +6434,8 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
       footerLine1: "營收 + 風險 + 治理",
       footerLine2: "結算 OS · v423.0.0",
       removeFav: "取消收藏",
+      moveFavUp: "上移",
+      moveFavDown: "下移",
       favorites: "我的最愛",
       recentVisits: "最近瀏覽",
       addFavorite: "加入最愛",

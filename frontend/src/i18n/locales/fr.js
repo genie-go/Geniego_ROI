@@ -8269,6 +8269,8 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",
       removeFav: "Remove Favorite",
+      moveFavUp: "Monter",
+      moveFavDown: "Descendre",
       campaignsRunning: "{{n}} campaigns running",
       alertsUnread: "{{n}} alerts",
       upgrade: "Upgrade →",

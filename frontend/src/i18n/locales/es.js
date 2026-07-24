@@ -8268,6 +8268,8 @@ export default {"paymentSuccess": {"invalidInfo":"La información de pago no es 
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",
       removeFav: "Remove Favorite",
+      moveFavUp: "Subir",
+      moveFavDown: "Bajar",
       campaignsRunning: "{{n}} campaigns running",
       alertsUnread: "{{n}} alerts",
       upgrade: "Upgrade →",

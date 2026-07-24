@@ -5950,6 +5950,8 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
       footerLine1: "Pendapatan + Risiko + Tata Kelola",
       footerLine2: "Penyelesaian OS · v423.0.0",
       removeFav: "Hapus Favorit",
+      moveFavUp: "Naikkan",
+      moveFavDown: "Turunkan",
       favorites: "Favorit",
       recentVisits: "Baru Dikunjungi",
       addFavorite: "Tambah ke Favorit",

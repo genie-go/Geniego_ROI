@@ -7949,6 +7949,8 @@ export default {
       footerLine1: "Revenue + Risk + Governance",
       footerLine2: "Settlement OS · v423.0.0",
       removeFav: "Remove Favorite",
+      moveFavUp: "Move up",
+      moveFavDown: "Move down",
       campaignsRunning: "{{n}} campaigns running",
       alertsUnread: "{{n}} alerts",
       upgrade: "Upgrade →",

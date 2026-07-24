@@ -77,8 +77,12 @@ for (const l of LOCALES) {
 check(missing.length === 0, `i18n sidebar.addFav/removeFav 15개국 전부 존재`, missing.join(', '));
 
 /* ── 4. 전체 열람 가능성 (BACKLOG-1 해소 이후) ────────────────────────── */
-check(/\[\.\.\.favs\]\.reverse\(\)/.test(src),
-  '즐겨찾기 목록이 최신순(reverse) — 방금 추가한 항목이 맨 위에 보인다');
+// ★[ST07-06] reverse() 제거 — 사용자 지정 순서(reorder)와 짝. 대신 "추가는 맨 앞 prepend"로
+//   최신 상단을 유지한다. reverse 부활 시 재정렬 결과가 뒤집혀 보이므로 회귀로 잡는다.
+check(!/\[\.\.\.favs\]\.reverse\(\)/.test(src),
+  '표시부에 .reverse() 없음 — 사용자 지정 순서를 그대로 표시(reorder와 정합)');
+check(/\[path,\s*\.\.\.arr\]/.test(src),
+  '즐겨찾기 추가는 맨 앞 prepend — 최신 항목이 상단에 보인다(무후퇴)');
 
 // ★[현 차수] 판정 기준 반전 — 기존엔 `items.slice(0,5)` 존재를 요구했으나, 그 제한이 곧
 //   BACKLOG-1(6개 이상 열람 경로 부재) 의 원인이었다. 이제는 **잘라내지 않는 것**이 정답이다.
@@ -118,6 +122,30 @@ check((src.match(/minWidth:\s*44,\s*minHeight:\s*44/g) || []).length >= 2,
 // flexShrink:0 이 없으면 사이드바 내용이 넘칠 때 패널이 테두리(2px)만 남고 사라진다(실측).
 check(/flexShrink:\s*0,\s*margin:\s*'4px 8px 0'/.test(src),
   '즐겨찾기 패널에 flexShrink:0 (사이드바 넘침 시 패널 소멸 차단)');
+
+/* ── 9. 순서 변경 device-local Reorder (ST07-06) ──────────────────────── */
+// DnD 라이브러리 부재 → 키보드 접근 가능한 ▲▼ 버튼(§13·§14 대체 방식).
+check(/const move = useCallback\(\(path, dir\)/.test(src),
+  'useFavorites 가 move(path, dir) 재정렬 API 를 제공');
+check(/\[arr\[i\],\s*arr\[j\]\]\s*=\s*\[arr\[j\],\s*arr\[i\]\]/.test(src),
+  'move 는 인접 항목 위치 교환(스왑)으로 순서 변경');
+check(/if \(j < 0 \|\| j >= arr\.length\) return prev/.test(src),
+  'move 는 경계(첫/끝)에서 no-op — 배열 범위 이탈 방지');
+check(/moveFav\s*&&\s*itemCount > 1/.test(src),
+  '재정렬 버튼은 항목 2개 이상일 때만 노출');
+check(/disabled=\{b\.dis\}/.test(src),
+  '경계 항목의 ▲ 또는 ▼ 버튼은 disabled(첫 항목 위로·끝 항목 아래로 차단)');
+// i18n — 15개국 moveFavUp/moveFavDown 존재(fallback 아닌 실 키)
+{
+  const mf = LOCALES.filter(l => {
+    const p = path.join(ROOT, 'frontend/src/i18n/locales', `${l}.js`);
+    const s = fs.readFileSync(p, 'utf8');
+    return /["']?moveFavUp["']?\s*:/.test(s) && /["']?moveFavDown["']?\s*:/.test(s);
+  });
+  check(mf.length === LOCALES.length,
+    'i18n sidebar.moveFavUp/moveFavDown 15개국 전부 존재',
+    `${mf.length}/${LOCALES.length}`);
+}
 
 console.log(FAIL === 0
   ? `\n${C.grn}[favorites-selftest] 전 항목 통과${C.rst}`

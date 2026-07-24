@@ -10608,6 +10608,8 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "pinned": "固定されました",
     "quickAccess": "クイック アクセス",
     "removeFav": "お気に入りから削除",
+    "moveFavUp": "上へ移動",
+    "moveFavDown": "下へ移動",
     "addFav": "お気に入りに追加",
       demoMode: '🧪 体験モード',
       demoDesc: 'サンプルデータで全機能を自由にお試しください。',
