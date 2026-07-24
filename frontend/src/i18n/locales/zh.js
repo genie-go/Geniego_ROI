@@ -9705,7 +9705,7 @@ export default {"paymentSuccess": {"invalidInfo":"支付信息不正确。","ver
     "demoIsolation": "演示环境 — 与生产数据隔离",
     "liveSyncMsg": "实时跨标签同步已启用 — 所有菜单的数据实时反映。",
     },
-  "catalogSync": {"brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此注册要销售的商品/服务",
+  "catalogSync": {"registerLanguage": "登记语言", "translatingUnit": "翻译中", "aiNotConfigured": "尚未配置AI翻译密钥。请在集成 → AI设置中注册密钥。", "translateDone": "翻译完成", "translateSuccess": "成功", "translateRetry": "需要重试", "translating": "翻译中…", "translateThisLang": "用该语言AI翻译", "translateAll15": "翻译为全部15种语言", "translateHint": "若无译文，将以原文（韩语）登记", "brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此注册要销售的商品/服务",
     "serviceMode": "服务·套餐登记模式",
     "serviceModeDesc": "没有实物商品的服务·订阅·数字业务，请通过下方的[登记]添加用于投放广告的服务/套餐（报价）（商品名＝服务名，价格＝套餐价）。登记后依次进行渠道对接 → 支付 → 营销自动化。",
     "serviceToMarketing": "前往营销自动化",

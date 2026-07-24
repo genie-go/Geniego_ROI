@@ -9579,7 +9579,7 @@ export default {"paymentSuccess": {"invalidInfo":"As informações de pagamento 
     "demoIsolation": "Ambiente demo — isolado dos dados de produção",
     "liveSyncMsg": "Sincronização entre abas em tempo real ativa — os dados de todos os menus são atualizados em tempo real.",
     },
-  catalogSync: {"brand": {"title": "Gestão de marcas"}, "syncRun": "Sincronizar","onboardAddHint": "Registre aqui os produtos/serviços que deseja vender",
+  catalogSync: {"registerLanguage": "Idioma do anúncio", "translatingUnit": "Traduzindo", "aiNotConfigured": "A chave de tradução por IA não está configurada. Registre uma chave em Integrações → Configurações de IA.", "translateDone": "Tradução concluída", "translateSuccess": "Concluído", "translateRetry": "Nova tentativa necessária", "translating": "Traduzindo…", "translateThisLang": "Traduzir com IA para este idioma", "translateAll15": "Traduzir para os 15 idiomas", "translateHint": "Sem tradução, o produto é anunciado no original (coreano)", "brand": {"title": "Gestão de marcas"}, "syncRun": "Sincronizar","onboardAddHint": "Registre aqui os produtos/serviços que deseja vender",
     "serviceMode": "Modo de registro de serviço/plano",
     "serviceModeDesc": "Negócios de serviços/assinatura/digitais sem produtos físicos: adicione o serviço/plano (oferta) que vai anunciar via [Registrar] abaixo (nome do item = nome do serviço, preço = preço do plano). Após o registro, prossiga com conexão de canais → pagamento → automação de marketing.",
     "serviceToMarketing": "Ir para Automação de marketing",

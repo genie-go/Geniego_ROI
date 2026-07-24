@@ -2,8 +2,8 @@
   "version": "d2-awaiting-credentials-i18n",
   "updated": "2026-07-24 (커넥터 D2 fake-green 수정 — 자격증명 미완성 채널 상태 라벨 'ak.statusAwaitingCreds'·'omniChannel.awaitingCreds' 신규키 15개국 추가('설정 필요'/Setup Required 등 표준 UI 마이크로카피). ja/zh 순수 앵커라인 키 추가(구문유효·삭제0) 확인 후 sacred SHA 동반 갱신. 번역품질 변경 아님·신규 상태 라벨). │ 2026-07-24 (CWIS Part004-04 ST07-06 즐겨찾기 순서변경 device-local Reorder — sidebar.moveFavUp/moveFavDown 신규키 15개국 추가. ja/zh 는 순수 2줄 추가(上へ移動·下へ移動 / 上移·下移)·구문유효·삭제0 확인 후 sacred SHA 동반 갱신. 번역품질 변경 아님·신규 UI 동작 라벨. ko +2 leaf). │ 2026-07-22 (289차 후속 MEA Part 063 FIND-063-1: ESG 탭 정직화 — 백엔드 미구현이라 영구 빈 화면인 ESG 리포트에 대해 ①performance.esgNotReady 신규키(ko/en) ②guideSecFinance 온보딩 문구에서 ESG 제거(13국 25건) ③Pro 유료게이트 해제. 번역 품질 변경 아님·허위 약속 제거. ja/zh sacred SHA 동반 갱신. ko +1 leaf). │ 2026-07-15 (285차: 카탈로그 브랜드관리 신규 UI — catalogSync.brand.* 기능명 별칭 15개국 base 로케일 title 주입 + 11번가 발급가이드 st11 15개국 8단계. 챗봇 자동인지용 의도적 신규키. ja/zh sacred SHA 동반 갱신. 번역품질 변경 아님·신규 기능 라벨 추가). │ 2026-07-14 (283차 R2: 공개 판매문구 정직화 — SLA 99.9%(측정부재·약관 99.5%와 모순)·On-premise·Custom AI model training·ERP 연동·세금계산서 발행 등 코드 부재 주장을 15개국 로케일에서 제거/실재기능으로 교체. 번역 품질 변경 아님·허위 주장 제거. ja/zh sacred SHA 동반 갱신). │ 2026-07-07 (270차: 마케팅 이익 효율 프론티어·이익 오토파일럿 신규 UI 라벨 mmm.* 24키를 13개국(ja/zh 포함) 현지 자연어 추가. ko/en 기존. 의도적 신규키 추가로 ja/zh sacred SHA 동반 갱신. 브라우저 검증 ja 네이티브 렌더·한글누출0). │ 이전: 2026-07-06 (267차 도메인전환: 서비스 도메인 genie-go.com→genieroi.com. ja/zh:501 refIntro API문서 기준URL만 갱신 https://roi.genie-go.com/api→https://www.genieroi.com/api. 번역 무변경·의도적 도메인 수정으로 sacred SHA 동반 갱신)",
   "sacred_sha": {
-    "ja.js": "c2df452cd6b1dfea015414263a9f11db64136e49862ac5932f12230e3781182b",
-    "zh.js": "43f42011f3258a425231474ec1866e20e03244cb3d971f290def8056ebff01ad"
+    "ja.js": "a8d84d7fc8b0d038343d04e1c16b4ae1dfd93f13de4cb8ca8109a3d37052edbc",
+    "zh.js": "250442cc303bcaef9f5bdb18fda16fd94cada6955cb3e2a163c11b8a5365e049"
   },
   "ko_leaf_count": 18522,
   "leaf_tolerance_pct": 5,

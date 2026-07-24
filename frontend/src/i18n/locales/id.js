@@ -12887,7 +12887,7 @@ export default {"paymentSuccess": {"invalidInfo":"Informasi pembayaran tidak val
     "guideReadyTitle": "Kini Anda siap mulai mengelola anggaran",
     "guideReadyDesc": "Periksa status pelaksanaan anggaran Anda saat ini di tab Ikhtisar. Jika belum ada kampanye, buat dulu di Manajer Kampanye untuk mulai melacak anggaran.",
     },
-  catalogSync: {"brand": {"title": "Manajemen Merek"}, "syncRun": "Sinkronkan","onboardAddHint": "Daftarkan produk/layanan yang ingin Anda jual di sini",
+  catalogSync: {"registerLanguage": "Bahasa pencatatan", "translatingUnit": "Menerjemahkan", "aiNotConfigured": "Kunci terjemahan AI belum dikonfigurasi. Daftarkan kunci di Integrasi → Pengaturan AI.", "translateDone": "Terjemahan selesai", "translateSuccess": "Berhasil", "translateRetry": "Perlu dicoba lagi", "translating": "Menerjemahkan…", "translateThisLang": "Terjemahkan dengan AI ke bahasa ini", "translateAll15": "Terjemahkan ke semua 15 bahasa", "translateHint": "Tanpa terjemahan, produk didaftarkan dalam bahasa asli (Korea)", "brand": {"title": "Manajemen Merek"}, "syncRun": "Sinkronkan","onboardAddHint": "Daftarkan produk/layanan yang ingin Anda jual di sini",
     "serviceMode": "Mode pendaftaran layanan·paket",
     "serviceModeDesc": "Bisnis layanan·langganan·digital tanpa produk fisik: tambahkan layanan/paket (penawaran) yang akan diiklankan melalui [Daftar] di bawah (nama item = nama layanan, harga = harga paket). Setelah mendaftar, lanjutkan dengan koneksi kanal → pembayaran → otomatisasi pemasaran.",
     "serviceToMarketing": "Ke Otomatisasi Pemasaran",

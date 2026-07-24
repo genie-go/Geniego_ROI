@@ -8894,7 +8894,7 @@ export default {"paymentSuccess": {"invalidInfo":"Die Zahlungsinformationen sind
     "demoIsolation": "Demoumgebung — von Produktionsdaten isoliert",
     "liveSyncMsg": "Echtzeit-Cross-Tab-Sync aktiv — Daten in allen Menüs werden in Echtzeit aktualisiert.",
     },
-  catalogSync: {"brand": {"title": "Markenverwaltung"}, "syncRun": "Synchronisieren","onboardAddHint": "Registrieren Sie hier die Produkte/Dienstleistungen, die Sie verkaufen möchten",
+  catalogSync: {"registerLanguage": "Angebotssprache", "translatingUnit": "Übersetzen", "aiNotConfigured": "KI-Übersetzungsschlüssel ist nicht konfiguriert. Registrieren Sie einen Schlüssel unter Integrationen → KI-Einstellungen.", "translateDone": "Übersetzung abgeschlossen", "translateSuccess": "Erfolgreich", "translateRetry": "Wiederholung nötig", "translating": "Übersetze…", "translateThisLang": "Mit KI in diese Sprache übersetzen", "translateAll15": "In alle 15 Sprachen übersetzen", "translateHint": "Ohne Übersetzung wird das Produkt im Original (Koreanisch) eingestellt", "brand": {"title": "Markenverwaltung"}, "syncRun": "Synchronisieren","onboardAddHint": "Registrieren Sie hier die Produkte/Dienstleistungen, die Sie verkaufen möchten",
     "serviceMode": "Service-/Tarif-Registrierungsmodus",
     "serviceModeDesc": "Service-, Abo- und Digitalanbieter ohne physische Produkte: Fügen Sie den zu bewerbenden Service/Tarif (Angebot) unten über [Registrieren] hinzu (Artikelname = Servicename, Preis = Tarifpreis). Nach der Registrierung geht es weiter mit Kanalanbindung → Zahlung → Marketing-Automatisierung.",
     "serviceToMarketing": "Zur Marketing-Automatisierung",

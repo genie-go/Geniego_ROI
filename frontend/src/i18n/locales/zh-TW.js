@@ -12321,7 +12321,7 @@ export default {"paymentSuccess": {"invalidInfo":"付款資訊不正確。","ver
     "guideReadyTitle": "現在您已準備好開始管理預算",
     "guideReadyDesc": "請在綜合概況分頁查看目前預算執行情況。若尚未有廣告活動，請先在廣告活動管理中建立，再開始預算追蹤。",
     },
-  catalogSync: {"brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此註冊要銷售的商品/服務",
+  catalogSync: {"registerLanguage": "登錄語言", "translatingUnit": "翻譯中", "aiNotConfigured": "尚未設定AI翻譯金鑰。請於整合 → AI設定中註冊金鑰。", "translateDone": "翻譯完成", "translateSuccess": "成功", "translateRetry": "需要重試", "translating": "翻譯中…", "translateThisLang": "以此語言AI翻譯", "translateAll15": "翻譯為全部15種語言", "translateHint": "若無譯文，將以原文（韓文）登錄", "brand": {"title": "品牌管理"}, "syncRun": "同步","onboardAddHint": "在此註冊要銷售的商品/服務",
     "serviceMode": "服務·方案登錄模式",
     "serviceModeDesc": "沒有實體商品的服務·訂閱·數位業者，請透過下方的[登錄]新增要透過廣告推廣的服務/方案（報價）（商品名＝服務名，價格＝方案價）。登錄後依序進行通路串接 → 付款 → 行銷自動化。",
     "serviceToMarketing": "前往行銷自動化",

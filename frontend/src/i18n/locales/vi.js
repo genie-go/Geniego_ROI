@@ -15166,7 +15166,7 @@ export default {"paymentSuccess": {"invalidInfo":"Thông tin thanh toán không 
     "guideReadyTitle": "Bây giờ bạn đã sẵn sàng quản lý ngân sách",
     "guideReadyDesc": "Hãy kiểm tra tình trạng chi tiêu ngân sách hiện tại tại tab Tổng quan. Nếu chưa có chiến dịch, hãy tạo trong Trình quản lý chiến dịch trước rồi bắt đầu theo dõi ngân sách.",
     },
-  catalogSync: {"brand": {"title": "Quản lý thương hiệu"}, "syncRun": "Đồng bộ","onboardAddHint": "Đăng ký sản phẩm/dịch vụ bạn muốn bán tại đây",
+  catalogSync: {"registerLanguage": "Ngôn ngữ đăng bán", "translatingUnit": "Đang dịch", "aiNotConfigured": "Chưa cấu hình khóa dịch AI. Hãy đăng ký khóa tại Tích hợp → Cài đặt AI.", "translateDone": "Dịch hoàn tất", "translateSuccess": "Thành công", "translateRetry": "Cần thử lại", "translating": "Đang dịch…", "translateThisLang": "Dịch AI sang ngôn ngữ này", "translateAll15": "Dịch sang toàn bộ 15 ngôn ngữ", "translateHint": "Nếu không có bản dịch, sản phẩm sẽ được đăng bằng bản gốc (tiếng Hàn)", "brand": {"title": "Quản lý thương hiệu"}, "syncRun": "Đồng bộ","onboardAddHint": "Đăng ký sản phẩm/dịch vụ bạn muốn bán tại đây",
     "serviceMode": "Chế độ đăng ký dịch vụ·gói",
     "serviceModeDesc": "Doanh nghiệp dịch vụ·đăng ký·kỹ thuật số không có sản phẩm vật lý: thêm dịch vụ/gói (ưu đãi) cần quảng cáo qua [Đăng ký] bên dưới (tên sản phẩm = tên dịch vụ, giá = giá gói). Sau khi đăng ký, tiếp tục với kết nối kênh → thanh toán → tự động hóa tiếp thị.",
     "serviceToMarketing": "Đến Tự động hóa tiếp thị",

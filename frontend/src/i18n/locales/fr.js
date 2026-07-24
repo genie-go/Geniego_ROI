@@ -9333,7 +9333,7 @@ export default {"paymentSuccess": {"invalidInfo":"Les informations de paiement s
     "demoIsolation": "Environnement démo — isolé des données de production",
     "liveSyncMsg": "Synchronisation multi-onglets en temps réel active — les données de tous les menus se mettent à jour en temps réel.",
     },
-  catalogSync: {"brand": {"title": "Gestion des marques"}, "syncRun": "Synchroniser","onboardAddHint": "Enregistrez ici les produits/services que vous souhaitez vendre",
+  catalogSync: {"registerLanguage": "Langue de publication", "translatingUnit": "Traduction en cours", "aiNotConfigured": "La clé de traduction IA n'est pas configurée. Enregistrez une clé dans Intégrations → Paramètres IA.", "translateDone": "Traduction terminée", "translateSuccess": "Réussi", "translateRetry": "Nouvel essai nécessaire", "translating": "Traduction…", "translateThisLang": "Traduire avec l'IA dans cette langue", "translateAll15": "Traduire dans les 15 langues", "translateHint": "Sans traduction, le produit est publié dans l'original (coréen)", "brand": {"title": "Gestion des marques"}, "syncRun": "Synchroniser","onboardAddHint": "Enregistrez ici les produits/services que vous souhaitez vendre",
     "serviceMode": "Mode d'enregistrement service/forfait",
     "serviceModeDesc": "Entreprises de services/abonnement/numériques sans produit physique : ajoutez le service/forfait (offre) à promouvoir via [Enregistrer] ci-dessous (nom de l'article = nom du service, prix = prix du forfait). Après l'enregistrement, poursuivez avec connexion des canaux → paiement → automatisation marketing.",
     "serviceToMarketing": "Aller à l'automatisation marketing",

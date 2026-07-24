@@ -9051,7 +9051,7 @@ export default {"paymentSuccess": {"invalidInfo":"決済情報が正しくあり
     "demoIsolation": "デモ環境 — 本番データと分離されています",
     "liveSyncMsg": "リアルタイムクロスタブ同期有効 — 全メニューのデータがリアルタイムに反映されます。",
     },
-  "catalogSync": {"brand": {"title": "ブランド管理"}, "syncRun": "同期","onboardAddHint": "ここで販売する商品・サービスを登録してください",
+  "catalogSync": {"registerLanguage": "登録言語", "translatingUnit": "翻訳中", "aiNotConfigured": "AI翻訳キーが設定されていません。連携 → AI設定でキーを登録してください。", "translateDone": "翻訳完了", "translateSuccess": "成功", "translateRetry": "再試行が必要", "translating": "翻訳中…", "translateThisLang": "この言語でAI翻訳", "translateAll15": "15か国すべて翻訳", "translateHint": "翻訳がない場合は原文（韓国語）で登録されます", "brand": {"title": "ブランド管理"}, "syncRun": "同期","onboardAddHint": "ここで販売する商品・サービスを登録してください",
     "serviceMode": "サービス・プラン登録モード",
     "serviceModeDesc": "物理商品を持たないサービス・サブスク・デジタル事業者は、広告で訴求するサービス/プラン（オファー）を下の[登録]から追加してください（商品名＝サービス名、価格＝プラン料金）。登録後はチャネル連携 → 決済 → マーケティング自動化へと進みます。",
     "serviceToMarketing": "マーケティング自動化へ移動",
