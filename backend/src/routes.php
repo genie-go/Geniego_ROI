@@ -101,6 +101,8 @@ return function (App $app): void {
         'POST /catalog/bulk-price'                => 'Genie\\Handlers\\Catalog::bulkPrice',
         'GET /catalog/listings'                   => 'Genie\\Handlers\\Catalog::listings',
         'GET /catalog/registered'                 => 'Genie\\Handlers\\Catalog::registeredChannels', // [현 차수] 목록 채널 컬럼 — 등록채널(catalog_listing) 맵
+        'POST /catalog/translate'                 => 'Genie\\Handlers\\Catalog::translateProduct',    // [현 차수 B2] 다국어 상품 번역(Claude 15국)·저장
+        'GET /catalog/translations'               => 'Genie\\Handlers\\Catalog::productTranslations', // [현 차수 B2] 저장된 다국어 조회
 
         'GET /catalog/price-history'              => 'Genie\\Handlers\\Catalog::priceHistory', // 193차 Sprint4 #6
         // [현 차수] Writeback Console 실배선 — 구 /v382/*(404)·/v401·/v398(api_key 401) 세션 기반 통합
@@ -3027,6 +3029,8 @@ return function (App $app): void {
     $register('POST',   '/catalog/bulk-price');
     $register('GET',    '/catalog/listings');
     $register('GET',    '/catalog/registered'); // [현 차수] 목록 채널 컬럼 — 등록채널(catalog_listing) 맵
+    $register('POST',   '/catalog/translate');   // [현 차수 B2] 다국어 상품 번역(Claude 15국)·저장
+    $register('GET',    '/catalog/translations'); // [현 차수 B2] 저장된 다국어 조회
     $register('GET',    '/catalog/price-history'); // 193차 Sprint4 #6
     // [현 차수] Writeback Console 실배선 ($custom 맵 + $register 동반 필수)
     $register('POST',   '/catalog/writeback/policy');

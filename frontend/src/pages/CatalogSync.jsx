@@ -280,6 +280,16 @@ const ProgressBar = memo(function ProgressBar({ pct, color = "#4f8ef7", animated
 
 /* ───  Banner — Removed (no mock/demo mode) ──────────────────────────── */
 
+/* [현 차수 B2] 등록 언어 옵션 — 프론트 15개 로케일과 1:1. ko=원문(번역 불요). 채널 등록 언어 선택·다국어 저장에 사용. */
+const LANG_OPTS = [
+    { code: 'ko', label: '한국어(원문)' }, { code: 'en', label: 'English' }, { code: 'ja', label: '日本語' },
+    { code: 'zh', label: '简体中文' }, { code: 'zh-TW', label: '繁體中文' }, { code: 'de', label: 'Deutsch' },
+    { code: 'th', label: 'ไทย' }, { code: 'vi', label: 'Tiếng Việt' }, { code: 'id', label: 'Bahasa Indonesia' },
+    { code: 'ar', label: 'العربية' }, { code: 'es', label: 'Español' }, { code: 'fr', label: 'Français' },
+    { code: 'hi', label: 'हिन्दी' }, { code: 'pt', label: 'Português' }, { code: 'ru', label: 'Русский' },
+];
+const ALL_TRANSLATE_LANGS = LANG_OPTS.filter(l => l.code !== 'ko').map(l => l.code);
+
 /* ─── BulkRegisterModal (Sale Price Recommend + Management자 Approval 포함) ─────────────────── */
 const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, products, onClose, onApply, is }) {
     const { t } = useI18n();
@@ -305,6 +315,48 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
     // [277차] 채널이 반환한 실제 결과(성공/실패 사유). 종전엔 console 로만 흘려 화면은 성공처럼 보였다.
     const [results, setResults] = useState([]);
     const [retrying, setRetrying] = useState('');
+    // [현 차수 B2] 등록 언어 — 선택 언어의 번역본(po_product_i18n)으로 채널에 현지 등록. 'ko'=원문.
+    const [regLang, setRegLang] = useState('ko');
+    const [translating, setTranslating] = useState(false);
+    const [transStatus, setTransStatus] = useState('');
+
+    /**
+     * [현 차수 B2] 선택 상품을 Claude 로 대상 언어들로 번역·저장(po_product_i18n).
+     *   프록시 타임아웃 방지를 위해 요청당 언어를 배치(3개)로 나눠 상품×배치 단위로 순차 호출·진행률 표시.
+     *   ko(원문)는 서버가 자동 보관하므로 제외. AI 키 미설정이면 서버가 정직하게 거절 → 사용자에 고지(fake-green 금지).
+     */
+    const runTranslate = async (targetLangs) => {
+        const langs = (targetLangs || []).filter(l => l && l !== 'ko');
+        if (!langs.length || !selProds.length) return;
+        setTranslating(true);
+        setTransStatus('');
+        const CH = 3;
+        const totalUnits = selProds.length * Math.ceil(langs.length / CH);
+        let unit = 0, okCount = 0;
+        const failLangs = new Set();
+        for (const p of selProds) {
+            for (let i = 0; i < langs.length; i += CH) {
+                const chunk = langs.slice(i, i + CH);
+                unit++;
+                setTransStatus(t('catalogSync.translatingUnit', '번역 중')
+                    + ` ${unit}/${totalUnits} · ${p.name} [${chunk.join(',')}]`);
+                try {
+                    const d = await postJson('/api/catalog/translate', { sku: p.sku, langs: chunk });
+                    if (d && d.error === 'ai_not_configured') {
+                        setTransStatus(d.message || t('catalogSync.aiNotConfigured', 'AI 번역 키가 설정되지 않았습니다. 연동 → AI 설정에서 키를 등록하세요.'));
+                        setTranslating(false);
+                        return;
+                    }
+                    if (d && Array.isArray(d.translated)) okCount += d.translated.length;
+                    (d && Array.isArray(d.failed) ? d.failed : []).forEach(l => failLangs.add(l));
+                } catch { chunk.forEach(l => failLangs.add(l)); }
+            }
+        }
+        setTranslating(false);
+        setTransStatus(t('catalogSync.translateDone', '번역 완료')
+            + ` · ${t('catalogSync.translateSuccess', '성공')} ${okCount}`
+            + (failLangs.size ? ` · ${t('catalogSync.translateRetry', '재시도 필요')}: ${[...failLangs].join(',')}` : ''));
+    };
 
     /**
      * [277차] 카테고리 후보 선택 → 그 코드로 즉시 재전송.
@@ -325,6 +377,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                 brand: prod.brand || '',   // [286차] 브랜드 전송 누락 수정(handleApply 와 동일)
                 ...(prod._meta || {}),
                 category_code: code,
+                lang: regLang,   // [현 차수 B2] 등록 언어(번역본 있으면 서버가 현지 콘텐츠로 치환)
                 action: 'register',
             });
             setResults(prev => prev.map(x => (x.chId === r.chId && x.sku === r.sku)
@@ -409,6 +462,7 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                             images: imgs,
                             brand: prod.brand || '',   // [286차] ★브랜드 전송 누락 수정 — 종전엔 _meta 에만 의존했는데 brand 는 top-level(r.brand)이라 미전송 → 11번가 "브랜드명 필요" 재발. 명시 전송.
                             ...(prod._meta || {}),   // [277차] 고시·배송/반품·AS·원산지·유효일(채널 필수)
+                            lang: regLang,   // [현 차수 B2] 등록 언어(번역본 있으면 서버가 현지 콘텐츠로 치환)
                             action,
                         });
                         // [277차] 서버는 이제 동기 실행 후 **채널의 진짜 결과**를 준다(done/failed/queued + error).
@@ -509,6 +563,46 @@ const BulkRegisterModal = memo(function BulkRegisterModal({ selectedIds, product
                                 </div>
                             ))}
                         </div>
+
+                        {/* [현 차수 B2] 등록 언어 — 선택 언어의 AI 번역본으로 채널에 현지 등록. 번역본 없으면 원문으로 등록(무회귀). */}
+                        {action === "register" && (
+                            <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.18)", marginBottom: 16 }}>
+                                <div style={{ fontWeight: 700, fontSize: 11, color: "#7c3aed", marginBottom: 8 }}>
+                                    🌐 {t('catalogSync.registerLanguage', '등록 언어')}
+                                </div>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                                    {LANG_OPTS.map(l => (
+                                        <button key={l.code} type="button" onClick={() => setRegLang(l.code)}
+                                            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 7, cursor: "pointer",
+                                                border: `1px solid ${regLang === l.code ? "#7c3aed" : "rgba(124,58,237,0.2)"}`,
+                                                background: regLang === l.code ? "rgba(124,58,237,0.12)" : "#ffffff",
+                                                color: regLang === l.code ? "#7c3aed" : "#6b7280", fontWeight: regLang === l.code ? 700 : 400 }}>
+                                            {l.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                {regLang !== 'ko' && (
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                                        <button type="button" disabled={translating || !selProds.length} onClick={() => runTranslate([regLang])}
+                                            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 7, border: "none", cursor: translating ? "default" : "pointer",
+                                                background: translating ? "rgba(124,58,237,0.3)" : "#7c3aed", color: "#ffffff", fontWeight: 700 }}>
+                                            {translating ? t('catalogSync.translating', '번역 중…') : `🤖 ${t('catalogSync.translateThisLang', '이 언어로 AI 번역')}`}
+                                        </button>
+                                        <button type="button" disabled={translating || !selProds.length} onClick={() => runTranslate(ALL_TRANSLATE_LANGS)}
+                                            style={{ fontSize: 11, padding: "5px 12px", borderRadius: 7, cursor: translating ? "default" : "pointer",
+                                                border: "1px solid rgba(124,58,237,0.4)", background: "#ffffff", color: "#7c3aed", fontWeight: 700 }}>
+                                            🌍 {t('catalogSync.translateAll15', '15개국 전체 번역')}
+                                        </button>
+                                        <span style={{ fontSize: 10, color: "#9ca3af" }}>
+                                            {t('catalogSync.translateHint', '번역본이 없으면 원문(한국어)으로 등록됩니다')}
+                                        </span>
+                                    </div>
+                                )}
+                                {transStatus && (
+                                    <div style={{ fontSize: 11, color: "#7c3aed", marginTop: 8, fontWeight: 600 }}>{transStatus}</div>
+                                )}
+                            </div>
+                        )}
 
                         <div style={{ fontWeight: 700, fontSize: 11, color: "#6b7280", marginBottom: 10 }}>{t('catalogSync.targetChannel')}</div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>

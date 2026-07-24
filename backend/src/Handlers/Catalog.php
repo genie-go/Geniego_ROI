@@ -802,6 +802,21 @@ class Catalog
         if ($channel === '' || $sku === '') return self::jsonRes($res, ['ok' => false, 'error' => 'channel/sku required'], 400);
         $body = (array)($req->getParsedBody() ?? []);
         $action = (string)($body['action'] ?? 'register');
+        // [현 차수 B2] 다국어 등록 — lang 지정 & 원문(ko)이 아니면 po_product_i18n 번역본으로
+        //   name/spec/detail_html 을 치환해 채널에 현지 언어로 등록한다. 번역본이 없으면 원문 유지(무회귀).
+        $listingLang = trim((string)($body['lang'] ?? ''));
+        if ($listingLang !== '' && $listingLang !== 'ko' && !in_array($action, ['unregister', 'disconnect'], true)) {
+            try {
+                self::ensureI18nTable($pdo);
+                $ts = $pdo->prepare("SELECT name, spec, detail_html FROM po_product_i18n WHERE tenant_id=? AND sku=? AND lang=? LIMIT 1");
+                $ts->execute([$tenant, $sku, $listingLang]);
+                if ($tr = $ts->fetch(\PDO::FETCH_ASSOC)) {
+                    if (trim((string)($tr['name'] ?? '')) !== '')        $body['name'] = (string)$tr['name'];
+                    if (trim((string)($tr['spec'] ?? '')) !== '')        $body['spec'] = (string)$tr['spec'];
+                    if (trim((string)($tr['detail_html'] ?? '')) !== '') $body['detail_html'] = (string)$tr['detail_html'];
+                }
+            } catch (\Throwable $e) { /* 번역 조회 실패는 원문 등록으로 폴백(무회귀) */ }
+        }
         // [251차] ★상품등록 한도 강제(이미지 스토리지 적자 방어) — 신규 상품(미존재 sku) 등록 시 기본 제공 수 +
         //   구매 추가팩의 유효 한도를 초과하면 402(추가팩 구매/거부 선택 payload). 기존 sku(채널 추가·수정·해제)는
         //   상품 수 증가가 아니므로 통과. 기본 제공 수(plan_config)는 admin 설정값을 읽기만 함(불변).
@@ -1016,6 +1031,188 @@ class Catalog
             }
         } catch (\Throwable $e) { $map = []; }
         return self::jsonRes($res, ['ok' => true, 'registered' => $map]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // [현 차수 B2] 다국어 상품 정보 — 원문(ko)=po_products, 번역=po_product_i18n(sku×lang).
+    //   상품 동기화 시 언어를 선택해 Claude 로 현지 자연어 번역·저장하고, 채널 등록 시 해당 언어 콘텐츠 사용.
+    //   ★수집≠사용 원칙 계승: AI 키 미설정/번역 실패는 fake-green 금지 — ok=false + 명시적 사유.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** 지원 15개국(원문 ko 포함). 프론트 로케일과 1:1. */
+    private const I18N_LANGS = ['ko','en','ja','zh','zh-TW','de','th','vi','id','ar','es','fr','hi','pt','ru'];
+    /** 번역 대상 언어별 자연어 명칭(Claude 지시용). ko 는 원문이라 제외. */
+    private const I18N_LANG_NAMES = [
+        'en' => 'English', 'ja' => 'Japanese', 'zh' => 'Simplified Chinese', 'zh-TW' => 'Traditional Chinese (Taiwan)',
+        'de' => 'German', 'th' => 'Thai', 'vi' => 'Vietnamese', 'id' => 'Indonesian', 'ar' => 'Arabic',
+        'es' => 'Spanish', 'fr' => 'French', 'hi' => 'Hindi', 'pt' => 'Portuguese (Brazil)', 'ru' => 'Russian',
+    ];
+
+    /** po_product_i18n 멱등 생성(드라이버 분기). 번역/조회 진입 시 지연 보장. */
+    private static function ensureI18nTable(\PDO $pdo): void
+    {
+        static $done = false;
+        if ($done) return;
+        try {
+            if (self::isMysql($pdo)) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS po_product_i18n (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    tenant_id VARCHAR(100) NOT NULL DEFAULT 'demo',
+                    sku VARCHAR(190) NOT NULL,
+                    lang VARCHAR(10) NOT NULL,
+                    name TEXT NULL,
+                    spec TEXT NULL,
+                    detail_html LONGTEXT NULL,
+                    source VARCHAR(20) NOT NULL DEFAULT 'ai',
+                    updated_at VARCHAR(32) NULL,
+                    UNIQUE KEY uq_ppi18n (tenant_id, sku, lang),
+                    KEY idx_ppi18n_t (tenant_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS po_product_i18n (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT NOT NULL DEFAULT 'demo',
+                    sku TEXT NOT NULL,
+                    lang TEXT NOT NULL,
+                    name TEXT, spec TEXT, detail_html TEXT,
+                    source TEXT NOT NULL DEFAULT 'ai',
+                    updated_at TEXT,
+                    UNIQUE(tenant_id, sku, lang))");
+            }
+        } catch (\Throwable $e) { /* 이미 존재/권한 — 조회 시 재확인 */ }
+        $done = true;
+    }
+
+    /** 다국어 1행 upsert(드라이버 분기). */
+    private static function upsertI18n(\PDO $pdo, string $tenant, string $sku, string $lang,
+                                       string $name, string $spec, string $detail, string $source, string $now): void
+    {
+        if (self::isMysql($pdo)) {
+            $sql = "INSERT INTO po_product_i18n (tenant_id, sku, lang, name, spec, detail_html, source, updated_at)
+                    VALUES (:t,:s,:l,:n,:sp,:d,:src,:u)
+                    ON DUPLICATE KEY UPDATE name=VALUES(name), spec=VALUES(spec), detail_html=VALUES(detail_html),
+                                            source=VALUES(source), updated_at=VALUES(updated_at)";
+        } else {
+            $sql = "INSERT INTO po_product_i18n (tenant_id, sku, lang, name, spec, detail_html, source, updated_at)
+                    VALUES (:t,:s,:l,:n,:sp,:d,:src,:u)
+                    ON CONFLICT(tenant_id, sku, lang) DO UPDATE SET name=excluded.name, spec=excluded.spec,
+                                            detail_html=excluded.detail_html, source=excluded.source, updated_at=excluded.updated_at";
+        }
+        $st = $pdo->prepare($sql);
+        $st->execute([':t' => $tenant, ':s' => $sku, ':l' => $lang, ':n' => $name,
+                      ':sp' => $spec, ':d' => $detail, ':src' => $source, ':u' => $now]);
+    }
+
+    /** Claude 응답에서 JSON 오브젝트 추출(코드펜스/서문 제거 후 첫 {..} 파싱). */
+    private static function extractJsonObj(string $raw): ?array
+    {
+        $s = trim($raw);
+        $s = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', $s);
+        $a = strpos($s, '{');
+        $b = strrpos($s, '}');
+        if ($a === false || $b === false || $b <= $a) return null;
+        $json = substr($s, $a, $b - $a + 1);
+        $d = json_decode($json, true);
+        return is_array($d) ? $d : null;
+    }
+
+    /**
+     * POST /catalog/translate — 상품(sku) 원문(ko: product_name/spec/detail_html)을
+     *   선택 언어로 현지 자연어 번역(Claude)·po_product_i18n 저장.
+     *   body: { sku, langs?:["ja","en",...] }. langs 미지정 시 ko 제외 14국 전체(★타임아웃 주의 — 프론트는 배치 권장).
+     *   응답: { ok, sku, translated:[..], failed:[..], skipped_reason? }
+     */
+    public static function translateProduct(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db();
+        self::ensureI18nTable($pdo);
+        $tenant = self::tenant($req);
+        $b = (array)($req->getParsedBody() ?? []);
+        $sku = trim((string)($b['sku'] ?? ''));
+        if ($sku === '') return self::jsonRes($res, ['ok' => false, 'error' => 'sku required'], 422);
+
+        // 대상 언어(ko 제외·화이트리스트 교집합). 미지정=14국 전체.
+        $reqLangs = isset($b['langs']) && is_array($b['langs']) ? array_map('strval', $b['langs']) : array_keys(self::I18N_LANG_NAMES);
+        $langs = array_values(array_filter($reqLangs, fn($l) => isset(self::I18N_LANG_NAMES[$l])));
+        if (!$langs) $langs = array_keys(self::I18N_LANG_NAMES);
+
+        // AI 키 미설정이면 fake-green 금지 — 정직하게 거절(원문만 저장).
+        if (!ClaudeAI::aiKeyConfigured()) {
+            return self::jsonRes($res, ['ok' => false, 'error' => 'ai_not_configured',
+                'message' => 'AI 번역 키가 설정되지 않아 자동 번역을 실행할 수 없습니다. 연동 → AI 설정에서 키를 등록하세요.'], 400);
+        }
+
+        // 원문 로드(po_products = 상품 마스터, 한국어 원문).
+        $st = $pdo->prepare("SELECT product_name, spec, detail_html FROM po_products WHERE tenant_id=? AND sku=? LIMIT 1");
+        $st->execute([$tenant, $sku]);
+        $src = $st->fetch(\PDO::FETCH_ASSOC);
+        if (!$src) return self::jsonRes($res, ['ok' => false, 'error' => 'product_not_found'], 404);
+        $srcName   = trim((string)($src['product_name'] ?? ''));
+        $srcSpec   = (string)($src['spec'] ?? '');
+        $srcDetail = (string)($src['detail_html'] ?? '');
+        if ($srcName === '') return self::jsonRes($res, ['ok' => false, 'error' => 'source_name_empty',
+            'message' => '상품명 원문이 비어 있어 번역할 수 없습니다.'], 422);
+
+        $now = gmdate('c');
+        // 원문(ko)도 i18n 에 보관(등록/조회 일원화). source='source'.
+        self::upsertI18n($pdo, $tenant, $sku, 'ko', $srcName, $srcSpec, $srcDetail, 'source', $now);
+
+        if (function_exists('set_time_limit')) { @set_time_limit(0); }
+        $doneLangs = [];
+        $failedLangs = [];
+        // detail_html 은 번역 입력만 상한(비용/시간). 저장은 번역 결과 전문.
+        $detailInput = mb_substr($srcDetail, 0, 6000);
+
+        foreach ($langs as $lang) {
+            $target = self::I18N_LANG_NAMES[$lang];
+            $sys = "You are a professional e-commerce product-listing translator for a Korean cross-border seller. "
+                 . "Translate the given Korean product fields into natural, native, marketing-quality {$target} that a local shopper would expect on a real marketplace. "
+                 . "Rules: (1) Preserve any HTML tags and structure inside detail_html EXACTLY — translate only human-readable text. "
+                 . "(2) Do NOT translate brand names, model numbers, SKU codes, or measurement units/numbers. "
+                 . "(3) Keep it concise and idiomatic, not literal. "
+                 . "(4) Output ONLY a single minified JSON object with keys name, spec, detail_html — no code fences, no commentary.";
+            $userMsg = json_encode(['name' => $srcName, 'spec' => $srcSpec, 'detail_html' => $detailInput], JSON_UNESCAPED_UNICODE);
+            $out = ClaudeAI::complete($sys, (string)$userMsg, 40, $tenant);
+            if ($out === null || trim($out) === '') { $failedLangs[] = $lang; continue; }
+            $j = self::extractJsonObj($out);
+            if (!is_array($j) || !isset($j['name']) || trim((string)$j['name']) === '') { $failedLangs[] = $lang; continue; }
+            self::upsertI18n($pdo, $tenant, $sku, $lang,
+                trim((string)($j['name'] ?? '')), (string)($j['spec'] ?? ''), (string)($j['detail_html'] ?? ''), 'ai', $now);
+            $doneLangs[] = $lang;
+        }
+
+        return self::jsonRes($res, ['ok' => count($doneLangs) > 0, 'sku' => $sku,
+            'translated' => $doneLangs, 'failed' => $failedLangs, 'source_saved' => true]);
+    }
+
+    /**
+     * GET /catalog/translations?sku=... — 상품의 저장된 다국어(원문+번역) 조회.
+     *   응답: { ok, sku, langs:{ ko:{name,spec,detail_html,source,updated_at}, ja:{...}, ... } }
+     */
+    public static function productTranslations(Request $req, Response $res): Response
+    {
+        if ($err = UserAuth::requirePro($req, $res)) return $err;
+        $pdo = self::db();
+        self::ensureI18nTable($pdo);
+        $tenant = self::tenant($req);
+        $q = $req->getQueryParams();
+        $sku = trim((string)($q['sku'] ?? ''));
+        if ($sku === '') return self::jsonRes($res, ['ok' => false, 'error' => 'sku required'], 422);
+        $out = [];
+        try {
+            $st = $pdo->prepare("SELECT lang, name, spec, detail_html, source, updated_at
+                                 FROM po_product_i18n WHERE tenant_id=? AND sku=?");
+            $st->execute([$tenant, $sku]);
+            foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                $out[(string)$r['lang']] = [
+                    'name' => (string)($r['name'] ?? ''), 'spec' => (string)($r['spec'] ?? ''),
+                    'detail_html' => (string)($r['detail_html'] ?? ''), 'source' => (string)($r['source'] ?? ''),
+                    'updated_at' => (string)($r['updated_at'] ?? ''),
+                ];
+            }
+        } catch (\Throwable $e) { $out = []; }
+        return self::jsonRes($res, ['ok' => true, 'sku' => $sku, 'langs' => $out]);
     }
 
     public static function listings(Request $req, Response $res): Response
