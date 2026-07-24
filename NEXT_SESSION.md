@@ -1671,3 +1671,109 @@ EPIC 06-A-03-02-03 계열 설계 거버넌스를 동일 파이프라인(ⓐSPEC 
 - 배포=CI inert·수동 plink/pscp·**모든 배포 사용자 승인 의무**(이번 세션 산출물은 전부 docs·배포 없음).
 - 06-A 설계는 **코드 변경 0·NOT_CERTIFIED 불변**. 실 엔진=선행 Decision Core(Part 1~3-25 통째) 인증 후 별도 RP-track 승인세션.
 - 정직 3원칙: 실재 과신 회피·부재 과장 회피·오흡수(동음이의) 회피. 죽은 infra(terraform/ECS/Postgres/Redis)를 PRESENT 근거로 인용 금지. 마케팅/ML/커머스/PM 동음이의를 authz로 흡수 금지.
+
+---
+
+# CWIS Part004-04 세션 종결 인계 — 즐겨찾기 Task001 분석 종결 + 도달 불가 결함 수정·배포
+
+## A. 이번 세션 산출 (분석 4단계 + 실구현 1건 + 배포 완료)
+
+| 커밋 | 내용 | 코드 변경 |
+|---|---|---|
+| `7b02b1dd263` | ST07 검색결과 정규화 — 31개 입력 1,102건 → 1,541 레코드·관계 1,728 | 0(도구/문서) |
+| `89368dcc323` | ST08 기존 구현 분류 — 증거 기반 11종 판정 | 0 |
+| `74ee4430ad4` | ST09 의존성·재사용 매핑 — 팬인 실측 | 0 |
+| `d50680c6a32` | ST10 최종 Gap 분석·로드맵 — 정의 결정 게이트 | 0 |
+| **`67dee1fe46a`** | **feat: 즐겨찾기 추가 진입점 신설 — 도달 불가 기능 복구** | **Sidebar.jsx·selftest·package.json** |
+| `d7c1aafeaa1` | Task002 ST01 Domain Layer 미구현 결정 + 범위 재설정 | 0 |
+
+**Task001(ST01~ST10) 종결.** 산출물 = `tools/cwis/navigation/output/favorites-*`(30여 JSON) · 보고서 `docs/cwis/part004-04/`.
+
+### ★PHASE_1 결정 (사용자 확정, 2026-07-24)
+
+> **즐겨찾기 = UI 프리퍼런스** (기기 간 동기화되는 회원 데이터 아님)
+
+근거 = `frontend/src/utils/tenantStorage.js:14` 가 *"UI 프리퍼런스(theme/**sidebar**/lang/tour)는 디바이스 단위라 스코프 불요"* 를 명문화. 이 결정으로 **Gap 12건 중 9건(CRITICAL 3 포함) 소멸**, 리스크 3건 무효화(외부 협업자 Default Deny·마이그레이션 배포 함정·Workspace 부재 — 전부 서버 API 전제였음).
+
+### ★★핵심 발견 — 즐겨찾기는 초기 커밋부터 **도달 불가능한 기능**이었다
+
+```
+toggleFav 호출부 전수 = QuickAccessPanel 의 ✕(해제) 버튼 1곳
+→ 추가하는 UI 가 없음 → favs 영원히 빈 상태 → hasFavs=false
+→ 즐겨찾기 탭 미렌더 → 해제 버튼조차 도달 불가
+```
+
+훅(`useFavorites`)도 저장 로직(`g_sidebar_favs`)도 완벽했으나 **한 번도 실행될 수 없었다**. i18n `sidebar.addFav`("즐겨찾기 추가")는 **15개국 전부에 준비돼 있었다** — 버튼만 없었다(미완성의 강한 증거).
+
+**ST10 정정**: ST08 이 `QuickAccessPanel`(COMPONENT) 존재만으로 CAP-01 을 present 로 판정. 증거축 검사는 *"컴포넌트가 존재하는가"* 만 물었고 *"도달 가능한가"* 는 묻지 않았다. 착수 시점 완성률 **50% → 33%(2/6) 정정**, 현재 **83%(5/6)**.
+
+### 구현 (Golden Rule — 교체 아닌 확장)
+
+- `FavStar` 신설, 전 메뉴 항목 옆 별표 토글(단일/다항목 양 분기). `<NavLink>` **형제**로 배치(앵커 내 button = 무효 HTML) + `preventDefault`+`stopPropagation`
+- `aria-pressed` + 상태별 `aria-label`(ST03 실측 `aria-pressed` 0건이던 지점)
+- 즐겨찾기 목록 **최신순**(`[...favs].reverse()`) — `slice(0,5)` 라 6번째 추가 시 목록에 안 나타나 추가 실패로 보이던 문제 해소
+- **i18n 작업 0건** — 15개국 키 기존재 실측 확인
+- 회귀 가드 `npm run fav:test`(`tools/favorites_selftest.mjs`) 14검사. ★**가드 실효성 실증** — `<FavStar>` 배선 제거 시 실패, 복원 시 통과
+
+### 배포 (완료·사용자 운영 확인)
+
+| | 운영 | 데모 |
+|---|---|---|
+| 엔트리 | `index-aEGByhTH.js` | `index-B-P0-Ae3.js` (분리 확정) |
+| 체크섬 | 로컬 빌드와 **완전 일치** | — |
+| 데모 마커 | **0**(오염 없음) | 1(정상) |
+| 백업 | `dist.bak.fav.20260724_104220` | `dist.bak.fav.20260724_104029` |
+
+**클린 스왑**(`rsync -a --delete`) + 스왑 **전** staging 마커 판정으로 잘못된 빌드 투입을 원천 차단. 데모는 브라우저 실측(메뉴 64개 전부 별표·토글 저장·패널 출현·무후퇴), **운영은 사용자 로그인 확인 완료**.
+
+### Task002 ST01 = NOT_IMPLEMENTED (사용자 확정)
+
+Domain Layer 명세를 실측 5건으로 반려. 상세 = `docs/cwis/part004-04/task002-scope-reset.md`.
+
+1. PHASE_1 결정과 충돌(로드맵이 PHASE_2/4 를 `conditional_on=MEMBER_DATA` 로 명시)
+2. 명세의 변경 허용 경로 4개(`Domain/`·`app/Domain/`·`src/Domain/`·`Shared/Domain/`) **전부 부재**, 루트 `app/`·`src/` 도 없음
+3. DDD 계층 **0건** — `backend/src` 전수 interface 0·trait 0·enum 0·ValueObject 0·DomainEvent 0·Specification 0. Handlers 103개 전부 절차적
+4. 요구 타입 부재 — Workspace/Document/Meeting/Channel/Team/Role 전무(ST07 `ABSENT_AXES`). Project/Task 만 `pm_*`
+5. ★**구조적 죽은 코드** — 명세가 Controller/API/Repository 를 금지하므로 도메인 클래스 ~15개는 호출부가 존재할 수 없다. **본 세션이 방금 수정한 결함 클래스를 설계상 보장된 형태로 재생산**
+
+## B. 다음 최우선
+
+**Part004-04 는 종료.** 남은 것은 UX 백로그 3건이며 2건은 실사용 데이터 없이는 방향을 못 정한다.
+
+| ID | 내용 | 상태 |
+|---|---|---|
+| BACKLOG-1 | 즐겨찾기 6개 이상 열람 경로 부재(`items.slice(0,5)`·"더 보기" 0건) | ★**현 차수 변경이 만든 조건** — 이전엔 추가 진입점이 없어 드러날 수 없었다. 최신순 정렬로 "방금 추가분은 항상 보임"까지 완화. 근본 해소는 (a)더보기 (b)개수 상향 (c)전체 목록 중 택1 — **임의 선택 금지, 보류** |
+| BACKLOG-2 | 별표 모바일 터치 타깃 ≈23×17px(권장 44 미달) | ★**접근성 Gap 을 메우며 새로 만든 항목**. 해소 시 **행 높이 44px 유지 필수** — 아코디언 `maxHeight = items.length × _itemH` 라 행이 커지면 클리핑 |
+| BACKLOG-3 | 드래그 순서 변경(CAP-05) | 요구 미확인·LOW/P3. 의도적 미구현 유지. BACKLOG-1 정리 후 실익 판단 가능 |
+
+**후속 명세 작성 시 반영할 저장소 실제 전제** (왕복 감소):
+
+| 전제 | 실제 |
+|---|---|
+| 아키텍처 | DDD 아님 — Slim 4 + 절차적 Handler + raw PDO, `Genie\` 네임스페이스, `routes.php` 문자열 매핑 |
+| 스키마 경로 | 마이그레이션 아님 — `backend/src/**` `ensureTables()` 자가치유(migrations 는 세션 172 정지) |
+| 경로 | `backend/src/Handlers/` · `frontend/src/` (루트 `app/`·`src/` 없음) |
+| 협업 축 | Tenant · Project(`pm_projects`) · Task(`pm_tasks`)만 존재. Workspace·Team·Role·Document·Meeting **부재** |
+| 즐겨찾기 | UI 프리퍼런스(device-local) — 서버 계층 요구 없음 |
+
+## C. 이번 세션 실측 트랩 (재사용 가치 높은 순)
+
+1. ★**도달 가능성 미검사 = 죽은 기능** — 심볼·컴포넌트 존재를 구현 완료로 세지 말 것. **상태를 바꾸는 함수의 호출부**를 세라. 쓰기 함수 호출부가 읽기·삭제 쪽에만 있으면 진입점 부재. **i18n 키만 있고 그 키를 쓰는 UI 가 없으면 강한 미완성 신호.** → 메모리 `reference_reachability_check_dead_feature`
+2. ★**UI 프리퍼런스 device-local 경계** — `g_sidebar_favs` 가 raw localStorage 인 것을 **테넌트 격리 위반으로 올리면 오탐**. `tenantStorage.js:14` 가 theme/sidebar/lang/tour 는 스코프 불요로 규정. 반대로 회원 데이터를 raw localStorage 에 넣으면 진짜 결함. → 메모리 `reference_ui_preference_device_local_boundary`
+3. **뺄셈 추정 통계가 거짓 정상값을 만든다**(ST07) — 병합 수를 `입력−출력−제외` 로 추정했더니 파생 레코드 때문에 음수→0 으로 잘려 **"병합 0건"** 이 나왔다. 실측 카운터로 교체.
+4. **`ORPHANED` 를 "미사용"으로 오독**(ST08) — ST07 의 ORPHANED 는 *"즐겨찾기 인벤토리에서 상위를 못 찾음"*(검색 스코프의 산물)이지 미사용 증거가 아니다. 그대로 읽어 `menu_tree`·`coupon_redemptions` 등 **현역 테이블 33건을 LEGACY 로 오분류**할 뻔했다. 명세 LEGACY 조건(Route/Import/Reference 부재) 실증 없이 LEGACY 금지 → 정정 후 **0건**.
+5. **포함 관계를 팬인으로 세면 재사용이 부풀어 오른다**(ST09) — `DEFINED_IN`(파일이 자기 내용물을 담음)을 팬인에 포함했더니 MODULE 재사용이 507건("파일이 자기 내용물에 의해 재사용됨"). 소비 엣지만으로 한정 → GLOBAL 19→7·MODULE 507→30, 실물 일치(react=222·path=203).
+6. **이름 유사성 관계가 계층 횡단 착시를 만든다**(ST09) — ST07 `SEMANTICALLY_RELATED` 100건 때문에 `useFavorites`(프런트)가 `backend/src/Handlers/*` 에 의존하는 것처럼 보인다. `OPTIONAL_DEPENDENCY`+`type=UNKNOWN` 으로 격리했다. **후속 분석은 반드시 필터링**할 것 — 안 하면 정반대 결론.
+7. **인프라 부재를 Gap 으로 날조 금지**(ST10) — Redis/Queue/Search 는 저장소에 아예 없고(`predis` 0건, `Navigation.php:16` 이 부재를 명시) 즐겨찾기 규모엔 불필요. **필요 없는 것의 부재는 Gap 이 아니다.**
+8. **합성 ID 가 자기 보안 패턴에 걸린다**(ST07) — `source_record_id="authorization:PM\Shared::gate(...)"` 가 HTTP 헤더 탐지 정규식 `/Authorization\s*:\s*\S{8,}/i` 에 매치해 `[REDACTED]` 되었다. 패턴 완화 대신 **접두사를 `authz_gate:` 로 교체**(근본 수정).
+9. **i18n 키 표기가 파일마다 다르다** — `ko.js` 는 `"addFav":`(따옴표), `en.js` 는 `addFav:`(없음). 한쪽만 매칭하는 정규식은 **12개국을 통째로 오탐**으로 잡는다. 단어경계로 `addFavorite` 와도 구분할 것.
+10. **`t` 와 `navT` 는 다른 사전** — `Sidebar.jsx` 의 `t=useT()`는 `i18n/locales/*.js`(네임스페이스 키), `navT`는 `SIDEBAR_DICT`(평면 키). 섞으면 라벨이 키 문자열 그대로 노출된다. 라벨은 상위에서 뽑아 prop 으로 주입.
+11. **데모 오프라인 UI 검증 경로** — `AuthContext.jsx:105` 가 데모 모드에서 서버 401 을 무시한다. `demo_genie_token`+`demo_genie_user`+`sess_active`+`last_activity`+`remember` 를 localStorage 에 시드하면 **백엔드 없이** 사이드바까지 렌더된다. 운영은 전 계정 2FA(OTP 메일 발송)라 헤드리스 로그인 불가 — 번들 체크섬 대조까지가 한계.
+
+## D. 배포·규율 (불변)
+
+- **미푸시 13커밋** — `master` push 는 CI 배포를 자동 발사하므로 대기. dist 는 수동 배포 완료라 push 없이도 운영 정상.
+- 배포=CI inert·수동 `plink`/`pscp`·**매번 사용자 승인 의무**. dist swap 은 `rsync -a --delete`(tar 덧씌우기는 고아 청크 잔존 — 273차 트랩).
+- **스왑 전 staging 에서 데모마커를 먼저 판정**해 잘못된 빌드 투입을 원천 차단(운영에 데모 빌드 → 즉시 중단).
+- 자격증명은 메모리 파일에서 변수로만 주입 — chat·commit·log 평문 노출 금지.
+- 회귀 가드는 **"실패할 수 있는지"를 반드시 실증**하라. 배선을 지웠을 때 테스트가 실제로 깨지는지 확인하지 않은 가드는 무가치하다.
