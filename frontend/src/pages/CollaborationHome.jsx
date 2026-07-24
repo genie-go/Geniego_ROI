@@ -364,16 +364,21 @@ export default function CollaborationHome() {
           {t('collab.board.desc', '조직 전체 공지, 팀별 논의, 프로젝트 협업 대화를 스레드·리액션으로 나눕니다.')}
         </p>
 
-        {/* 스코프 선택 */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-          {[{ type: 'org', id: '', name: t('collab.board.org', '조직 전체') }, ...teams.map(tm => ({ type: 'team', id: String(tm.id), name: tm.name }))].map(s => {
-            const active = space.type === s.type && String(space.id) === String(s.id);
-            return (
-              <button key={s.type + s.id} onClick={() => setSpace(s)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: active ? 700 : 400, border: `1px solid ${active ? '#4f8ef7' : 'rgba(148,163,184,0.4)'}`, background: active ? 'rgba(79,142,247,0.1)' : 'transparent', color: active ? '#2563eb' : '#64748b' }}>
-                {s.type === 'org' ? '📢 ' : '👥 '}{s.name}
-              </button>
-            );
-          })}
+        {/* 스코프 선택 — 컴팩트 드롭다운(위 '팀 협업' 카드와 팀 목록 중복 방지). */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>{t('collab.board.spaceLabel', '대화 공간')}</span>
+          <select
+            value={`${space.type}:${space.id}`}
+            onChange={e => {
+              const idx = e.target.value.indexOf(':');
+              const type = e.target.value.slice(0, idx); const id = e.target.value.slice(idx + 1);
+              const name = type === 'org' ? t('collab.board.org', '조직 전체') : (teams.find(tm => String(tm.id) === id)?.name || '');
+              setSpace({ type, id, name });
+            }}
+            style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', fontSize: 13, fontWeight: 700, minWidth: 200, cursor: 'pointer', color: '#2563eb' }}>
+            <option value="org:">📢 {t('collab.board.org', '조직 전체')}</option>
+            {teams.map(tm => <option key={tm.id} value={`team:${tm.id}`}>👥 {tm.name}</option>)}
+          </select>
         </div>
 
         {/* 작성 */}
