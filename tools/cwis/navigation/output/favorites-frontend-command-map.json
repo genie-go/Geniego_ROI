@@ -1,0 +1,49 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST07-01",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-24",
+  "note": "실제 확인된 명령만 기록(package.json 실측). 미존재 명령은 null + 근거.",
+
+  "lint_command": {
+    "command": "cd frontend && npm run lint",
+    "resolves_to": "eslint src --ext .js,.jsx",
+    "safe_to_execute": true,
+    "scope_note": "전체 src 대상 — favorites 만 제한하려면 `npx eslint src/layout/Sidebar.jsx`"
+  },
+  "typecheck_command": {
+    "command": null,
+    "reason": "TypeScript 미사용(.tsx 0·devDependencies.typescript NONE) → 타입체크 명령 없음",
+    "safe_to_execute": false
+  },
+  "unit_test_command": {
+    "command": "npm run fav:test",
+    "resolves_to": "node tools/favorites_selftest.mjs",
+    "safe_to_execute": true,
+    "scope_note": "루트에서 실행. 즐겨찾기 정적 소스 어서션 18항(Vitest/Jest 아님)"
+  },
+  "component_test_command": {
+    "command": null,
+    "reason": "React Testing Library·Vitest·Jest 부재 → 컴포넌트 마운트 테스트 인프라 없음. §29 패키지 설치 금지",
+    "safe_to_execute": false
+  },
+  "e2e_test_command": {
+    "command": "npm run e2e:render",
+    "resolves_to": "node tools/e2e/render.mjs",
+    "safe_to_execute": "CONDITIONAL",
+    "scope_note": "커스텀 node E2E(화이트스크린 감지). 외부 연결/빌드 필요 여부 확인 후 실행. Playwright MCP 는 대화형 라이브 검증에 별도 사용 가능(이번 세션 Option A 검증에 사용함)",
+    "related": ["npm run e2e (smoke)", "npm run e2e:scenario", "npm run nav:test (메뉴 구조 회귀 36항)"]
+  },
+  "build_command": {
+    "command": "cd frontend && npm run build",
+    "resolves_to": "vite build",
+    "safe_to_execute": true,
+    "scope_note": "★운영 빌드는 frontend/ 에서만(root vite 7 아님). 데모=`npx vite build --mode demo`. 혼용 금지(데모 오염 트랩)"
+  },
+
+  "execution_constraints": [
+    "Package 설치 금지(§29) — 새 러너/라이브러리 도입 불가",
+    "typecheck·component test 명령은 존재하지 않음(인프라 부재) → 해당 검증은 NOT_EXECUTED 로 기록",
+    "전체 프론트 빌드는 환경 안전·외부 연결 불요 시에만",
+    "★배포(dist swap)는 명시 승인 후에만 — 이번 ST07-01 은 분석 전용이라 빌드/배포 불요"
+  ]
+}

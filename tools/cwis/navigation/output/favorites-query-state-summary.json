@@ -1,0 +1,103 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST07-03",
+  "title": "Favorites Frontend Query & State Management",
+  "schema_version": "1.0.0",
+  "status": "BLOCKED",
+  "status_qualifier": "NO_QUERY_LIBRARY_AND_NO_SERVER_API",
+  "generated_at": "2026-07-24",
+  "source_revision": "c827b6f2afa",
+  "code_created": false,
+
+  "decision_context": {
+    "predicted_in": "ST07-02 report — 'ST07-03(Query/State)도 동일하게 API 부재로 BLOCKED. device-local 은 useState+localStorage 로 이미 충족(쿼리 라이브러리도 없음)'",
+    "series_status": "SP02-TK002 = CLOSED(Option A). ST07-01 재사용판정에서 'Favorite Query Cache'·'Favorite Mutation' 축은 이미 BLOCKED"
+  },
+
+  "source_artifacts_read": [
+    "tools/cwis/navigation/output/favorites-api-contract.json",
+    "tools/cwis/navigation/output/favorites-frontend-architecture-analysis.json",
+    "tools/cwis/navigation/output/favorites-frontend-reuse-plan.json",
+    "tools/cwis/navigation/output/favorites-api-client-summary.json"
+  ],
+
+  "query_library": "NONE (실측: TanStack Query·React Query·SWR·Apollo·Vue Query·RTK Query 0건 · frontend/package.json)",
+  "state_management": "React Context API + 컴포넌트 useState. favorites 는 device-local useState(Set)+localStorage",
+
+  "blocking_reasons": [
+    {
+      "id": "BLK-1",
+      "criterion": "쿼리 라이브러리 부재 + 설치 금지",
+      "finding": "spec 이 TanStack/SWR 등의 Query/Mutation/Cache 계층을 요구하나 저장소에 쿼리 라이브러리가 0건. §'Package 설치 금지'라 도입 불가. 재사용할 Query Client·Query Key Factory·Mutation Wrapper·Cache Helper 자체가 없다",
+      "verified": true
+    },
+    {
+      "id": "BLK-2",
+      "criterion": "쿼리가 호출할 서버 API 부재",
+      "finding": "ST07-02 API Client=BLOCKED(엔드포인트 0). useFavorites 쿼리를 만들어도 fetch 대상이 없어 실행 시 404 = 도달 가능한 죽은 코드. favorites-api-contract 는 NOT_IMPLEMENTED",
+      "verified": true
+    },
+    {
+      "id": "BLK-3",
+      "criterion": "device-local 은 쿼리/캐시 개념이 성립하지 않음",
+      "finding": "현행 favorites 는 localStorage 동기 상태. isLoading/isFetching/error/refetch/hasNextPage 등 spec 이 요구하는 async 상태가 존재할 수 없다(동기 읽기). Optimistic Update(취소→snapshot→요청→롤백)도 네트워크 요청이 없어 무의미",
+      "verified": true
+    },
+    {
+      "id": "BLK-4",
+      "criterion": "Workspace Cache 분리 대상 부재",
+      "finding": "spec 핵심 요구인 'Workspace 전환 시 Cache 분리'의 Workspace 엔티티·컨텍스트가 부재(ST07-01 확정). 분리할 축이 없다",
+      "verified": true
+    }
+  ],
+
+  "existing_state_already_covers_option_A": {
+    "note": "★device-local 범위에서 필요한 favorites 상태 관리는 이미 존재하며 ST07-06 에서 reorder 까지 확장했다. 쿼리 계층이 아니라 훅이다.",
+    "hook": "useFavorites (frontend/src/layout/Sidebar.jsx)",
+    "api": "{ favs: Set<path>, toggle(path), move(path, dir) }",
+    "persistence": "localStorage 'g_sidebar_favs'",
+    "consumers": "Sidebar NavSection(FavStar) · QuickAccessPanel",
+    "verified_this_session": "toggle·move 브라우저 실측 통과(ST07-06) · fav:test 26항"
+  },
+
+  "query_hooks_created": [],
+  "mutation_hooks_created": [],
+  "query_keys_created": [],
+  "existing_helpers_reused": "조사 완료 — 재사용 대상(Query Client/Key Factory/Cache Helper) 부재",
+  "optimistic_updates": "N/A — 네트워크 요청 없음(device-local)",
+  "rollback_strategy": "N/A(위와 동일). 단 useFavorites 는 setState 실패 시 localStorage 미반영으로 UI 일관성 유지",
+  "workspace_cache_strategy": "NOT_APPLICABLE — Workspace 엔티티 부재",
+  "error_strategy": "device-local: localStorage try/catch(프라이빗모드/쿼터). 서버 구조화 에러(validation/conflict/…)는 API 부재로 N/A",
+
+  "conditional_design_asset": {
+    "location": "favorites-query-key-map.json",
+    "content": "Option B 채택 + 쿼리 라이브러리 도입 시 사용할 4 Query + 5 Mutation 의 Query Key·캐시정책·invalidation·낙관적업데이트·롤백 설계"
+  },
+
+  "files_created": [
+    "tools/cwis/navigation/output/favorites-query-state-summary.json",
+    "tools/cwis/navigation/output/favorites-query-key-map.json",
+    "docs/cwis/part004-04/part004-04-ws01-sp02-tk002-st07-03-query-state.md"
+  ],
+  "files_modified": [],
+
+  "validation_results": {
+    "code_files_changed": 0,
+    "lint": "N/A — 변경 JS 파일 없음(산출물은 json/md)",
+    "typecheck": "N/A — TypeScript 미사용",
+    "package_installs": 0,
+    "git_scope": "PASS — 산출물 3건 전부 허용경로(tools/cwis/**·docs/cwis/**). 코드 무변경",
+    "note": "★같은 세션의 ST07-06(device-local reorder) 변경분(Sidebar.jsx·15 locales·guard)이 워킹트리에 미커밋 상태로 공존 — ST07-03 과 무관(별개 파일)"
+  },
+
+  "limitations": [
+    "쿼리/뮤테이션/캐시 계층 코드 0건 — 쿼리 라이브러리 부재(설치 금지) + 서버 API 부재",
+    "device-local 상태 관리는 이미 존재(useFavorites) — 이번 스텝의 서버형 요구와 다른 계층",
+    "Optimistic/Workspace 캐시/구조화 에러는 서버 연동 전제라 N/A",
+    "설계 자산(query-key-map)은 Option B 조건부"
+  ],
+
+  "next_step_readiness": {
+    "st07_04_ready": "이미 구현됨 — ST07-04(Toggle UI)의 대상(FavStar)은 존재·배포됨(REUSE). 서버 연동은 BLOCKED",
+    "recommendation": "ST07 하위 서버형 스텝(02·03·그리고 04/05/07 의 서버 부분)은 API 부재로 BLOCKED 수렴. device-local net-new 는 ST07-06(완료)뿐. 실 진행은 Option B 재결정(백엔드 선행) 또는 ST07 종료"
+  }
+}

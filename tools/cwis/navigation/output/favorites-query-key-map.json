@@ -1,0 +1,74 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST07-03",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-24",
+  "status_context": "NOT_IMPLEMENTED — 쿼리 라이브러리(TanStack/SWR) 부재 + favorites 서버 API 부재. 아래 Query Key 설계는 Option B(MEMBER_DATA) 재결정 + 쿼리 라이브러리 도입 시에만 유효한 조건부 설계다.",
+
+  "current_state_management": {
+    "note": "★현행 device-local 상태는 이미 존재(ST07-06 에서 reorder 까지 확장). 쿼리 캐시가 아니라 useState+localStorage 다.",
+    "hook": "frontend/src/layout/useFavorites (Sidebar.jsx 내)",
+    "shape": "{ favs: Set<path>, toggle(path), move(path, dir) }",
+    "persistence": "localStorage 'g_sidebar_favs' (경로 배열)",
+    "async_states": "없음 — 동기(localStorage) 라 isLoading/isFetching/error 개념이 성립하지 않음"
+  },
+
+  "conditional_query_keys": {
+    "note": "Option B 채택 시 사용할 설계. 쿼리 라이브러리가 없으므로 지금은 미구현. Tenant 는 인증 Context(X-Tenant-ID)에서 분리되므로 Key 에 노출하지 않는다. Workspace 는 엔티티 부재라 N/A.",
+    "entries": [
+      {
+        "query_name": "useFavorites",
+        "query_key": "['favorites','list',{ resourceType, favoriteType, status, page, limit, sort }]",
+        "scope_fields": ["resourceType", "favoriteType", "status", "page", "limit", "sort"],
+        "api_method": "listFavorites → GET /api/v427/favorites",
+        "cache_policy": "list — staleTime 30s 권장",
+        "invalidation_sources": ["useCreateFavorite", "useRemoveFavorite", "useRestoreFavorite", "useToggleFavorite", "useReorderFavorites"],
+        "optimistic_update": "N/A(목록)",
+        "rollback_supported": false
+      },
+      {
+        "query_name": "useFavorite",
+        "query_key": "['favorites','detail', favoriteId]",
+        "scope_fields": ["favoriteId"],
+        "api_method": "getFavorite → GET /api/v427/favorites/{id}",
+        "cache_policy": "detail",
+        "invalidation_sources": ["useRemoveFavorite", "useRestoreFavorite"],
+        "optimistic_update": "N/A",
+        "rollback_supported": false
+      },
+      {
+        "query_name": "useFavoriteExists",
+        "query_key": "['favorites','exists',{ resourceType, resourceId, favoriteType }]",
+        "scope_fields": ["resourceType", "resourceId", "favoriteType"],
+        "api_method": "existsFavorite → GET /api/v427/favorites/exists",
+        "cache_policy": "exists — 짧은 캐시",
+        "invalidation_sources": ["useCreateFavorite", "useRemoveFavorite", "useRestoreFavorite", "useToggleFavorite"],
+        "optimistic_update": "toggle 시 true/false 낙관적 반영 후 서버 확정",
+        "rollback_supported": true
+      },
+      {
+        "query_name": "useFavoritesByResourceType",
+        "query_key": "['favorites','byResourceType', resourceType, { page, limit }]",
+        "scope_fields": ["resourceType", "page", "limit"],
+        "api_method": "listFavoritesByResourceType → GET /api/v427/favorites/resource-types/{resourceType}",
+        "cache_policy": "list",
+        "invalidation_sources": ["useCreateFavorite", "useRemoveFavorite", "useReorderFavorites"],
+        "optimistic_update": "N/A",
+        "rollback_supported": false
+      }
+    ],
+    "mutation_design": [
+      { "mutation": "useCreateFavorite", "optimistic": false, "reason": "서버 ID 필요 — 임시 ID 영구화 금지", "on_success": "list invalidate + exists=true" },
+      { "mutation": "useRemoveFavorite", "optimistic": true, "flow": "cancel→snapshot→목록에서 제거→요청→실패시 복원→exists=false", "rollback": true },
+      { "mutation": "useRestoreFavorite", "optimistic": false, "on_conflict": "FAVORITE_CONFLICT → 관련 쿼리 재조회", "on_success": "list 복원+exists=true" },
+      { "mutation": "useToggleFavorite", "optimistic": true, "flow": "cancel→snapshot→exists 반전→요청→action(CREATED/REMOVED/RESTORED) 로 확정→실패시 복원", "rollback": true },
+      { "mutation": "useReorderFavorites", "optimistic": true, "flow": "cancel→snapshot→순서 반영→요청→실패/INVALID_ORDER 시 복원+재조회", "rollback": true }
+    ]
+  },
+
+  "blocking_reasons_for_implementation": [
+    "쿼리 라이브러리 부재(TanStack/SWR/Apollo 0) — §패키지 설치 금지라 도입 불가",
+    "favorites 서버 API 부재(ST05 BLOCKED·ST07-02 BLOCKED) — 쿼리가 호출할 엔드포인트 없음",
+    "Workspace 엔티티 부재 — Workspace 캐시 분리(§핵심 요구) N/A",
+    "현행 favorites 는 device-local 동기 상태라 쿼리/캐시/낙관적업데이트 개념이 성립하지 않음"
+  ]
+}

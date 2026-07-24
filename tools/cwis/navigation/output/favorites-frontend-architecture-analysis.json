@@ -1,0 +1,168 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST07-01",
+  "title": "Favorites Frontend Existing Architecture Analysis",
+  "schema_version": "1.0.0",
+  "status": "READY_WITH_LIMITATIONS",
+  "generated_at": "2026-07-24",
+  "source_revision": "c827b6f2afa",
+  "analysis_only": true,
+  "production_code_modified": false,
+
+  "required_inputs": {
+    "favorites-api-contract.json": "READ — 9엔드포인트 조건부 설계(NOT_IMPLEMENTED, Option B 자산)",
+    "favorites-api-implementation-summary.json": "READ — ST05 status=BLOCKED(불필요)",
+    "favorites-test-implementation-summary.json": "★NOT_FOUND — ST06 미처리(계열 종결)로 미생성"
+  },
+
+  "frontend_framework": "React",
+  "frontend_version": "react ^18.3.1 · react-dom ^18.3.1 · vite ^5.4.2 · react-router-dom ^6.26.2",
+  "language": "JavaScript (TypeScript 미사용 — .tsx 0건, devDependencies.typescript NONE)",
+
+  "feature_structure": {
+    "convention": "기능 폴더(feature-folder) 아님 — 유형별 디렉터리",
+    "layout": "frontend/src/{pages(~116 lazy), components, layout, context, contexts, auth, services, i18n, hooks}",
+    "note": "context/ 와 contexts/ 둘 다 실재·사용(신규 컨텍스트 전 양쪽 확인 필요)",
+    "favorites_current_location": "frontend/src/layout/Sidebar.jsx — 전용 폴더 없이 인라인(FavStar·useFavorites·QuickAccessPanel 3심볼 모두 여기)"
+  },
+
+  "api_client": {
+    "canonical": "frontend/src/services/apiClient.js",
+    "exports": ["getJson", "getJsonAuth", "postJson", "putJson", "putText", "patchJson", "delJson", "agencyToken", "actAsHeader"],
+    "base_url": "import.meta.env.VITE_API_BASE || '' (기본 상대경로)",
+    "reuse": "REUSE — favorites API 가 존재한다면 이 클라이언트로 호출. 중복 fetch/axios 인스턴스 생성 금지",
+    "note": "axios 미사용 — 순수 fetch 래퍼. 인터셉터 개념은 각 함수 내부에 인라인"
+  },
+
+  "authentication_strategy": {
+    "context": "frontend/src/auth/AuthContext.jsx (useAuth)",
+    "token": "localStorage genie_token / demo_genie_token (IS_DEMO 분기)",
+    "gate": "frontend/src/auth/authGate.js (restorableToken·세션검증)",
+    "reuse": "REUSE"
+  },
+  "tenant_context": {
+    "mechanism": "apiClient.js 가 X-Tenant-ID 헤더를 localStorage.tenantId(또는 'demo')에서 자동 주입",
+    "ui_selection": "없음 — UI 에서 tenant 직접 선택/변경 안 함(정책 준수)",
+    "reuse": "REUSE — Payload 에 tenantId 임의 삽입 금지, 기존 헤더 주입 사용"
+  },
+  "workspace_context": {
+    "status": "NOT_FOUND",
+    "evidence": "Workspace 엔티티·컨텍스트·멤버십 부재(ST07 ABSENT_AXES 확정). 유사=MenuVisibilityContext(메뉴 가시성)뿐",
+    "implication": "spec §18 Workspace Scope 분리 = NOT_APPLICABLE"
+  },
+
+  "state_management": {
+    "primary": "React Context API (Redux/Zustand/Recoil 미사용)",
+    "providers": ["AuthProvider", "GlobalDataProvider", "CurrencyProvider", "MobileSidebarProvider", "ConnectorSyncProvider", "ToastProvider", "CollaborationContextProvider", "MenuVisibilityContext", "NotificationContext", "ProductSelectionContext"],
+    "favorites_state": "Sidebar.jsx 내 useFavorites() — useState(Set) + localStorage 'g_sidebar_favs'. 전역 스토어 아님(device-local)",
+    "reuse": "device-local 은 현행 패턴 REUSE. 서버 동기화 상태는 부재(BLOCKED)"
+  },
+  "query_library": {
+    "status": "NOT_FOUND",
+    "evidence": "TanStack Query·SWR·Apollo·Vue Query 전부 0건(package.json)",
+    "implication": "spec §6 재사용 대상 없음. 서버 favorites 라면 캐시 계층을 IMPLEMENT_NEW 해야 하나 §29 패키지 설치 금지 → Context/수동 캐시만 가능"
+  },
+  "query_key_strategy": {
+    "status": "NOT_FOUND",
+    "evidence": "Query Key Factory 부재(쿼리 라이브러리 없음). spec §7 재사용 대상 없음"
+  },
+
+  "navigation_registry": {
+    "admin_registry": "frontend/src/services/navigationRegistry.js (fetchNavigationTree/fetchRegistry/validateRegistry/previewNavigation — 관리자용 레지스트리 API)",
+    "sidebar_source": "frontend/src/layout/{Sidebar.jsx, sidebarManifest.js, sidebarI18n.js, sidebarMenuLabels.js}",
+    "menu_visibility": "frontend/src/context/MenuVisibilityContext.jsx + auth/planMenuPolicy.js",
+    "reuse": "REUSE(Sidebar 구조)"
+  },
+  "resource_route_resolver": {
+    "mechanism": "별도 리졸버 불필요 — 즐겨찾기는 메뉴 경로 문자열(예 /analytics/roi)을 저장하고 react-router navigate(path) 로 직접 이동. allMenuItems 에서 label/icon 재해석",
+    "reuse": "REUSE(react-router-dom useNavigate + allMenuItems 매핑)",
+    "note": "spec §11 의 Workspace/Project/Task/Document/Meeting/Channel 등 다형 리소스 라우팅 = 해당 엔티티 부재로 N/A. 현행 리소스 타입 = MENU 단일"
+  },
+
+  "permission_system": {
+    "hooks": ["frontend/src/auth/useTeamRole.js (canWrite/isReadOnly/isOwner/isAdmin)", "useAuth", "auth/useVisibleTabs.js", "auth/useAdminReadOnly.js"],
+    "policy": "auth/planMenuPolicy.js + MenuVisibilityContext",
+    "favorites_permissions": "NOT_FOUND — favorites.view/create/delete/restore/reorder 미등록(ST05 확인). device-local 즐겨찾기는 서버 권한 대상 아님(UI 프리퍼런스)",
+    "reuse": "REUSE(useTeamRole) — 단 favorites 전용 권한은 미존재"
+  },
+
+  "design_system": {
+    "component_library": "NOT_FOUND — 전용 UI 라이브러리(MUI/AntD/Chakra) 미사용",
+    "styling": "인라인 style 객체 + 전역 CSS(frontend/src/styles.css) + CSS 토큰(scripts/sync-css-tokens.cjs, `npm run sync:tokens`)",
+    "reuse": "현행 Sidebar 인라인 스타일 관용 EXTEND"
+  },
+  "icon_system": {
+    "mechanism": "이모지 문자열(item.icon, 예 '📊'·'🔗'). 아이콘 라이브러리(lucide/react-icons/heroicons) 0건",
+    "reuse": "REUSE(이모지 관용)"
+  },
+  "notification_system": {
+    "toast": "frontend/src/components/ToastProvider.jsx (useToast)",
+    "context": "frontend/src/context/NotificationContext.jsx",
+    "reuse": "REUSE(useToast) — 에러/성공 알림"
+  },
+  "loading_components": {
+    "skeleton": "NOT_FOUND — 전용 Skeleton 컴포넌트 없음",
+    "note": "device-local 즐겨찾기는 동기(localStorage) 로드라 로딩 상태 불필요. 서버 favorites 라면 IMPLEMENT_NEW(단 §21 재사용 대상 없음)"
+  },
+  "empty_state_components": {
+    "component": "frontend/src/components/EmptyState.jsx — 단 props(onCreateClick/onTemplateClick)가 특정 화면 전용(범용 아님)",
+    "favorites_current": "QuickAccessPanel 이 favs 비었을 때 패널 자체를 렌더 안 함(hasFavs=false → null). 별도 EmptyState 미사용",
+    "reuse": "현행 '숨김' UX 는 REUSE. 범용 EmptyState 재사용은 부적합(전용 props)"
+  },
+  "error_handling": {
+    "mechanism": "apiClient 각 함수가 throw + 호출부 try/catch + useToast. 전역 ErrorBoundary 존재 여부=UNKNOWN(추가 조사 필요)",
+    "i18n_error": "에러 메시지는 useT 로 번역",
+    "reuse": "REUSE(useToast + try/catch)"
+  },
+
+  "drag_and_drop": {
+    "status": "NOT_FOUND",
+    "evidence": "react-dnd·@dnd-kit·react-beautiful-dnd·sortablejs 전부 0건(package.json)",
+    "implication": "spec §13 재사용 대상 없음 + §29 설치 금지 → Reorder 는 키보드/버튼(up-down) 방식만 가능. IMPLEMENT_NEW. 단 BACKLOG-3 는 요구 미확인 보류 상태"
+  },
+
+  "localization": {
+    "hooks": "frontend/src/i18n/t.js (useT), i18n/index.js (useI18n)",
+    "locales": "15개(ko,en,ja,zh,zh-TW,de,th,vi,id,ar,es,fr,hi,pt,ru)",
+    "favorites_keys": "sidebar.addFav / sidebar.removeFav 15개국 전부 존재(실측). g.quickFavs/g.quickRecents 등",
+    "reuse": "REUSE — 신규 키는 15개국 병합, ko 소스, 기계번역 금지"
+  },
+
+  "unit_test_framework": {
+    "status": "NOT_FOUND (표준 러너)",
+    "actual": "커스텀 node 자가검증 — tools/favorites_selftest.mjs(`npm run fav:test`), tools/navigation_analyze_selftest.mjs(`npm run nav:test`). Vitest/Jest/RTL 0건",
+    "reuse": "EXTEND(favorites_selftest.mjs — 정적 소스 어서션 방식)"
+  },
+  "component_test_framework": {
+    "status": "NOT_FOUND",
+    "evidence": "React Testing Library·Vue Test Utils 0건. 컴포넌트 마운트 테스트 인프라 없음"
+  },
+  "e2e_framework": {
+    "status": "커스텀 node 스크립트",
+    "actual": "tools/e2e/{smoke.mjs, render.mjs, scenarios.mjs} (`npm run e2e`, `e2e:render`, `e2e:scenario`). Playwright/Cypress 러너 미설치(단 Playwright MCP 는 대화형 검증에 사용 가능)",
+    "reuse": "EXTEND(e2e:render 로 화이트스크린 회귀 감지)"
+  },
+
+  "available_commands": {
+    "lint": "cd frontend && npm run lint (eslint src --ext .js,.jsx)",
+    "typecheck": "NONE (TypeScript 미사용)",
+    "unit_test": "npm run fav:test (루트) — 즐겨찾기 정적 자가검증",
+    "nav_test": "npm run nav:test (루트) — 메뉴 구조 회귀",
+    "e2e": "npm run e2e / e2e:render (루트·커스텀 node)",
+    "build": "cd frontend && npm run build (vite build)"
+  },
+
+  "limitations": [
+    "★서버 favorites API 부재(ST05 BLOCKED) — API 호출/쿼리캐시/뮤테이션 관련 재사용 판정은 전부 BLOCKED",
+    "쿼리 라이브러리·DnD 라이브러리·Skeleton·컴포넌트 테스트 프레임워크 부재(§29 설치 금지)",
+    "Workspace 컨텍스트 부재 → §18 Workspace 분리 N/A",
+    "favorites-test-implementation-summary.json(필수 입력) 부재 — ST06 미처리",
+    "전역 ErrorBoundary 존재 여부 UNKNOWN(추가 조사 필요)",
+    "현행 즐겨찾기는 device-local(localStorage) — spec 의 서버 연동 전제와 근본적으로 다름"
+  ],
+
+  "next_step_readiness": {
+    "st07_02_ready": "CONDITIONAL",
+    "condition": "ST07-02(API Client/Types)는 favorites 서버 API 를 전제 → ST05 BLOCKED 이므로 서버 연동 부분은 진행 불가(BLOCKED). device-local 범위에서는 API Client 자체가 불필요(NOT_REQUIRED)",
+    "recommendation": "재사용 판정(reuse-plan)이 드러내듯 ST07 의 서버 축은 BLOCKED, UI 축은 대부분 이미 구현·배포됨. ST07-02 이후는 Option B 재결정 없이는 실질 진행 대상이 device-local Reorder(BACKLOG-3) 뿐"
+  }
+}
