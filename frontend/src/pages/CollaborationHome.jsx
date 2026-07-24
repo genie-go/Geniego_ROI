@@ -81,6 +81,55 @@ export default function CollaborationHome() {
   }, [authFetch, token]);
   useEffect(() => { if (token) loadTeams(); }, [token, loadTeams]);
 
+  // ── 협업 대화·공지 게시판(비동기·스코프별) ──
+  const [space, setSpace] = useState({ type: 'org', id: '', name: '조직 전체' });
+  const [posts, setPosts] = useState([]);
+  const [emojis, setEmojis] = useState(['👍', '❤️', '🎉', '✅', '👀', '🙏']);
+  const [pTitle, setPTitle] = useState('');
+  const [pBody, setPBody] = useState('');
+  const [pAnnounce, setPAnnounce] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+  const [replies, setReplies] = useState({});
+  const [replyBody, setReplyBody] = useState('');
+  const loadPosts = useCallback(async (sp) => {
+    if (!token) return;
+    const s = sp || space;
+    try {
+      const r = await authFetch(`/api/v425/pm/collaboration/board/posts?space_type=${encodeURIComponent(s.type)}&space_id=${encodeURIComponent(s.id)}`);
+      if (r.ok) { const j = await r.json(); setPosts(Array.isArray(j?.posts) ? j.posts : []); if (Array.isArray(j?.emojis)) setEmojis(j.emojis); }
+    } catch (_) {}
+  }, [authFetch, token, space]);
+  useEffect(() => { if (token) loadPosts(space); }, [token, space, loadPosts]);
+  const createPost = useCallback(async () => {
+    if (!pBody.trim() && !pTitle.trim()) return;
+    setPosting(true);
+    try {
+      const r = await authFetch('/api/v425/pm/collaboration/board/posts', { method: 'POST', body: JSON.stringify({ space_type: space.type, space_id: space.id, title: pTitle, body: pBody, is_announcement: pAnnounce }) });
+      if (r.ok) { setPTitle(''); setPBody(''); setPAnnounce(false); await loadPosts(space); }
+      else { const j = await r.json().catch(() => ({})); setMsg(j?.error === 'insufficient_role' ? '게시 권한이 없습니다.' : (j?.error || `게시 실패(HTTP ${r.status})`)); }
+    } catch (e) { setMsg(String(e?.message || e)); }
+    finally { setPosting(false); }
+  }, [authFetch, space, pTitle, pBody, pAnnounce, loadPosts]);
+  const reactTo = useCallback(async (targetType, targetId, emoji) => {
+    try { const r = await authFetch('/api/v425/pm/collaboration/board/react', { method: 'POST', body: JSON.stringify({ target_type: targetType, target_id: targetId, emoji }) }); if (r.ok) { await loadPosts(space); if (expanded) await openReplies(expanded, true); } } catch (_) {}
+  }, [authFetch, space, loadPosts, expanded]);
+  const togglePin = useCallback(async (id) => {
+    try { const r = await authFetch(`/api/v425/pm/collaboration/board/posts/${encodeURIComponent(id)}/pin`, { method: 'POST' }); if (r.ok) await loadPosts(space); } catch (_) {}
+  }, [authFetch, space, loadPosts]);
+  const delPost = useCallback(async (id) => {
+    if (!window.confirm('이 게시글을 삭제할까요?')) return;
+    try { const r = await authFetch(`/api/v425/pm/collaboration/board/posts/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (r.ok) { setExpanded(null); await loadPosts(space); } } catch (_) {}
+  }, [authFetch, space, loadPosts]);
+  const openReplies = useCallback(async (id, silent) => {
+    if (!silent) setExpanded(prev => prev === id ? null : id);
+    try { const r = await authFetch(`/api/v425/pm/collaboration/board/posts/${encodeURIComponent(id)}/replies`); if (r.ok) { const j = await r.json(); setReplies(prev => ({ ...prev, [id]: Array.isArray(j?.replies) ? j.replies : [] })); } } catch (_) {}
+  }, [authFetch]);
+  const sendReply = useCallback(async (id) => {
+    if (!replyBody.trim()) return;
+    try { const r = await authFetch(`/api/v425/pm/collaboration/board/posts/${encodeURIComponent(id)}/replies`, { method: 'POST', body: JSON.stringify({ body: replyBody }) }); if (r.ok) { setReplyBody(''); await openReplies(id, true); await loadPosts(space); } } catch (_) {}
+  }, [authFetch, replyBody, openReplies, loadPosts, space]);
+
   // ── 통합 승인함 결재(집행 SSOT=기존 승인 엔진) ──
   const [apprBusy, setApprBusy] = useState('');
   const decideApproval = useCallback(async (id, decision) => {
@@ -306,7 +355,106 @@ export default function CollaborationHome() {
 
       </section>
 
-      {/* ═══ 3. 팀원 초대 ═══ */}
+      {/* ═══ 3. 협업 대화·공지 게시판 (스코프별 비동기) ═══ */}
+      <section style={{ marginBottom: 26 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 15, fontWeight: 800 }}>💬 {t('collab.board.title', '협업 대화·공지')}</span>
+        </div>
+        <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 12px' }}>
+          {t('collab.board.desc', '조직 전체 공지, 팀별 논의, 프로젝트 협업 대화를 스레드·리액션으로 나눕니다.')}
+        </p>
+
+        {/* 스코프 선택 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {[{ type: 'org', id: '', name: t('collab.board.org', '조직 전체') }, ...teams.map(tm => ({ type: 'team', id: String(tm.id), name: tm.name }))].map(s => {
+            const active = space.type === s.type && String(space.id) === String(s.id);
+            return (
+              <button key={s.type + s.id} onClick={() => setSpace(s)} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: active ? 700 : 400, border: `1px solid ${active ? '#4f8ef7' : 'rgba(148,163,184,0.4)'}`, background: active ? 'rgba(79,142,247,0.1)' : 'transparent', color: active ? '#2563eb' : '#64748b' }}>
+                {s.type === 'org' ? '📢 ' : '👥 '}{s.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 작성 */}
+        <div style={{ padding: 12, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)', marginBottom: 14 }}>
+          <input value={pTitle} onChange={e => setPTitle(e.target.value)} placeholder={t('collab.board.titlePh', '제목(선택)')} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', marginBottom: 8, fontSize: 13, fontWeight: 700 }} />
+          <textarea value={pBody} onChange={e => setPBody(e.target.value)} placeholder={t('collab.board.bodyPh', `${space.name}에 공유할 내용을 적어보세요. @이름 으로 멘션할 수 있습니다.`)} rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', fontSize: 13, resize: 'vertical' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748b', cursor: 'pointer' }}>
+              <input type="checkbox" checked={pAnnounce} onChange={e => setPAnnounce(e.target.checked)} /> 📢 {t('collab.board.announce', '공지로 등록')}
+            </label>
+            <button onClick={createPost} disabled={posting || (!pBody.trim() && !pTitle.trim())} style={{ marginLeft: 'auto', padding: '7px 18px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', opacity: posting ? 0.5 : 1 }}>
+              {posting ? '…' : t('collab.board.post', '게시')}
+            </button>
+          </div>
+        </div>
+
+        {/* 게시글 목록 */}
+        {posts.length === 0 ? (
+          <div style={{ fontSize: 13, color: '#94a3b8', padding: '8px 2px' }}>{t('collab.board.empty', '아직 대화가 없습니다. 첫 글을 남겨보세요.')}</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {posts.map(p => (
+              <div key={p.id} style={{ padding: 14, borderRadius: 12, border: `1px solid ${p.is_pinned ? 'rgba(217,119,6,0.4)' : 'var(--border,#e2e8f0)'}`, background: p.is_announcement ? 'rgba(217,119,6,0.04)' : 'var(--card,#fff)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  {p.is_pinned === 1 && <span style={{ fontSize: 11 }}>📌</span>}
+                  {p.is_announcement === 1 && <span style={{ fontSize: 10, fontWeight: 700, color: '#d97706', padding: '1px 6px', borderRadius: 6, background: 'rgba(217,119,6,0.12)' }}>{t('collab.board.announceTag', '공지')}</span>}
+                  {p.title && <span style={{ fontWeight: 800, fontSize: 14 }}>{p.title}</span>}
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#94a3b8' }}>{p.author_name || '—'} · {p.created_at ? String(p.created_at).slice(0, 16).replace('T', ' ') : ''}</span>
+                </div>
+                {p.body && <div style={{ fontSize: 13, color: '#334155', whiteSpace: 'pre-wrap', marginBottom: 8 }}>{p.body}</div>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  {emojis.map(em => {
+                    const cnt = p.reactions?.counts?.[em] || 0;
+                    const mine = (p.reactions?.mine || []).includes(em);
+                    return (
+                      <button key={em} onClick={() => reactTo('post', p.id, em)} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 99, cursor: 'pointer', border: `1px solid ${mine ? '#4f8ef7' : 'rgba(148,163,184,0.3)'}`, background: mine ? 'rgba(79,142,247,0.1)' : 'transparent', color: '#475569' }}>
+                        {em}{cnt > 0 ? ` ${cnt}` : ''}
+                      </button>
+                    );
+                  })}
+                  <button onClick={() => openReplies(p.id)} style={{ fontSize: 12, padding: '2px 10px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(148,163,184,0.3)', background: 'transparent', color: '#64748b' }}>
+                    💬 {t('collab.board.replies', '답글')} {p.reply_count > 0 ? p.reply_count : ''}
+                  </button>
+                  <button onClick={() => togglePin(p.id)} title={t('collab.board.pin', '고정')} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(148,163,184,0.3)', background: 'transparent', color: p.is_pinned === 1 ? '#d97706' : '#94a3b8' }}>📌</button>
+                  <button onClick={() => delPost(p.id)} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(220,38,38,0.25)', background: 'transparent', color: '#dc2626' }}>🗑</button>
+                </div>
+
+                {/* 답글 */}
+                {expanded === p.id && (
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border,#e2e8f0)' }}>
+                    <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+                      {(replies[p.id] || []).length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>{t('collab.board.noReplies', '첫 답글을 남겨보세요.')}</div>}
+                      {(replies[p.id] || []).map(rp => (
+                        <div key={rp.id} style={{ padding: '7px 10px', borderRadius: 8, background: 'rgba(148,163,184,0.06)', fontSize: 12 }}>
+                          <div style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
+                            <span style={{ fontWeight: 700, color: '#475569' }}>{rp.author_name || '—'}</span>
+                            <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: 11 }}>{rp.created_at ? String(rp.created_at).slice(5, 16).replace('T', ' ') : ''}</span>
+                          </div>
+                          <div style={{ color: '#334155', whiteSpace: 'pre-wrap' }}>{rp.body}</div>
+                          <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
+                            {emojis.slice(0, 4).map(em => {
+                              const cnt = rp.reactions?.counts?.[em] || 0; const mine = (rp.reactions?.mine || []).includes(em);
+                              return <button key={em} onClick={() => reactTo('reply', rp.id, em)} style={{ fontSize: 11, padding: '1px 7px', borderRadius: 99, cursor: 'pointer', border: `1px solid ${mine ? '#4f8ef7' : 'rgba(148,163,184,0.3)'}`, background: mine ? 'rgba(79,142,247,0.1)' : 'transparent' }}>{em}{cnt > 0 ? ` ${cnt}` : ''}</button>;
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input value={replyBody} onChange={e => setReplyBody(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(p.id); } }} placeholder={t('collab.board.replyPh', '답글… (@이름 멘션 가능)')} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid var(--border,#cbd5e1)', fontSize: 12 }} />
+                      <button onClick={() => sendReply(p.id)} disabled={!replyBody.trim()} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#4f8ef7', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', opacity: replyBody.trim() ? 1 : 0.5 }}>{t('collab.board.reply', '답글')}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ═══ 4. 팀원 초대 (하단) ═══ */}
       <section style={{ marginBottom: 26, padding: 16, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
         <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>✉️ {t('collab.invite.title', '팀원 초대')}</div>
         <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>{t('collab.invite.desc', '이메일로 팀원을 초대합니다. 초대 링크는 만료·1회성이며 관리자만 발급/철회할 수 있습니다.')}</div>
@@ -351,7 +499,7 @@ export default function CollaborationHome() {
         )}
       </section>
 
-      {/* ═══ 4. 관리자 전용 협업 기능 설정 (비즈니스 라벨만) ═══ */}
+      {/* ═══ 5. 관리자 전용 협업 기능 설정 (비즈니스 라벨만) ═══ */}
       <section style={{ padding: 16, borderRadius: 12, border: '1px solid var(--border,#e2e8f0)' }}>
         <button onClick={() => { setSettingsOpen(o => !o); if (!caps.length) loadCaps(); }} aria-expanded={settingsOpen}
           style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>

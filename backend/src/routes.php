@@ -1451,6 +1451,13 @@ return function (App $app): void {
         'GET /v425/pm/collaboration/readiness'                   => 'Genie\\Handlers\\PM\\Collaboration::readiness',
         'GET /v425/pm/collaboration/hub'                         => 'Genie\\Handlers\\PM\\Collaboration::personalHub', // [Part A] 워크스페이스 홈(전 구독플랜)
         'GET /v425/pm/collaboration/teams'                       => 'Genie\\Handlers\\PM\\Collaboration::teamWorkspace', // [재구성] 팀/부서 간 협업(전 구독플랜)
+        'GET /v425/pm/collaboration/board/posts'                 => 'Genie\\Handlers\\PM\\CollabBoard::listPosts',   // [협업보드] 스코프 게시글 목록
+        'POST /v425/pm/collaboration/board/posts'                => 'Genie\\Handlers\\PM\\CollabBoard::createPost',
+        'DELETE /v425/pm/collaboration/board/posts/{id}'         => 'Genie\\Handlers\\PM\\CollabBoard::deletePost',
+        'POST /v425/pm/collaboration/board/posts/{id}/pin'       => 'Genie\\Handlers\\PM\\CollabBoard::togglePin',
+        'GET /v425/pm/collaboration/board/posts/{id}/replies'    => 'Genie\\Handlers\\PM\\CollabBoard::listReplies',
+        'POST /v425/pm/collaboration/board/posts/{id}/replies'   => 'Genie\\Handlers\\PM\\CollabBoard::createReply',
+        'POST /v425/pm/collaboration/board/react'                => 'Genie\\Handlers\\PM\\CollabBoard::react',
         'GET /v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
         'POST /v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
         'POST /v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
@@ -1532,6 +1539,13 @@ return function (App $app): void {
         'GET /api/v425/pm/collaboration/readiness'                   => 'Genie\\Handlers\\PM\\Collaboration::readiness',
         'GET /api/v425/pm/collaboration/hub'                         => 'Genie\\Handlers\\PM\\Collaboration::personalHub', // [Part A] 워크스페이스 홈(전 구독플랜)
         'GET /api/v425/pm/collaboration/teams'                       => 'Genie\\Handlers\\PM\\Collaboration::teamWorkspace', // [재구성] 팀/부서 간 협업(전 구독플랜)
+        'GET /api/v425/pm/collaboration/board/posts'                 => 'Genie\\Handlers\\PM\\CollabBoard::listPosts',   // [협업보드] 스코프 게시글 목록
+        'POST /api/v425/pm/collaboration/board/posts'                => 'Genie\\Handlers\\PM\\CollabBoard::createPost',
+        'DELETE /api/v425/pm/collaboration/board/posts/{id}'         => 'Genie\\Handlers\\PM\\CollabBoard::deletePost',
+        'POST /api/v425/pm/collaboration/board/posts/{id}/pin'       => 'Genie\\Handlers\\PM\\CollabBoard::togglePin',
+        'GET /api/v425/pm/collaboration/board/posts/{id}/replies'    => 'Genie\\Handlers\\PM\\CollabBoard::listReplies',
+        'POST /api/v425/pm/collaboration/board/posts/{id}/replies'   => 'Genie\\Handlers\\PM\\CollabBoard::createReply',
+        'POST /api/v425/pm/collaboration/board/react'                => 'Genie\\Handlers\\PM\\CollabBoard::react',
         'GET /api/v425/pm/collaboration/capabilities/{key}'          => 'Genie\\Handlers\\PM\\Collaboration::getCapability',
         'POST /api/v425/pm/collaboration/capabilities/{key}/enable'  => 'Genie\\Handlers\\PM\\Collaboration::enableCapability',
         'POST /api/v425/pm/collaboration/capabilities/{key}/disable' => 'Genie\\Handlers\\PM\\Collaboration::disableCapability',
@@ -3772,6 +3786,13 @@ return function (App $app): void {
     $register('GET',    '/v425/pm/collaboration/readiness');
     $register('GET',    '/v425/pm/collaboration/hub');
     $register('GET',    '/v425/pm/collaboration/teams');
+    $register('GET',    '/v425/pm/collaboration/board/posts');
+    $register('POST',   '/v425/pm/collaboration/board/posts');
+    $register('DELETE', '/v425/pm/collaboration/board/posts/{id}');
+    $register('POST',   '/v425/pm/collaboration/board/posts/{id}/pin');
+    $register('GET',    '/v425/pm/collaboration/board/posts/{id}/replies');
+    $register('POST',   '/v425/pm/collaboration/board/posts/{id}/replies');
+    $register('POST',   '/v425/pm/collaboration/board/react');
     $register('GET',    '/v425/pm/collaboration/capabilities/{key}');
     $register('POST',   '/v425/pm/collaboration/capabilities/{key}/enable');
     $register('POST',   '/v425/pm/collaboration/capabilities/{key}/disable');
@@ -3849,6 +3870,13 @@ return function (App $app): void {
     $register('GET',    '/api/v425/pm/collaboration/readiness');
     $register('GET',    '/api/v425/pm/collaboration/hub');
     $register('GET',    '/api/v425/pm/collaboration/teams');
+    $register('GET',    '/api/v425/pm/collaboration/board/posts');
+    $register('POST',   '/api/v425/pm/collaboration/board/posts');
+    $register('DELETE', '/api/v425/pm/collaboration/board/posts/{id}');
+    $register('POST',   '/api/v425/pm/collaboration/board/posts/{id}/pin');
+    $register('GET',    '/api/v425/pm/collaboration/board/posts/{id}/replies');
+    $register('POST',   '/api/v425/pm/collaboration/board/posts/{id}/replies');
+    $register('POST',   '/api/v425/pm/collaboration/board/react');
     $register('GET',    '/api/v425/pm/collaboration/capabilities/{key}');
     $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/enable');
     $register('POST',   '/api/v425/pm/collaboration/capabilities/{key}/disable');
