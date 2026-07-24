@@ -1,0 +1,152 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST05",
+  "title": "Favorites API & HTTP Layer Implementation",
+  "schema_version": "1.0.0",
+  "status": "BLOCKED",
+  "status_qualifier": "UNNECESSARY_UNDER_CONFIRMED_DECISION",
+  "generated_at": "2026-07-24",
+  "source_revision": "db0968cc457",
+  "api_version": "N/A (미구현) — Option B 시 /api/v427 후보",
+
+  "decision_context": {
+    "phase_1_definition": "UI 프리퍼런스 (device-local)",
+    "confirmed_by_user": "2026-07-24 — 4회('권장 A로 전환' → '커밋하고 진행' → ST04 '현 결정 유지'). Option A = SP02-TK002 계열 종결이므로 ST05 도 사전 답변됨",
+    "series_status": "ST01 미구현 · ST02 BLOCKED · ST03 BLOCKED · ST04 BLOCKED(불필요) · ST05 BLOCKED(불필요)"
+  },
+
+  "source_artifacts_read": [
+    "tools/cwis/navigation/output/favorites-gap-analysis.json",
+    "tools/cwis/navigation/output/favorites-application-implementation-summary.json",
+    "tools/cwis/navigation/output/favorites-infrastructure-implementation-summary.json",
+    "tools/cwis/navigation/output/favorites-persistence-schema-requirements.json",
+    "tools/cwis/navigation/output/favorites-schema-summary.json"
+  ],
+
+  "blocking_reasons": [
+    {
+      "id": "BLK-1",
+      "criterion": "선행 4계층 전부 부재 + 상위 결정 충돌",
+      "finding": "ST05 premise('ST01~ST04 구현을 기반으로')가 성립 안 함 — Domain 미구현·Application/Infra/Schema BLOCKED. API 가 호출할 Command/Query Handler·DTO(ST02)도, 읽고 쓸 테이블(ST04)도 없다. PHASE_1='UI 프리퍼런스' 확정으로 서버 API 는 요구사항 밖",
+      "verified": true
+    },
+    {
+      "id": "BLK-2",
+      "criterion": "§24 허용 코드경로 전부 부재",
+      "finding": "app/Http·src/Http·routes/·app/Presentation·src/Presentation·config/routes·docs/api 전부 부재. Http/Presentation/Controllers 디렉터리 저장소 전역 0건. 실재 라우팅=단일 backend/src/routes.php(301KB 문자열매핑) — §24 목록에 없음. 허용 산출물 경로는 docs/cwis/**·tools/cwis/** 뿐",
+      "verified": true
+    },
+    {
+      "id": "BLK-3",
+      "criterion": "★API 계층은 죽은 테이블보다 위험 — 도달 가능한 공격면",
+      "finding": "ST04 죽은 스키마는 inert(생성조차 안 됨)였다. 그러나 routes.php 에 등록된 라우트는 즉시 도달 가능하다. 존재하지 않는 테이블에 쓰는 인증/공개 엔드포인트를 노출하는 것 = 신규 공격면 + reachability 안티패턴(reference_reachability_check_dead_feature). 67dee1fe46a 가 고친 결함의 능동적 악화",
+      "verified": true
+    },
+    {
+      "id": "BLK-4",
+      "criterion": "Controller 계층 자체가 없음",
+      "finding": "§3 Thin Controller·Command Bus·§11 Form Request·§12 Response Resource 는 이 저장소에 존재하지 않는 계층이다. 실재=Slim Handler 절차형. spec 이 상정한 Laravel/Symfony 아키텍처와 불일치",
+      "verified": true
+    },
+    {
+      "id": "BLK-5",
+      "criterion": "Workspace Context 확인 불가",
+      "finding": "§16 Workspace Isolation 요구하나 Workspace 엔티티·멤버십 부재(ST07 ABSENT_AXES). principal 다중축도 없음(현행=user 단일, 값=메뉴 경로 문자열)",
+      "verified": true
+    }
+  ],
+
+  "existing_convention_investigation": {
+    "note": "§1 지시 17축 조사 — 정본=favorites-api-contract.json measured_api_conventions. 결과가 BLK-2/BLK-4 근거",
+    "framework": "Slim 4 + PSR-7 (Laravel/Symfony 아님)",
+    "routing": "단일 routes.php 문자열매핑 (routes/** 디렉터리 아님)",
+    "versioning": "/v{NNN} URL 접두 + /api 별칭",
+    "controller_layer": "부재 — Handler 가 타깃",
+    "response_envelope": "['ok'=>bool] 연관배열 (Resource 계층 없음)",
+    "error_mapper": "공통 없음 — self::json(...,status)",
+    "pagination": "공통 없음 — ad-hoc LIMIT/OFFSET",
+    "openapi": "부재 (§21 패키지 도입 금지 준수)",
+    "auth": "Bearer/api_key SHA-256 + api_key 테이블 · 세션=PM\\Shared::gate",
+    "tenant_context": "auth_tenant attribute + WHERE tenant_id=?"
+  },
+
+  "controllers_created": [],
+  "controllers_modified": [],
+  "requests_created": [],
+  "resources_created": [],
+  "routes_created": [],
+  "routes_reused": [],
+  "endpoints": "설계만 — favorites-api-contract.json 9개(conditional_on Option B)",
+
+  "authentication_strategy": {
+    "designed": "Bearer/api_key + index.php 미들웨어 (신규 공개경로 bypass 등록 필요)",
+    "implemented": false
+  },
+  "authorization_strategy": {
+    "designed": "PM\\Shared::gate(analyst+ for write, viewer for read). favorites.* 권한명 미확정",
+    "implemented": false,
+    "note": "§15 '미등록 시 연결지점만·등록 금지' — 미구현이므로 연결지점도 없음"
+  },
+  "tenant_context_strategy": {
+    "designed": "auth_tenant attribute, 본문 tenantId 미신뢰, 쿼리 WHERE tenant_id=?",
+    "implemented": false
+  },
+  "workspace_context_strategy": {
+    "status": "NOT_APPLICABLE",
+    "reason": "Workspace 엔티티 부재(BLK-5)"
+  },
+  "idempotency_strategy": {
+    "designed": "Create=Idempotency-Key + active_key UNIQUE. Toggle=비멱등(설계 한계 명시)",
+    "implemented": false
+  },
+  "error_mapping": {
+    "designed": "FAVORITE_* 코드 → 401/403/404/409/422/500 (contract 참조)",
+    "implemented": false
+  },
+  "pagination_strategy": {
+    "designed": "page/limit 상한200 + sort 화이트리스트(position|createdAt|id)",
+    "implemented": false
+  },
+  "rate_limit_strategy": {
+    "status": "후보만 기록",
+    "note": "§20 — 공통 Rate Limiter 미들웨어 부재. Write/Toggle 에 후보 필요하나 신규 인프라 신설 금지. 미구현"
+  },
+  "openapi_status": "체계 부재 — favorites-api-contract.json 이 Markdown Contract 대체(§21 준수)",
+
+  "validation_results": {
+    "php_files_changed": 0,
+    "php_lint": "N/A — 변경 PHP 0건",
+    "route_listing": "NOT_EXECUTED — Slim 은 안전한 route:list 명령 없음 + 미구현",
+    "package_installs": 0,
+    "git_scope": "PASS — 산출물 3건 전부 §24 허용(docs/cwis/**·tools/cwis/**). app/Http·routes/ 등 무변경(부재)",
+    "checks_from_section_27": [
+      { "check": "PHP Syntax", "result": "N/A (대상 0)" },
+      { "check": "Route 충돌 없음", "result": "PASS — 신규 라우트 0" },
+      { "check": "Thin Controller", "result": "N/A — Controller 0" },
+      { "check": "Controller Repository 직접호출 없음", "result": "PASS (변경 0)" },
+      { "check": "Write Endpoint 인증/권한", "result": "N/A — Endpoint 0" },
+      { "check": "Tenant Context 누락 없음", "result": "PASS (신규 쿼리 0)" },
+      { "check": "Domain/ORM Entity 직접반환 없음", "result": "PASS (반환 0)" },
+      { "check": "중복 공통구현 없음", "result": "PASS — Base Controller·Response Wrapper·Error Mapper 0건" },
+      { "check": "허용범위 외 변경 없음", "result": "PASS" }
+    ]
+  },
+
+  "test_candidates": {
+    "note": "§23 형식 — 구현 없으므로 전부 조건부(Option B)",
+    "candidates": ["create success/duplicate/unauthorized", "tenant isolation", "workspace isolation (N/A)", "remove success/idempotency", "restore conflict", "toggle create/remove", "reorder success/duplicate-IDs", "list pagination/filter", "exists authorized/unauthorized", "invalid enum/identifier", "rate limit", "error response schema", "★unauthorized resource existence leakage (exists API)"]
+  },
+
+  "limitations": [
+    "코드 0건 — §24 허용경로 부재 + 선행 4계층 부재 + Option A 확정",
+    "★API 등록은 죽은 테이블보다 위험(도달 가능 공격면)이라 특히 미구현이 옳다",
+    "권한명·version·rate limit 미확정(§15·§18·§20 규정 준수)",
+    "본 Contract 설계는 조건부 — Option B 재결정 시에만 유효"
+  ],
+
+  "next_step_readiness": {
+    "st06_ready": false,
+    "condition": "SP02-TK002 5연속 BLOCKED. Option A(계열 종결) 확정이 ST05·ST06·... 를 사전 답변. 동일 전제 지속 시 동일 판정 반복",
+    "recommendation": "★즐겨찾기 CWIS 계열 intake 종료 권장. UI 프리퍼런스 잔여는 커밋 1234a6f0957 로 해소·배포 완료. 남은 것=BACKLOG-3(요구 미확인) 뿐. 신규 Part 로 이동",
+    "option_b_pivot": "재결정 시 favorites-api-contract.json(9엔드포인트) + favorites-persistence-schema-requirements.json(스키마) 조합으로 Handlers\\Favorites + routes.php(/api) 구현. Controller 아님"
+  }
+}
