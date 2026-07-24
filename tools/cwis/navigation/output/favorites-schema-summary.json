@@ -1,0 +1,113 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP02-TK002-ST04",
+  "title": "Favorites Database Migration & Schema Implementation",
+  "schema_version": "1.0.0",
+  "status": "BLOCKED",
+  "status_qualifier": "UNNECESSARY_UNDER_CONFIRMED_DECISION",
+  "generated_at": "2026-07-24",
+  "source_revision": "1234a6f0957",
+
+  "decision_context": {
+    "phase_1_definition": "UI 프리퍼런스 (device-local)",
+    "confirmed_by_user": "2026-07-24 — 2회 확정('권장 A로 전환' → '커밋하고 진행') + ST04 진입 시 재확정('현 결정 유지')",
+    "series_status": "SP02-TK002 (Domain/Application/Infrastructure/Schema) = 종결(Option A)",
+    "implication": "즐겨찾기는 서버 지속화 대상이 아니다. 따라서 서버 테이블·마이그레이션·스키마는 요구사항에서 제외됨(로드맵 PHASE_2 conditional_on='PHASE_1 정의 = MEMBER_DATA')"
+  },
+
+  "source_artifacts_read": [
+    "tools/cwis/navigation/output/favorites-gap-analysis.json",
+    "tools/cwis/navigation/output/favorites-roadmap.json",
+    "tools/cwis/navigation/output/favorites-persistence-schema-requirements.json",
+    "tools/cwis/navigation/output/favorites-infrastructure-implementation-summary.json"
+  ],
+
+  "blocking_reasons": [
+    {
+      "id": "BLK-1",
+      "criterion": "선행 계층 부재 + 상위 결정과 충돌",
+      "finding": "ST01 Domain=NOT_IMPLEMENTED(사용자확정)·ST02 Application=BLOCKED·ST03 Infrastructure=BLOCKED. ST04 premise('ST01~ST03 구현을 기반으로')가 성립하지 않는다. PHASE_1='UI 프리퍼런스' 확정으로 서버 지속화 축 자체가 소멸됨",
+      "verified": true
+    },
+    {
+      "id": "BLK-2",
+      "criterion": "§Git-Diff 허용 코드경로 부재",
+      "finding": "spec 허용 경로 database/·migrations/·schema/ (저장소 루트) 전부 부재. 실재하는 것은 backend/migrations/ 뿐이며 이는 §허용 목록에 없다. 실측: `ls -d database migrations schema` → 전부 ABSENT",
+      "verified": true
+    },
+    {
+      "id": "BLK-3",
+      "criterion": "마이그레이션 파일 패턴 폐기됨",
+      "finding": "backend/migrations/ 는 20260527_172_* 에서 정지(세션 172). 이후 전 스키마 변경은 핸들러별 ensureTables() 자가치유가 담당(실측 72개 파일). 신규 .sql 마이그레이션 = 100+ 세션 전 폐기된 패턴 부활",
+      "verified": true
+    },
+    {
+      "id": "BLK-4",
+      "criterion": "생성 시 구조적 죽은 스키마",
+      "finding": "spec 이 Controller·API·Handler·Test 를 전부 금지한다. 이 저장소의 유일한 라이브 테이블 생성 경로는 핸들러 내부 ensureTables 다(금지됨). 마이그레이션 실행도 금지(Database 접속·Migration 실행 금지)+원격서버에서만 실행 가능. 따라서 테이블을 만들어도 (a)생성할 주체가 없고 (b)읽고 쓸 주체가 없다 = 완전한 죽은 스키마. ST01~ST03 이 반복 지적하고 사용자가 Option A 로 회피한 결함의 재생산",
+      "verified": true
+    },
+    {
+      "id": "BLK-5",
+      "criterion": "필수 컬럼을 실재 데이터로 채울 수 없음",
+      "finding": "spec 필수 컬럼 workspace_id·principal_type/principal_id 의 실재 축이 부재. Workspace 엔티티·멤버십 부재(ST07 ABSENT_AXES). 현행 즐겨찾기 값은 메뉴 경로 문자열(localStorage g_sidebar_favs)이며 워크스페이스·다중 principal 개념이 없다",
+      "verified": true
+    }
+  ],
+
+  "existing_schema_investigation": {
+    "favorites_table_exists": false,
+    "evidence": "CREATE TABLE ...favorit / ensure*Favorit grep 전수(backend/, vendor 제외) → 0건. ST04 favorites-database-table-inventory.json 과 정합(321개 테이블 중 즐겨찾기 0)",
+    "migration_dir": {
+      "path": "backend/migrations/",
+      "file_count": 21,
+      "last_file": "20260527_172_002_coupon_tables.sql",
+      "frozen_at": "세션 172",
+      "runner": "backend/bin/migrate.php (동작함 · -- @rollback 블록 · schema_migrations 추적 · ★원격서버에서만 실행)",
+      "note": "러너는 살아있으나 신규 마이그레이션을 이 dir 에 추가하는 관용이 세션 172 이후 없음"
+    },
+    "naming_conventions_measured": {
+      "table": "단수 snake_case 도메인 접두 (app_user·saved_report·omni_outbox). 복수도 혼재(collaboration_invitations)",
+      "pk": "INT AUTO_INCREMENT + 별도 public_id VARCHAR(64) — UUID/ULID PK 관용 없음",
+      "index": "idx_<약어>_<컬럼들> / uq_<약어>_<컬럼>",
+      "fk": "미사용 — 논리 참조(scope_type+scope_id) 관용",
+      "timestamp": "VARCHAR(32)/TEXT 문자열 (네이티브 DATETIME 아님)",
+      "soft_delete": "deleted_at 관용 0건 — status + 사건 타임스탬프(is_active 44파일)",
+      "version": "낙관적 락 컬럼 0건",
+      "enum": "VARCHAR + in_array 화이트리스트 (네이티브 ENUM 미사용)"
+    }
+  },
+
+  "reusable_design_asset": {
+    "note": "★스키마 설계는 ST03 에서 이미 완결됨 — Option B 재결정 시 즉시 사용 가능. 본 ST04 에서 재작성하지 않는다(중복 금지)",
+    "location": "tools/cwis/navigation/output/favorites-persistence-schema-requirements.json",
+    "key_points": [
+      "테이블 favorite (단수) · id INT AUTO_INCREMENT + public_id",
+      "★MySQL 8.0 부분 유니크 인덱스 미지원 → 이식 대안 = NULL 허용 active_key + UNIQUE(양 엔진 동일 동작)",
+      "soft delete = status('ACTIVE'|'REMOVED') + removed_at (deleted_at 아님 — 관용 계승)",
+      "workspace_id 의도적 제외(엔티티 부재) · version 미채택(조건부 UPDATE affected-rows 로 대체)",
+      "생성 경로 = 마이그레이션 파일이 아니라 ensureFavoriteTable(PDO,$isDemo) — 저장소 정본",
+      "인덱스: uq_fav_active / idx_fav_owner / idx_fav_res / idx_fav_tenant"
+    ]
+  },
+
+  "created_files": [],
+  "migration_files_created": [],
+  "modified_files": [],
+
+  "validation_results": {
+    "migration_syntax": "N/A — 마이그레이션 미생성",
+    "rollback_capable": "N/A",
+    "duplicate_check": "PASS — favorite 테이블 0건 확인, 중복 신설 없음",
+    "naming_convention": "N/A (생성물 없음)",
+    "database_access": "NOT_EXECUTED (spec 금지 · 준수)",
+    "migration_execution": "NOT_EXECUTED (spec 금지 · 준수)",
+    "git_scope": "PASS — 산출물 2건 전부 §허용 경로(tools/cwis/**, docs/**). database/·migrations/·schema/ 무변경(부재)"
+  },
+
+  "next_step_readiness": {
+    "st05_ready": false,
+    "condition": "SP02-TK002 계열 종결(Option A). ST05 이후를 같은 전제로 진행하면 동일 판정 반복",
+    "recommendation": "즐겨찾기 CWIS 계열은 UI 프리퍼런스 축(PHASE_3)만 남았고 그 잔여(BACKLOG-1/2 + 부수 패널결함)는 커밋 1234a6f0957 로 해소·운영/데모 배포 완료. 남은 항목은 BACKLOG-3(드래그 순서·요구 미확인) 뿐. 신규 Part 로 이동 권장",
+    "option_b_pivot": "즐겨찾기를 회원데이터로 재정의하려면 favorites-persistence-schema-requirements.json 을 기반으로 ensureFavoriteTable + Handlers/Favorites.php + routes.php(/api) 구현(spec 의 no-handler/API 제약 해제 필요). principal=user 단일축, localStorage 는 클라이언트 1회 병합"
+  }
+}
