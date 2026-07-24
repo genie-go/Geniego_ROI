@@ -1,0 +1,48 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST03",
+  "generated_at": "2026-07-24T00:30:15.588Z",
+  "component_count": 2,
+  "components": [
+    {
+      "component_name": "QuickAccessPanel",
+      "component_type": "COMPONENT",
+      "framework": "REACT",
+      "file_path": "frontend/src/layout/Sidebar.jsx",
+      "line_number": 323,
+      "match_count": 4,
+      "props": [
+        "favs",
+        "recents",
+        "allItems",
+        "navigate",
+        "toggleFav",
+        "t",
+        "isExpanded",
+        "onToggle"
+      ],
+      "events": [],
+      "api_call_detected": false,
+      "store_detected": false,
+      "accessibility_detected": false,
+      "mobile_support_detected": false,
+      "priority": "HIGH",
+      "confidence": "MEDIUM"
+    },
+    {
+      "component_name": "toggleBookmark",
+      "component_type": "FUNCTION",
+      "framework": "REACT",
+      "file_path": "frontend/src/pages/CaseStudy.jsx",
+      "line_number": 41,
+      "match_count": 4,
+      "props": [],
+      "events": [],
+      "api_call_detected": false,
+      "store_detected": false,
+      "accessibility_detected": false,
+      "mobile_support_detected": false,
+      "priority": "HIGH",
+      "confidence": "MEDIUM"
+    }
+  ]
+}

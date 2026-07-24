@@ -1,0 +1,43 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST03",
+  "generated_at": "2026-07-24T00:30:15.588Z",
+  "state_unit_count": 2,
+  "state_units": [
+    {
+      "name": "useFavorites",
+      "type": "HOOK",
+      "framework": "REACT",
+      "file_path": "frontend/src/layout/Sidebar.jsx",
+      "line_number": 16,
+      "query_library": "NONE",
+      "endpoints": [],
+      "optimistic_update_detected": false,
+      "rollback_detected": false,
+      "cache_invalidation_detected": false,
+      "storage_type": "localStorage",
+      "storage_key": "g_sidebar_favs",
+      "server_synced_detected": false,
+      "device_local_only": true,
+      "priority": "HIGH",
+      "confidence": "MEDIUM"
+    },
+    {
+      "name": "useRecentVisits",
+      "type": "HOOK",
+      "framework": "REACT",
+      "file_path": "frontend/src/layout/Sidebar.jsx",
+      "line_number": 37,
+      "query_library": "NONE",
+      "endpoints": [],
+      "optimistic_update_detected": false,
+      "rollback_detected": false,
+      "cache_invalidation_detected": false,
+      "storage_type": "localStorage",
+      "storage_key": "g_sidebar_recents",
+      "server_synced_detected": false,
+      "device_local_only": true,
+      "priority": "HIGH",
+      "confidence": "MEDIUM"
+    }
+  ]
+}

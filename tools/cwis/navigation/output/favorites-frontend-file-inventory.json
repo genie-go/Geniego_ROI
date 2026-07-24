@@ -1,0 +1,430 @@
+{
+  "specification_id": "CWIS-P004-U04-WS01-SP01-TK001-ST03",
+  "generated_at": "2026-07-24T00:30:15.588Z",
+  "file_count": 30,
+  "files": [
+    {
+      "file_path": "frontend/src/auth/planMenuPolicy.js",
+      "match_count": 3,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "menuAllowedByTier",
+        "recommendMenuAccess"
+      ],
+      "framework": "JAVASCRIPT",
+      "probable_type": "UNKNOWN",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/components/CctvManager.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "REACT",
+      "probable_type": "COMPONENT",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/components/OnboardingGuide.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "markWelcomed"
+      ],
+      "framework": "REACT",
+      "probable_type": "COMPONENT",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/components/dashboards/DashChannelKPI.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "end"
+      ],
+      "framework": "REACT",
+      "probable_type": "COMPONENT",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/constants/productNoticeTemplates.js",
+      "match_count": 1,
+      "keywords": [
+        "별표"
+      ],
+      "symbols": [],
+      "framework": "JAVASCRIPT",
+      "probable_type": "UNKNOWN",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/context/CollaborationContextProvider.jsx",
+      "match_count": 1,
+      "keywords": [
+        "storage_key"
+      ],
+      "symbols": [],
+      "framework": "REACT",
+      "probable_type": "STORE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/context/GlobalDataContext.jsx",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "buildInventoryFromRows",
+        "srvPnl"
+      ],
+      "framework": "REACT",
+      "probable_type": "STORE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/context/MenuVisibilityContext.jsx",
+      "match_count": 1,
+      "keywords": [
+        "storage_key"
+      ],
+      "symbols": [
+        "MenuVisibilityContext"
+      ],
+      "framework": "REACT",
+      "probable_type": "STORE",
+      "priority": "MEDIUM",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/data/demoSeedData.js",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "DEMO_SETTLEMENT"
+      ],
+      "framework": "JAVASCRIPT",
+      "probable_type": "UNKNOWN",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/data/planServiceGuide.js",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "JAVASCRIPT",
+      "probable_type": "UNKNOWN",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/layout/Sidebar.jsx",
+      "match_count": 19,
+      "keywords": [
+        "즐겨찾기",
+        "favorite",
+        "hook_pattern",
+        "storage_key",
+        "QuickAccessPanel",
+        "고정",
+        "action_pattern"
+      ],
+      "symbols": [
+        "useFavorites",
+        "useRecentVisits",
+        "itemHasAccess",
+        "QuickAccessPanel",
+        "Sidebar",
+        "handleLogout"
+      ],
+      "framework": "REACT",
+      "probable_type": "LAYOUT",
+      "priority": "HIGH",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/layout/sidebarMenuLabels.js",
+      "match_count": 1,
+      "keywords": [
+        "bookmark",
+        "북마크"
+      ],
+      "symbols": [],
+      "framework": "JAVASCRIPT",
+      "probable_type": "LAYOUT",
+      "priority": "HIGH",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/Admin.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "ADMIN_TOKEN"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/AdminGrowthCenter.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/AuthPage.jsx",
+      "match_count": 5,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/AutoMarketing.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "lbl"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/BudgetTracker.jsx",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "list"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/CRM.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "displayStats"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/CaseStudy.jsx",
+      "match_count": 9,
+      "keywords": [
+        "bookmark",
+        "북마크"
+      ],
+      "symbols": [
+        "tr",
+        "toggleBookmark",
+        "Card"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "HIGH",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/DemandForecast.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "cover"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/OnsiteCro.jsx",
+      "match_count": 4,
+      "keywords": [
+        "bookmark",
+        "북마크"
+      ],
+      "symbols": [
+        "del",
+        "openVisualEditor"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/OrderHub.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "handleStatusChange"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/PerformanceHub.jsx",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "chg",
+        "cog"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/PgConfig.jsx",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/PlanPricing.jsx",
+      "match_count": 3,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "publishMenuAccessSync",
+        "handleAddSeat"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/Settlements.jsx",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "downloadCSV"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/contentCalGuideI18n.js",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "B"
+      ],
+      "framework": "JAVASCRIPT",
+      "probable_type": "PAGE",
+      "priority": "MEDIUM",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/public/PricingPublic.jsx",
+      "match_count": 2,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "v"
+      ],
+      "framework": "REACT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/pages/rollupDemoDerive.js",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [],
+      "framework": "JAVASCRIPT",
+      "probable_type": "PAGE",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    },
+    {
+      "file_path": "frontend/src/utils/influencerAttribution.js",
+      "match_count": 1,
+      "keywords": [
+        "고정"
+      ],
+      "symbols": [
+        "applyAttribution"
+      ],
+      "framework": "JAVASCRIPT",
+      "probable_type": "UTILITY",
+      "priority": "IGNORE_CANDIDATE",
+      "possibly_generated": false
+    }
+  ]
+}
