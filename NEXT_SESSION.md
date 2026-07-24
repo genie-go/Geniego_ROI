@@ -1,5 +1,29 @@
 # NEXT_SESSION 인계서
 
+## ★★[292차] 협업 플랫폼 초고도화 + 카탈로그 B1/B2 + 협업 P0 내부정보 노출 제거 (2026-07-24)
+
+**상태: 커밋 10건·origin push 완료·운영+데모 배포·라이브 실검증(SQL/E2E) 완료**
+
+### 이 세션 완료·배포 (전부 라이브 검증)
+- **B1** 카탈로그 채널 컬럼(수집∪등록채널 표시) — `fc47ebd`
+- **B2** 다국어 상품 동기화 — Claude 15국 번역·`po_product_i18n`·writeback `lang` 치환·모달 언어선택 — `4ff89fb`. **컨트롤 라벨 15국 네이티브** i18n — `9917c14`. ★라이브: 한→일 실번역 확인(가짜 아님)
+- **A** 협업 워크스페이스(개인 hub·멘션 알림 파이프라인·통합 승인함) **전 구독플랜(viewer+)** — `c424087`·`5e74a94`
+- **협업 전면 재구성**: "개발 스펙 추적판"→팀 협업 플랫폼. **P0 내부정보 노출 제거**(toDTO 슬림=description/Part/키 제거·capability 그리드/진단/레지스트리 UI 제거)·`teamWorkspace`(팀/멤버/팀간협업 프로젝트, 업종무관, `/team-members` SSOT 동기화) — `91e569e`. ★라이브 실 teams=15
+- **협업 대화·공지 게시판**(`CollabBoard`: `collab_post/reply/reaction`·스코프 org/team/project·스레드·이모지 리액션·핀·@멘션) — `aa6d58b`. ★E2E PASS(운영 MySQL)
+- **플로팅 위젯 자유배치**(`useDraggable`: 챗봇·시작가이드 드래그 이동·위치 device-local 영속·선택메뉴 가림 해소) — `c106bf4`
+
+### ★미완 / 차기 우선순위
+1. ★★**실시간 인프라**(WS 실시간 채팅·프레즌스, CRDT 문서 공동편집, WebRTC 화상회의) — **정본 로드맵=`docs/COLLABORATION_REALTIME_ROADMAP.md`**. 위장(fake-green) 금지로 이번 세션 미구현. **인프라 도입 선행 필수**(자가호스팅 Swoole/Node-ws vs 관리형 Pusher/Ably — 사용자 승인 게이트). **P1 준실시간 폴링**은 인프라 0으로 즉시 착수 가능(단 "실시간" 표기 금지·"자동 새로고침"으로 정직 표기).
+2. 협업 후보(미착수): 게시판/태스크 **통합 검색** · **협업 분석 대시보드**
+3. 실시간 착수 시 capability 전이: `messaging/presence/document/meeting` PLANNED→(인프라 후)PARTIAL→ENABLED. **인프라 없이 ENABLED 승격 금지**.
+
+### 트랩/교훈(정본화)
+- ★**MySQL 컬레이션**: `app_user`(utf8mb4_0900) ↔ `pm_*`(utf8mb4_unicode) 문자열 JOIN=`1267 Illegal mix of collations`. **바인딩 리터럴/`+0` 수치비교로 우회**. `app_user.dept` 컬럼 운영 부재. **로컬 SQLite 통과해도 운영 실패 → 라이브 실측 필수**. → 메모리 `reference_mysql_collation_mismatch_join`
+- ★**i18n page-local shadow**: 로케일당 `catalogSync` 블록 2개(root 2-space + CRM shadow 6-space). `deepGet(root,path)`는 **root만 해석** → 신규 키는 `root.catalogSync`(=`{"brand"` 앵커)에만 삽입. ja/zh 순수추가 후 sacred SHA baseline 갱신.
+- ★**협업 capability 레지스트리 = 내부 개발정보 노출 금지**: 키·CWIS Part·테이블/클래스/API/인증방식 UI 노출 금지. 비즈니스 라벨만(프론트 `CAP_BIZ`) + 백엔드 DTO 슬림.
+
+---
+
 ## ★★[290차후속-2] **CWIS Part004-04 즐겨찾기 — Option A 배포 + SP02-TK002 계열 종결** (2026-07-24)
 
 **상태: 커밋 6건(이 세션) · origin push 완료 · 운영+데모 프론트 배포·라이브 실검증(playwright) 완료 · SP02-TK002 6계열 CLOSED**
